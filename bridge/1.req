@@ -1,0 +1,2 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<VISUALXML VERSION="1.0"><GROUP ID="Header"><GROUP ID="Version"><ITEM ID="Hi" TYPE="Integer">1</ITEM><ITEM ID="Lo" TYPE="Integer">1</ITEM></GROUP></GROUP><GROUP ID="Action"><ITEM ID="ID" TYPE="String">LOGIN</ITEM></GROUP><GROUP ID="Client"><ITEM ID="IP" TYPE="String">10.0.2.15</ITEM></GROUP></VISUALXML>

@@ -1,0 +1,19 @@
+set up HTTP server
+configure number of courts
+show finished matches
+allow to enter bup to finished match
+websocket conn for bup clients
+
+display one/all courts
+
+add btp bridge
+	protocol is: 4 bytes big endian packet size
+	gzip rest
+
+
+
+
+make an android app
+	bup
+	wakelock
+	automatically find server IP
