@@ -12,3 +12,11 @@ html, body {
 	background: rgba(255, 255, 255, 0.8);
 	font-size: 50px;
 }
+
+.status {
+	position: fixed;
+	bottom: 0;
+	right: 0;
+	color: #666;
+	background: rgba(255, 255, 255, 0.8);
+}

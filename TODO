@@ -1,5 +1,6 @@
 create tournament
 configure number of courts
+
 show finished matches
 allow to enter bup to finished match
 websocket conn for bup clients
