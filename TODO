@@ -1,4 +1,4 @@
-set up HTTP server
+create tournament
 configure number of courts
 show finished matches
 allow to enter bup to finished match
@@ -17,3 +17,7 @@ make an android app
 	bup
 	wakelock
 	automatically find server IP
+
+
+-----
+auth?

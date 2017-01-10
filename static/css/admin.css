@@ -1,0 +1,14 @@
+html, body {
+	font-size: 16px;
+	font-family: 'Droid Sans', Arial, sans-serif;
+}
+
+.connecting {
+	position: fixed;
+	top: 45%;
+	left: 0;
+	right: 0;
+	text-align: center;
+	background: rgba(255, 255, 255, 0.8);
+	font-size: 50px;
+}
