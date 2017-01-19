@@ -15,6 +15,7 @@ add btp bridge
 
 
 
+eslint: forbid console in static
 make an android app
 	bup
 	wakelock

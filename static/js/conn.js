@@ -19,6 +19,7 @@ function _construct_url(abspath) {
 
 function handle_message(ws_msg) {
     var msg_json = ws_msg.data;
+    console.log('>', msg_json)
     var msg = JSON.parse(msg_json);
     if (!msg) {
         send({

@@ -29,23 +29,28 @@ function ui_connect() {
 }
 
 function on_connect() {
-	c.send({
-		type: 'tournament_list',
-	}, function(err, list) {
-		console.log('err/list', err, list);
-	});
+	ctournament.init();
 }
 
+function send(msg, cb) {
+	c.send(msg, cb);
+}
 
 return {
 	ui_connect: ui_connect,
+	send: send,
 };
 
 })();
 
+function send(msg, cb) {
+	conn_ui.send(msg, cb);
+}
+
 /*@DEV*/
 if ((typeof module !== 'undefined') && (typeof require !== 'undefined')) {
 	var conn = require('./conn');
+	var ctournament = require('./ctournament');
 	var uiu = null; // UI only
 
 	module.exports = conn_ui;
