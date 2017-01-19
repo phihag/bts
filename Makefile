@@ -23,6 +23,6 @@ run:
 lint: eslint
 
 eslint:
-	@eslint *.js test/*.js
+	@eslint *.js test/*.js static/js/
 
 .PHONY: default help deps test clean install-libs force-install-libs run-server cleantestcache lint jshint eslint

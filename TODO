@@ -4,6 +4,7 @@ configure number of courts
 show finished matches
 allow to enter bup to finished match
 websocket conn for bup clients
+keepalives
 
 display one/all courts
 
@@ -19,6 +20,8 @@ make an android app
 	wakelock
 	automatically find server IP
 
+all courts
+online display server
 
 -----
 auth?

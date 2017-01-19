@@ -1,5 +1,5 @@
 'use strict';
-var error = (function() {
+var on_error = (function() {
 var error_list = [];
 
 function report(message) {
