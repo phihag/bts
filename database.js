@@ -6,13 +6,17 @@ const utils = require('./utils');
 
 function init(callback) {
 	var db = {};
+	const TABLES = [
+		'matches',
+		'tournaments',
+	];
 
 	var db_dir = __dirname + '/data';
 	if (! fs.existsSync(db_dir)) {
 		fs.mkdirSync(db_dir);
 	}
 
-	['tournaments', 'matches'].forEach(function(key) {
+	TABLES.forEach(function(key) {
 		db[key] = new Datastore({filename: db_dir + '/' + key, autoload: true});
 	});
 
@@ -28,6 +32,8 @@ function init(callback) {
 
 	async.parallel([function(cb) {
 		setup_autonum(cb, db, 'matches');
+	}, function(cb) {
+		setup_autonum(cb, db, 'tournaments');
 	}], function(err) {
 		if (err) {
 			throw err;

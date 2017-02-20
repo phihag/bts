@@ -1,16 +1,22 @@
 create tournament
-configure number of courts
 
+configure number of courts
+set current matches
 show finished matches
-allow to enter bup to finished match
+
 websocket conn for bup clients
 keepalives
 
-display one/all courts
-
-add btp bridge
+configure BTP address
+connect to BTP and read numer of courts
 	protocol is: 4 bytes big endian packet size
 	gzip rest
+
+
+allow to enter bup to finished match
+
+display one/all courts
+
 
 
 

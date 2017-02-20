@@ -7,7 +7,12 @@ function report(message) {
 	uiu.show_qs('.errors', error_list.join('\n'));
 }
 
+function show(err) {
+	report(err.message);
+}
+
 return {
+	show: show,
 	report: report,
 };
 
