@@ -13,7 +13,9 @@
 		"ws": "*"
 	},
 	"devDependencies": {
-		"mocha": "*"
+		"mocha": "*",
+		"eslint": "*",
+		"stylelint": "*"
 	},
 	"private": true
 }
