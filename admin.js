@@ -1,5 +1,7 @@
 'use strict';
 
+const utils = require('./utils');
+
 function handle_keepalive(app, ws, msg) {
 	// TODO
 }
@@ -9,6 +11,22 @@ function handle_tournament_list(app, ws, msg) {
 		ws.respond(msg, err, {
 			tournaments: tournaments,
 		});
+	});
+}
+
+function handle_tournament_edit(app, ws, msg) {
+	if (! msg.key) {
+		return ws.respond(msg, {message: 'Missing key'});
+	}
+	if (! msg.change) {
+		return ws.respond(msg, {message: 'Missing change'});
+	}
+
+	const key = msg.key;
+	const change = utils.pluck(msg.change, ['name']);
+
+	app.db.tournaments.update({key}, {$set: change}, {returnUpdatedDocs: true}, function(err, num, tournament) {
+		ws.respond(msg, err, {tournament});
 	});
 }
 
@@ -22,9 +40,7 @@ function handle_tournament_get(app, ws, msg) {
 			err = {message: 'No tournament ' + msg.key};
 		}
 
-		ws.respond(msg, err, {
-			tournament: tournament,
-		});
+		ws.respond(msg, err, {tournament});
 	});
 }
 
@@ -56,6 +72,7 @@ module.exports = {
 	handle_create_tournament,
 	handle_tournament_get,
 	handle_tournament_list,
+	handle_tournament_edit,
 	on_close,
 	on_connect,
 };

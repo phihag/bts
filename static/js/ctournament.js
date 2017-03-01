@@ -141,7 +141,25 @@ function ui_edit() {
 	uiu.create_el(name_label, 'input', {
 		type: 'text',
 		name: 'name',
+		required: 'required',
 		value: curt.name || curt.key,
+	});
+
+	uiu.create_el(form, 'button', {
+		role: 'submit',
+	}, 'Ändern');
+	form_utils.onsubmit(form, function(data) {
+		send({
+			type: 'tournament_edit',
+			key: curt.key,
+			change: {name: data.name},
+		}, function(err, response) {
+			if (err) {
+				return on_error.show(err);
+			}
+			switch_tournament(response.tournament);
+			ui_show();
+		});
 	});
 }
 _route_single(/t\/([a-z0-9]+)\/edit$/, ui_edit);
