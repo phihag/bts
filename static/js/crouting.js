@@ -65,9 +65,9 @@ function _set_path(new_path) {
 function init() {
 	path_prefix = document.getElementById('bts-data-holder').getAttribute('data-app-root');
 
-	window.addEventListener('onpopstate', function(e) {
-		console.log('TODO: back/forward: ', e);
-	});
+	window.onpopstate = function() {
+		_load(location.pathname);
+	};
 
 	_load(window.location.pathname);
 }
