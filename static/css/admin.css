@@ -1,6 +1,12 @@
 html, body {
-	font-size: 16px;
+	margin: 0;
+	padding: 0;
+	font-size: 20px;
 	font-family: 'Droid Sans', Arial, sans-serif;
+}
+
+.main {
+	padding: 0 0 0 1em;
 }
 
 .connecting {
@@ -19,4 +25,35 @@ html, body {
 	right: 0;
 	color: #666;
 	background: rgba(255, 255, 255, 0.8);
+}
+
+.errors {
+	position: fixed;
+	bottom: 0;
+	left: 0;
+	color: #f00;
+	background: rgba(255, 255, 255, 0.8);
+}
+
+.vlink {
+	color: #0000EE;
+	cursor: pointer;
+}
+.vlink:hover {
+	text-decoration: underline;
+}
+
+.uneditable {
+	cursor: not-allowed;
+}
+
+.tournament_settings_link {
+	float: right;
+}
+.tournament_settings > label {
+	display: block;
+}
+.tournament_settings > label > span {
+	display: inline-block;
+	min-width: 5em;
 }

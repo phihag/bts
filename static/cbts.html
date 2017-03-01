@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8" />
+<title>Badminton Tournament Server</title>
+<link rel="stylesheet" href="{{static_path}}css/admin.css" />
+<link rel="stylesheet" href="{{static_path}}css/toprow.css" />
+</head>
+<body id="bts-data-holder" data-app-root="{{app_root}}">
+
+<div class="connecting">Verbindung wird hergestellt ...</div>
+
+
+<div class="toprow"></div>
+
+<div class="main"></div>
+
+<div class="errors"></div>
+<div class="status"></div>
+
+<!-- routing must go first -->
+<script src="{{static_path}}js/crouting.js"></script>
+
+<!-- only used for bup -->
+<script src="{{root_path}}bup/bup/libs/jquery.min.js"></script>
+<script src="{{root_path}}bup/bup/js/uiu.js"></script>
+<script src="{{root_path}}bup/bup/js/utils.js"></script>
+
+<script src="{{static_path}}js/cadmin.js"></script>
+<script src="{{static_path}}js/conn.js"></script>
+<script src="{{static_path}}js/conn_ui.js"></script>
+<script src="{{static_path}}js/ctournament.js"></script>
+<script src="{{static_path}}js/form_utils.js"></script>
+<script src="{{static_path}}js/on_error.js"></script>
+<script src="{{static_path}}js/toprow.js"></script>
+
+</body>
+</html>

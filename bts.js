@@ -1,6 +1,7 @@
 'use strict';
 
 const fs = require('fs');
+const path = require('path');
 const url = require('url');
 
 const ws_module = require('ws');
@@ -21,6 +22,25 @@ function main() {
 	});
 }
 
+function cadmin_router() {
+	const router = express.Router()
+	router.use(function(req, res, next) {
+		fs.readFile(path.join(__dirname, 'static/cbts.html'), 'utf8', function(err, html) {
+			if (err) return next(err);
+			res.set('Content-Type: text/html');
+			res.set('Cache-Control: no-cache, no-store, must-revalidate');
+			res.set('Pragma: no-cache');
+			res.set('Expires: 0');
+
+			html = html.replace(/{{static_path}}/g, '/static/');
+			html = html.replace(/{{root_path}}/g, '/');
+			html = html.replace(/{{app_root}}/g, '/admin/');
+			res.send(html);
+		});
+	});
+	return router;
+}
+
 function run_server(config, db) {
 	const server = require('http').createServer();
 	const app = express();
@@ -29,8 +49,12 @@ function run_server(config, db) {
 	app.config = config;
 	app.db = db;
 	app.wss = wss;
-	app.use('/bup', express.static('static/bup', {index: 'bup.html'}));
-	app.use('/', express.static('static/', {index: 'index.html'}));
+	app.use('/bup', express.static(config.bup_location, {index: config.bup_index}));
+	app.use('/static/', express.static('static/', {}));
+	app.use('/admin/', cadmin_router());
+	app.get('/', function(req, res) {
+		res.redirect('/admin/');
+	});
 
 	wss.on('connection', function connection(ws) {
 		const location = url.parse(ws.upgradeReq.url, true);

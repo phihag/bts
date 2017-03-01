@@ -1,6 +1,6 @@
 'use strict';
 
-var conn_ui = (function() {
+const conn_ui = (function() {
 var c = conn(ui_on_status);
 
 function ui_on_status(status) {
@@ -29,7 +29,7 @@ function ui_connect() {
 }
 
 function on_connect() {
-	ctournament.init();
+	crouting.init();
 }
 
 function send(msg, cb) {
@@ -49,9 +49,9 @@ function send(msg, cb) {
 
 /*@DEV*/
 if ((typeof module !== 'undefined') && (typeof require !== 'undefined')) {
-	var conn = require('./conn');
-	var ctournament = require('./ctournament');
-	var uiu = null; // UI only
+	const conn = require('./conn');
+	const ctournament = require('./ctournament');
+	const uiu = null; // UI only
 
 	module.exports = conn_ui;
 }

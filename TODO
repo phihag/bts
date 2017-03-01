@@ -1,10 +1,20 @@
-create tournament
+implement router for /admin/
 
-configure number of courts
+button settings
+set tournament name
+set BTP info
+configure courts
+
+add matches
+edit matches
+move match to court
+websocket conn for bup clients
+bup start on court
+delete matches (with proper warning)
+
 set current matches
 show finished matches
 
-websocket conn for bup clients
 keepalives
 
 configure BTP address
@@ -17,11 +27,11 @@ allow to enter bup to finished match
 
 display one/all courts
 
-
-
-
-
+set up travis
+eslint -> 0
+stylelint -> 0
 eslint: forbid console in static
+
 make an android app
 	bup
 	wakelock

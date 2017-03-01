@@ -1,3 +1,5 @@
 {
-	"port": 4000
+	"port": 4000,
+	"bup_location": "static/bup",
+	"bup_index": "bup.html"
 }

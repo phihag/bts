@@ -4,7 +4,8 @@ var error_list = [];
 
 function report(message) {
 	error_list.push(message);
-	uiu.show_qs('.errors', error_list.join('\n'));
+	uiu.show_qs('.errors');
+	uiu.text_qs('.errors', error_list.join('\n'));
 }
 
 function show(err) {

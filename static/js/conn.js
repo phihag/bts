@@ -34,9 +34,14 @@ function handle_message(ws_msg) {
         if (! cb) {
             return;
         }
-        cb(null, msg);
+        if (cb(null, msg) !== 'keep') {
+            delete callback_handlers[msg.rid];
+        }
         break;
     case 'error':
+        if (msg.rid && callback_handlers[msg.rid]) {
+            delete callback_handlers[msg.rid];
+        }
         on_status({
             code: 'error',
             message: 'Received error message from BTS: ' + msg.message,
