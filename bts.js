@@ -7,16 +7,26 @@ const url = require('url');
 const ws_module = require('ws');
 const express = require('express');
 
-const database = require('./database');
-const wshandler = require('./wshandler');
 const admin = require('./admin');
 const bupws = require('./bupws');
+const database = require('./database');
+const error_reporting = require('./error_reporting');
+const wshandler = require('./wshandler');
 
-function main() {
+function read_config(callback) {
 	fs.readFile('config.json', 'utf8', (err, config_json) => {
-		if (err) throw err;
+		if (err) return callback(err);
 
 		const config = JSON.parse(config_json);
+		callback(err, config);
+	});
+}
+
+function main() {
+	read_config((err, config) => {
+		if (err) throw err;
+
+		error_reporting.setup(config);
 
 		database.init(db => run_server(config, db));
 	});
@@ -32,6 +42,7 @@ function cadmin_router() {
 			res.set('Pragma: no-cache');
 			res.set('Expires: 0');
 
+			html = html.replace(/{{error_reporting}}/g, JSON.stringify(error_reporting.active(req.app.config)));
 			html = html.replace(/{{static_path}}/g, '/static/');
 			html = html.replace(/{{root_path}}/g, '/');
 			html = html.replace(/{{app_root}}/g, '/admin/');

@@ -1,5 +1,7 @@
-set tournament name
 configure courts
+	add a number of courts
+	show all courts
+	delete court (ask before)
 
 add matches
 edit matches

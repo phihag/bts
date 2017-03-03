@@ -1,15 +1,37 @@
 'use strict';
 
+const async = require('async');
+
 const utils = require('./utils');
 
 function handle_keepalive(app, ws, msg) {
 	// TODO
 }
 
+function _tournament_get_courts(db, tournament_key, callback) {
+	db.courts.find({tournament_key: tournament_key}, function(err, courts) {
+		if (err) return callback(err);
+
+		courts.sort(function(c1, c2) {
+			return utils.natcmp(c1.num, c2.num);
+		});
+		return callback(err, courts);
+	})
+}
+
 function handle_tournament_list(app, ws, msg) {
 	app.db.tournaments.find({}, function(err, tournaments) {
-		ws.respond(msg, err, {
-			tournaments: tournaments,
+		async.map(tournaments, function(t, cb) {
+			_tournament_get_courts(app.db, t.key, function(err, courts) {
+				if (err) return cb(err);
+
+				t.courts = courts;
+				cb(null, t);
+			});
+		}, function(err, tournaments) {
+			ws.respond(msg, err, {
+				tournaments,
+			});			
 		});
 	});
 }
@@ -26,7 +48,14 @@ function handle_tournament_edit(app, ws, msg) {
 	const change = utils.pluck(msg.change, ['name']);
 
 	app.db.tournaments.update({key}, {$set: change}, {returnUpdatedDocs: true}, function(err, num, tournament) {
-		ws.respond(msg, err, {tournament});
+		if (err) {
+			ws.respond(msg, err);
+			return;
+		}
+		_tournament_get_courts(app.db, tournament.key, function(err, courts) {
+			tournament.courts = courts;
+			ws.respond(msg, err, {tournament});
+		});
 	});
 }
 
@@ -39,8 +68,15 @@ function handle_tournament_get(app, ws, msg) {
 		if (!err && !tournament) {
 			err = {message: 'No tournament ' + msg.key};
 		}
+		if (err) {
+			ws.respond(msg, err);
+			return;
+		}
 
-		ws.respond(msg, err, {tournament});
+		_tournament_get_courts(app.db, tournament.key, function(err, courts) {
+			tournament.courts = courts;
+			ws.respond(msg, err, {tournament});
+		});
 	});
 }
 
@@ -54,7 +90,14 @@ function handle_create_tournament(app, ws, msg) {
 	};
 
 	app.db.tournaments.insert(t, function(err, inserted_t) {
-		ws.respond(msg, err, inserted_t);
+		if (err) {
+			ws.respond(msg, err);
+			return;
+		}
+		_tournament_get_courts(app.db, inserted_t.key, function(err, courts) {
+			inserted_t.courts = courts;
+			ws.respond(msg, err, inserted_t);
+		});
 	});
 }
 

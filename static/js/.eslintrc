@@ -24,5 +24,6 @@
     "globals": {
         "state": true,
         "send": true
-    }
+    },
+    "extends": "eslint:recommended"
 }

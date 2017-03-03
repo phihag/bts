@@ -30,7 +30,7 @@ function handle_message(ws_msg) {
 
     switch (msg.type) {
     case 'answer':
-        var cb = callback_handlers[msg.rid];
+        const cb = callback_handlers[msg.rid];
         if (! cb) {
             return;
         }
@@ -39,8 +39,13 @@ function handle_message(ws_msg) {
         }
         break;
     case 'error':
-        if (msg.rid && callback_handlers[msg.rid]) {
-            delete callback_handlers[msg.rid];
+        if (msg.rid) {
+            const cb = callback_handlers[msg.rid];
+            if (cb) {
+                if (cb(msg) !== 'keep') {
+                    delete callback_handlers[msg.rid];
+                }
+            }
         }
         on_status({
             code: 'error',
@@ -90,7 +95,7 @@ function send(msg, cb) {
     if (cb) {
         callback_handlers[msg.rid] = cb;
     }
-    var msg_json = JSON.stringify(msg);
+    const msg_json = JSON.stringify(msg);
     console.log('<', msg_json);
     ws.send(msg_json);
 }

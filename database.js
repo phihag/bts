@@ -7,6 +7,7 @@ const utils = require('./utils');
 function init(callback) {
 	var db = {};
 	const TABLES = [
+		'courts',
 		'matches',
 		'tournaments',
 	];

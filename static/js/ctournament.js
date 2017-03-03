@@ -23,19 +23,20 @@ function ui_create() {
 	const main = uiu.qs('.main');
 
 	uiu.empty(main);
-	const form = uiu.create_el(main, 'form');
-	uiu.create_el(form, 'h2', {}, 'Turnier erstellen');
-	const id_label = uiu.create_el(form, 'label', {}, 'Turnier-ID:');
-	uiu.create_el(id_label, 'input', {
+	const form = uiu.el(main, 'form');
+	uiu.el(form, 'h2', {}, 'Turnier erstellen');
+	const id_label = uiu.el(form, 'label', {}, 'Turnier-ID:');
+	const key_input = uiu.el(id_label, 'input', {
 		type: 'text',
 		name: 'key',
 		autofocus: 'autofocus',
 		required: 'required',
 		pattern: '^[a-z0-9]+$',
 	});
-	uiu.create_el(form, 'button', {
+	uiu.el(form, 'button', {
 		role: 'submit',
 	}, 'Turnier erstellen');
+	key_input.focus();
 
 	form_utils.onsubmit(form, function(data) {
 		send({
@@ -74,16 +75,16 @@ crouting.register(/t\/$/, ui_list);
 function list_show(tournaments) {
 	const main = uiu.qs('.main');
 	uiu.empty(main);
-	const h1 = uiu.create_el(main, 'h1', {}, 'Turniere');
+	const h1 = uiu.el(main, 'h1', {}, 'Turniere');
 	tournaments.forEach(function(t) {
-		const link = uiu.create_el(main, 'div', 'vlink', t.name || t.key);
+		const link = uiu.el(main, 'div', 'vlink', t.name || t.key);
 		link.addEventListener('click', function() {
 			switch_tournament(t);
 			ui_show();
 		});
 	});
 
-	const create_btn = uiu.create_el(main, 'button', {
+	const create_btn = uiu.el(main, 'button', {
 		role: 'button',
 	}, 'Turnier erstellen ...');
 	create_btn.addEventListener('click', ui_create);
@@ -101,10 +102,10 @@ function ui_show() {
 
 	const main = uiu.qs('.main');
 	uiu.empty(main);
-	const settings_btn = uiu.create_el(main, 'div', 'tournament_settings_link vlink', 'Turnier bearbeiten');
+	const settings_btn = uiu.el(main, 'div', 'tournament_settings_link vlink', 'Turnier bearbeiten');
 	settings_btn.addEventListener('click', ui_edit);
 
-	uiu.create_el(main, 'h1', 'tournament_name', curt.name || curt.key);
+	uiu.el(main, 'h1', 'tournament_name', curt.name || curt.key);
 }
 _route_single(/t\/([a-z0-9]+)\/$/, ui_show);
 
@@ -124,10 +125,10 @@ function ui_edit() {
 	const main = uiu.qs('.main');
 	uiu.empty(main);
 
-	const form = uiu.create_el(main, 'form', 'tournament_settings');
-	const key_label = uiu.create_el(form, 'label');
-	uiu.create_el(key_label, 'span', {}, 'Turnier-Id:');
-	uiu.create_el(key_label, 'input', {
+	const form = uiu.el(main, 'form', 'tournament_settings');
+	const key_label = uiu.el(form, 'label');
+	uiu.el(key_label, 'span', {}, 'Turnier-Id:');
+	uiu.el(key_label, 'input', {
 		type: 'text',
 		name: 'key',
 		readonly: 'readonly',
@@ -136,16 +137,15 @@ function ui_edit() {
 		'class': 'uneditable',
 		value: curt.key,
 	});
-	const name_label = uiu.create_el(form, 'label');
-	uiu.create_el(name_label, 'span', {}, 'Name:');
-	uiu.create_el(name_label, 'input', {
+	const name_label = uiu.el(form, 'label');
+	uiu.el(name_label, 'span', {}, 'Name:');
+	uiu.el(name_label, 'input', {
 		type: 'text',
 		name: 'name',
 		required: 'required',
 		value: curt.name || curt.key,
 	});
-
-	uiu.create_el(form, 'button', {
+	uiu.el(form, 'button', {
 		role: 'submit',
 	}, 'Ändern');
 	form_utils.onsubmit(form, function(data) {
@@ -159,6 +159,55 @@ function ui_edit() {
 			}
 			switch_tournament(response.tournament);
 			ui_show();
+		});
+	});
+
+	uiu.el(main, 'h2', {}, 'Courts');
+
+	const courts_table = uiu.el(main, 'table');
+	const courts_tbody = uiu.el(courts_table, 'tbody');
+	for (const courts of curt.courts) {
+		const tr = uiu.el(courts_tbody, 'tr');
+		uiu.el(tr, 'th', {}, court.num);
+		uiu.el(tr, 'td', {}, court.name || '');
+		const actions_td = uiu.el(tr, 'td', {});
+		// TODO delete
+	}
+
+	const nums = curt.courts.map(c => parseInt(c.num));
+	const maxnum = Math.max(0, Math.max.apply(null, nums));
+
+	const courts_add_form = uiu.el(main, 'form');
+	uiu.el(courts_add_form, 'input', {
+		type: 'number',
+		name: 'count',
+		min: 1,
+		max: 99,
+		value: 1,
+	});
+	const courts_add_button = uiu.el(courts_add_form, 'button', {
+		role: 'button',
+	}, '.. Courts hinzufügen');
+	form_utils.onsubmit(courts_add_form, function(data) {
+		courts_add_button.setAttribute('disabled', 'disabled');
+		const court_count = parseInt(data.count);
+		const nums = [];
+		for (let court_num = maxnum + 1;court_num <= maxnum + court_count;court_num++) {
+			nums.push(court_num);
+		}
+
+		send({
+			type: 'courts_add',
+			tournament_key: curt.key,
+			nums,
+		}, function(err, response) {
+			if (err) {
+				console.log('courts_add failed');
+				courts_add_button.removeAttribute('disabled');
+				return on_error.show(err);
+			}
+			switch_tournament(response.tournament);
+			ui_edit();
 		});
 	});
 }

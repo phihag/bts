@@ -1,5 +1,6 @@
 {
 	"port": 4000,
 	"bup_location": "static/bup",
-	"bup_index": "bup.html"
+	"bup_index": "bup.html",
+	"report_errors": false
 }

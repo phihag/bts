@@ -33,6 +33,7 @@ html, body {
 	left: 0;
 	color: #f00;
 	background: rgba(255, 255, 255, 0.8);
+	white-space: pre-wrap;
 }
 
 .vlink {
