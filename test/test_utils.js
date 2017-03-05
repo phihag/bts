@@ -1,11 +1,16 @@
 'use strict';
 
-var assert = require('assert');
+const assert = require('assert');
 
-var utils = require('../utils');
+const tutils = require('./tutils.js');
+const _describe = tutils._describe;
+const _it = tutils._it;
 
-describe('utils', function() {
-	it('size', function() {
+const utils = require('../utils');
+
+
+_describe('utils', function() {
+	_it('size', function() {
 		assert.deepStrictEqual(utils.size({}), 0);
 		assert.deepStrictEqual(utils.size({
 			a: 0,

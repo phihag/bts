@@ -33,7 +33,7 @@ function main() {
 }
 
 function cadmin_router() {
-	const router = express.Router()
+	const router = express.Router();
 	router.use(function(req, res, next) {
 		fs.readFile(path.join(__dirname, 'static/cbts.html'), 'utf8', function(err, html) {
 			if (err) return next(err);

@@ -22,6 +22,7 @@ function init(callback) {
 	});
 
 	db.tournaments.ensureIndex({fieldName: 'key', unique: true});
+	db.courts.ensureIndex({fieldName: 'tournament_key', unique: false});
 
 	db.fetch_all = function() {
 		var args = [db];

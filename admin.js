@@ -4,19 +4,15 @@ const async = require('async');
 
 const utils = require('./utils');
 
-function handle_keepalive(app, ws, msg) {
-	// TODO
-}
-
 function _tournament_get_courts(db, tournament_key, callback) {
 	db.courts.find({tournament_key: tournament_key}, function(err, courts) {
 		if (err) return callback(err);
 
 		courts.sort(function(c1, c2) {
-			return utils.natcmp(c1.num, c2.num);
+			return utils.natcmp(('' + c1.num), ('' + c2.num));
 		});
 		return callback(err, courts);
-	})
+	});
 }
 
 function handle_tournament_list(app, ws, msg) {
@@ -56,6 +52,26 @@ function handle_tournament_edit(app, ws, msg) {
 			tournament.courts = courts;
 			ws.respond(msg, err, {tournament});
 		});
+	});
+}
+
+function handle_courts_add(app, ws, msg) {
+	if (! msg.tournament_key) {
+		return ws.respond(msg, {message: 'Missing tournament_key'});
+	}
+	if (! msg.nums) {
+		return ws.respond(msg, {message: 'Missing nums'});
+	}
+
+	const added_courts = msg.nums.map(num => {
+		return {
+			_id: msg.tournament_key + '_' + num,
+			tournament_key: msg.tournament_key,
+			num,
+		};
+	});
+	app.db.courts.insert(added_courts, function(err) {
+		ws.respond(msg, err, {added_courts});
 	});
 }
 
@@ -101,7 +117,7 @@ function handle_create_tournament(app, ws, msg) {
 	});
 }
 
-function on_connect(app, ws) {
+function on_connect(/*app, ws*/) {
 	// Ignore for now: nice to know that you're connected, but has no effect on system state
 	// We could initialize state here though, by attaching it to ws
 }
@@ -113,6 +129,7 @@ function on_close() {
 
 module.exports = {
 	handle_create_tournament,
+	handle_courts_add,
 	handle_tournament_get,
 	handle_tournament_list,
 	handle_tournament_edit,

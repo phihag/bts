@@ -1,7 +1,7 @@
 'use strict';
 
-function handle(app, ws) {
-
+function handle(/*app, ws*/) {
+	// TODO do something
 }
 
 function on_close() {
@@ -13,6 +13,7 @@ function on_connect() {
 }
 
 module.exports = {
+	handle,
 	on_close,
 	on_connect,
 };

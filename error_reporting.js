@@ -2,7 +2,6 @@
 
 const child_process = require('child_process');
 const path = require('path');
-const request = require('request');
 
 function handle_error(err) {
 	const msg_json = JSON.stringify({

@@ -1,6 +1,6 @@
 'use strict';
 
-const ctournament = (function() {
+var ctournament = (function() {
 var curt; // current tournament
 
 function _route_single(rex, func) {
@@ -10,7 +10,7 @@ function _route_single(rex, func) {
 			key: m[1],
 		}, function(err, response) {
 			if (err) {
-				return on_error.show(err);
+				return cerror.net(err);
 			}
 
 			switch_tournament(response.tournament);
@@ -65,7 +65,7 @@ function ui_list() {
 		type: 'tournament_list',
 	}, function(err, response) {
 		if (err) {
-			return on_error.show(err);
+			return cerror.net(err);
 		}
 		list_show(response.tournaments);
 	});
@@ -75,7 +75,7 @@ crouting.register(/t\/$/, ui_list);
 function list_show(tournaments) {
 	const main = uiu.qs('.main');
 	uiu.empty(main);
-	const h1 = uiu.el(main, 'h1', {}, 'Turniere');
+	uiu.el(main, 'h1', {}, 'Turniere');
 	tournaments.forEach(function(t) {
 		const link = uiu.el(main, 'div', 'vlink', t.name || t.key);
 		link.addEventListener('click', function() {
@@ -155,7 +155,7 @@ function ui_edit() {
 			change: {name: data.name},
 		}, function(err, response) {
 			if (err) {
-				return on_error.show(err);
+				return cerror.net(err);
 			}
 			switch_tournament(response.tournament);
 			ui_show();
@@ -166,12 +166,21 @@ function ui_edit() {
 
 	const courts_table = uiu.el(main, 'table');
 	const courts_tbody = uiu.el(courts_table, 'tbody');
-	for (const courts of curt.courts) {
+	for (const c of curt.courts) {
 		const tr = uiu.el(courts_tbody, 'tr');
-		uiu.el(tr, 'th', {}, court.num);
-		uiu.el(tr, 'td', {}, court.name || '');
+		uiu.el(tr, 'th', {}, c.num);
+		uiu.el(tr, 'td', {}, c.name || '');
 		const actions_td = uiu.el(tr, 'td', {});
-		// TODO delete
+		const del_btn = uiu.el(actions_td, 'button', {
+			'data-court-id': c._id,
+		}, 'Löschen');
+		del_btn.addEventListener('click', function(e) {
+			const del_btn = e.target;
+			const court_id = del_btn.getAttribute('data-court-id');
+			if (prompt('Court ' + court_id + ' wirklich löschen?')) {
+				debug.log('TODO: would now delete court');
+			}
+		});
 	}
 
 	const nums = curt.courts.map(c => parseInt(c.num));
@@ -202,11 +211,10 @@ function ui_edit() {
 			nums,
 		}, function(err, response) {
 			if (err) {
-				console.log('courts_add failed');
 				courts_add_button.removeAttribute('disabled');
-				return on_error.show(err);
+				return cerror.net(err);
 			}
-			switch_tournament(response.tournament);
+			Array.prototype.push.apply(curt.courts, response.added_courts);
 			ui_edit();
 		});
 	});
@@ -218,7 +226,7 @@ function init() {
 		type: 'tournament_list',
 	}, function(err, response) {
 		if (err) {
-			return on_error.show(err);
+			return cerror.net(err);
 		}
 
 		const tournaments = response.tournaments;
@@ -242,6 +250,12 @@ return {
 
 /*@DEV*/
 if ((typeof module !== 'undefined') && (typeof require !== 'undefined')) {
+	var cerror = require('./cerror');
+	var crouting = require('./crouting');
+	var debug = require('./debug');
+	var form_utils = require('./form_utils');
+	var toprow = require('./toprow');
+	var uiu = require('../bup/js/uiu');
 
     module.exports = ctournament;
 }

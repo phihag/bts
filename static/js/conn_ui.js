@@ -43,15 +43,15 @@ return {
 
 })();
 
-function send(msg, cb) {
+function send(msg, cb) { // eslint-disable-line no-unused-vars
 	conn_ui.send(msg, cb);
 }
 
 /*@DEV*/
 if ((typeof module !== 'undefined') && (typeof require !== 'undefined')) {
-	const conn = require('./conn');
-	const ctournament = require('./ctournament');
-	const uiu = null; // UI only
+	var conn = require('./conn');
+	var crouting = require('./crouting');
+	var uiu = null; // UI only
 
 	module.exports = conn_ui;
 }

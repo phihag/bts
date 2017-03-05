@@ -5,7 +5,7 @@ vpath in this mode is t/12/edit.
 path is then /admin/t/12/edit, full URL http://someserver/admin/t/12/edit
 */
 
-const crouting = (function() {
+var crouting = (function() {
 const routes = []; // Elements with route: (regexp that matches the vpath) and func: callback function to call with the URL
 var path_prefix = '/loading...';
 
@@ -28,7 +28,7 @@ function _resolve_vpath(vpath, keys) {
 // Go to the handler for the specific URL
 function _load(path) {
 	if (!path.startsWith(path_prefix)) {
-		console.error('Cannot route to path ' + path);
+		cerror.silent('Cannot route to path ' + path);
 		return;
 	}
 	const vpath = path.substring(path_prefix.length);
@@ -39,7 +39,7 @@ function _load(path) {
 			return r.func(m);
 		}
 	}
-	console.error('Cannot navigate to ' + JSON.stringify(vpath) + '. No handlers defined.');
+	cerror.silent('Cannot navigate to ' + JSON.stringify(vpath) + '. No handlers defined.');
 }
 
 // Navigate to the specified URL
@@ -83,6 +83,7 @@ return {
 
 /*@DEV*/
 if ((typeof module !== 'undefined') && (typeof require !== 'undefined')) {
+	var cerror = require('./cerror');
 
     module.exports = crouting;
 }
