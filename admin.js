@@ -44,19 +44,28 @@ function handle_courts_add(app, ws, msg) {
 	if (! msg.tournament_key) {
 		return ws.respond(msg, {message: 'Missing tournament_key'});
 	}
+	const tournament_key = msg.tournament_key;
 	if (! msg.nums) {
 		return ws.respond(msg, {message: 'Missing nums'});
 	}
 
 	const added_courts = msg.nums.map(num => {
 		return {
-			_id: msg.tournament_key + '_' + num,
-			tournament_key: msg.tournament_key,
+			_id: tournament_key + '_' + num,
+			tournament_key,
 			num,
 		};
 	});
 	app.db.courts.insert(added_courts, function(err) {
-		ws.respond(msg, err, {added_courts});
+		if (err) {
+			ws.respond(msg, err);
+			return;
+		}
+
+		_tournament_get_courts(app.db, tournament_key, function(err, all_courts) {
+			_notify_change(app, tournament_key, 'courts_changed', {all_courts});
+			ws.respond(msg, err, {});
+		});
 	});
 }
 

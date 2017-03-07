@@ -39,6 +39,9 @@ function on_change(change) {
 			}
 		});
 		break;
+	case 'courts_changed':
+		crouting.rerender();
+		break;
 	default:
 		cerror.silent('Unsupported change type ' + change.ctype);
 	}
@@ -200,7 +203,7 @@ function ui_edit() {
 		del_btn.addEventListener('click', function(e) {
 			const del_btn = e.target;
 			const court_id = del_btn.getAttribute('data-court-id');
-			if (prompt('Court ' + court_id + ' wirklich löschen?')) {
+			if (confirm('Court ' + court_id + ' wirklich löschen?')) {
 				debug.log('TODO: would now delete court');
 			}
 		});
