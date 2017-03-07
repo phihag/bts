@@ -1,8 +1,8 @@
 'use strict';
 
-var ctournament = (function() {
 var curt; // current tournament
 
+var ctournament = (function() {
 function _route_single(rex, func) {
 	crouting.register(rex, function(m) {
 		switch_tournament(m[1], func);
@@ -131,6 +131,8 @@ function ui_show() {
 	settings_btn.addEventListener('click', ui_edit);
 
 	uiu.el(main, 'h1', 'tournament_name ct_name', curt.name || curt.key);
+
+	cmatch.render_create(main);
 }
 _route_single(/t\/([a-z0-9]+)\/$/, ui_show);
 

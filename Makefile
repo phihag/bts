@@ -20,9 +20,12 @@ test:
 run:
 	node-supervisor bts.js
 
-lint: eslint
+lint: eslint stylelint
 
 eslint:
-	@eslint *.js test/*.js static/js/
+	@./node_modules/.bin/eslint *.js test/*.js static/js/
+
+stylelint:
+	@./node_modules/.bin/stylelint static/css/*.css
 
 .PHONY: default help deps test clean install-libs force-install-libs run-server cleantestcache lint jshint eslint

@@ -15,7 +15,8 @@
 	"devDependencies": {
 		"mocha": "*",
 		"eslint": "*",
-		"stylelint": "*"
+		"stylelint": "*",
+		"stylelint-config-standard": "*"
 	},
 	"private": true
 }

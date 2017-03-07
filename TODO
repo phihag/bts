@@ -1,22 +1,32 @@
-configure courts
-	delete court (ask before)
-
-add matches
-edit matches
+add match
+	time
+	match num
+	event
+show courts on the right (and current matches)
+link to past matches
+show unassigned matches on the left
+edit match
 move match to court
-edit umpire list
-select umpire for match
+
+websocket conn for bup clients
+bup start on court
+
+
 allow adding new umpire for match
 update admin clients on match changes
 bup start on match
-websocket conn for bup clients
-bup start on court
 delete matches (with proper warning)
 
 set current matches
 show finished matches
 
+-------
+edit umpire list
+select umpire for match
+
 keepalives
+allow to enter bup to finished match
+allow printing srzettel
 
 configure BTP address
 connect to BTP and read numer of courts
@@ -24,14 +34,10 @@ connect to BTP and read numer of courts
 	gzip rest
 
 
-allow to enter bup to finished match
 
 display one/all courts
 
 set up travis
-eslint -> 0
-stylelint -> 0
-eslint: forbid console in static
 
 make an android app
 	bup
@@ -41,6 +47,9 @@ make an android app
 
 all courts
 online display server
+
+-----
+delete court (ask before)
 
 -----
 grep for all TODOs
