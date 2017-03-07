@@ -64,10 +64,21 @@ function natcmp(as, bs){
 	return b[i] ? -1:0;
 }
 
+function remove(ar, val) {
+	for (var i = 0;i < ar.length;i++) {
+		if (ar[i] === val) {
+			ar.splice(i, 1);
+			return true;
+		}
+	}
+	return false;
+}
+
 module.exports = {
 	cmp,
 	cmp_key,
 	natcmp,
 	pluck,
+	remove,
 	size,
 };

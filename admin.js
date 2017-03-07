@@ -1,7 +1,5 @@
 'use strict';
 
-const async = require('async');
-
 const utils = require('./utils');
 
 function _tournament_get_courts(db, tournament_key, callback) {
@@ -17,41 +15,28 @@ function _tournament_get_courts(db, tournament_key, callback) {
 
 function handle_tournament_list(app, ws, msg) {
 	app.db.tournaments.find({}, function(err, tournaments) {
-		async.map(tournaments, function(t, cb) {
-			_tournament_get_courts(app.db, t.key, function(err, courts) {
-				if (err) return cb(err);
-
-				t.courts = courts;
-				cb(null, t);
-			});
-		}, function(err, tournaments) {
-			ws.respond(msg, err, {
-				tournaments,
-			});			
-		});
+		ws.respond(msg, err, {tournaments});
 	});
 }
 
-function handle_tournament_edit(app, ws, msg) {
+function handle_tournament_edit_props(app, ws, msg) {
 	if (! msg.key) {
 		return ws.respond(msg, {message: 'Missing key'});
 	}
-	if (! msg.change) {
-		return ws.respond(msg, {message: 'Missing change'});
+	if (! msg.props) {
+		return ws.respond(msg, {message: 'Missing props'});
 	}
 
 	const key = msg.key;
-	const change = utils.pluck(msg.change, ['name']);
+	const props = utils.pluck(msg.props, ['name']);
 
-	app.db.tournaments.update({key}, {$set: change}, {returnUpdatedDocs: true}, function(err, num, tournament) {
+	app.db.tournaments.update({key}, {$set: props}, {}, function(err) {
 		if (err) {
 			ws.respond(msg, err);
 			return;
 		}
-		_tournament_get_courts(app.db, tournament.key, function(err, courts) {
-			tournament.courts = courts;
-			ws.respond(msg, err, {tournament});
-		});
+		_notify_change(app, key, 'props', props);
+		ws.respond(msg, err);
 	});
 }
 
@@ -117,13 +102,26 @@ function handle_create_tournament(app, ws, msg) {
 	});
 }
 
-function on_connect(/*app, ws*/) {
-	// Ignore for now: nice to know that you're connected, but has no effect on system state
-	// We could initialize state here though, by attaching it to ws
+const all_admins = [];
+function _notify_change(app, tournament_key, ctype, val) {
+	for (const admin_ws of all_admins) {
+		admin_ws.sendmsg({
+			type: 'change',
+			tournament_key,
+			ctype,
+			val,
+		});
+	}
 }
 
-function on_close() {
-	// Ignore: Does not matter when an admin disconnects
+function on_connect(app, ws) {
+	all_admins.push(ws);
+}
+
+function on_close(app, ws) {
+	if (! utils.remove(all_admins, ws)) {
+		console.error('Removing admin ws, but it was not connected!?');
+	}
 }
 
 
@@ -132,7 +130,7 @@ module.exports = {
 	handle_courts_add,
 	handle_tournament_get,
 	handle_tournament_list,
-	handle_tournament_edit,
+	handle_tournament_edit_props,
 	on_close,
 	on_connect,
 };

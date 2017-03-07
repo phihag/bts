@@ -1,7 +1,7 @@
 'use strict';
 
-const conn_ui = (function() {
-var c = conn(ui_on_status);
+var conn_ui = (function() {
+var c = conn(ui_on_status, ui_on_change);
 
 function ui_on_status(status) {
 	var text = {
@@ -22,6 +22,10 @@ function ui_on_status(status) {
 	if (status.code === 'connected') {
 		on_connect();
 	}
+}
+
+function ui_on_change(change) {
+	ctournament.on_change(change);
 }
 
 function ui_connect() {
@@ -51,6 +55,7 @@ function send(msg, cb) { // eslint-disable-line no-unused-vars
 if ((typeof module !== 'undefined') && (typeof require !== 'undefined')) {
 	var conn = require('./conn');
 	var crouting = require('./crouting');
+	var ctournament = require('./ctournament');
 	var uiu = null; // UI only
 
 	module.exports = conn_ui;

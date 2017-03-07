@@ -5,18 +5,43 @@ var curt; // current tournament
 
 function _route_single(rex, func) {
 	crouting.register(rex, function(m) {
-		send({
-			type: 'tournament_get',
-			key: m[1],
-		}, function(err, response) {
-			if (err) {
-				return cerror.net(err);
-			}
-
-			switch_tournament(response.tournament);
-			func();
-		});
+		switch_tournament(m[1], func);
 	});
+}
+
+function switch_tournament(tournament_key, success_cb) {
+	send({
+		type: 'tournament_get',
+		key: tournament_key,
+	}, function(err, response) {
+		if (err) {
+			return cerror.net(err);
+		}
+
+		curt = response.tournament;
+		success_cb();
+	});
+}
+
+function on_change(change) {
+	if (!curt || (change.tournament_key !== curt.key)) {
+		return;
+	}
+
+	switch (change.ctype) {
+	case 'props':
+		curt.name = change.val.name;
+		uiu.qsEach('.ct_name', function(el) {
+			if (el.tagName.toUpperCase() === 'INPUT') {
+				el.value = change.val.name;
+			} else {
+				uiu.text(el, change.val.name);
+			}
+		});
+		break;
+	default:
+		cerror.silent('Unsupported change type ' + change.ctype);
+	}
 }
 
 function ui_create() {
@@ -42,16 +67,13 @@ function ui_create() {
 		send({
 			type: 'create_tournament',
 			key: data.key,
-		}, function(err, tournament) {
+		}, function(err) {
+			if (err) return cerror.net(err);
+
 			uiu.remove(form);
-			switch_tournament(tournament);
-			ui_show();
+			switch_tournament(data.key, ui_show);
 		});
 	});
-}
-
-function switch_tournament(tournament) {
-	curt = tournament;
 }
 
 function ui_list() {
@@ -79,8 +101,7 @@ function list_show(tournaments) {
 	tournaments.forEach(function(t) {
 		const link = uiu.el(main, 'div', 'vlink', t.name || t.key);
 		link.addEventListener('click', function() {
-			switch_tournament(t);
-			ui_show();
+			switch_tournament(t.key, ui_show);
 		});
 	});
 
@@ -98,6 +119,7 @@ function ui_show() {
 	}, {
 		label: curt.name || curt.key,
 		func: ui_show,
+		'class': 'ct_name',
 	}]);
 
 	const main = uiu.qs('.main');
@@ -105,7 +127,7 @@ function ui_show() {
 	const settings_btn = uiu.el(main, 'div', 'tournament_settings_link vlink', 'Turnier bearbeiten');
 	settings_btn.addEventListener('click', ui_edit);
 
-	uiu.el(main, 'h1', 'tournament_name', curt.name || curt.key);
+	uiu.el(main, 'h1', 'tournament_name ct_name', curt.name || curt.key);
 }
 _route_single(/t\/([a-z0-9]+)\/$/, ui_show);
 
@@ -117,6 +139,7 @@ function ui_edit() {
 	}, {
 		label: curt.name || curt.key,
 		func: ui_show,
+		'class': 'ct_name',
 	}, {
 		label: 'Turnier bearbeiten',
 		func: ui_edit,
@@ -144,20 +167,20 @@ function ui_edit() {
 		name: 'name',
 		required: 'required',
 		value: curt.name || curt.key,
+		'class': 'ct_name',
 	});
 	uiu.el(form, 'button', {
 		role: 'submit',
 	}, 'Ändern');
 	form_utils.onsubmit(form, function(data) {
 		send({
-			type: 'tournament_edit',
+			type: 'tournament_edit_props',
 			key: curt.key,
-			change: {name: data.name},
-		}, function(err, response) {
+			props: {name: data.name},
+		}, function(err) {
 			if (err) {
 				return cerror.net(err);
 			}
-			switch_tournament(response.tournament);
 			ui_show();
 		});
 	});
@@ -230,20 +253,15 @@ function init() {
 		}
 
 		const tournaments = response.tournaments;
-		if (tournaments.length === 0) {
-			ui_create();
-		} else if (tournaments.length === 1) {
-			switch_tournament(tournaments[0]);
-			ui_show();
-		} else {
-			list_show(tournaments);
-		}
+		list_show(tournaments);
+		// TODO be clever about number of tournaments: if 1 go there, if 0 go
 	});
 }
 crouting.register(/^$/, init);
 
 return {
-	init: init,
+	init,
+	on_change,
 };
 
 })();

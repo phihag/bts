@@ -1,6 +1,5 @@
-change tournament name to change protocol
 change court addition to change protocol
-do not mention courts in tournament_list
+fix tournament creation
 
 configure courts
 	delete court (ask before)
@@ -39,11 +38,13 @@ eslint: forbid console in static
 
 make an android app
 	bup
-	wakelock
 	automatically find server IP
+	wakelock
+	fullscreen
 
 all courts
 online display server
 
 -----
+grep for all TODOs
 auth?

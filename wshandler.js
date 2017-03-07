@@ -14,6 +14,11 @@ function handle(mod, app, ws) {
 				message: err.message,
 			};
 		}
+		if (! response) {
+			response = {
+				status: 'ok',
+			};
+		}
 		if (!response.type) {
 			response.type = 'answer';
 		}
@@ -21,6 +26,8 @@ function handle(mod, app, ws) {
 		ws.sendmsg(response);
 	}
 	ws.respond = _respond;
+
+	mod.on_connect(app, ws);
 
 	ws.on('message', function(msg_json) {
 		try {

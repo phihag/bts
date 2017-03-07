@@ -10,7 +10,8 @@ function set(elems) {
 			uiu.create_el(container, 'span', 'toprow_sep', '>');
 		}
 
-		var link = uiu.create_el(container, 'span', 'toprow_link' + (el.func ? ' vlink' : ''), el.label);
+		const css_class = 'toprow_link' + (el.func ? ' vlink' : '') + (el.class ? (' ' + el.class) : '');
+		const link = uiu.create_el(container, 'span', css_class, el.label);
 		if (el.func) {
 			link.addEventListener('click', el.func);
 		}

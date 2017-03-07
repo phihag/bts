@@ -1,5 +1,5 @@
 'use strict';
-var conn = (function(on_status) {
+var conn = (function(on_status, on_change) {
 var ws;
 var reconnect_duration = 500;
 var WS_PATH = '/ws/admin';
@@ -53,6 +53,9 @@ function handle_message(ws_msg) {
 			message: 'Received error message from BTS: ' + msg.message,
 		});
 		break;
+	case 'change':
+		on_change(msg);
+		break;
 	default:
 		send({
 			type: 'error',
@@ -77,7 +80,10 @@ function connect() {
 	ws.onclose = function() {
 		// Clear callback handlers
 		utils.values(callback_handlers).forEach(function(cb) {
-			cb({type: 'disconnected'});
+			cb({
+				type: 'disconnected',
+				message: 'Verbindung verloren',
+			});
 		});
 		callback_handlers = {};
 
