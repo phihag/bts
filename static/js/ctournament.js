@@ -6,7 +6,7 @@ var ctournament = (function() {
 function _route_single(rex, func) {
 	crouting.register(rex, function(m) {
 		switch_tournament(m[1], func);
-	});
+	}, change.default_handler(func));
 }
 
 function switch_tournament(tournament_key, success_cb) {
@@ -71,7 +71,7 @@ function ui_list() {
 		list_show(response.tournaments);
 	});
 }
-crouting.register(/t\/$/, ui_list);
+crouting.register(/t\/$/, ui_list, change.default_handler);
 
 function list_show(tournaments) {
 	const main = uiu.qs('.main');
@@ -110,11 +110,11 @@ function ui_show() {
 
 	cmatch.prepare_render(curt);
 
-	const unassigned_container = uiu.el(main, 'div', 'unassigned_container');
-	cmatch.render_unassigned(unassigned_container);
-
 	const courts_container = uiu.el(main, 'div', 'courts_container');
 	cmatch.render_courts(courts_container);
+
+	const unassigned_container = uiu.el(main, 'div', 'unassigned_container');
+	cmatch.render_unassigned(unassigned_container);
 
 	const match_create_container = uiu.el(main, 'div');
 	cmatch.render_create(match_create_container);
@@ -250,10 +250,13 @@ function init() {
 		// TODO be clever about number of tournaments: if 1 go there, if 0 go
 	});
 }
-crouting.register(/^$/, init);
+crouting.register(/^$/, init, change.default_handler);
 
 return {
 	init,
+	// For other modules
+	switch_tournament,
+	ui_show,
 };
 
 })();
@@ -261,6 +264,7 @@ return {
 /*@DEV*/
 if ((typeof module !== 'undefined') && (typeof require !== 'undefined')) {
 	var cerror = require('./cerror');
+	var change = require('./change');
 	var cmatch = require('./cmatch');
 	var crouting = require('./crouting');
 	var debug = require('./debug');

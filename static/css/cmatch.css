@@ -1,4 +1,4 @@
-.match_add_button {
+.match_save_button {
 	font-size: 120%;
 	padding: 9px 3px;
 }
@@ -24,7 +24,27 @@
 .match_table {
 	border-collapse: collapse;
 }
+.match_table>thead>tr>th {
+	text-align: left;
+}
 .match_table>tbody>tr:hover>td,
 .match_table>tbody>tr:hover>th {
 	background: #ddd;
+}
+
+.match_cancel_link {
+	margin-top: 1em;
+}
+.match_label {
+	font-size: 80%;
+	text-align: right;
+	color: #666;
+}
+.match_team2 {
+	padding-left: 1em;
+	padding-right: 1em;
+}
+
+.match_no_umpire {
+	font-style: italic;
 }

@@ -6,10 +6,19 @@ body {
 	font-family: 'Droid Sans', Arial, sans-serif;
 }
 
+input,
+textarea,
+select {
+	font-size: inherit;
+}
+
 .main {
 	padding: 0 0 0 1em;
 }
 
+h1 {
+	margin: 0;
+}
 h3 {
 	margin: 0;
 }
@@ -62,4 +71,26 @@ h3 {
 .tournament_settings > label > span {
 	display: inline-block;
 	min-width: 5em;
+}
+
+.dialog_bg {
+	position: fixed;
+	left: 0;
+	right: 0;
+	top: 0;
+	bottom: 0;
+	z-index: 1000;
+	background-color: rgba(0, 0, 0, 0.9);
+	text-align: center;
+}
+.dialog {
+	display: inline-block;
+	background-color: rgba(255, 255, 255, 1);
+	border-bottom-left-radius: 0.5em;
+	border-bottom-right-radius: 0.5em;
+	padding: 1em;
+}
+
+.court_num {
+	vertical-align: top;
 }

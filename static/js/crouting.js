@@ -7,13 +7,18 @@ path is then /admin/t/12/edit, full URL http://someserver/admin/t/12/edit
 
 var crouting = (function() {
 const routes = []; // Elements with route: (regexp that matches the vpath) and func: callback function to call with the URL
+const cleanup_funcs = [];
 var path_prefix = '/loading...';
+var cur_route;
 
-function register(route, func) {
+function register(route, func, on_change) {
 	if (!func) {
 		throw new Error('Missing function for route ' + route);
 	}
-	routes.push({route, func});
+	if (!on_change) {
+		throw new Error('Missing change handler for route ' + route);
+	}
+	routes.push({route, func, on_change});
 }
 
 function _resolve_vpath(vpath, keys) {
@@ -23,6 +28,18 @@ function _resolve_vpath(vpath, keys) {
 		}
 	}
 	return path_prefix + vpath;
+}
+
+function on_change(c) {
+	if (!cur_route) {
+		return;
+	}
+
+	if (!curt || (c.tournament_key !== curt.key)) {
+		return;
+	}
+
+	cur_route.on_change(c);
 }
 
 // Go to the handler for the specific URL
@@ -36,6 +53,11 @@ function _load(path) {
 	for (const r of routes) {
 		const m = r.route.exec(vpath);
 		if (m) {
+			for (const cfunc of cleanup_funcs) {
+				cfunc();
+			}
+
+			cur_route = r;
 			return r.func(m);
 		}
 	}
@@ -50,7 +72,10 @@ function navigate_to(path, keys) {
 }
 
 // Set the current state (i.e. it's already loaded)
-function set(vpath, keys) {
+function set(vpath, keys, cleanup_func) {
+	if (cleanup_func) {
+		cleanup_funcs.push(cleanup_func);
+	}
 	const whole_path = _resolve_vpath(vpath, keys);
 	if (whole_path === window.location.pathname) {
 		return; // Already set, don't change
@@ -82,6 +107,7 @@ return {
 	set,
 	register,
 	rerender,
+	on_change,
 };
 
 })();

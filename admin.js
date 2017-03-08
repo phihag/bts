@@ -4,6 +4,19 @@ const async = require('async');
 
 const utils = require('./utils');
 
+/**
+* Returns true iff everything is ok.
+*/
+function _require_msg(ws, msg, fields) {
+	for (const f of fields) {
+		if (typeof msg[f] === 'undefined') {
+			ws.respond(msg, {message: 'Missing required field ' + f + ' in message ' + msg.type});
+			return false;
+		}
+	}
+	return true;
+}
+
 function _tournament_get_courts(db, tournament_key, callback) {
 	db.courts.find({tournament_key: tournament_key}, function(err, courts) {
 		if (err) return callback(err);
@@ -122,16 +135,8 @@ function handle_create_tournament(app, ws, msg) {
 	});
 }
 
-function handle_match_add(app, ws, msg) {
-	if (! msg.tournament_key) {
-		return ws.respond(msg, {message: 'Missing tournament_key'});
-	}
-	const tournament_key = msg.tournament_key;
-	if (! msg.setup) {
-		return ws.respond(msg, {message: 'Missing setup'});
-	}
-
-	const setup = utils.pluck(msg.setup, [
+function _extract_setup(msg_setup) {
+	const setup = utils.pluck(msg_setup, [
 		'court_id',
 		'event_name',
 		'match_name',
@@ -147,19 +152,45 @@ function handle_match_add(app, ws, msg) {
 	}
 	setup.counting = '3x21';
 	setup.team_competition = false;
+	return setup;
+}
+
+function handle_match_add(app, ws, msg) {
+	if (! msg.tournament_key) {
+		return ws.respond(msg, {message: 'Missing tournament_key'});
+	}
+	if (! msg.setup) {
+		return ws.respond(msg, {message: 'Missing setup'});
+	}
+	const tournament_key = msg.tournament_key;
 
 	const match = {
 		tournament_key,
-		setup,
+		setup: _extract_setup(msg.setup),
 		presses: [],
 	};
-
-	app.db.matches.insert(match, function(err) {
+	app.db.matches.insert(match, function(err, inserted_m) {
 		if (err) {
 			ws.respond(msg, err);
 			return;
 		}
-		_notify_change(app, tournament_key, 'match_add', match);
+		_notify_change(app, tournament_key, 'match_add', {match: inserted_m});
+		ws.respond(msg, err);
+	});
+}
+
+function handle_match_edit(app, ws, msg) {
+	if (!_require_msg(ws, msg, ['tournament_key', 'id', 'setup'])) {
+		return;
+	}
+	const tournament_key = msg.tournament_key;
+	const setup = _extract_setup(msg.setup);
+	app.db.matches.update({_id: msg.id, tournament_key}, {$set: {setup}}, {}, function(err) {
+		if (err) {
+			ws.respond(msg, err);
+			return;
+		}
+		_notify_change(app, tournament_key, 'match_edit', {match__id: msg.id, setup});
 		ws.respond(msg, err);
 	});
 }
@@ -191,6 +222,7 @@ module.exports = {
 	handle_create_tournament,
 	handle_courts_add,
 	handle_match_add,
+	handle_match_edit,
 	handle_tournament_get,
 	handle_tournament_list,
 	handle_tournament_edit_props,

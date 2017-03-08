@@ -1,8 +1,5 @@
-edit match UI
-actually edit match
-notify upon match edit
-
 bup start on court (HTTP?)
+add setup.match_id from _id
 bup listing
 bup transmit [presses|winner]
 launch link 1court-display

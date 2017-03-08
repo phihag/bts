@@ -24,8 +24,8 @@ function ui_on_status(status) {
 	}
 }
 
-function ui_on_change(change) {
-	handle_change(change);
+function ui_on_change(c) {
+	crouting.on_change(c);
 }
 
 function ui_connect() {
@@ -55,7 +55,6 @@ function send(msg, cb) { // eslint-disable-line no-unused-vars
 if ((typeof module !== 'undefined') && (typeof require !== 'undefined')) {
 	var conn = require('./conn');
 	var crouting = require('./crouting');
-	var handle_change = require('./handle_change');
 	var uiu = null; // UI only
 
 	module.exports = conn_ui;
