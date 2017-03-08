@@ -6,3 +6,25 @@
 .match_num {
 	text-align: right;
 }
+
+.match_edit_button {
+	display: inline-block;
+	width: 1em;
+	min-width: 1em;
+	height: 1em;
+	min-height: 1em;
+	background-image: url(../icons/edit.svg);
+	background-size: 100%;
+	opacity: 0.5;
+}
+.match_edit_button:hover {
+	opacity: 1;
+}
+
+.match_table {
+	border-collapse: collapse;
+}
+.match_table>tbody>tr:hover>td,
+.match_table>tbody>tr:hover>th {
+	background: #ddd;
+}

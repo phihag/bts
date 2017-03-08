@@ -5,7 +5,9 @@ var cmatch = (function() {
 function render_match_table_header(table) {
 	const thead = uiu.el(table, 'thead');
 	const title_tr = uiu.el(thead, 'tr');
-	uiu.el(title_tr, 'th', {}, '#');
+	uiu.el(title_tr, 'th', {
+		colspan: 2,
+	}, '#');
 	uiu.el(title_tr, 'th', {}, 'Spiel');
 	uiu.el(title_tr, 'th', {}, 'Spieler');
 	uiu.el(title_tr, 'th', {}, 'Stand');
@@ -33,10 +35,11 @@ function prepare_render(t) {
 
 function render_match_row(tr, match) {
 	const setup = match.setup;
+	const actions_td = uiu.el(tr, 'td');
+	const edit_btn = uiu.el(actions_td, 'div', 'vlink match_edit_button');
 	const match_str = (setup.scheduled_time_str ? (setup.scheduled_time_str + ' ') : '') + (setup.match_name ? (setup.match_name + ' ') : '') + setup.event_name;
 	uiu.el(tr, 'td', 'match_num', setup.match_num);
 	uiu.el(tr, 'td', {}, match_str);
-	// TODO edit
 	uiu.el(tr, 'td', {}, calc_players_str(setup));
 	uiu.el(tr, 'td', {}, 'TODO: match state');
 }
@@ -80,7 +83,7 @@ function render_courts(container) {
 			title: c._id,
 		}, c.num);
 		if (court_matches.length === 0) {
-			uiu.el(tr, 'td', {colspan: 3}, 'Bisher noch keine Matches auf diesem Court.');
+			uiu.el(tr, 'td', {colspan: 5}, 'Bisher noch keine Matches auf diesem Court.');
 		} else {
 			for (const cm of court_matches) {
 				render_match_row(tr, cm);
