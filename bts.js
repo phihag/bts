@@ -11,10 +11,20 @@ const admin = require('./admin');
 const bupws = require('./bupws');
 const database = require('./database');
 const error_reporting = require('./error_reporting');
+const utils = require('./utils');
 const wshandler = require('./wshandler');
 
-function read_config(callback) {
+function read_config(callback, autocreate) {
 	fs.readFile('config.json', 'utf8', (err, config_json) => {
+		if (autocreate && err && (err.code === 'ENOENT')) {
+			utils.copy_file('config.json.default', 'config.json', function(err) {
+				if (err) return callback(err);
+
+				console.log('Created default configuration in ' + path.resolve('config.json'));
+				read_config(callback, false);
+			});
+			return;
+		}
 		if (err) return callback(err);
 
 		const config = JSON.parse(config_json);
@@ -29,7 +39,7 @@ function main() {
 		error_reporting.setup(config);
 
 		database.init(db => run_server(config, db));
-	});
+	}, true);
 }
 
 function cadmin_router() {

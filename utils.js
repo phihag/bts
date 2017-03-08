@@ -1,5 +1,8 @@
 'use strict';
 
+const fs = require('fs');
+
+
 function size(obj) {
 	var res = 0;
 	for (var key in obj) {
@@ -74,9 +77,35 @@ function remove(ar, val) {
 	return false;
 }
 
+// From http://stackoverflow.com/a/14387791/35070
+function copy_file(source, target, cb) {
+	var cbCalled = false;
+
+	const rd = fs.createReadStream(source);
+	rd.on('error', function(err) {
+		done(err);
+	});
+	const wr = fs.createWriteStream(target);
+	wr.on('error', function(err) {
+		done(err);
+	});
+	wr.on('close', function() {
+		done();
+	});
+	rd.pipe(wr);
+
+	function done(err) {
+		if (!cbCalled) {
+			cb(err);
+			cbCalled = true;
+		}
+	}
+}
+
 module.exports = {
 	cmp,
 	cmp_key,
+	copy_file,
 	natcmp,
 	pluck,
 	remove,

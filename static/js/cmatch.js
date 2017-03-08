@@ -180,12 +180,14 @@ function render_courts(container) {
 
 		const actions_td = uiu.el(tr, 'th', {
 			rowspan,
-			'class': 'court_actions'
+			'class': 'court_actions',
 		});
-		const panel_link = uiu.el(actions_td, 'a', {
+		uiu.el(actions_td, 'a', {
 			href: '/bup/#btsh_c=' + encodeURIComponent(c._id),
 		}, 'Panel');
-
+		uiu.el(actions_td, 'a', {
+			href: '/bup/#btsh_c=' + encodeURIComponent(c._id) + '&display=TODO',
+		}, 'Anzeige');
 
 		if (court_matches.length === 0) {
 			uiu.el(tr, 'td', {colspan: 8}, '');
