@@ -65,6 +65,7 @@ h3 {
 
 .tournament_settings_link {
 	float: right;
+	margin-right: 0.5em;
 }
 .tournament_settings > label {
 	display: block;
