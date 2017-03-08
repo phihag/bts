@@ -60,7 +60,8 @@ function run_server(config, db) {
 	app.config = config;
 	app.db = db;
 	app.wss = wss;
-	app.use('/bup', express.static(config.bup_location, {index: config.bup_index}));
+
+	app.use('/bup/', express.static(config.bup_location, {index: config.bup_index}));
 	app.use('/static/', express.static('static/', {}));
 	app.use('/admin/', cadmin_router());
 	app.get('/', function(req, res) {
