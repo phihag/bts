@@ -23,6 +23,7 @@
     },
     "globals": {
         "state": true,
+        "curt": true,
         "send": true
     },
     "extends": "eslint:recommended"

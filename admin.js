@@ -1,5 +1,7 @@
 'use strict';
 
+const async = require('async');
+
 const utils = require('./utils');
 
 function _tournament_get_courts(db, tournament_key, callback) {
@@ -10,6 +12,13 @@ function _tournament_get_courts(db, tournament_key, callback) {
 			return utils.natcmp(('' + c1.num), ('' + c2.num));
 		});
 		return callback(err, courts);
+	});
+}
+
+function _tournament_get_matches(db, tournament_key, callback) {
+	db.matches.find({tournament_key}, function(err, matches) {
+		if (err) return callback(err);
+		return callback(err, matches);
 	});
 }
 
@@ -83,8 +92,17 @@ function handle_tournament_get(app, ws, msg) {
 			return;
 		}
 
-		_tournament_get_courts(app.db, tournament.key, function(err, courts) {
-			tournament.courts = courts;
+		async.parallel([function(cb) {
+			_tournament_get_courts(app.db, tournament.key, function(err, courts) {
+				tournament.courts = courts;
+				cb(err);
+			});
+		}, function(cb) {
+			_tournament_get_matches(app.db, tournament.key, function(err, matches) {
+				tournament.matches = matches;
+				cb(err);
+			});
+		}], function(err) {
 			ws.respond(msg, err, {tournament});
 		});
 	});
@@ -99,15 +117,49 @@ function handle_create_tournament(app, ws, msg) {
 		key: msg.key,
 	};
 
-	app.db.tournaments.insert(t, function(err, inserted_t) {
+	app.db.tournaments.insert(t, function(err) {
+		ws.respond(msg, err);
+	});
+}
+
+function handle_match_add(app, ws, msg) {
+	if (! msg.tournament_key) {
+		return ws.respond(msg, {message: 'Missing tournament_key'});
+	}
+	const tournament_key = msg.tournament_key;
+	if (! msg.setup) {
+		return ws.respond(msg, {message: 'Missing setup'});
+	}
+
+	const setup = utils.pluck(msg.setup, [
+		'event_name',
+		'match_name',
+		'match_num',
+		'umpire_name',
+		'is_doubles',
+		'incomplete',
+		'scheduled_time_str',
+		'teams',
+	]);
+	if (!setup.match_name && setup.match_num) {
+		setup.match_name = '# ' + setup.match_num;
+	}
+	setup.counting = '3x21';
+	setup.team_competition = false;
+
+	const match = {
+		tournament_key,
+		setup,
+		presses: [],
+	};
+
+	app.db.matches.insert(match, function(err) {
 		if (err) {
 			ws.respond(msg, err);
 			return;
 		}
-		_tournament_get_courts(app.db, inserted_t.key, function(err, courts) {
-			inserted_t.courts = courts;
-			ws.respond(msg, err, inserted_t);
-		});
+		_notify_change(app, tournament_key, 'match_add', match);
+		ws.respond(msg, err);
 	});
 }
 
@@ -137,6 +189,7 @@ function on_close(app, ws) {
 module.exports = {
 	handle_create_tournament,
 	handle_courts_add,
+	handle_match_add,
 	handle_tournament_get,
 	handle_tournament_list,
 	handle_tournament_edit_props,

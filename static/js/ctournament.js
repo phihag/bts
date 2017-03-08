@@ -23,30 +23,6 @@ function switch_tournament(tournament_key, success_cb) {
 	});
 }
 
-function on_change(change) {
-	if (!curt || (change.tournament_key !== curt.key)) {
-		return;
-	}
-
-	switch (change.ctype) {
-	case 'props':
-		curt.name = change.val.name;
-		uiu.qsEach('.ct_name', function(el) {
-			if (el.tagName.toUpperCase() === 'INPUT') {
-				el.value = change.val.name;
-			} else {
-				uiu.text(el, change.val.name);
-			}
-		});
-		break;
-	case 'courts_changed':
-		crouting.rerender();
-		break;
-	default:
-		cerror.silent('Unsupported change type ' + change.ctype);
-	}
-}
-
 function ui_create() {
 	const main = uiu.qs('.main');
 
@@ -132,7 +108,19 @@ function ui_show() {
 
 	uiu.el(main, 'h1', 'tournament_name ct_name', curt.name || curt.key);
 
-	cmatch.render_create(main);
+	cmatch.prepare_render(curt);
+
+	const unassigned_container = uiu.el(main, 'div', 'unassigned_container');
+	cmatch.render_unassigned(unassigned_container);
+
+	const courts_container = uiu.el(main, 'div', 'courts_container');
+	cmatch.render_courts(courts_container);
+
+	const match_create_container = uiu.el(main, 'div');
+	cmatch.render_create(match_create_container);
+
+	const finished_container = uiu.el(main, 'div', 'finished_container');
+	cmatch.render_finished(finished_container);
 }
 _route_single(/t\/([a-z0-9]+)\/$/, ui_show);
 
@@ -266,7 +254,6 @@ crouting.register(/^$/, init);
 
 return {
 	init,
-	on_change,
 };
 
 })();
@@ -274,6 +261,7 @@ return {
 /*@DEV*/
 if ((typeof module !== 'undefined') && (typeof require !== 'undefined')) {
 	var cerror = require('./cerror');
+	var cmatch = require('./cmatch');
 	var crouting = require('./crouting');
 	var debug = require('./debug');
 	var form_utils = require('./form_utils');

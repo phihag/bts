@@ -10,6 +10,10 @@ body {
 	padding: 0 0 0 1em;
 }
 
+h3 {
+	margin: 0;
+}
+
 .connecting {
 	position: fixed;
 	top: 45%;

@@ -1,17 +1,14 @@
-add match
-	time
-	match num
-	event
-show courts on the right (and current matches)
-link to past matches
 show unassigned matches on the left
+show courts on the right (and all matches on those courts, with current one boldened)
+
 edit match
-move match to court
 
 websocket conn for bup clients
 bup start on court
 
 
+edit umpire list
+select umpire for match from <select>
 allow adding new umpire for match
 update admin clients on match changes
 bup start on match
@@ -21,12 +18,11 @@ set current matches
 show finished matches
 
 -------
-edit umpire list
-select umpire for match
 
 keepalives
 allow to enter bup to finished match
 allow printing srzettel
+intelligent rendering (= change handling)
 
 configure BTP address
 connect to BTP and read numer of courts
@@ -37,8 +33,7 @@ connect to BTP and read numer of courts
 
 display one/all courts
 
-set up travis
-
+move match to court via drag&drop
 make an android app
 	bup
 	automatically find server IP
@@ -50,7 +45,10 @@ online display server
 
 -----
 delete court (ask before)
+show error upon match creation
+add team (country) names on umpire sheet
 
+match_create: tabindex
 -----
 grep for all TODOs
 auth?
