@@ -9,7 +9,7 @@ function render_match_table_header(table) {
 	uiu.el(title_tr, 'th', {}, '#');
 	uiu.el(title_tr, 'th', {}, 'Spiel');
 	uiu.el(title_tr, 'th', {
-		colspan: 2,
+		colspan: 3,
 	}, 'Spieler');
 	uiu.el(title_tr, 'th', {}, 'Schiedsrichter');
 	uiu.el(title_tr, 'th', {}, 'Stand');
@@ -27,6 +27,7 @@ function render_match_row(tr, match) {
 	uiu.el(tr, 'td', 'match_num', setup.match_num);
 	uiu.el(tr, 'td', {}, match_str);
 	uiu.el(tr, 'td', {}, calc_players_str(setup, 0));
+	uiu.el(tr, 'td', 'match_vs', 'v');
 	uiu.el(tr, 'td', 'match_team2', calc_players_str(setup, 1));
 	uiu.el(tr, 'td', (setup.umpire_name ? 'match_umpire' : 'match_no_umpire'), setup.umpire_name || 'Kein Schiedsrichter');
 	uiu.el(tr, 'td', {}, 'TODO: match state');
@@ -168,6 +169,7 @@ function render_courts(container) {
 	const tbody = uiu.el(table, 'tbody');
 	for (const c of curt.courts) {
 		const court_matches = curt.matches.filter(m => (m.setup.court_id === c._id));
+		if (court_matches.length === 0) continue;
 		const tr = uiu.el(tbody, 'tr');
 		const rowspan = Math.max(1, court_matches.length);
 		uiu.el(tr, 'th', {
@@ -175,8 +177,18 @@ function render_courts(container) {
 			rowspan,
 			title: c._id,
 		}, c.num);
+
+		const actions_td = uiu.el(tr, 'th', {
+			rowspan,
+			'class': 'court_actions'
+		});
+		const panel_link = uiu.el(actions_td, 'a', {
+			href: '/bup/#btsh_c=' + encodeURIComponent(c._id),
+		}, 'Panel');
+
+
 		if (court_matches.length === 0) {
-			uiu.el(tr, 'td', {colspan: 7}, 'Bisher noch keine Matches auf diesem Court.');
+			uiu.el(tr, 'td', {colspan: 8}, '');
 		} else {
 			let i = 0;
 			for (const cm of court_matches) {

@@ -27,8 +27,7 @@
 .match_table>thead>tr>th {
 	text-align: left;
 }
-.match_table>tbody>tr:hover>td,
-.match_table>tbody>tr:hover>th {
+.match_table>tbody>tr:hover>td {
 	background: #ddd;
 }
 
@@ -41,8 +40,11 @@
 	color: #666;
 }
 .match_team2 {
-	padding-left: 1em;
 	padding-right: 1em;
+}
+.match_vs {
+	color: #999;
+	padding: 0 0.5em;
 }
 
 .match_no_umpire {
