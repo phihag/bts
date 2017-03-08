@@ -53,6 +53,7 @@ h3 {
 .vlink {
 	color: #00e;
 	cursor: pointer;
+	text-decoration: none;
 }
 .vlink:hover {
 	text-decoration: underline;

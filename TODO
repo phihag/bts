@@ -3,11 +3,13 @@ add setup.match_id from _id
 bup listing
 bup transmit [presses|winner]
 launch link 1court-display
-launch link allcourts-display
 
 install on r
 send mail Moritz
+	Klingenhalle: WLAN erreichbar?
 
+
+launch link allcourts-display
 edit umpire list
 select umpire for match from <select>
 allow adding new umpire for match

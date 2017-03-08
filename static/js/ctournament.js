@@ -99,10 +99,14 @@ function ui_show() {
 		label: curt.name || curt.key,
 		func: ui_show,
 		'class': 'ct_name',
+	}], [{
+		label: 'Schiedsrichter-Panel',
+		href: '/bup/#btsh_e=' + encodeURIComponent(curt.key),
 	}]);
 
 	const main = uiu.qs('.main');
 	uiu.empty(main);
+
 	const settings_btn = uiu.el(main, 'div', 'tournament_settings_link vlink', 'Turnier bearbeiten');
 	settings_btn.addEventListener('click', ui_edit);
 

@@ -169,7 +169,7 @@ function render_courts(container) {
 	const tbody = uiu.el(table, 'tbody');
 	for (const c of curt.courts) {
 		const court_matches = curt.matches.filter(m => (m.setup.court_id === c._id));
-		if (court_matches.length === 0) continue;
+
 		const tr = uiu.el(tbody, 'tr');
 		const rowspan = Math.max(1, court_matches.length);
 		uiu.el(tr, 'th', {
@@ -177,17 +177,6 @@ function render_courts(container) {
 			rowspan,
 			title: c._id,
 		}, c.num);
-
-		const actions_td = uiu.el(tr, 'th', {
-			rowspan,
-			'class': 'court_actions',
-		});
-		uiu.el(actions_td, 'a', {
-			href: '/bup/#btsh_c=' + encodeURIComponent(c._id),
-		}, 'Panel');
-		uiu.el(actions_td, 'a', {
-			href: '/bup/#btsh_c=' + encodeURIComponent(c._id) + '&display=TODO',
-		}, 'Anzeige');
 
 		if (court_matches.length === 0) {
 			uiu.el(tr, 'td', {colspan: 8}, '');

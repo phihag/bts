@@ -1,13 +1,3 @@
-
-.court_actions>a {
-	display: inline-block;
-}
-.court_actions {
-	padding-right: 1em;
-	font-weight: normal;
-}
-
-.court_num,
-.court_actions {
+.court_num {
 	vertical-align: top;
 }
