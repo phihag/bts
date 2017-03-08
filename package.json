@@ -13,10 +13,11 @@
 		"ws": "*"
 	},
 	"devDependencies": {
-		"mocha": "*",
 		"eslint": "*",
+		"mocha": "*",
 		"stylelint": "*",
-		"stylelint-config-standard": "*"
+		"stylelint-config-standard": "*",
+		"supervisor": "*"
 	},
 	"private": true
 }

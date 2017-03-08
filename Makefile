@@ -17,8 +17,11 @@ deps:
 test:
 	@npm test
 
+dev:
+	@./node_modules/.bin/supervisor -i node_modules,static bts.js
+
 run:
-	node-supervisor bts.js
+	@node bts.js
 
 lint: eslint stylelint
 
@@ -28,4 +31,4 @@ eslint:
 stylelint:
 	@./node_modules/.bin/stylelint static/css/*.css
 
-.PHONY: default help deps test clean install-libs force-install-libs run-server cleantestcache lint jshint eslint
+.PHONY: default help deps dev test clean install-libs force-install-libs run-server cleantestcache lint jshint eslint
