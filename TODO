@@ -1,27 +1,35 @@
-show unassigned matches on the left
-show courts on the right (and all matches on those courts, with current one boldened)
-
 edit match
 
-websocket conn for bup clients
-bup start on court
+bup start on court (HTTP?)
+bup listing
+bup transmit [presses|winner]
+launch link 1court-display
+launch link allcourts-display
 
+install on r
+send mail Moritz
 
 edit umpire list
 select umpire for match from <select>
 allow adding new umpire for match
+
+websocket conn for bup clients
+bup listing via websocket
+bup transmit via websocket
+bup delta transmit
+keepalives
+set current match
+
 update admin clients on match changes
 bup start on match
+scoresheet from UI
 delete matches (with proper warning)
-
-set current matches
-show finished matches
 
 -------
 
-keepalives
+admin keepalive
+basic left-right layout
 allow to enter bup to finished match
-allow printing srzettel
 intelligent rendering (= change handling)
 
 configure BTP address
