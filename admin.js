@@ -132,6 +132,7 @@ function handle_match_add(app, ws, msg) {
 	}
 
 	const setup = utils.pluck(msg.setup, [
+		'court_id',
 		'event_name',
 		'match_name',
 		'match_num',

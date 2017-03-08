@@ -33,8 +33,9 @@ function prepare_render(t) {
 
 function render_match_row(tr, match) {
 	const setup = match.setup;
+	const match_str = (setup.scheduled_time_str ? (setup.scheduled_time_str + ' ') : '') + (setup.match_name ? (setup.match_name + ' ') : '') + setup.event_name;
 	uiu.el(tr, 'td', 'match_num', setup.match_num);
-	uiu.el(tr, 'td', {}, (setup.match_name ? (setup.match_name + ' ') : '') + setup.event_name);
+	uiu.el(tr, 'td', {}, match_str);
 	// TODO edit
 	uiu.el(tr, 'td', {}, calc_players_str(setup));
 	uiu.el(tr, 'td', {}, 'TODO: match state');
@@ -223,6 +224,7 @@ function render_create(container) {
 		const incomplete = !teams.every(team => (team.players.length === player_count));
 
 		const setup = {
+			court_id: d.court_id,
 			match_num: parseInt(d.match_num),
 			match_name: d.match_name,
 			scheduled_time_str: d.scheduled_time_str,
