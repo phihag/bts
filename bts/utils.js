@@ -1,7 +1,12 @@
 'use strict';
 
 const fs = require('fs');
+const path = require('path');
 
+
+function root_dir() {
+	return path.normalize(path.join(__dirname, '..'));
+}
 
 function size(obj) {
 	var res = 0;
@@ -109,5 +114,6 @@ module.exports = {
 	natcmp,
 	pluck,
 	remove,
+	root_dir,
 	size,
 };

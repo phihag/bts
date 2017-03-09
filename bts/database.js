@@ -1,6 +1,10 @@
+'use strict';
+
+const fs = require('fs');
+const path = require('path');
+
 const async = require('async');
 const Datastore = require('nedb');
-const fs = require('fs');
 
 const utils = require('./utils');
 
@@ -12,7 +16,7 @@ function init(callback) {
 		'tournaments',
 	];
 
-	var db_dir = __dirname + '/data';
+	var db_dir = path.join(utils.root_dir(), '/data');
 	if (! fs.existsSync(db_dir)) {
 		fs.mkdirSync(db_dir);
 	}

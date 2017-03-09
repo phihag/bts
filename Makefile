@@ -18,15 +18,15 @@ test:
 	@npm test
 
 dev:
-	@./node_modules/.bin/supervisor -i node_modules,static bts.js
+	@./node_modules/.bin/supervisor -i node_modules,static bts/bts.js
 
 run:
-	@node bts.js
+	@node bts/bts.js
 
 lint: eslint stylelint
 
 eslint:
-	@./node_modules/.bin/eslint *.js test/*.js static/js/
+	@./node_modules/.bin/eslint bts/ test/*.js static/js/
 
 stylelint:
 	@./node_modules/.bin/stylelint static/css/*.css
