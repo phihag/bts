@@ -4,6 +4,7 @@ const fs = require('fs');
 const path = require('path');
 const url = require('url');
 
+const body_parser = require('body-parser');
 const ws_module = require('ws');
 const express = require('express');
 const favicon = require('serve-favicon');
@@ -81,8 +82,10 @@ function run_server(config, db) {
 	});
 	app.use(favicon(__dirname + '/static/icons/favicon.ico'));
 
+	app.use(body_parser.json());
 	app.get('/h/:tournament_key/courts', http_api.courts_handler);
 	app.get('/h/:tournament_key/matches', http_api.matches_handler);
+	app.post('/h/:tournament_key/m/:match_id/score', http_api.score_handler);
 
 	wss.on('connection', function connection(ws) {
 		const location = url.parse(ws.upgradeReq.url, true);

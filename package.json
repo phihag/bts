@@ -8,6 +8,7 @@
 	},
 	"dependencies": {
 		"async": "*",
+		"body-parser": "*",
 		"express": "*",
 		"nedb": "*",
 		"serve-favicon": "*",
