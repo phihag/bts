@@ -1,8 +1,12 @@
 'use strict';
 
 var debug = (function() {
+const DEBUG_ENABLED = false;
+
 function log(...args) {
-	console.log(...args); // eslint-disable-line no-console
+	if (DEBUG_ENABLED) {
+		console.log(...args); // eslint-disable-line no-console
+	}
 }
 
 return {

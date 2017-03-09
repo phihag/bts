@@ -1,12 +1,38 @@
 var change = (function() {
 
-function default_handler(rerender) {
+function default_handler(rerender, special_funcs) {
 	return function(c) {
-		default_handler_func(rerender, c);
+		default_handler_func(rerender, special_funcs, c);
 	};
 }
 
-function default_handler_func(rerender, c) {
+function change_score(cval) {
+	const match_id = cval.match_id;
+
+	// Find the match
+	const m = utils.find(curt.matches, m => m._id === match_id);
+	if (!m) {
+		cerror.silent('Cannot find match to update score, ID: ' + JSON.stringify(match_id));
+		return;
+	}
+
+	m.network_score = cval.network_score;
+	m.presses = cval.presses;
+	m.team1_won = cval.team1_won;
+}
+
+function change_current_match(cval) {
+	// Do not use courts_by_id since that may not be initialized in all views
+	const court = utils.find(curt.courts, c => c._id === cval.court_id);
+	court.match_id = cval.match_id;
+}
+
+function default_handler_func(rerender, special_funcs, c) {
+	if (special_funcs && special_funcs[c.ctype]) {
+		special_funcs[c.ctype](c);
+		return;
+	}
+
 	switch (c.ctype) {
 	case 'props':
 		curt.name = c.val.name;
@@ -37,13 +63,22 @@ function default_handler_func(rerender, c) {
 		curt.courts = c.val.all_courts;
 		rerender();
 		break;
+	case 'score':
+		change_score(c.val);
+		// Most dialogs don't show any matches, so do not rerender
+		break;
+	case 'court_current_match':
+		change_current_match(c.val);
+		// Most dialogs don't show any matches, so do not rerender
+		break;
 	default:
-		cerror.silent('Unsupported change type ' + change.ctype);
+		cerror.silent('Unsupported change type ' + c.ctype);
 	}
 }
 
 return {
 	default_handler,
+	change_current_match,
 };
 
 })();

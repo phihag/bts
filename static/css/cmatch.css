@@ -46,6 +46,9 @@
 	color: #999;
 	padding: 0 0.5em;
 }
+.match_team_won {
+	font-weight: bold;
+}
 
 .match_no_umpire {
 	font-style: italic;

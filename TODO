@@ -1,10 +1,9 @@
-launch link 1court-display
-show current state in admin intf
-
 install on r
 send mail Moritz
 	Klingenhalle: WLAN wie in Mülheim?
 
+go into finished match
+move to court button
 HTTP API: suppress cache
 manually set current match on court
 
@@ -30,8 +29,8 @@ delete matches (with proper warning)
 admin keepalive
 basic left-right layout
 allow to enter bup to finished match
-intelligent rendering (= change handling)
-check tournament_name, event_name etc. on scoresheet
+
+online ticker
 
 configure BTP address
 connect to BTP and read numer of courts

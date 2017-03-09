@@ -3,10 +3,14 @@
 var curt; // current tournament
 
 var ctournament = (function() {
-function _route_single(rex, func) {
+function _route_single(rex, func, handler) {
+	if (!handler) {
+		handler = change.default_handler(func);
+	}
+
 	crouting.register(rex, function(m) {
 		switch_tournament(m[1], func);
-	}, change.default_handler(func));
+	}, handler);
 }
 
 function switch_tournament(tournament_key, success_cb) {
@@ -90,6 +94,41 @@ function list_show(tournaments) {
 	create_btn.addEventListener('click', ui_create);
 }
 
+function update_score(c) {
+	const cval = c.val;
+	const match_id = cval.match_id;
+
+	// Find the match
+	const m = utils.find(curt.matches, m => m._id === match_id);
+	if (!m) {
+		cerror.silent('Cannot find match to update score, ID: ' + JSON.stringify(match_id));
+		return;
+	}
+
+	const old_section = cmatch.calc_section(m);
+	m.network_score = cval.network_score;
+	m.presses = cval.presses;
+	m.team1_won = cval.team1_won;
+	const new_section = cmatch.calc_section(m);
+
+	if (old_section === new_section) {
+		cmatch.update_match_score(m);
+	} else {
+		_show_render_matches();
+	}
+}
+
+function update_current_match(c) {
+	change.change_current_match(c.val);
+	_show_render_matches();
+}
+
+function _show_render_matches() {
+	cmatch.render_courts(uiu.qs('.courts_container'));
+	cmatch.render_unassigned(uiu.qs('.unassigned_container'));
+	cmatch.render_finished(uiu.qs('.finished_container'));
+}
+
 function ui_show() {
 	crouting.set('t/:key/', {key: curt.key});
 	toprow.set([{
@@ -100,6 +139,9 @@ function ui_show() {
 		func: ui_show,
 		'class': 'ct_name',
 	}], [{
+		label: 'Anzeige',
+		href: '/bup/#btsh_e=' + encodeURIComponent(curt.key) + '&display&dm_style=oncourt',
+	}, {
 		label: 'Schiedsrichter-Panel',
 		href: '/bup/#btsh_e=' + encodeURIComponent(curt.key),
 	}]);
@@ -114,19 +156,17 @@ function ui_show() {
 
 	cmatch.prepare_render(curt);
 
-	const courts_container = uiu.el(main, 'div', 'courts_container');
-	cmatch.render_courts(courts_container);
-
-	const unassigned_container = uiu.el(main, 'div', 'unassigned_container');
-	cmatch.render_unassigned(unassigned_container);
-
+	uiu.el(main, 'div', 'courts_container');
+	uiu.el(main, 'div', 'unassigned_container');
 	const match_create_container = uiu.el(main, 'div');
 	cmatch.render_create(match_create_container);
-
-	const finished_container = uiu.el(main, 'div', 'finished_container');
-	cmatch.render_finished(finished_container);
+	uiu.el(main, 'div', 'finished_container');
+	_show_render_matches();
 }
-_route_single(/t\/([a-z0-9]+)\/$/, ui_show);
+_route_single(/t\/([a-z0-9]+)\/$/, ui_show, change.default_handler(_show_render_matches, {
+	score: update_score,
+	court_current_match: update_current_match,
+}));
 
 function ui_edit() {
 	crouting.set('t/:key/edit', {key: curt.key});
@@ -275,6 +315,7 @@ if ((typeof module !== 'undefined') && (typeof require !== 'undefined')) {
 	var form_utils = require('./form_utils');
 	var toprow = require('./toprow');
 	var uiu = require('../bup/js/uiu');
+	var utils = require('../bup/bup/js/utils.js');
 
     module.exports = ctournament;
 }

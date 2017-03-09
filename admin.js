@@ -41,7 +41,7 @@ function handle_tournament_edit_props(app, ws, msg) {
 			ws.respond(msg, err);
 			return;
 		}
-		_notify_change(app, key, 'props', props);
+		notify_change(app, key, 'props', props);
 		ws.respond(msg, err);
 	});
 }
@@ -69,7 +69,7 @@ function handle_courts_add(app, ws, msg) {
 		}
 
 		stournament.get_courts(app.db, tournament_key, function(err, all_courts) {
-			_notify_change(app, tournament_key, 'courts_changed', {all_courts});
+			notify_change(app, tournament_key, 'courts_changed', {all_courts});
 			ws.respond(msg, err, {});
 		});
 	});
@@ -158,7 +158,7 @@ function handle_match_add(app, ws, msg) {
 			ws.respond(msg, err);
 			return;
 		}
-		_notify_change(app, tournament_key, 'match_add', {match: inserted_m});
+		notify_change(app, tournament_key, 'match_add', {match: inserted_m});
 		ws.respond(msg, err);
 	});
 }
@@ -174,13 +174,13 @@ function handle_match_edit(app, ws, msg) {
 			ws.respond(msg, err);
 			return;
 		}
-		_notify_change(app, tournament_key, 'match_edit', {match__id: msg.id, setup});
+		notify_change(app, tournament_key, 'match_edit', {match__id: msg.id, setup});
 		ws.respond(msg, err);
 	});
 }
 
 const all_admins = [];
-function _notify_change(app, tournament_key, ctype, val) {
+function notify_change(app, tournament_key, ctype, val) {
 	for (const admin_ws of all_admins) {
 		admin_ws.sendmsg({
 			type: 'change',
@@ -210,6 +210,7 @@ module.exports = {
 	handle_tournament_get,
 	handle_tournament_list,
 	handle_tournament_edit_props,
+	notify_change,
 	on_close,
 	on_connect,
 };

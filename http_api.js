@@ -1,6 +1,10 @@
 'use strict';
 
+const async = require('async');
+
+const admin = require('./admin');
 const stournament = require('./stournament');
+const utils = require('./utils');
 
 
 function courts_handler(req, res) {
@@ -32,7 +36,10 @@ function matches_handler(req, res) {
 	}, {
 		collection: 'matches',
 		query,
-	}], function(err, tournament, db_matches) {
+	}, {
+		collection: 'courts',
+		query: {tournament_key},
+	}], function(err, tournament, db_matches, db_courts) {
 		if (err) {
 			res.json({
 				status: 'error',
@@ -51,10 +58,23 @@ function matches_handler(req, res) {
 			};
 		});
 
+		db_courts.sort(utils.cmp_key('num'));
+		const courts = db_courts.map(function(dc) {
+			var res = {
+				court_id: dc._id,
+				label: dc.num,
+			};
+			if (dc.match_id) {
+				res.match_id = 'bts_' + dc.match_id;
+			}
+			return res;
+		});
+
 		const event = {
 			id: 'bts_' + tournament_key,
 			tournament_name: tournament.name,
 			matches,
+			courts,
 		};
 
 		const reply = {
@@ -78,7 +98,28 @@ function score_handler(req, res) {
 		presses: req.body.presses,
 	};
 
-	req.app.db.matches.update(query, {$set: update}, {}, function(err) {
+	const court_q = {
+		tournament_key,
+		_id: req.body.court_id,
+	};
+	const db = req.app.db;
+
+	async.waterfall([
+		cb => db.matches.update(query, {$set: update}, {}, err => cb(err)),
+		cb => db.courts.findOne(court_q, (err, court) => cb(err, court)),
+		(court, cb) => {
+			if (court.match_id === match_id) {
+				cb();
+				return;
+			}
+
+			admin.notify_change(req.app, tournament_key, 'court_current_match', {
+				match_id,
+				court_id: court._id,
+			});
+			db.courts.update(court_q, {$set: {match_id: match_id}}, {}, err => cb(err));
+		},
+	], function(err) {
 		if (err) {
 			res.json({
 				status: 'error',
@@ -87,6 +128,11 @@ function score_handler(req, res) {
 			return;
 		}
 
+		admin.notify_change(req.app, tournament_key, 'score', {
+			match_id,
+			network_score: update.network_score,
+			team1_won: update.team1_won,
+		});
 		res.json({status: 'ok'});
 	});
 }
