@@ -2,7 +2,9 @@
 
 const async = require('async');
 
+const stournament = require('./stournament');
 const utils = require('./utils');
+
 
 /**
 * Returns true iff everything is ok.
@@ -15,24 +17,6 @@ function _require_msg(ws, msg, fields) {
 		}
 	}
 	return true;
-}
-
-function _tournament_get_courts(db, tournament_key, callback) {
-	db.courts.find({tournament_key: tournament_key}, function(err, courts) {
-		if (err) return callback(err);
-
-		courts.sort(function(c1, c2) {
-			return utils.natcmp(('' + c1.num), ('' + c2.num));
-		});
-		return callback(err, courts);
-	});
-}
-
-function _tournament_get_matches(db, tournament_key, callback) {
-	db.matches.find({tournament_key}, function(err, matches) {
-		if (err) return callback(err);
-		return callback(err, matches);
-	});
 }
 
 function handle_tournament_list(app, ws, msg) {
@@ -84,7 +68,7 @@ function handle_courts_add(app, ws, msg) {
 			return;
 		}
 
-		_tournament_get_courts(app.db, tournament_key, function(err, all_courts) {
+		stournament.get_courts(app.db, tournament_key, function(err, all_courts) {
 			_notify_change(app, tournament_key, 'courts_changed', {all_courts});
 			ws.respond(msg, err, {});
 		});
@@ -106,12 +90,12 @@ function handle_tournament_get(app, ws, msg) {
 		}
 
 		async.parallel([function(cb) {
-			_tournament_get_courts(app.db, tournament.key, function(err, courts) {
+			stournament.get_courts(app.db, tournament.key, function(err, courts) {
 				tournament.courts = courts;
 				cb(err);
 			});
 		}, function(cb) {
-			_tournament_get_matches(app.db, tournament.key, function(err, matches) {
+			stournament.get_matches(app.db, tournament.key, function(err, matches) {
 				tournament.matches = matches;
 				cb(err);
 			});

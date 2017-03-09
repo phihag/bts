@@ -10,6 +10,7 @@
 		"async": "*",
 		"express": "*",
 		"nedb": "*",
+		"serve-favicon": "*",
 		"ws": "*"
 	},
 	"devDependencies": {

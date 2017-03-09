@@ -1,13 +1,16 @@
-bup start on court (HTTP?)
-add setup.match_id from _id
+favicon
+
 bup listing
+add setup.match_id from _id
 bup transmit [presses|winner]
 launch link 1court-display
+show current state in admin intf
 
 install on r
 send mail Moritz
-	Klingenhalle: WLAN erreichbar?
+	Klingenhalle: WLAN wie in Mülheim?
 
+manually set current match on court
 
 launch link allcourts-display
 edit umpire list

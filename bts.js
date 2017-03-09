@@ -6,11 +6,13 @@ const url = require('url');
 
 const ws_module = require('ws');
 const express = require('express');
+const favicon = require('serve-favicon');
 
 const admin = require('./admin');
 const bupws = require('./bupws');
 const database = require('./database');
 const error_reporting = require('./error_reporting');
+const http_api = require('./http_api');
 const utils = require('./utils');
 const wshandler = require('./wshandler');
 
@@ -77,6 +79,10 @@ function run_server(config, db) {
 	app.get('/', function(req, res) {
 		res.redirect('/admin/');
 	});
+	app.use(favicon(__dirname + '/static/icons/favicon.ico'));
+
+	app.get('/h/:tournament_key/courts', http_api.courts_handler);
+	app.get('/h/:tournament_key/matches', http_api.matches_handler);
 
 	wss.on('connection', function connection(ws) {
 		const location = url.parse(ws.upgradeReq.url, true);
