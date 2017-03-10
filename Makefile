@@ -39,6 +39,6 @@ bupdate:
 	node div/bupdate.js static/bup/
 
 install-bup-dev:
-	if test '!' -e ${BUPDEV} ; then git clone https://github.com/phihag/bup.git ${BUPDEV} && cd static/bup/dev && make deps-essential; fi
+	if test '!' -e ${BUPDEV} ; then git clone https://github.com/phihag/bup.git ${BUPDEV} && cd static/bup/dev && make download-libs; fi
 
 .PHONY: default help deps dev test clean install-libs force-install-libs run-server cleantestcache lint jshint eslint bupdate install-bup-dev
