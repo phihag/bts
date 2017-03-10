@@ -2,5 +2,5 @@
 	"port": 4000,
 	"bup_location": "static/bup/dev/",
 	"bup_index": "bup.html",
-	"report_errors": false
+	"report_errors": true
 }

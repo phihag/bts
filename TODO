@@ -1,6 +1,5 @@
 install on r
 send mail Moritz
-	Klingenhalle: WLAN wie in Mülheim?
 
 go into finished match
 move to court button
@@ -56,7 +55,6 @@ delete court (ask before)
 show error upon match creation
 add team (country) names on umpire sheet
 
-match_create: tabindex
 -----
 grep for all TODOs
 auth?

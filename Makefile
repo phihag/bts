@@ -26,9 +26,12 @@ run:
 lint: eslint stylelint
 
 eslint:
-	@./node_modules/.bin/eslint bts/ test/*.js static/js/
+	@./node_modules/.bin/eslint bts/ test/*.js static/js/ div/*.js
 
 stylelint:
 	@./node_modules/.bin/stylelint static/css/*.css
 
-.PHONY: default help deps dev test clean install-libs force-install-libs run-server cleantestcache lint jshint eslint
+bupdate:
+	node div/bupdate.js static/bup/
+
+.PHONY: default help deps dev test clean install-libs force-install-libs run-server cleantestcache lint jshint eslint bupdate

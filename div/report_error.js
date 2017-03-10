@@ -37,8 +37,8 @@ function main() {
 		headers: {
 			'Content-Type': 'application/json',
 			'Content-Length': Buffer.byteLength(json),
-		}
-  	};
+		},
+	};
 
 	const post_req = https.request(options, function(res) {
 		let data = '';

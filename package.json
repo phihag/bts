@@ -10,7 +10,10 @@
 		"async": "*",
 		"body-parser": "*",
 		"express": "*",
+		"extract-zip": "*",
 		"nedb": "*",
+		"request": "*",
+		"rimraf": "*",
 		"serve-favicon": "*",
 		"ws": "*"
 	},
