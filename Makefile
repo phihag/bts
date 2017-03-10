@@ -1,4 +1,4 @@
-LIBDIR=static/libs
+BUPDEV=static/bup/dev
 
 default: run-server
 
@@ -31,7 +31,14 @@ eslint:
 stylelint:
 	@./node_modules/.bin/stylelint static/css/*.css
 
+all: deps
+	$(MAKE) bupdate
+	$(MAKE) install-bup-dev
+
 bupdate:
 	node div/bupdate.js static/bup/
 
-.PHONY: default help deps dev test clean install-libs force-install-libs run-server cleantestcache lint jshint eslint bupdate
+install-bup-dev:
+	if test '!' -e ${BUPDEV} ; then git clone https://github.com/phihag/bup.git ${BUPDEV} && cd static/bup/dev && make deps-essential; fi
+
+.PHONY: default help deps dev test clean install-libs force-install-libs run-server cleantestcache lint jshint eslint bupdate install-bup-dev

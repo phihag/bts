@@ -75,6 +75,7 @@ function run_server(config, db) {
 	app.wss = wss;
 
 	app.use('/bup/', express.static(config.bup_location, {index: config.bup_index}));
+	app.use('/bupdev/', express.static(path.join(utils.root_dir(), 'static/bup/dev/')));
 	app.use('/static/', express.static('static/', {}));
 	app.use('/admin/', cadmin_router());
 	app.get('/', function(req, res) {
