@@ -4,6 +4,26 @@ const zlib = require('zlib');
 
 const xmldom = require('xmldom');
 
+function get_info_request(password) {
+	const res = {
+		Header: {
+			Version: {
+				Hi: 1,
+				Lo: 1,
+			},
+		},
+		Action: {
+			ID: 'SENDTOURNAMENTINFO',
+		},
+		Client: {
+			IP: 'bts',
+		},
+	};
+	if (password) {
+		res.Action.Password = password;
+	}
+	return res;
+}
 
 function login_request(password) {
 	const res = {
@@ -11,7 +31,7 @@ function login_request(password) {
 			Version: {
 				Hi: 1,
 				Lo: 1,
-			}
+			},
 		},
 		Action: {
 			ID: 'LOGIN',
@@ -30,18 +50,44 @@ function el2obj(el) {
 	const res = {};
 	for (let i = 0;i < el.childNodes.length;i++) {
 		const c = el.childNodes[i];
-		const id = c.getAttribute('ID');
+		let item;
 
 		if (c.tagName === 'GROUP') {
-			res[id] = el2obj(c);
+			item = el2obj(c);
 		} else if (c.tagName === 'ITEM') {
 			const itype = c.getAttribute('TYPE');
 			if (itype === 'String') {
-				res[id] = c.textContent;
+				item = c.textContent;
 			} else if (itype === 'Integer') {
-				res[id] = parseInt(c.textContent);
+				item = parseInt(c.textContent);
+			} else if (itype === 'Float') {
+				item = parseFloat(c.textContent);
+			} else if (itype === 'Bool') {
+				item = c.textContent === 'true';
+			} else if (itype === 'DateTime') {
+				const dt = c.getElementsByTagName('DATETIME')[0];
+				return {
+					_type: 'datetime',
+					year: parseInt(c.getAttribute('Y')),
+					month: parseInt(c.getAttribute('MM')),
+					day: parseInt(c.getAttribute('D')),
+					hour: parseInt(c.getAttribute('H')),
+					minute: parseInt(c.getAttribute('M')),
+					second: parseInt(c.getAttribute('S')),
+					ms: parseInt(c.getAttribute('MS')),
+				};
+			} else {
+				throw new Error('Unsupported BTP item type ' + itype);
 			}
+		} else {
+			throw new Error('Unsupported BTP tag ' + c.tagName);
 		}
+
+		const id = c.getAttribute('ID');
+		if (!res[id]) {
+			res[id] = [];
+		}
+		res[id].push(item);
 	}
 	return res;
 }
@@ -51,6 +97,9 @@ function _req2xml_add(doc, parent, obj) {
 		const v = obj[k];
 
 		let node;
+		if (Array.isArray(v)) {
+			throw new Error('TODO: support arrays');
+		}
 		if (typeof v === 'object') {
 			node = doc.createElement('GROUP');
 			_req2xml_add(doc, node, v);
@@ -61,6 +110,10 @@ function _req2xml_add(doc, parent, obj) {
 		} else if (typeof v === 'number') {
 			node = doc.createElement('ITEM');
 			node.setAttribute('TYPE', 'Integer');
+			node.appendChild(doc.createTextNode(v));
+		} else if (typeof v === 'boolean') {
+			node = doc.createElement('ITEM');
+			node.setAttribute('TYPE', 'Bool');
 			node.appendChild(doc.createTextNode(v));
 		} else {
 			throw new Error('Cannot encode type ' + typeof v);
@@ -110,20 +163,26 @@ function decode(buf, callback) {
 
 	const main_buf = buf.slice(4);
 	const response_buf = zlib.gunzipSync(main_buf, {});
-
+	const response_str = response_buf.toString('utf8');
+	const parser = new xmldom.DOMParser();
+require('fs').writeFileSync('response', response_str);
+	var response;
 	try {
-		const parser = new xmldom.DOMParser();
-		const doc = parser.parseFromString(response_buf.toString('utf8'));
-		const response = el2obj(doc.documentElement);
-		console.log('reponse', JSON.stringify(response));
-		return callback(null, response);
+		const doc = parser.parseFromString(response_str);
+		response = el2obj(doc.documentElement);
 	} catch(err) {
-		callback(null, err);
+		console.error('Encountered an error while parsing: ', err);
+		//callback(err);
+		return;
 	}
+
+	console.log('reponse', JSON.stringify(response));
+	callback(null, response);
 }
 
 module.exports = {
 	decode,
 	encode,
+	get_info_request,
 	login_request,
 };

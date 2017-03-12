@@ -1,6 +1,9 @@
 start BTP API
 	list tournament matches (add those to our DB that are still missing)
+
+improve BTP API
 	make sure to catch timeouts and other net errors, test coming and going out
+	make sure all catches are correct
 
 go into finished match
 move to court button

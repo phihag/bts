@@ -5,6 +5,7 @@ const net = require('net');
 const btp_proto = require('./btp_proto');
 
 const CONNECT_TIMEOUT = 5000;
+const PORT = 9902; // 9901 for true BTP
 
 
 function send_request(ip, xml_req, callback) {
@@ -12,9 +13,10 @@ function send_request(ip, xml_req, callback) {
 	try {
 		encoded_req = btp_proto.encode(xml_req);
 	} catch(e) {
+		console.error('Error while encoding for BTP:', e);
 		return callback(e);
 	}
-	const client = net.connect({host: ip, port: 9901, timeout: CONNECT_TIMEOUT}, () => {
+	const client = net.connect({host: ip, port: PORT, timeout: CONNECT_TIMEOUT}, () => {
 		client.write(encoded_req);
 	});
 
@@ -53,22 +55,27 @@ class BTPConn {
 			return;
 		}
 
+		this.report_status('Verbindung wird hergestellt ...');
 		this.send(btp_proto.login_request(this.password), response => {
-			if (!response.Action || (response.Action.ID !== 'REPLY')) {
+			if (!response.Action || !response.Action[0] || !response.Action[0].ID[0] || (response.Action[0].ID[0] !== 'REPLY')) {
 				this.report_status('Ungültige Antwort auf Login-Anfrage');
 				this.schedule_reconnect();
 				return;
 			}
 
-			if (response.Action.Result !== 1) {
+			if (response.Action[0].Result[0] !== 1) {
 				this.report_status('Falsches Passwort');
 				this.schedule_reconnect();
 				return;
 			}
 
 			this.report_status('Eingeloggt.');
+
+			const ir = btp_proto.get_info_request(this.password);
+			this.send(ir, response => {
+				console.log('INFO response above!');
+			});
 		});
-		this.report_status('Verbindung wird hergestellt ...');
 	}
 
 	terminate() {
@@ -105,7 +112,6 @@ class BTPConn {
 	report_status(msg) {
 		this.last_status = msg;
 		const admin = require('./admin');
-		console.log('Status: ', msg)
 		admin.notify_change(this.app, this.tkey, 'btp_status', msg);
 	}
 }
