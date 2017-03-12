@@ -35,7 +35,7 @@ function handle_tournament_edit_props(app, ws, msg) {
 	}
 
 	const key = msg.key;
-	const props = utils.pluck(msg.props, ['name', 'btp_enabled', 'btp_ip']);
+	const props = utils.pluck(msg.props, ['name', 'btp_enabled', 'btp_ip', 'btp_password']);
 
 	app.db.tournaments.update({key}, {$set: props}, {returnUpdatedDocs: true}, function(err, num, t) {
 		if (err) {

@@ -14,7 +14,7 @@ function reconfigure(app, t) {
 		return;
 	}
 
-	const conn = new btp_conn.BTPConn(app, t.btp_ip, t.key);
+	const conn = new btp_conn.BTPConn(app, t.btp_ip, t.btp_password, t.key);
 	conns_by_tkey.set(t.key, conn);
 }
 
@@ -32,7 +32,7 @@ function init(app, cb) {
 function get_status(tkey) {
 	const conn = conns_by_tkey.get(tkey);
 	if (!conn) {
-		return 'deaktiviert';
+		return 'Deaktiviert.';
 	}
 
 	return conn.last_status;

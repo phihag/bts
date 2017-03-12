@@ -227,6 +227,14 @@ function ui_edit() {
 		value: (curt.btp_ip || ''),
 	});
 
+	const btp_password_label = uiu.el(form, 'label');
+	uiu.el(btp_password_label, 'span', {}, 'BTP-Passwort:');
+	uiu.el(btp_password_label, 'input', {
+		type: 'text',
+		name: 'btp_password',
+		value: (curt.btp_password || ''),
+	});
+
 	uiu.el(form, 'button', {
 		role: 'submit',
 	}, 'Ändern');
@@ -238,6 +246,7 @@ function ui_edit() {
 				name: data.name,
 				btp_enabled: (!!data.btp_enabled),
 				btp_ip: data.btp_ip,
+				btp_password: data.btp_password,
 			},
 		}, function(err) {
 			if (err) {

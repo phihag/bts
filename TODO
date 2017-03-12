@@ -1,7 +1,6 @@
 start BTP API
-	send message to BTP
-	parse message from BTP
-	separate TCP conn for each message!
+	list tournament matches (add those to our DB that are still missing)
+	make sure to catch timeouts and other net errors, test coming and going out
 
 go into finished match
 move to court button

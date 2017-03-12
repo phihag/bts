@@ -46,7 +46,7 @@ function main() {
 			database.init((err, db) => cb(err, config, db));
 		},
 		function (config, db, cb) {
-			const [app, server] = create_server(config, db);
+			const app = create_app(config, db);
 
 			btp_manager.init(app, cb);
 		},
@@ -75,7 +75,7 @@ function cadmin_router() {
 	return router;
 }
 
-function create_server(config, db) {
+function create_app(config, db) {
 	const server = require('http').createServer();
 	const app = express();
 	const wss = new ws_module.Server({server: server});
@@ -117,7 +117,7 @@ function create_server(config, db) {
 	server.listen(config.port, function () {
 		// console.log('Listening on ' + server.address().port);
 	});
-	return [app, server];
+	return app;
 }
 
 main();
