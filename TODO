@@ -1,5 +1,5 @@
-install on r
-send mail Moritz
+start BTP API
+	send message to BTP
 
 go into finished match
 move to court button
@@ -54,6 +54,7 @@ online display server
 delete court (ask before)
 show error upon match creation
 add team (country) names on umpire sheet
+support for BTP password
 
 -----
 grep for all TODOs

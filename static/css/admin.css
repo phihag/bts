@@ -40,6 +40,13 @@ h3 {
 	color: #666;
 	background: rgba(255, 255, 255, 0.8);
 }
+.btp_status {
+	position: fixed;
+	bottom: 1.5em;
+	right: 0;
+	color: #666;
+	background: rgba(255, 255, 255, 0.8);
+}
 
 .errors {
 	position: fixed;

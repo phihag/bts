@@ -4,12 +4,14 @@ const fs = require('fs');
 const path = require('path');
 const url = require('url');
 
+const async = require('async');
 const body_parser = require('body-parser');
 const ws_module = require('ws');
 const express = require('express');
 const favicon = require('serve-favicon');
 
 const admin = require('./admin');
+const btp_manager = require('./btp_manager');
 const bupws = require('./bupws');
 const database = require('./database');
 const error_reporting = require('./error_reporting');
@@ -36,13 +38,21 @@ function read_config(callback, autocreate) {
 }
 
 function main() {
-	read_config((err, config) => {
+	async.waterfall([
+		read_config,
+		function(config, cb) {
+			error_reporting.setup(config);
+
+			database.init((err, db) => cb(err, config, db));
+		},
+		function (config, db, cb) {
+			const [app, server] = create_server(config, db);
+
+			btp_manager.init(app, cb);
+		},
+	], function(err) {
 		if (err) throw err;
-
-		error_reporting.setup(config);
-
-		database.init(db => run_server(config, db));
-	}, true);
+	});
 }
 
 function cadmin_router() {
@@ -65,7 +75,7 @@ function cadmin_router() {
 	return router;
 }
 
-function run_server(config, db) {
+function create_server(config, db) {
 	const server = require('http').createServer();
 	const app = express();
 	const wss = new ws_module.Server({server: server});
@@ -107,6 +117,7 @@ function run_server(config, db) {
 	server.listen(config.port, function () {
 		// console.log('Listening on ' + server.address().port);
 	});
+	return [app, server];
 }
 
 main();

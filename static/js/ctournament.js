@@ -23,6 +23,7 @@ function switch_tournament(tournament_key, success_cb) {
 		}
 
 		curt = response.tournament;
+		uiu.text_qs('.btp_status', 'BTP-Status: ' + curt.btp_status);
 		success_cb();
 	});
 }
@@ -206,6 +207,26 @@ function ui_edit() {
 		value: curt.name || curt.key,
 		'class': 'ct_name',
 	});
+
+	const btp_enabled_label = uiu.el(form, 'label');
+	const ba_attrs = {
+		type: 'checkbox',
+		name: 'btp_enabled',
+	};
+	if (curt.btp_enabled) {
+		ba_attrs.checked = 'checked';
+	}
+	uiu.el(btp_enabled_label, 'input', ba_attrs);
+	uiu.el(btp_enabled_label, 'span', {}, 'BTP-Anbindung aktivieren');
+
+	const btp_ip_label = uiu.el(form, 'label');
+	uiu.el(btp_ip_label, 'span', {}, 'BTP-IP:');
+	uiu.el(btp_ip_label, 'input', {
+		type: 'text',
+		name: 'btp_ip',
+		value: (curt.btp_ip || ''),
+	});
+
 	uiu.el(form, 'button', {
 		role: 'submit',
 	}, 'Ändern');
@@ -213,7 +234,11 @@ function ui_edit() {
 		send({
 			type: 'tournament_edit_props',
 			key: curt.key,
-			props: {name: data.name},
+			props: {
+				name: data.name,
+				btp_enabled: (!!data.btp_enabled),
+				btp_ip: data.btp_ip,
+			},
 		}, function(err) {
 			if (err) {
 				return cerror.net(err);

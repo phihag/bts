@@ -2,6 +2,7 @@
 
 const async = require('async');
 
+const btp_manager = require('./btp_manager');
 const stournament = require('./stournament');
 const utils = require('./utils');
 
@@ -34,14 +35,15 @@ function handle_tournament_edit_props(app, ws, msg) {
 	}
 
 	const key = msg.key;
-	const props = utils.pluck(msg.props, ['name']);
+	const props = utils.pluck(msg.props, ['name', 'btp_enabled', 'btp_ip']);
 
-	app.db.tournaments.update({key}, {$set: props}, {}, function(err) {
+	app.db.tournaments.update({key}, {$set: props}, {returnUpdatedDocs: true}, function(err, num, t) {
 		if (err) {
 			ws.respond(msg, err);
 			return;
 		}
 		notify_change(app, key, 'props', props);
+		btp_manager.reconfigure(app, t);
 		ws.respond(msg, err);
 	});
 }
@@ -100,6 +102,7 @@ function handle_tournament_get(app, ws, msg) {
 				cb(err);
 			});
 		}], function(err) {
+			tournament.btp_status = btp_manager.get_status(tournament.key);
 			ws.respond(msg, err, {tournament});
 		});
 	});

@@ -43,12 +43,8 @@ function init(callback) {
 	}, function(cb) {
 		setup_autonum(cb, db, 'tournaments');
 	}], function(err) {
-		if (err) {
-			throw err;
-		}
-		callback(db);
+		callback(err, db);
 	});
-
 }
 
 function fetch_all(db, specs, callback) {

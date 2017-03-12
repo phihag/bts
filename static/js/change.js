@@ -36,12 +36,20 @@ function default_handler_func(rerender, special_funcs, c) {
 	switch (c.ctype) {
 	case 'props':
 		curt.name = c.val.name;
+		curt.btp_enabled = c.val.btp_enabled;
+		curt.btp_ip = c.val.btp_ip;
 		uiu.qsEach('.ct_name', function(el) {
 			if (el.tagName.toUpperCase() === 'INPUT') {
 				el.value = c.val.name;
 			} else {
 				uiu.text(el, c.val.name);
 			}
+		});
+		uiu.qsEach('input[name="btp_enabled"]', function(el) {
+			el.checked = curt.btp_enabled;
+		});
+		uiu.qsEach('input[name="btp_ip"]', function(el) {
+			el.value = curt.btp_ip;
 		});
 		break;
 	case 'match_add':
@@ -70,6 +78,9 @@ function default_handler_func(rerender, special_funcs, c) {
 	case 'court_current_match':
 		change_current_match(c.val);
 		// Most dialogs don't show any matches, so do not rerender
+		break;
+	case 'btp_status':
+		uiu.text_qs('.btp_status', 'BTP-Status: ' + c.val);
 		break;
 	default:
 		cerror.silent('Unsupported change type ' + c.ctype);

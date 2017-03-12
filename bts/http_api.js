@@ -24,9 +24,13 @@ function courts_handler(req, res) {
 
 function matches_handler(req, res) {
 	const tournament_key = req.params.tournament_key;
-	const query = {tournament_key};
+	const query = {
+		tournament_key,
+	};
 	if (req.query.court) {
 		query['setup.court_id'] = req.query.court;
+	} else {
+		query['setup.court_id'] = {$exists: true};
 	}
 
 	req.app.db.fetch_all([{
