@@ -15,6 +15,7 @@
 		"request": "*",
 		"rimraf": "*",
 		"serve-favicon": "*",
+		"xmldom": "*",
 		"ws": "*"
 	},
 	"devDependencies": {

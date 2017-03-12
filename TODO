@@ -1,5 +1,7 @@
 start BTP API
 	send message to BTP
+	parse message from BTP
+	separate TCP conn for each message!
 
 go into finished match
 move to court button

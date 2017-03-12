@@ -2,6 +2,9 @@
 
 const net = require('net');
 
+const btp_proto = require('./btp_proto');
+
+
 class BTPConn {
 	constructor(app, ip, tkey) {
 		this.app = app;
@@ -38,7 +41,16 @@ class BTPConn {
 	}
 
 	on_connect() {
-		this.report_status('Verbunden.');
+		this.report_status('Verbunden, starte Login.');
+		this.send(btp_proto.login_request());
+	}
+
+	send(xml_doc) {
+		const whole_req = btp_proto.encode(xml_doc);
+		// TODO proper error handling here
+		if (this.client) {
+			this.client.write(whole_req);
+		}
 	}
 
 	schedule_reconnect() {
@@ -56,7 +68,7 @@ class BTPConn {
 	report_status(msg) {
 		this.last_status = msg;
 		const admin = require('./admin');
-		console.log('status of ' + this.tkey + ': ' + msg);
+		console.log('Status: ', msg)
 		admin.notify_change(this.app, this.tkey, 'btp_status', msg);
 	}
 }
