@@ -189,6 +189,8 @@ function fetch(app, tkey, response, callback) {
 			match._id = 'btp_' + btp_id;
 
 			app.db.matches.insert(match, function(err) {
+				if (err) return cb(err);
+
 				admin.notify_change(app, tkey, 'match_add', {match});
 				cb();
 			});

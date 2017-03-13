@@ -101,8 +101,8 @@ function score_handler(req, res) {
 		team1_won: req.body.team1_won,
 		presses: req.body.presses,
 	};
-	if (team1_won !== undefined) {
-		update.btp_winner = (team1_won === true) ? 1 : 2;
+	if (update.team1_won !== undefined) {
+		update.btp_winner = (update.team1_won === true) ? 1 : 2;
 	}
 
 	const court_q = {
