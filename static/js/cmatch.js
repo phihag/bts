@@ -50,7 +50,7 @@ function render_match_row(tr, match, court, include_court) {
 	edit_btn.addEventListener('click', on_edit_button_click);
 
 	if (include_court) {
-		uiu.el(tr, 'td', {}, court.num);
+		uiu.el(tr, 'td', {}, court ? court.num : '');
 	}
 
 	const match_str = (setup.scheduled_time_str ? (setup.scheduled_time_str + ' ') : '') + (setup.match_name ? (setup.match_name + ' ') : '') + setup.event_name;

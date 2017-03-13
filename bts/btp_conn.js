@@ -3,9 +3,10 @@
 const net = require('net');
 
 const btp_proto = require('./btp_proto');
+const btp_sync = require('./btp_sync');
 
 const CONNECT_TIMEOUT = 5000;
-const PORT = 9902; // 9901 for true BTP
+const PORT = 9901; // 9901 for true BTP, 9002 for win7 machine
 
 
 function send_request(ip, xml_req, callback) {
@@ -73,7 +74,11 @@ class BTPConn {
 
 			const ir = btp_proto.get_info_request(this.password);
 			this.send(ir, response => {
-				console.log('INFO response above!');
+				btp_sync.fetch(this.app, this.tkey, response, (err) => {
+					if (err) {
+						this.report_status('Synchronisations-Fehler: ' + err.message);
+					}
+				});
 			});
 		});
 	}

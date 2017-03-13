@@ -1,10 +1,19 @@
 start BTP API
-	list tournament matches (add those to our DB that are still missing)
+	properly update
+	button to resync now
+	automatically resync from time to time
 
+custom created matches must get a compatible match ID (and forbid changing the number)
 improve BTP API
+	fetch courts
+	remove login (not necessary, just check error code)
 	make sure to catch timeouts and other net errors, test coming and going out
 	make sure all catches are correct
+	test resigning
+	transmit changes to BTP
+	transmit changes in umpires to BTP
 
+allow changing btp ID in manual matches (autocalc sensibly)
 go into finished match
 move to court button
 HTTP API: suppress cache
@@ -58,7 +67,7 @@ online display server
 delete court (ask before)
 show error upon match creation
 add team (country) names on umpire sheet
-support for BTP password
+support for BTP match highlight
 
 -----
 grep for all TODOs

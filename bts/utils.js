@@ -107,11 +107,27 @@ function copy_file(source, target, cb) {
 	}
 }
 
+function make_index(ar, index_func) {
+	const res = new Map();
+	for (const el of ar) {
+		res.set(index_func(el), el);
+	}
+	return res;
+}
+
+function pad(n, width, z) {
+	z = z || '0';
+	n = n + '';
+	return n.length >= width ? n : new Array(width - n.length + 1).join(z) + n;
+}
+
 module.exports = {
 	cmp,
 	cmp_key,
 	copy_file,
+	make_index,
 	natcmp,
+	pad,
 	pluck,
 	remove,
 	root_dir,

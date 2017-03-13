@@ -66,15 +66,15 @@ function el2obj(el) {
 				item = c.textContent === 'true';
 			} else if (itype === 'DateTime') {
 				const dt = c.getElementsByTagName('DATETIME')[0];
-				return {
+				item = {
 					_type: 'datetime',
-					year: parseInt(c.getAttribute('Y')),
-					month: parseInt(c.getAttribute('MM')),
-					day: parseInt(c.getAttribute('D')),
-					hour: parseInt(c.getAttribute('H')),
-					minute: parseInt(c.getAttribute('M')),
-					second: parseInt(c.getAttribute('S')),
-					ms: parseInt(c.getAttribute('MS')),
+					year: parseInt(dt.getAttribute('Y')),
+					month: parseInt(dt.getAttribute('MM')),
+					day: parseInt(dt.getAttribute('D')),
+					hour: parseInt(dt.getAttribute('H')),
+					minute: parseInt(dt.getAttribute('M')),
+					second: parseInt(dt.getAttribute('S')),
+					ms: parseInt(dt.getAttribute('MS')),
 				};
 			} else {
 				throw new Error('Unsupported BTP item type ' + itype);
@@ -137,7 +137,7 @@ function req2xml(req) {
 }
 
 function encode(req) {
-	console.log('sending', req);
+	// console.log('sending', req); // TODO remove this line
 	const xml_str = req2xml(req);
 
 	const xml_buf = Buffer.from(xml_str, 'utf8');
@@ -165,18 +165,19 @@ function decode(buf, callback) {
 	const response_buf = zlib.gunzipSync(main_buf, {});
 	const response_str = response_buf.toString('utf8');
 	const parser = new xmldom.DOMParser();
-require('fs').writeFileSync('response', response_str);
+
 	var response;
 	try {
 		const doc = parser.parseFromString(response_str);
 		response = el2obj(doc.documentElement);
+		require('fs').writeFileSync('response', response_str);
 	} catch(err) {
 		console.error('Encountered an error while parsing: ', err);
 		//callback(err);
 		return;
 	}
 
-	console.log('reponse', JSON.stringify(response));
+	// console.log('reponse', JSON.stringify(response)); // TODO remove this line
 	callback(null, response);
 }
 
