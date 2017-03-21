@@ -1,13 +1,10 @@
-fix duration_ms
-
-fix duration to official definition (copy from scoresheet)
-
 start BTP API
 	update players (lasttimeoncourt)
+
+
 	on reconnect update all scores
 	button to fetch now
 	button to push again now
-	option to prefer me or BTP?
 	automatically push when BTP becomes available
 	automatically resync from time to time
 

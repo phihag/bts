@@ -159,6 +159,13 @@ function fetch(app, tkey, response, callback) {
 			const event_name = draw.Name[0];
 			const teams = _craft_teams(bm);
 
+			const btp_player_ids = [];
+			for (const team of bm.bts_players) {
+				for (const p of team) {
+					btp_player_ids.push(p.ID[0]);
+				}
+			}
+
 			const setup = {
 				incomplete: !bm.bts_complete,
 				is_doubles: (gtid === 2),
@@ -180,6 +187,7 @@ function fetch(app, tkey, response, callback) {
 				tournament_key: tkey,
 				btp_id,
 				btp_match_ids,
+				btp_player_ids,
 				setup,
 				// TODO court_id
 			};

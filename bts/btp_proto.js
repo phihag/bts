@@ -102,7 +102,6 @@ function update_request(match, key_unicode) {
 			ScoreStatus: 0, // Won normally (TODO: correctly handle resignations etc.)
 			Duration: duration_mins,
 			Status: 0,
-			Shuttles: 42,
 			// BTP also sends a boolean ScoreSheetPrinted here
 		};
 		matches.push({Match: m});
