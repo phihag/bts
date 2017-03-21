@@ -1,8 +1,18 @@
+calc duration
+
 start BTP API
-	properly update
-	button to resync now
+	send score
+	on reconnect update all scores
+	send duration
+	button to fetch now
+	button to push again now
+	option to prefer me or BTP?
+	automatically push when BTP becomes available
 	automatically resync from time to time
 
+Ansage Spielfeld, 20 Sekunden nicht korrekt! (should use num if present)
+
+show duration in UI
 custom created matches must get a compatible match ID (and forbid changing the number)
 improve BTP API
 	fetch courts
@@ -43,14 +53,6 @@ basic left-right layout
 allow to enter bup to finished match
 
 online ticker
-
-configure BTP address
-connect to BTP and read numer of courts
-	protocol is: 4 bytes big endian packet size
-	gzip rest
-
-
-
 display one/all courts
 
 move match to court via drag&drop
@@ -62,8 +64,10 @@ make an android app
 
 all courts
 online display server
+show BTP match IDs in UI and allow to edit them
 
 -----
+umpire management by referee
 delete court (ask before)
 show error upon match creation
 add team (country) names on umpire sheet
@@ -72,3 +76,4 @@ support for BTP match highlight
 -----
 grep for all TODOs
 auth?
+keep data in automanaged git repo?

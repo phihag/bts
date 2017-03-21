@@ -4,6 +4,7 @@ const net = require('net');
 
 const btp_proto = require('./btp_proto');
 const btp_sync = require('./btp_sync');
+const error_reporting = require('./error_reporting');
 
 const CONNECT_TIMEOUT = 5000;
 const PORT = 9901; // 9901 for true BTP, 9002 for win7 machine
@@ -118,6 +119,16 @@ class BTPConn {
 		this.last_status = msg;
 		const admin = require('./admin');
 		admin.notify_change(this.app, this.tkey, 'btp_status', msg);
+	}
+
+	update_score(match) {
+		this.send(btp_proto.update_request(match), response => {
+			const rescode = response.Action[0].Result[0];
+			if (rescode !== 0) {
+				error_reporting.silent('Score update for ' + match.btp_id + ' failed with error code ' + rescode);
+				console.log('Response to update request', JSON.stringify(response));
+			}
+		});
 	}
 }
 

@@ -3,9 +3,23 @@
 const async = require('async');
 
 const admin = require('./admin');
+const btp_manager = require('./btp_manager');
 const stournament = require('./stournament');
 const utils = require('./utils');
 
+// Returns true iff all params are met
+function _require_params(req, res, keys) {
+	for (const k of keys) {
+		if (! req.body.hasOwnProperty(k)) {
+			res.json({
+				status: 'error',
+				message: 'Missing field ' + k + ' in request',
+			});
+			return false;
+		}
+	}
+	return true;
+}
 
 function courts_handler(req, res) {
 	const tournament_key = req.params.tournament_key;
@@ -90,6 +104,8 @@ function matches_handler(req, res) {
 }
 
 function score_handler(req, res) {
+	if (!_require_params(req, res, ['duration_ms', 'network_score', 'team1_won', 'presses'])) return;
+
 	const tournament_key = req.params.tournament_key;
 	const match_id = req.params.match_id;
 	const query = {
@@ -100,6 +116,7 @@ function score_handler(req, res) {
 		network_score: req.body.network_score,
 		team1_won: req.body.team1_won,
 		presses: req.body.presses,
+		duration_ms: req.body.duration_ms,
 	};
 	if (update.team1_won !== undefined) {
 		update.btp_winner = (update.team1_won === true) ? 1 : 2;
@@ -110,21 +127,33 @@ function score_handler(req, res) {
 		_id: req.body.court_id,
 	};
 	const db = req.app.db;
-
+ 
 	async.waterfall([
-		cb => db.matches.update(query, {$set: update}, {}, err => cb(err)),
-		cb => db.courts.findOne(court_q, (err, court) => cb(err, court)),
-		(court, cb) => {
+		cb => db.matches.update(query, {$set: update}, {returnUpdatedDocs: true}, (err, _, match) => cb(err, match)),
+		(match, cb) => db.courts.findOne(court_q, (err, court) => cb(err, match, court)),
+		(match, court, cb) => {
 			if (court.match_id === match_id) {
-				cb();
+				cb(null, match, court, false);
 				return;
 			}
 
-			admin.notify_change(req.app, tournament_key, 'court_current_match', {
-				match_id,
-				court_id: court._id,
+			db.courts.update(court_q, {$set: {match_id: match_id}}, {returnUpdadDocs: true}, (err, updated) => {
+				cb(err, match, updated, true);
 			});
-			db.courts.update(court_q, {$set: {match_id: match_id}}, {}, err => cb(err));
+		},
+		(match, court, changed_court, cb) => {
+			if (changed_court) {
+				admin.notify_change(req.app, tournament_key, 'court_current_match', {
+					match_id,
+					court_id: court._id,
+				});
+			}
+			cb(null, match);
+		},
+		(match, cb) => {
+			btp_manager.update_score(req.app, match);
+
+			cb();
 		},
 	], function(err) {
 		if (err) {

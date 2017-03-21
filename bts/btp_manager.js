@@ -1,6 +1,9 @@
 'use strict';
 
+const assert = require('assert');
+
 const btp_conn = require('./btp_conn');
+const error_reporting = require('./error_reporting');
 
 const conns_by_tkey = new Map();
 
@@ -16,6 +19,28 @@ function reconfigure(app, t) {
 
 	const conn = new btp_conn.BTPConn(app, t.btp_ip, t.btp_password, t.key);
 	conns_by_tkey.set(t.key, conn);
+}
+
+function update_score(app, match) {
+	assert(match);
+	const tkey = match.tournament_key;
+	assert(tkey);
+
+	if (! match.btp_match_ids) {
+		return; // Match is not coming from BTP
+	}
+
+	const conn = conns_by_tkey.get(tkey);
+	if (!conn) {
+		// Do not output an error; this happens if BTP support gets disabled
+		return;
+	}
+
+	if (typeof match.team1_won !== 'boolean') {
+		return; // Match not finished yet
+	}
+
+	conn.update_score(match);
 }
 
 function init(app, cb) {
@@ -39,7 +64,8 @@ function get_status(tkey) {
 }
 
 module.exports = {
-	reconfigure,
 	get_status,
 	init,
+	reconfigure,
+	update_score,
 };

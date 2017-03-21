@@ -5,18 +5,28 @@ const path = require('path');
 
 const utils = require('./utils');
 
+function report(obj) {
+	const obj_json = JSON.stringify(obj);
+	const report_exe = path.join(utils.root_dir(), 'div', 'report_error.js');
+	child_process.spawn(
+		'node', [report_exe, obj_json],
+		{detached: true}
+	);
+}
+
 function handle_error(err) {
-	const msg_json = JSON.stringify({
+	report({
 		message: err.message,
 		stack: '' + err.stack,
 	});
-	const report_exe = path.join(utils.root_dir(), 'div', 'report_error.js');
-	child_process.spawn(
-		'node', [report_exe, msg_json],
-		{detached: true}
-	);
-
 	throw err;
+}
+
+function silent(message) {
+	console.error(message);
+	report({
+		message,
+	});
 }
 
 function active(config) {
@@ -31,5 +41,6 @@ function setup(config) {
 
 module.exports = {
 	active,
+	silent,
 	setup,
 };

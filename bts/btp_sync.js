@@ -123,6 +123,11 @@ function fetch(app, tkey, response, callback) {
 		const match_num = bm.MatchNr[0];
 		assert(typeof match_num === 'number');
 		const btp_id = tkey + '_' + draw.Name[0] + '_' + match_num;
+		const btp_match_ids = [{
+			id: bm.ID[0],
+			draw: bm.DrawID[0],
+			planning: bm.PlanningID[0],
+		}];
 
 		const query = {
 			btp_id,
@@ -174,6 +179,7 @@ function fetch(app, tkey, response, callback) {
 			const match = {
 				tournament_key: tkey,
 				btp_id,
+				btp_match_ids,
 				setup,
 				// TODO court_id
 			};

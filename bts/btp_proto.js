@@ -1,8 +1,11 @@
 'use strict';
 
+const assert = require('assert');
 const zlib = require('zlib');
 
 const xmldom = require('xmldom');
+
+const utils = require('./utils');
 
 function get_info_request(password) {
 	const res = {
@@ -45,6 +48,70 @@ function login_request(password) {
 	}
 	return res;
 }
+
+function update_request(match) {
+	const nowd = new Date();
+	const date_str = (
+		'' + nowd.getFullYear() + utils.pad(nowd.getMonth() + 1, 2) + utils.pad(nowd.getDate(), 2) +
+		utils.pad(nowd.getHours(), 2) + utils.pad(nowd.getMinutes(), 2) + utils.pad(nowd.getSeconds(), 2) +
+		utils.pad(nowd.getMilliseconds(), 4)
+	);
+
+	const matches = [];
+	const res = {
+		Header: {
+			Version: {
+				Hi: 1,
+				Lo: 1,
+			},
+		},
+		Action: {
+			ID: 'SENDUPDATE',
+			Unicode: date_str,
+		},
+		Update: {
+			Tournament: {
+				Matches: matches,
+			},
+		},
+	};
+
+	assert(typeof match.team1_won === 'boolean');
+	const winner = match.team1_won ? 1 : 2;
+	assert(match.btp_match_ids);
+	assert(match.btp_match_ids.length > 0);
+	assert(match.network_score);
+	assert(match.duration_ms);
+	const duration_mins = Math.floor(match.duration_ms / 60000);
+
+	for (const btp_m_id of match.btp_match_ids) {
+		assert(btp_m_id);
+
+		const sets = match.network_score.map(ns => {
+			return {
+				Set: {
+					T1: ns[0],
+					T2: ns[1],
+				},
+			};
+		});
+
+		matches.push({
+			ID: btp_m_id.id,
+			DrawID: btp_m_id.draw,
+			PlanningID: btp_m_id.planning,
+			Sets: sets,
+			Winner: winner,
+			ScoreStatus: 0, // Won normally (TODO: correctly handle resignations etc.)
+			Duration: duration_mins,
+			Status: 0,
+			// BTP also sends a boolean ScoreSheetPrinted here
+		});
+	}
+
+	return res;
+}
+
 
 function el2obj(el) {
 	const res = {};
@@ -98,9 +165,11 @@ function _req2xml_add(doc, parent, obj) {
 
 		let node;
 		if (Array.isArray(v)) {
-			throw new Error('TODO: support arrays');
-		}
-		if (typeof v === 'object') {
+			node = doc.createElement('GROUP');
+			for (const el of v) {
+				_req2xml_add(doc, node, el);
+			}
+		} else if (typeof v === 'object') {
 			node = doc.createElement('GROUP');
 			_req2xml_add(doc, node, v);
 		} else if (typeof v === 'string') {
@@ -133,6 +202,7 @@ function req2xml(req) {
 
 	const serializer = new xmldom.XMLSerializer();
 	const xml_str = '<?xml version="1.0" encoding="UTF-8"?>' + serializer.serializeToString(doc);
+	console.log(xml_str);
 	return xml_str;
 }
 
@@ -186,4 +256,5 @@ module.exports = {
 	encode,
 	get_info_request,
 	login_request,
+	update_request,
 };
