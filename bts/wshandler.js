@@ -1,5 +1,8 @@
 'use strict';
 
+const serror = require('./serror');
+
+
 function handle(mod, app, ws) {
 	function _ws_sendmsg(msg) {
 		const msg_json = JSON.stringify(msg);
@@ -40,7 +43,7 @@ function handle(mod, app, ws) {
 			}
 
 			if (msg.type === 'error') {
-				console.error('Received error message from client: ' + msg.message);
+				serror.silent('Received error message from client: ' + msg.message);
 				return;
 			}
 
@@ -56,7 +59,7 @@ function handle(mod, app, ws) {
 
 			func(app, ws, msg);
 		} catch (e) {
-			console.error('Error in message handler', e);
+			serror.silent('Error in message handler' + e.message);
 			return;
 		}
 	});

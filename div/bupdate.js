@@ -58,7 +58,7 @@ function sha512_file(fn, cb) {
 function main() {
 	const argv = process.argv.slice(2);
 	if (argv.length !== 1) {
-		console.error('Usage: report_error.js TARGET_DIR');
+		console.error('Usage: report_error.js TARGET_DIR');  // eslint-disable-line no-console
 		process.exit(2);
 	}
 

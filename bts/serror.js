@@ -28,7 +28,7 @@ function handle_error(err) {
 }
 
 function silent(message) {
-	console.error(message);
+	console.error(message); // eslint-disable-line no-console
 	report({
 		message,
 	});

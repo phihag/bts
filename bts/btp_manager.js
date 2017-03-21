@@ -3,7 +3,6 @@
 const assert = require('assert');
 
 const btp_conn = require('./btp_conn');
-const error_reporting = require('./error_reporting');
 
 const conns_by_tkey = new Map();
 

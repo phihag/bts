@@ -4,7 +4,7 @@ const net = require('net');
 
 const btp_proto = require('./btp_proto');
 const btp_sync = require('./btp_sync');
-const error_reporting = require('./error_reporting');
+const serror = require('./serror');
 
 const CONNECT_TIMEOUT = 5000;
 const PORT = 9901; // 9901 for true BTP, 9002 for win7 machine
@@ -15,7 +15,7 @@ function send_request(ip, xml_req, callback) {
 	try {
 		encoded_req = btp_proto.encode(xml_req);
 	} catch(e) {
-		console.error('Error while encoding for BTP:', e);
+		serror.silent('Error while encoding for BTP:', e);
 		return callback(e);
 	}
 	const client = net.connect({host: ip, port: PORT, timeout: CONNECT_TIMEOUT}, () => {
@@ -72,6 +72,7 @@ class BTPConn {
 			}
 
 			this.report_status('Eingeloggt.');
+			this.key_unicode = response.Action[0].Unicode[0];
 
 			const ir = btp_proto.get_info_request(this.password);
 			this.send(ir, response => {
@@ -122,11 +123,13 @@ class BTPConn {
 	}
 
 	update_score(match) {
-		this.send(btp_proto.update_request(match), response => {
-			const rescode = response.Action[0].Result[0];
-			if (rescode !== 0) {
-				error_reporting.silent('Score update for ' + match.btp_id + ' failed with error code ' + rescode);
-				console.log('Response to update request', JSON.stringify(response));
+		const req = btp_proto.update_request(match, this.key_unicode);
+
+		this.send(req, response => {
+			const results = response.Action[0].Result;
+			const rescode = results ? results[0] : 'no-result';
+			if (rescode !== 1) {
+				serror.silent('Score update for ' + match.btp_id + ' failed with error code ' + rescode);
 			}
 		});
 	}

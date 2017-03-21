@@ -3,6 +3,7 @@
 const async = require('async');
 
 const btp_manager = require('./btp_manager');
+const serror = require('./serror');
 const stournament = require('./stournament');
 const utils = require('./utils');
 
@@ -200,7 +201,7 @@ function on_connect(app, ws) {
 
 function on_close(app, ws) {
 	if (! utils.remove(all_admins, ws)) {
-		console.error('Removing admin ws, but it was not connected!?');
+		serror.silent('Removing admin ws, but it was not connected!?');
 	}
 }
 

@@ -1,13 +1,15 @@
+fix duration_ms
+
+fix duration to official definition (copy from scoresheet)
+
 start BTP API
-	send score
+	update players (lasttimeoncourt)
 	on reconnect update all scores
-	send duration
 	button to fetch now
 	button to push again now
 	option to prefer me or BTP?
 	automatically push when BTP becomes available
 	automatically resync from time to time
-	update players (lasttimeoncourt etc.)
 
 Ansage Spielfeld, 20 Sekunden nicht korrekt! (should use num if present)
 

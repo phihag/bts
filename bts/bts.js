@@ -14,7 +14,7 @@ const admin = require('./admin');
 const btp_manager = require('./btp_manager');
 const bupws = require('./bupws');
 const database = require('./database');
-const error_reporting = require('./error_reporting');
+const serror = require('./serror');
 const http_api = require('./http_api');
 const utils = require('./utils');
 const wshandler = require('./wshandler');
@@ -25,7 +25,7 @@ function read_config(callback, autocreate) {
 			utils.copy_file('config.json.default', 'config.json', function(err) {
 				if (err) return callback(err);
 
-				console.log('Created default configuration in ' + path.resolve('config.json'));
+				console.log('Created default configuration in ' + path.resolve('config.json'));  // eslint-disable-line no-console
 				read_config(callback, false);
 			});
 			return;
@@ -41,7 +41,7 @@ function main() {
 	async.waterfall([
 		read_config,
 		function(config, cb) {
-			error_reporting.setup(config);
+			serror.setup(config);
 
 			database.init((err, db) => cb(err, config, db));
 		},
@@ -65,7 +65,7 @@ function cadmin_router() {
 			res.set('Pragma: no-cache');
 			res.set('Expires: 0');
 
-			html = html.replace(/{{error_reporting}}/g, JSON.stringify(error_reporting.active(req.app.config)));
+			html = html.replace(/{{error_reporting}}/g, JSON.stringify(serror.active(req.app.config)));
 			html = html.replace(/{{static_path}}/g, '/static/');
 			html = html.replace(/{{root_path}}/g, '/');
 			html = html.replace(/{{app_root}}/g, '/admin/');

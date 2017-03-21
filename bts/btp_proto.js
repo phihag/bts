@@ -5,7 +5,8 @@ const zlib = require('zlib');
 
 const xmldom = require('xmldom');
 
-const utils = require('./utils');
+const serror = require('./serror');
+
 
 function get_info_request(password) {
 	const res = {
@@ -49,14 +50,7 @@ function login_request(password) {
 	return res;
 }
 
-function update_request(match) {
-	const nowd = new Date();
-	const date_str = (
-		'' + nowd.getFullYear() + utils.pad(nowd.getMonth() + 1, 2) + utils.pad(nowd.getDate(), 2) +
-		utils.pad(nowd.getHours(), 2) + utils.pad(nowd.getMinutes(), 2) + utils.pad(nowd.getSeconds(), 2) +
-		utils.pad(nowd.getMilliseconds(), 4)
-	);
-
+function update_request(match, key_unicode) {
 	const matches = [];
 	const res = {
 		Header: {
@@ -65,9 +59,12 @@ function update_request(match) {
 				Lo: 1,
 			},
 		},
+		Client: {
+			IP: 'bts',
+		},
 		Action: {
 			ID: 'SENDUPDATE',
-			Unicode: date_str,
+			Unicode: key_unicode,
 		},
 		Update: {
 			Tournament: {
@@ -96,7 +93,7 @@ function update_request(match) {
 			};
 		});
 
-		matches.push({
+		const m = {
 			ID: btp_m_id.id,
 			DrawID: btp_m_id.draw,
 			PlanningID: btp_m_id.planning,
@@ -105,8 +102,10 @@ function update_request(match) {
 			ScoreStatus: 0, // Won normally (TODO: correctly handle resignations etc.)
 			Duration: duration_mins,
 			Status: 0,
+			Shuttles: 42,
 			// BTP also sends a boolean ScoreSheetPrinted here
-		});
+		};
+		matches.push({Match: m});
 	}
 
 	return res;
@@ -202,7 +201,6 @@ function req2xml(req) {
 
 	const serializer = new xmldom.XMLSerializer();
 	const xml_str = '<?xml version="1.0" encoding="UTF-8"?>' + serializer.serializeToString(doc);
-	console.log(xml_str);
 	return xml_str;
 }
 
@@ -240,10 +238,9 @@ function decode(buf, callback) {
 	try {
 		const doc = parser.parseFromString(response_str);
 		response = el2obj(doc.documentElement);
-		require('fs').writeFileSync('response', response_str);
 	} catch(err) {
-		console.error('Encountered an error while parsing: ', err);
-		//callback(err);
+		serror.silent('Encountered an error while parsing BTP message: ' + err.message);
+		callback(err);
 		return;
 	}
 

@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 'use strict';
+/*eslint no-console: ["error", { allow: ["error"] }] */
 
 const assert = require('assert');
 const https = require('https');
