@@ -1,5 +1,3 @@
-calc duration
-
 start BTP API
 	send score
 	on reconnect update all scores
@@ -9,6 +7,7 @@ start BTP API
 	option to prefer me or BTP?
 	automatically push when BTP becomes available
 	automatically resync from time to time
+	update players (lasttimeoncourt etc.)
 
 Ansage Spielfeld, 20 Sekunden nicht korrekt! (should use num if present)
 
@@ -29,6 +28,7 @@ move to court button
 HTTP API: suppress cache
 manually set current match on court
 
+grep for writeFileSync (debug code)
 launch link allcourts-display
 edit umpire list
 select umpire for match from <select>

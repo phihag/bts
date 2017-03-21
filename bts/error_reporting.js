@@ -5,7 +5,12 @@ const path = require('path');
 
 const utils = require('./utils');
 
+var is_active = true;
+
 function report(obj) {
+	if (!is_active) {
+		return;
+	}
 	const obj_json = JSON.stringify(obj);
 	const report_exe = path.join(utils.root_dir(), 'div', 'report_error.js');
 	child_process.spawn(
@@ -34,7 +39,8 @@ function active(config) {
 }
 
 function setup(config) {
-	if (active(config)) {
+	is_active = active(config);
+	if (is_active) {
 		process.on('uncaughtException', handle_error);
 	}
 }
