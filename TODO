@@ -1,13 +1,14 @@
 start BTP API
-	retrieve courts
 	update umpires from remote
+	event if umpires changed: notify all connected endpoints
+select umpire for match from <select>
 
-	retrieve court assignments of matches
-	on reconnect update all match data
-	button to fetch now
-	button to push again now
+	update match data
+	button to fetch from BTP now
+	button to push a match now
 	automatically push when BTP becomes available
 	automatically resync from time to time
+	updated team1_won from BTP
 
 get ready to print scoresheet
 Ansage Spielfeld, 20 Sekunden nicht korrekt! (should use num if present)
@@ -33,7 +34,6 @@ manually set current match on court
 grep for writeFileSync (debug code)
 launch link allcourts-display
 edit umpire list
-select umpire for match from <select>
 allow adding new umpire for match
 
 websocket conn for bup clients

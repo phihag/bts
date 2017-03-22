@@ -90,9 +90,9 @@ function _parse_score(bm) {
 	return bm.Sets[0].Set.map(s => [s.T1[0], s.T2[0]]);
 }
 
-function integrate_matches(app, tkey, btp_state, callback) {
+function integrate_matches(app, tkey, btp_state, court_map, callback) {
 	const admin = require('./admin'); // avoid dependency cycle
-	const {draws, events, officials} = btp_state;
+	const {courts, draws, events, officials} = btp_state;
 
 	async.each(btp_state.matches, function(bm, cb) {
 		const draw = draws.get(bm.DrawID[0]);
@@ -158,6 +158,12 @@ function integrate_matches(app, tkey, btp_state, callback) {
 				event_name,
 				teams,
 			};
+			if (bm.CourtID) {
+				const btp_court_id = bm.CourtID[0];
+				const court_id = court_map.get(btp_court_id);
+				assert(court_id);
+				setup.court_id = court_id;
+			}
 			if (bm.Official1ID) {
 				const o = officials.get(bm.Official1ID[0]);
 				assert(o);
@@ -193,8 +199,10 @@ function integrate_matches(app, tkey, btp_state, callback) {
 	}, callback);
 }
 
+// Returns a map btp_court_id => court._id
 function integrate_courts(app, tournament_key, btp_state, callback) {
 	const courts = btp_state.courts.values();
+	const res = new Map();
 
 	async.each(courts, (c, cb) => {
 		const btp_id = c.ID[0];
@@ -210,6 +218,7 @@ function integrate_courts(app, tournament_key, btp_state, callback) {
 			if (err) return cb(err);
 
 			if (cur_court) {
+				res.set(btp_id, cur_court._id);
 				return cb();
 			}
 
@@ -224,6 +233,7 @@ function integrate_courts(app, tournament_key, btp_state, callback) {
 				num,
 				name,
 			};
+			res.set(btp_id, court._id);
 			app.db.courts.findOne(alt_query, (err, cur_court) => {
 				if (err) return cb(err);
 
@@ -236,9 +246,14 @@ function integrate_courts(app, tournament_key, btp_state, callback) {
 				app.db.courts.insert(court, (err) => cb(err));
 			});
 		});
-	}, callback);
+	}, (err) => callback(err, res));
 }
 
+/*function integrate_umpires(officials, callback) {
+	console.log(officials);
+	callback();
+}
+*/
 function fetch(app, tkey, response, callback) {
 	const btp_t = response.Result[0].Tournament[0];
 	const all_btp_matches = btp_t.Matches[0].Match;
@@ -267,7 +282,7 @@ function fetch(app, tkey, response, callback) {
 	// TODO sync available officials
 	async.waterfall([
 		cb => integrate_courts(app, tkey, btp_state, cb),
-		cb => integrate_matches(app, tkey, btp_state, cb),
+		(court_map, cb) => integrate_matches(app, tkey, btp_state, court_map, cb),
 	], callback);
 }
 
