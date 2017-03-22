@@ -90,30 +90,11 @@ function _parse_score(bm) {
 	return bm.Sets[0].Set.map(s => [s.T1[0], s.T2[0]]);
 }
 
-function fetch(app, tkey, response, callback) {
+function integrate_matches(app, tkey, btp_state, callback) {
 	const admin = require('./admin'); // avoid dependency cycle
+	const {draws, events, officials} = btp_state;
 
-	const btp_t = response.Result[0].Tournament[0];
-	const all_btp_matches = btp_t.Matches[0].Match;
-
-	const btp_matches = filter_matches(all_btp_matches);
-	const matches_by_pid = utils.make_index(
-		all_btp_matches, bm => bm.DrawID[0] + '_' + bm.PlanningID[0]);
-	const entries = utils.make_index(btp_t.Entries[0].Entry, e => e.ID[0]);
-	const events = utils.make_index(btp_t.Events[0].Event, e => e.ID[0]);
-	const players = utils.make_index(btp_t.Players[0].Player, p => p.ID[0]);
-	const draws = utils.make_index(btp_t.Draws[0].Draw, d => d.ID[0]);
-	const officials = utils.make_index(btp_t.Officials[0].Official, o => o.ID[0]);
-
-	for (const bm of btp_matches) {
-		_calc_match_players(matches_by_pid, entries, players, bm);
-	}
-
-	// TODO sync courts
-	// TODO sync available officials
-
-	// Sync matches
-	async.each(btp_matches, function(bm, cb) {
+	async.each(btp_state.matches, function(bm, cb) {
 		const draw = draws.get(bm.DrawID[0]);
 		assert(draw);
 
@@ -210,6 +191,84 @@ function fetch(app, tkey, response, callback) {
 			});
 		});
 	}, callback);
+}
+
+function integrate_courts(app, tournament_key, btp_state, callback) {
+	const courts = btp_state.courts.values();
+
+	async.each(courts, (c, cb) => {
+		const btp_id = c.ID[0];
+		const name = c.Name[0];
+		const num = parseInt(name, 10) || btp_id;
+		const query = {
+			btp_id,
+			name,
+			num,
+			tournament_key,
+		};
+		app.db.courts.findOne(query, (err, cur_court) => {
+			if (err) return cb(err);
+
+			if (cur_court) {
+				return cb();
+			}
+
+			const alt_query = {
+				tournament_key,
+				num,
+			};
+			const court = {
+				_id: tournament_key + '_' + num,
+				tournament_key,
+				btp_id,
+				num,
+				name,
+			};
+			app.db.courts.findOne(alt_query, (err, cur_court) => {
+				if (err) return cb(err);
+
+				if (cur_court) {
+					// Add BTP ID
+					app.db.courts.update(alt_query, {$set: court}, {}, (err) => cb(err));
+					return;
+				}
+
+				app.db.courts.insert(court, (err) => cb(err));
+			});
+		});
+	}, callback);
+}
+
+function fetch(app, tkey, response, callback) {
+	const btp_t = response.Result[0].Tournament[0];
+	const all_btp_matches = btp_t.Matches[0].Match;
+
+	const matches = filter_matches(all_btp_matches);
+	const matches_by_pid = utils.make_index(
+		all_btp_matches, bm => bm.DrawID[0] + '_' + bm.PlanningID[0]);
+	const entries = utils.make_index(btp_t.Entries[0].Entry, e => e.ID[0]);
+	const events = utils.make_index(btp_t.Events[0].Event, e => e.ID[0]);
+	const players = utils.make_index(btp_t.Players[0].Player, p => p.ID[0]);
+	const draws = utils.make_index(btp_t.Draws[0].Draw, d => d.ID[0]);
+	const officials = utils.make_index(btp_t.Officials[0].Official, o => o.ID[0]);
+	const courts = utils.make_index(btp_t.Courts[0].Court, c => c.ID[0]);
+
+	for (const bm of matches) {
+		_calc_match_players(matches_by_pid, entries, players, bm);
+	}
+	const btp_state = {
+		courts,
+		draws,
+		events,
+		matches,
+		officials,
+	};
+
+	// TODO sync available officials
+	async.waterfall([
+		cb => integrate_courts(app, tkey, btp_state, cb),
+		cb => integrate_matches(app, tkey, btp_state, cb),
+	], callback);
 }
 
 module.exports = {

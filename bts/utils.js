@@ -121,6 +121,16 @@ function pad(n, width, z) {
 	return n.length >= width ? n : new Array(width - n.length + 1).join(z) + n;
 }
 
+function values(obj) {
+	var res = [];
+	for (var key in obj) {
+		if (Object.prototype.hasOwnProperty.call(obj, key)) {
+			res.push(obj[key]);
+		}
+	}
+	return res;
+}
+
 module.exports = {
 	cmp,
 	cmp_key,
@@ -132,4 +142,5 @@ module.exports = {
 	remove,
 	root_dir,
 	size,
+	values,
 };

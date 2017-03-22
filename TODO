@@ -2,7 +2,8 @@ start BTP API
 	retrieve courts
 	update umpires from remote
 
-	on reconnect update all scores
+	retrieve court assignments of matches
+	on reconnect update all match data
 	button to fetch now
 	button to push again now
 	automatically push when BTP becomes available
@@ -16,13 +17,13 @@ show duration in UI
 custom created matches must get a compatible match ID (and forbid changing the number)
 improve BTP API
 	fetch courts
-	remove login (not necessary, just check error code)
 	make sure to catch timeouts and other net errors, test coming and going out
 	make sure all catches are correct
 	test resigning
 	transmit changes to BTP
 	transmit changes in umpires to BTP
 
+store whether pushing successful in our own db
 allow changing btp ID in manual matches (autocalc sensibly)
 go into finished match
 move to court button
