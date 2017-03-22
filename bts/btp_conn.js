@@ -15,7 +15,7 @@ function send_request(ip, xml_req, callback) {
 	try {
 		encoded_req = btp_proto.encode(xml_req);
 	} catch(e) {
-		serror.silent('Error while encoding for BTP:', e);
+		serror.silent('Error while encoding for BTP:' + e.message);
 		return callback(e);
 	}
 	const client = net.connect({host: ip, port: PORT, timeout: CONNECT_TIMEOUT}, () => {

@@ -107,6 +107,20 @@ function update_request(match, key_unicode) {
 		matches.push({Match: m});
 	}
 
+	if (match.btp_player_ids && match.end_ts && (match.end_ts + 300000 > Date.now())) {
+		const players = [];
+		res.Update.Tournament.Players = players;
+		const end_date = new Date(match.end_ts);
+
+		for (const pid of match.btp_player_ids) {
+			const pupdate = {
+				ID: pid,
+				LastTimeOnCourt: end_date,
+			};
+			players.push({Player: pupdate});
+		}
+	}
+
 	return res;
 }
 
@@ -167,6 +181,19 @@ function _req2xml_add(doc, parent, obj) {
 			for (const el of v) {
 				_req2xml_add(doc, node, el);
 			}
+		} else if (v instanceof Date) {
+			node = doc.createElement('ITEM');
+			node.setAttribute('TYPE', 'DateTime');
+
+			const dt = doc.createElement('DATETIME');
+			dt.setAttribute('Y', v.getFullYear());
+			dt.setAttribute('MM', v.getMonth() + 1);
+			dt.setAttribute('D', v.getDate());
+			dt.setAttribute('H', v.getHours());
+			dt.setAttribute('M', v.getMinutes());
+			dt.setAttribute('S', v.getSeconds());
+			dt.setAttribute('MS', v.getMilliseconds());
+			node.appendChild(dt);
 		} else if (typeof v === 'object') {
 			node = doc.createElement('GROUP');
 			_req2xml_add(doc, node, v);
@@ -204,8 +231,8 @@ function req2xml(req) {
 }
 
 function encode(req) {
-	// console.log('sending', req); // TODO remove this line
 	const xml_str = req2xml(req);
+	// console.log('sending', xml_str); // TODO remove this line
 
 	const xml_buf = Buffer.from(xml_str, 'utf8');
 	const compressed_request = zlib.gzipSync(xml_buf, {});

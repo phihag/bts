@@ -104,7 +104,7 @@ function matches_handler(req, res) {
 }
 
 function score_handler(req, res) {
-	if (!_require_params(req, res, ['duration_ms', 'network_score', 'team1_won', 'presses'])) return;
+	if (!_require_params(req, res, ['duration_ms', 'end_ts', 'network_score', 'team1_won', 'presses'])) return;
 
 	const tournament_key = req.params.tournament_key;
 	const match_id = req.params.match_id;
@@ -117,6 +117,7 @@ function score_handler(req, res) {
 		team1_won: req.body.team1_won,
 		presses: req.body.presses,
 		duration_ms: req.body.duration_ms,
+		end_ts: req.body.end_ts,
 	};
 	if (update.team1_won !== undefined) {
 		update.btp_winner = (update.team1_won === true) ? 1 : 2;

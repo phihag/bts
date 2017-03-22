@@ -1,6 +1,6 @@
 start BTP API
-	update players (lasttimeoncourt)
-
+	retrieve courts
+	update umpires from remote
 
 	on reconnect update all scores
 	button to fetch now
@@ -8,8 +8,10 @@ start BTP API
 	automatically push when BTP becomes available
 	automatically resync from time to time
 
+get ready to print scoresheet
 Ansage Spielfeld, 20 Sekunden nicht korrekt! (should use num if present)
 
+allow clicking everywhere to edit
 show duration in UI
 custom created matches must get a compatible match ID (and forbid changing the number)
 improve BTP API
