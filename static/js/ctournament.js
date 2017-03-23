@@ -130,6 +130,17 @@ function _show_render_matches() {
 	cmatch.render_finished(uiu.qs('.finished_container'));
 }
 
+function ui_btp_fetch() {
+	send({
+		type: 'btp_fetch',
+		tournament_key: curt.key,
+	}, err => {
+		if (err) {
+			return cerror.net(err);
+		}
+	});
+}
+
 function ui_show() {
 	crouting.set('t/:key/', {key: curt.key});
 	toprow.set([{
@@ -152,6 +163,11 @@ function ui_show() {
 
 	const settings_btn = uiu.el(main, 'div', 'tournament_settings_link vlink', 'Turnier bearbeiten');
 	settings_btn.addEventListener('click', ui_edit);
+
+	if (curt.btp_enabled) {
+		const btp_fech_btn = uiu.el(main, 'button', 'tournament_btp_fetch', 'Von BTP aktualisieren');
+		btp_fech_btn.addEventListener('click', ui_btp_fetch);
+	}
 
 	uiu.el(main, 'h1', 'tournament_name ct_name', curt.name || curt.key);
 

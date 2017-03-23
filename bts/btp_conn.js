@@ -74,13 +74,17 @@ class BTPConn {
 			this.report_status('Eingeloggt.');
 			this.key_unicode = response.Action[0].Unicode[0];
 
-			const ir = btp_proto.get_info_request(this.password);
-			this.send(ir, response => {
-				btp_sync.fetch(this.app, this.tkey, response, (err) => {
-					if (err) {
-						this.report_status('Synchronisations-Fehler: ' + err.message);
-					}
-				});
+			this.fetch();
+		});
+	}
+
+	fetch() {
+		const ir = btp_proto.get_info_request(this.password);
+		this.send(ir, response => {
+			btp_sync.fetch(this.app, this.tkey, response, (err) => {
+				if (err) {
+					this.report_status('Synchronisations-Fehler: ' + err.message);
+				}
 			});
 		});
 	}

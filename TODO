@@ -1,17 +1,14 @@
 start BTP API
-	on court creation notify UI
-	event if umpires changed: notify all connected endpoints
-select umpire for match from <select>
-
 	transmit umpire changes to BTP
-	update match data
-	button to fetch from BTP now
+	transmit court change to BTP
+
+	update match data when reading from btp
 	button to push a match now
 	automatically push when BTP becomes available
 	automatically resync from time to time
 	updated team1_won from BTP
 
-get ready to print scoresheet
+print scoresheet from match details
 Ansage Spielfeld, 20 Sekunden nicht korrekt! (should use num if present)
 
 allow clicking everywhere to edit

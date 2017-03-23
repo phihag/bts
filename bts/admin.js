@@ -92,9 +92,15 @@ function handle_tournament_get(app, ws, msg) {
 			return;
 		}
 
-		async.parallel([function(cb) {
+		async.parallel([
+		function(cb) {
 			stournament.get_courts(app.db, tournament.key, function(err, courts) {
 				tournament.courts = courts;
+				cb(err);
+			});
+		}, function(cb) {
+			stournament.get_umpires(app.db, tournament.key, function(err, umpires) {
+				tournament.umpires = umpires;
 				cb(err);
 			});
 		}, function(cb) {
@@ -183,6 +189,15 @@ function handle_match_edit(app, ws, msg) {
 	});
 }
 
+function handle_btp_fetch(app, ws, msg) {
+	if (!_require_msg(ws, msg, ['tournament_key'])) {
+		return;
+	}
+
+	btp_manager.fetch(msg.tournament_key);
+	ws.respond(msg);
+}
+
 const all_admins = [];
 function notify_change(app, tournament_key, ctype, val) {
 	for (const admin_ws of all_admins) {
@@ -207,6 +222,7 @@ function on_close(app, ws) {
 
 
 module.exports = {
+	handle_btp_fetch,
 	handle_create_tournament,
 	handle_courts_add,
 	handle_match_add,

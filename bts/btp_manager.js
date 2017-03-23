@@ -3,6 +3,8 @@
 const assert = require('assert');
 
 const btp_conn = require('./btp_conn');
+const serror = require('./serror');
+
 
 const conns_by_tkey = new Map();
 
@@ -18,6 +20,16 @@ function reconfigure(app, t) {
 
 	const conn = new btp_conn.BTPConn(app, t.btp_ip, t.btp_password, t.key);
 	conns_by_tkey.set(t.key, conn);
+}
+
+function fetch(tkey) {
+	const conn = conns_by_tkey.get(tkey);
+	if (!conn) {
+		serror.silent('fetch requested for tournament ' + tkey + ' without a conn');
+		return;
+	}
+
+	conn.fetch();
 }
 
 function update_score(app, match) {
@@ -63,6 +75,7 @@ function get_status(tkey) {
 }
 
 module.exports = {
+	fetch,
 	get_status,
 	init,
 	reconfigure,

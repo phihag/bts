@@ -71,6 +71,12 @@ function default_handler_func(rerender, special_funcs, c) {
 		curt.courts = c.val.all_courts;
 		rerender();
 		break;
+	case 'umpires_changed':
+		curt.umpires = c.val.all_umpires;
+		uiu.qsEach('select[name="umpire_name"]', function(select) {
+			cmatch.render_umpire_options(select, select.value);
+		});
+		break;
 	case 'score':
 		change_score(c.val);
 		// Most dialogs don't show any matches, so do not rerender
@@ -97,8 +103,9 @@ return {
 /*@DEV*/
 if ((typeof module !== 'undefined') && (typeof require !== 'undefined')) {
 	var cerror = require('./cerror');
-	var utils = require('./utils');
+	var cmatch = require('./cmatch');
 	var uiu = require('../bup/js/uiu');
+	var utils = require('./utils');
 
     module.exports = change;
 }

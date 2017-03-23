@@ -70,6 +70,7 @@ h3 {
 	cursor: not-allowed;
 }
 
+.tournament_btp_fetch,
 .tournament_settings_link {
 	float: right;
 	margin-right: 0.5em;

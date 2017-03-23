@@ -185,7 +185,7 @@ crouting.register(/t\/([a-z0-9]+)\/m\/([-a-zA-Z0-9_]+)\/edit$/, function(m) {
 	ctournament.switch_tournament(m[1], function() {
 		ui_edit(m[2]);
 	});
-}, change.default_handler);
+}, change.default_handler(ui_edit));
 
 function render_match_table(container, matches, include_courts) {
 	const table = uiu.el(container, 'table', 'match_table');
@@ -395,14 +395,30 @@ function render_edit(tbody, match) {
 
 	uiu.el(tr1, 'td', 'match_label', 'Schiedsrichter:');
 	const umpire_td = uiu.el(tr1, 'td');
-	uiu.el(umpire_td, 'input', {
-		type: 'text',
+	const umpire_select = uiu.el(umpire_td, 'select', {
 		name: 'umpire_name',
-		size: 15,
-		value: setup.umpire_name || '',
+		size: 1,
 	});
+	render_umpire_options(umpire_select, setup.umpire_name);
 
 	return [tr0, tr1];
+}
+
+function render_umpire_options(select, curval) {
+	uiu.empty(select);
+	uiu.el(select, 'option', {
+		value: '',
+		style: 'font-style: italic;',
+	}, 'Kein Schiedsrichter');
+	for (const u of curt.umpires) {
+		const attrs = {
+			value: u.name,
+		};
+		if (u.name === curval) {
+			attrs.selected = 'selected';
+		}
+		uiu.el(select, 'option', attrs, u.name);
+	}
 }
 
 function render_create(container) {
@@ -444,6 +460,7 @@ return {
 	render_finished,
 	render_unassigned,
 	render_courts,
+	render_umpire_options,
 	update_match_score,
 };
 

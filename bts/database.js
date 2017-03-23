@@ -31,6 +31,7 @@ function init(callback) {
 	db.matches.ensureIndex({fieldName: 'tournament_key', unique: false});
 	db.tournaments.ensureIndex({fieldName: 'key', unique: true});
 	db.umpires.ensureIndex({fieldName: 'name', unique: true});
+	db.umpires.ensureIndex({fieldName: 'tournament_key', unique: false});
 
 	db.fetch_all = function() {
 		var args = [db];

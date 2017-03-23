@@ -59,7 +59,7 @@ function handle(mod, app, ws) {
 
 			func(app, ws, msg);
 		} catch (e) {
-			serror.silent('Error in message handler' + e.message);
+			serror.silent('Error in message handler: ' + e.message);
 			return;
 		}
 	});

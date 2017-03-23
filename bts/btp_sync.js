@@ -6,6 +6,7 @@ const async = require('async');
 
 const utils = require('./utils');
 
+
 function filter_matches(all_btp_matches) {
 	// TODO for group matches, note the opposite match as well
 	return all_btp_matches.filter(btp_m => (btp_m.IsMatch && btp_m.IsPlayable));
@@ -92,7 +93,7 @@ function _parse_score(bm) {
 
 function integrate_matches(app, tkey, btp_state, court_map, callback) {
 	const admin = require('./admin'); // avoid dependency cycle
-	const {courts, draws, events, officials} = btp_state;
+	const {draws, events, officials} = btp_state;
 
 	async.each(btp_state.matches, function(bm, cb) {
 		const draw = draws.get(bm.DrawID[0]);
@@ -201,7 +202,10 @@ function integrate_matches(app, tkey, btp_state, court_map, callback) {
 
 // Returns a map btp_court_id => court._id
 function integrate_courts(app, tournament_key, btp_state, callback) {
-	const courts = btp_state.courts.values();
+	const admin = require('./admin'); // avoid dependency cycle
+	const stournament = require('./stournament'); // avoid dependency cycle
+
+	const courts = Array.from(btp_state.courts.values());
 	const res = new Map();
 	var changed = false;
 
@@ -215,9 +219,9 @@ function integrate_courts(app, tournament_key, btp_state, callback) {
 			num,
 			tournament_key,
 		};
+
 		app.db.courts.findOne(query, (err, cur_court) => {
 			if (err) return cb(err);
-
 			if (cur_court) {
 				res.set(btp_id, cur_court._id);
 				return cb();
@@ -240,7 +244,7 @@ function integrate_courts(app, tournament_key, btp_state, callback) {
 
 				if (cur_court) {
 					// Add BTP ID
-					app.db.courts.update(alt_query, {$set: court}, {}, (err) => cb(err));
+					app.db.courts.update(alt_query, {$set: btp_id}, {}, (err) => cb(err));
 					return;
 				}
 
@@ -252,18 +256,21 @@ function integrate_courts(app, tournament_key, btp_state, callback) {
 		if (err) return callback(err);
 
 		if (changed) {
-			// TODO notify about court change
-			/*
 			stournament.get_courts(app.db, tournament_key, function(err, all_courts) {
-			notify_change(app, tournament_key, 'courts_changed', {all_courts});
-			*/
+				admin.notify_change(app, tournament_key, 'courts_changed', {all_courts});
+				callback(err, res);
+			});
+		} else {
+			callback(err, res);
 		}
-		callback(err, res);
 	});
 }
 
 function integrate_umpires(app, tournament_key, btp_state, callback) {
-	const officials = btp_state.officials.values();
+	const admin = require('./admin'); // avoid dependency cycle
+	const stournament = require('./stournament'); // avoid dependency cycle
+
+	const officials = Array.from(btp_state.officials.values());
 	var changed = false;
 
 	async.each(officials, (o, cb) => {
@@ -293,9 +300,15 @@ function integrate_umpires(app, tournament_key, btp_state, callback) {
 		});
 	}, err => {
 		if (changed) {
-			// TODO notify about umpire change
+			stournament.get_umpires(app.db, tournament_key, function(err, all_umpires) {
+				if (!err) {
+					admin.notify_change(app, tournament_key, 'umpires_changed', {all_umpires});
+				}
+				callback(err);
+			});
+		} else {
+			callback(err);
 		}
-		callback(err);
 	});
 }
 
