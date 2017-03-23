@@ -203,6 +203,7 @@ function integrate_matches(app, tkey, btp_state, court_map, callback) {
 function integrate_courts(app, tournament_key, btp_state, callback) {
 	const courts = btp_state.courts.values();
 	const res = new Map();
+	var changed = false;
 
 	async.each(courts, (c, cb) => {
 		const btp_id = c.ID[0];
@@ -243,17 +244,61 @@ function integrate_courts(app, tournament_key, btp_state, callback) {
 					return;
 				}
 
+				changed = true;
 				app.db.courts.insert(court, (err) => cb(err));
 			});
 		});
-	}, (err) => callback(err, res));
+	}, (err) => {
+		if (err) return callback(err);
+
+		if (changed) {
+			// TODO notify about court change
+			/*
+			stournament.get_courts(app.db, tournament_key, function(err, all_courts) {
+			notify_change(app, tournament_key, 'courts_changed', {all_courts});
+			*/
+		}
+		callback(err, res);
+	});
 }
 
-/*function integrate_umpires(officials, callback) {
-	console.log(officials);
-	callback();
+function integrate_umpires(app, tournament_key, btp_state, callback) {
+	const officials = btp_state.officials.values();
+	var changed = false;
+
+	async.each(officials, (o, cb) => {
+		const name = o.FirstName[0] + ' ' + o.Name[0];
+		const btp_id = o.ID[0];
+
+		app.db.umpires.findOne({tournament_key, name}, (err, cur) => {
+			if (err) return cb(err);
+
+			if (cur) {
+				if (cur.btp_id === btp_id) {
+					return cb();
+				} else {
+					app.db.umpires.update({tournament_key, name}, {$set: {btp_id}}, {}, (err) => cb(err));
+					return;
+				}
+			}
+
+			const u = {
+				_id: 'btp_' + btp_id,
+				btp_id,
+				name,
+				tournament_key,
+			};
+			changed = true;
+			app.db.umpires.insert(u, err => cb(err));
+		});
+	}, err => {
+		if (changed) {
+			// TODO notify about umpire change
+		}
+		callback(err);
+	});
 }
-*/
+
 function fetch(app, tkey, response, callback) {
 	const btp_t = response.Result[0].Tournament[0];
 	const all_btp_matches = btp_t.Matches[0].Match;
@@ -281,6 +326,7 @@ function fetch(app, tkey, response, callback) {
 
 	// TODO sync available officials
 	async.waterfall([
+		cb => integrate_umpires(app, tkey, btp_state, cb),
 		cb => integrate_courts(app, tkey, btp_state, cb),
 		(court_map, cb) => integrate_matches(app, tkey, btp_state, court_map, cb),
 	], callback);

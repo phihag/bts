@@ -14,6 +14,7 @@ function init(callback) {
 		'courts',
 		'matches',
 		'tournaments',
+		'umpires',
 	];
 
 	var db_dir = path.join(utils.root_dir(), '/data');
@@ -25,10 +26,11 @@ function init(callback) {
 		db[key] = new Datastore({filename: db_dir + '/' + key, autoload: true});
 	});
 
-	db.tournaments.ensureIndex({fieldName: 'key', unique: true});
 	db.courts.ensureIndex({fieldName: 'tournament_key', unique: false});
-	db.matches.ensureIndex({fieldName: 'tournament_key', unique: false});
 	db.matches.ensureIndex({fieldName: 'court_id', unique: false});
+	db.matches.ensureIndex({fieldName: 'tournament_key', unique: false});
+	db.tournaments.ensureIndex({fieldName: 'key', unique: true});
+	db.umpires.ensureIndex({fieldName: 'name', unique: true});
 
 	db.fetch_all = function() {
 		var args = [db];

@@ -1,8 +1,9 @@
 start BTP API
-	update umpires from remote
+	on court creation notify UI
 	event if umpires changed: notify all connected endpoints
 select umpire for match from <select>
 
+	transmit umpire changes to BTP
 	update match data
 	button to fetch from BTP now
 	button to push a match now
