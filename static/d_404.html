@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8" />
+<style>
+html, body {
+	font-size: 30px;
+}
+
+button {
+	font-size: inherit;
+	padding: 10px 10px;
+}
+</style>
+</head>
+<body>
+Keine Turniere vorhanden. <button class="reload_button">Erneut versuchen</button>
+
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+	document.querySelector('.reload_button').addEventListener('click', function() {
+		location.reload();
+	});
+});
+</script>
+
+</body>
+</html>

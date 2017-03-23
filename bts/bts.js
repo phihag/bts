@@ -14,8 +14,9 @@ const admin = require('./admin');
 const btp_manager = require('./btp_manager');
 const bupws = require('./bupws');
 const database = require('./database');
-const serror = require('./serror');
 const http_api = require('./http_api');
+const serror = require('./serror');
+const shortcuts = require('./shortcuts');
 const utils = require('./utils');
 const wshandler = require('./wshandler');
 
@@ -92,6 +93,7 @@ function create_app(config, db) {
 		res.redirect('/admin/');
 	});
 	app.use(favicon(utils.root_dir() + '/static/icons/favicon.ico'));
+	app.use('/d/?', shortcuts.display_handler);
 
 	app.use(body_parser.json());
 	app.get('/h/:tournament_key/courts', http_api.courts_handler);

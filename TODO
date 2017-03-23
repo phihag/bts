@@ -1,4 +1,6 @@
 start BTP API
+	mark before transmitting to BTP
+	on start transmit everything to BTP that's marked
 	transmit umpire changes to BTP
 	transmit court change to BTP
 
@@ -12,10 +14,11 @@ print scoresheet from match details
 Ansage Spielfeld, 20 Sekunden nicht korrekt! (should use num if present)
 
 allow clicking everywhere to edit
+
+
 show duration in UI
 custom created matches must get a compatible match ID (and forbid changing the number)
 improve BTP API
-	fetch courts
 	make sure to catch timeouts and other net errors, test coming and going out
 	make sure all catches are correct
 	test resigning
@@ -29,7 +32,6 @@ move to court button
 HTTP API: suppress cache
 manually set current match on court
 
-grep for writeFileSync (debug code)
 launch link allcourts-display
 edit umpire list
 allow adding new umpire for match
@@ -67,6 +69,7 @@ online display server
 show BTP match IDs in UI and allow to edit them
 
 -----
+transmit shuttle count
 umpire management by referee
 delete court (ask before)
 show error upon match creation
@@ -77,3 +80,4 @@ support for BTP match highlight
 grep for all TODOs
 auth?
 keep data in automanaged git repo?
+regular backups?
