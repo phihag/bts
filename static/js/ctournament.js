@@ -340,8 +340,11 @@ function init() {
 		}
 
 		const tournaments = response.tournaments;
-		list_show(tournaments);
-		// TODO be clever about number of tournaments: if 1 go there, if 0 go
+		if (tournaments.length === 1) {
+			switch_tournament(tournaments[0].key, ui_show);
+		} else {
+			list_show(tournaments);
+		}
 	});
 }
 crouting.register(/^$/, init, change.default_handler);
