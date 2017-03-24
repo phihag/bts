@@ -7,7 +7,7 @@ function update_container(container, elems, with_sep) {
 
 	elems.forEach(function(el, idx) {
 		if ((idx > 0) && (with_sep)) {
-			uiu.create_el(container, 'span', 'toprow_sep', '>');
+			uiu.el(container, 'span', 'toprow_sep', '>');
 		}
 
 		const css_class = 'toprow_link' + ((el.func || el.href) ? ' vlink' : '') + (el.class ? (' ' + el.class) : '');
@@ -19,7 +19,7 @@ function update_container(container, elems, with_sep) {
 			attrs.href = el.href;
 		}
 
-		const link = uiu.create_el(container, (el.href ? 'a' : 'span'), attrs, el.label);
+		const link = uiu.el(container, (el.href ? 'a' : 'span'), attrs, el.label);
 		if (el.func) {
 			link.addEventListener('click', el.func);
 		}
