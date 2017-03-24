@@ -12,8 +12,8 @@ start BTP API
 
 print scoresheet from match details
 Ansage Spielfeld, 20 Sekunden nicht korrekt! (should use num if present)
-
 allow clicking everywhere to edit
+
 
 
 show duration in UI
@@ -64,6 +64,7 @@ make an android app
 	wakelock
 	fullscreen
 
+btss: check time
 all courts
 online display server
 show BTP match IDs in UI and allow to edit them
