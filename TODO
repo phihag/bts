@@ -1,3 +1,11 @@
+calc match players directly, don't go into the tree of From
+
+
+
+
+
+
+
 start BTP API
 	update match data when reading from btp
 

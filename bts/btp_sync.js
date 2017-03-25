@@ -9,7 +9,7 @@ const utils = require('./utils');
 
 function filter_matches(all_btp_matches) {
 	// TODO for group matches, note the opposite match as well
-	return all_btp_matches.filter(bm => (bm.IsMatch && bm.IsPlayable && bm.MatchNr && bm.MatchNr[0]));
+	return all_btp_matches.filter(bm => (bm.IsMatch && bm.IsPlayable && bm.MatchNr && bm.MatchNr[0] && bm.From1));
 }
 
 function _calc_match_players(matches_by_pid, entries, players, bm) {
@@ -41,6 +41,9 @@ function _calc_match_players(matches_by_pid, entries, players, bm) {
 	// Normal match
 	assert(bm.DrawID);
 	assert(bm.DrawID[0]);
+	if (!bm.From1) {
+		return null;
+	}
 	assert(bm.From1);
 	assert(bm.From1[0]);
 	const m1 = matches_by_pid.get(bm.DrawID[0] + '_' + bm.From1[0]);
