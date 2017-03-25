@@ -121,6 +121,7 @@ function score_handler(req, res) {
 	};
 	if (update.team1_won !== undefined) {
 		update.btp_winner = (update.team1_won === true) ? 1 : 2;
+		update.btp_needsync = true;
 	}
 
 	const court_q = {

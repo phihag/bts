@@ -74,6 +74,7 @@ class BTPConn {
 			this.report_status('Eingeloggt.');
 			this.key_unicode = response.Action[0].Unicode[0];
 
+			this.pushall();
 			this.fetch();
 		});
 	}
@@ -108,6 +109,11 @@ class BTPConn {
 		});
 	}
 
+	// Push the changes from all changed matches
+	pushall() {
+		// TODO filter by needsync
+	}
+
 	schedule_reconnect() {
 		if (this.terminated) {
 			return;
@@ -132,7 +138,13 @@ class BTPConn {
 		this.send(req, response => {
 			const results = response.Action[0].Result;
 			const rescode = results ? results[0] : 'no-result';
-			if (rescode !== 1) {
+			if (rescode === 1) {
+				this.app.db.matches.update({_id: match._id}, {$set: {btp_needsync: false}}, {}, (err) => {
+					if (err) {
+						serror.silent('Failed to mark match as synced: ' + err.message);
+					}
+				});
+			} else {
 				serror.silent('Score update for ' + match.btp_id + ' failed with error code ' + rescode);
 			}
 		});

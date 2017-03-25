@@ -118,10 +118,7 @@ function integrate_matches(app, tkey, btp_state, court_map, callback) {
 		app.db.matches.findOne(query, (err, cur_match) => {
 			if (err) return cb(err);
 
-			// TODO court id
-			if (cur_match) {
-				// TODO: update if different (and notify about that!)
-				//console.log('Skipping ' + bm.ID[0] + ': already present in database');
+			if (cur_match && cur_match.btp_needsync) {
 				cb();
 				return;
 			}
@@ -154,11 +151,13 @@ function integrate_matches(app, tkey, btp_state, court_map, callback) {
 				match_num,
 				counting: '3x21',
 				team_competition: false,
-				scheduled_time_str,
 				match_name,
 				event_name,
 				teams,
 			};
+			if (scheduled_time_str) {
+				setup.scheduled_time_str = scheduled_time_str;
+			}
 			if (bm.CourtID) {
 				const btp_court_id = bm.CourtID[0];
 				const court_id = court_map.get(btp_court_id);
@@ -177,7 +176,6 @@ function integrate_matches(app, tkey, btp_state, court_map, callback) {
 				btp_match_ids,
 				btp_player_ids,
 				setup,
-				// TODO court_id
 			};
 			match.team1_won = undefined;
 			match.btp_winner = undefined;
@@ -190,6 +188,23 @@ function integrate_matches(app, tkey, btp_state, court_map, callback) {
 			}
 			match._id = 'btp_' + btp_id;
 
+			if (cur_match) {
+				if (utils.plucked_deep_equal(match, cur_match, Object.keys(match))) {
+					// No update required
+					cb();
+					return;
+				}
+
+				app.db.matches.update({_id: cur_match._id}, {$set: match}, {}, (err) => {
+					if (err) return cb(err);
+
+					admin.notify_change(app, match.tournament_key, 'match_edit', {match__id: match._id, setup});
+					cb();
+				});
+				return;
+			}
+
+			// New match
 			app.db.matches.insert(match, function(err) {
 				if (err) return cb(err);
 

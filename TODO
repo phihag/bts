@@ -1,12 +1,12 @@
 start BTP API
-	mark before transmitting to BTP
+	update match data when reading from btp
+
 	on start transmit everything to BTP that's marked
 	transmit umpire changes to BTP
 	transmit court change to BTP
 
-	update match data when reading from btp
 	button to push a match now
-	automatically push when BTP becomes available
+	automatically push when BTP becomes available (everything marked with needsync)
 	automatically resync from time to time
 	updated team1_won from BTP
 

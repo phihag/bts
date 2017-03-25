@@ -131,14 +131,50 @@ function values(obj) {
 	return res;
 }
 
+function plucked_deep_equal(x, y, keys) {
+	for (var i = 0;i < keys.length;i++) {
+		var k = keys[i];
+		if (! deep_equal(x[k], y[k])) {
+			return false;
+		}
+	}
+	return true;
+}
+
+function deep_equal(x, y) {
+	if (x === y) {
+		return true;
+	}
+	if ((x === null) || (y === null)) {
+		return false;
+	}
+	if ((typeof x == 'object') && (typeof y == 'object')) {
+		var key_count = 0;
+		for (var k in x) {
+			if (! deep_equal(x[k], y[k])) {
+				return false;
+			}
+			key_count++;
+		}
+
+		for (k in y) {
+			key_count--;
+		}
+		return key_count === 0;
+	}
+	return false;
+}
+
 module.exports = {
 	cmp,
 	cmp_key,
 	copy_file,
+	deep_equal,
 	make_index,
 	natcmp,
 	pad,
 	pluck,
+	plucked_deep_equal,
 	remove,
 	root_dir,
 	size,
