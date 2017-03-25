@@ -338,7 +338,12 @@ function fetch(app, tkey, response, callback) {
 	const events = utils.make_index(btp_t.Events[0].Event, e => e.ID[0]);
 	const players = utils.make_index(btp_t.Players[0].Player, p => p.ID[0]);
 	const draws = utils.make_index(btp_t.Draws[0].Draw, d => d.ID[0]);
-	const officials = utils.make_index(btp_t.Officials[0].Official, o => o.ID[0]);
+	let officials;
+	if (btp_t.Officials) {
+		officials = utils.make_index(btp_t.Officials[0].Official, o => o.ID[0]);
+	} else {
+		officials = new Map();
+	}
 	const courts = utils.make_index(btp_t.Courts[0].Court, c => c.ID[0]);
 
 	for (const bm of matches) {
