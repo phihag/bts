@@ -1,6 +1,13 @@
-start BTP API
-	update match data when reading from btp
+tablets dmo35solingen@gmail.com : djksolingen2015
 
+better scoresheet link
+print scoresheet from match details
+icon for scoresheet
+kein :80
+/Courtnummer
+Komplettansicht
+
+start BTP API
 	on start transmit everything to BTP that's marked
 	transmit umpire changes to BTP
 	transmit court change to BTP
@@ -10,7 +17,6 @@ start BTP API
 	automatically resync from time to time
 	updated team1_won from BTP
 
-print scoresheet from match details
 Ansage Spielfeld, 20 Sekunden nicht korrekt! (should use num if present)
 allow clicking everywhere to edit
 
