@@ -9,7 +9,7 @@ const utils = require('./utils');
 
 function filter_matches(all_btp_matches) {
 	// TODO for group matches, note the opposite match as well
-	return all_btp_matches.filter(btp_m => (btp_m.IsMatch && btp_m.IsPlayable));
+	return all_btp_matches.filter(bm => (bm.IsMatch && bm.IsPlayable && bm.MatchNr && bm.MatchNr[0] && bm.From1));
 }
 
 function _calc_match_players(matches_by_pid, entries, players, bm) {
@@ -41,6 +41,9 @@ function _calc_match_players(matches_by_pid, entries, players, bm) {
 	// Normal match
 	assert(bm.DrawID);
 	assert(bm.DrawID[0]);
+	if (!bm.From1) {
+		return null;
+	}
 	assert(bm.From1);
 	assert(bm.From1[0]);
 	const m1 = matches_by_pid.get(bm.DrawID[0] + '_' + bm.From1[0]);
@@ -338,7 +341,12 @@ function fetch(app, tkey, response, callback) {
 	const events = utils.make_index(btp_t.Events[0].Event, e => e.ID[0]);
 	const players = utils.make_index(btp_t.Players[0].Player, p => p.ID[0]);
 	const draws = utils.make_index(btp_t.Draws[0].Draw, d => d.ID[0]);
-	const officials = utils.make_index(btp_t.Officials[0].Official, o => o.ID[0]);
+	let officials;
+	if (btp_t.Officials) {
+		officials = utils.make_index(btp_t.Officials[0].Official, o => o.ID[0]);
+	} else {
+		officials = new Map();
+	}
 	const courts = utils.make_index(btp_t.Courts[0].Court, c => c.ID[0]);
 
 	for (const bm of matches) {
@@ -352,7 +360,6 @@ function fetch(app, tkey, response, callback) {
 		officials,
 	};
 
-	// TODO sync available officials
 	async.waterfall([
 		cb => integrate_umpires(app, tkey, btp_state, cb),
 		cb => integrate_courts(app, tkey, btp_state, cb),
