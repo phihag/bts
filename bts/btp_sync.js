@@ -9,7 +9,7 @@ const utils = require('./utils');
 
 function filter_matches(all_btp_matches) {
 	// TODO for group matches, note the opposite match as well
-	return all_btp_matches.filter(btp_m => (btp_m.IsMatch && btp_m.IsPlayable));
+	return all_btp_matches.filter(bm => (bm.IsMatch && bm.IsPlayable && bm.MatchNr && bm.MatchNr[0]));
 }
 
 function _calc_match_players(matches_by_pid, entries, players, bm) {
@@ -357,7 +357,6 @@ function fetch(app, tkey, response, callback) {
 		officials,
 	};
 
-	// TODO sync available officials
 	async.waterfall([
 		cb => integrate_umpires(app, tkey, btp_state, cb),
 		cb => integrate_courts(app, tkey, btp_state, cb),
