@@ -1,7 +1,12 @@
 calc match players directly, don't go into the tree of From
 
-
-
+    at Object.change_current_match (change.js:27)
+    at Object.update_current_match [as court_current_match] (ctournament.js:123)
+    at default_handler_func (change.js:32)
+    at Object.on_change (change.js:5)
+    at Object.on_change (crouting.js:42)
+    at ui_on_change (conn_ui.js:28)
+    at WebSocket.handle_message (conn.js:57)
 
 
 
