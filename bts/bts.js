@@ -93,7 +93,8 @@ function create_app(config, db) {
 		res.redirect('/admin/');
 	});
 	app.use(favicon(utils.root_dir() + '/static/icons/favicon.ico'));
-	app.use('/d/?', shortcuts.display_handler);
+	app.use('/d(:courtnum)?', shortcuts.display_handler);
+	app.use('/u(:courtnum)?', shortcuts.umpire_handler);
 
 	app.use(body_parser.json());
 	app.get('/h/:tournament_key/courts', http_api.courts_handler);

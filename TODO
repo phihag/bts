@@ -1,12 +1,14 @@
-tablets dmo35solingen@gmail.com : djksolingen2015
+Anzeige schwarz-weiss / international, große Namen
+	display: Satznummern links von den Namen
+	weiß
+server / receiver not transmitted
 
 better scoresheet link
 print scoresheet from match details
 icon for scoresheet
 kein :80
-/Courtnummer
 Komplettansicht für alle Felder (vertikal)
-
+new displays (Moritz | André)
 
 calc match players directly, don't go into the tree of From
     at Object.change_current_match (change.js:27)
@@ -104,3 +106,4 @@ grep for all TODOs
 auth?
 keep data in automanaged git repo?
 regular backups?
+test t4s laptop for a longer time (hangs?)
