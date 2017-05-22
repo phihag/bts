@@ -2,9 +2,8 @@
 
 const assert = require('assert');
 
-const serror = require('./serror');
+const ws_module = require('ws');
 
-const CONNECT_TIMEOUT = 5000;
 const RECONNECT_TIMEOUT = 1000;
 
 
@@ -17,6 +16,7 @@ class TickerConn {
 		this.password = password;
 		this.tournament_key = tournament_key;
 		this.terminated = false;
+		this.ws = null;
 		this.connect();
 	}
 
@@ -26,9 +26,49 @@ class TickerConn {
 		}
 
 		this.report_status('Verbindung wird hergestellt ...');
+		if (!/^wss?:\/\/.*\/update/.test(this.url)) {
+			this.report_status('Ungültige Ticker-URL: ' + JSON.stringify(this.url));
+			return;
+		}
+		const ws_url = this.url + '?password=' + encodeURIComponent(this.password);
+		const ws = new ws_module(ws_url);
+		const tc = this;
+		tc.ws = ws;
+		ws.on('open', function() {
+			tc.report_status('Verbunden.');
+		});
+		ws.on('message', function(data) {
+			let msg;
+			try {
+				msg = JSON.parse(data);
+			} catch (e) {
+				tc.report_status('Failed to receive ticker message: ' + e.message);
+				return;
+			}
+			tc.report_status('Fehler: ' + msg.message);
+		});
+		ws.on('error', function() {
+			if (tc.ws !== ws) { // Terminated intentionally or as a race?
+				return;
+			}
+
+			tc.on_end();
+		});
+		ws.on('close', function() {
+			if (tc.ws !== ws) { // Terminated intentionally or as a race?
+				return;
+			}
+
+			tc.on_end();
+		});
 	}
 
 	terminate() {
+		if (this.ws) {
+			const ws = this.ws;
+			this.ws = null;
+			ws.close();
+		}
 		this.terminated = true;
 		this.report_status('Beendet.');
 	}
@@ -41,6 +81,7 @@ class TickerConn {
 	}
 
 	on_end() {
+		this.ws = null;
 		this.report_status('Verbindung verloren, versuche erneut ...');
 		this.schedule_reconnect();
 	}

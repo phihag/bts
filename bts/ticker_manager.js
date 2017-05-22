@@ -17,7 +17,7 @@ function reconfigure(app, t) {
 		return;
 	}
 
-	const conn = new ticker_conn.TickerConn(app, t.ticker_url, t.ticker_password);
+	const conn = new ticker_conn.TickerConn(app, t.ticker_url, t.ticker_password, t.key);
 	conns_by_tkey.set(t.key, conn);
 }
 

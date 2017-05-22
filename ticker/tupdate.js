@@ -13,14 +13,6 @@ function _require_msg(ws, msg, fields) {
 	return true;
 }
 
-function handle_hello(app, ws, msg) {
-	if (!_require_msg(ws, msg, ['tournament_key', 'id', 'setup'])) {
-		return;
-	}
-
-	// TODO
-}
-
 function handle_update(app, ws, msg) {
 	if (!_require_msg(ws, msg, ['tournament_key'])) {
 		return;
@@ -30,17 +22,16 @@ function handle_update(app, ws, msg) {
 	ws.respond(msg);
 }
 
-function on_connect(app, ws) {
+function on_connect(/*app, ws*/) {
 	
 }
 
-function on_close(app, ws) {
+function on_close(/*app, ws*/) {
 	
 }
 
 
 module.exports = {
-	handle_hello,
 	handle_update,
 	on_close,
 	on_connect,

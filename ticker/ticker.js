@@ -5,7 +5,6 @@ const path = require('path');
 const url = require('url');
 
 const async = require('async');
-const body_parser = require('body-parser');
 const ws_module = require('ws');
 const express = require('express');
 const favicon = require('serve-favicon');
@@ -14,8 +13,10 @@ const serror = require('../bts/serror');
 const utils = require('../bts/utils');
 const wshandler = require('../bts/wshandler');
 
-const tdatabase = require('./tdatabase');
 const tdata = require('./tdata');
+const tdatabase = require('./tdatabase');
+const tget = require('./tget');
+const tupdate = require('./tupdate');
 const tweb = require('./tweb');
 
 function read_config(callback, autocreate) {
@@ -81,7 +82,20 @@ function create_app(config, db) {
 		const location = url.parse(ws.upgradeReq.url, true);
 		if (location.path === '/ws/ticker') {
 			return wshandler.handle(tget, app, ws);
-		} else if (location.path === '/ws/update') {
+		} else if (/^\/ws\/update/.test(location.path)) {
+			const password = location.query.password;
+			if (password && (password !== app.config.password)) {
+				try {
+					ws.send(JSON.stringify({
+						type: 'error',
+						message: 'Incorrect password',
+					}));
+				} catch(e) {
+					serror.silent('failed to send password failure');
+				}
+				return;
+			}
+
 			return wshandler.handle(tupdate, app, ws);
 		} else {
 			ws.send(JSON.stringify({

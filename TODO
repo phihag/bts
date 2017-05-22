@@ -1,4 +1,5 @@
 Ticker
+	connect to ticker
 	transmit to ticker on start
 	transmit to ticker on court change
 	transmit to ticker on press
