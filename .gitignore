@@ -1,6 +1,10 @@
 data
+ticker_data
+
 node_modules
 
 config.json
+ticker_config.json
+
 mail.*
 

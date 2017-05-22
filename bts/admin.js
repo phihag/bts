@@ -5,6 +5,7 @@ const async = require('async');
 const btp_manager = require('./btp_manager');
 const serror = require('./serror');
 const stournament = require('./stournament');
+const ticker_manager = require('./ticker_manager');
 const utils = require('./utils');
 
 
@@ -36,15 +37,20 @@ function handle_tournament_edit_props(app, ws, msg) {
 	}
 
 	const key = msg.key;
-	const props = utils.pluck(msg.props, ['name', 'btp_enabled', 'btp_ip', 'btp_password']);
+	const props = utils.pluck(msg.props, [
+		'name',
+		'btp_enabled', 'btp_ip', 'btp_password',
+		'ticker_enabled', 'ticker_url', 'ticker_password']);
 
 	app.db.tournaments.update({key}, {$set: props}, {returnUpdatedDocs: true}, function(err, num, t) {
 		if (err) {
 			ws.respond(msg, err);
 			return;
 		}
-		notify_change(app, key, 'props', props);
 		btp_manager.reconfigure(app, t);
+		ticker_manager.reconfigure(app, t);
+		notify_change(app, key, 'props', props);
+
 		ws.respond(msg, err);
 	});
 }
@@ -110,6 +116,7 @@ function handle_tournament_get(app, ws, msg) {
 			});
 		}], function(err) {
 			tournament.btp_status = btp_manager.get_status(tournament.key);
+			tournament.ticker_status = ticker_manager.get_status(tournament.key);
 			ws.respond(msg, err, {tournament});
 		});
 	});
@@ -198,6 +205,15 @@ function handle_btp_fetch(app, ws, msg) {
 	ws.respond(msg);
 }
 
+function handle_ticker_pushall(app, ws, msg) {
+	if (!_require_msg(ws, msg, ['tournament_key'])) {
+		return;
+	}
+
+	ticker_manager.pushall(msg.tournament_key);
+	ws.respond(msg);
+}
+
 const all_admins = [];
 function notify_change(app, tournament_key, ctype, val) {
 	for (const admin_ws of all_admins) {
@@ -227,6 +243,7 @@ module.exports = {
 	handle_courts_add,
 	handle_match_add,
 	handle_match_edit,
+	handle_ticker_pushall,
 	handle_tournament_get,
 	handle_tournament_list,
 	handle_tournament_edit_props,

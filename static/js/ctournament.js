@@ -24,6 +24,7 @@ function switch_tournament(tournament_key, success_cb) {
 
 		curt = response.tournament;
 		uiu.text_qs('.btp_status', 'BTP-Status: ' + curt.btp_status);
+		uiu.text_qs('.ticker_status', 'Ticker-Status: ' + curt.ticker_status);
 		success_cb();
 	});
 }
@@ -141,6 +142,17 @@ function ui_btp_fetch() {
 	});
 }
 
+function ui_ticker_push() {
+	send({
+		type: 'ticker_pushall',
+		tournament_key: curt.key,
+	}, err => {
+		if (err) {
+			return cerror.net(err);
+		}
+	});
+}
+
 function ui_show() {
 	crouting.set('t/:key/', {key: curt.key});
 	toprow.set([{
@@ -165,9 +177,14 @@ function ui_show() {
 	settings_btn.addEventListener('click', ui_edit);
 
 	if (curt.btp_enabled) {
-		const btp_fech_btn = uiu.el(main, 'button', 'tournament_btp_fetch', 'Von BTP aktualisieren');
-		btp_fech_btn.addEventListener('click', ui_btp_fetch);
+		const btp_fetch_btn = uiu.el(main, 'button', 'tournament_btp_fetch', 'Von BTP aktualisieren');
+		btp_fetch_btn.addEventListener('click', ui_btp_fetch);
 	}
+	if (curt.ticker_enabled) {
+		const ticker_push_btn = uiu.el(main, 'button', 'tournament_ticker_push', 'Ticker aktualisieren');
+		ticker_push_btn.addEventListener('click', ui_ticker_push);
+	}
+
 
 	uiu.el(main, 'h1', 'tournament_name ct_name', curt.name || curt.key);
 
@@ -224,6 +241,7 @@ function ui_edit() {
 		'class': 'ct_name',
 	});
 
+	// BTP
 	const btp_enabled_label = uiu.el(form, 'label');
 	const ba_attrs = {
 		type: 'checkbox',
@@ -251,19 +269,54 @@ function ui_edit() {
 		value: (curt.btp_password || ''),
 	});
 
+
+	// Ticker
+	const ticker_enabled_label = uiu.el(form, 'label');
+	const te_attrs = {
+		type: 'checkbox',
+		name: 'ticker_enabled',
+	};
+	if (curt.ticker_enabled) {
+		te_attrs.checked = 'checked';
+	}
+	uiu.el(ticker_enabled_label, 'input', te_attrs);
+	uiu.el(ticker_enabled_label, 'span', {}, 'Ticker aktivieren');
+
+	const ticker_url_label = uiu.el(form, 'label');
+	uiu.el(ticker_url_label, 'span', {}, 'Ticker-Addresse:');
+	uiu.el(ticker_url_label, 'input', {
+		type: 'text',
+		name: 'ticker_url',
+		value: (curt.ticker_url || ''),
+	});
+
+	const ticker_password_label = uiu.el(form, 'label');
+	uiu.el(ticker_password_label, 'span', {}, 'Ticker-Passwort:');
+	uiu.el(ticker_password_label, 'input', {
+		type: 'text',
+		name: 'ticker_password',
+		value: (curt.ticker_password || ''),
+	});
+
+
+
 	uiu.el(form, 'button', {
 		role: 'submit',
 	}, 'Ändern');
 	form_utils.onsubmit(form, function(data) {
+		const props = {
+			name: data.name,
+			btp_enabled: (!!data.btp_enabled),
+			btp_ip: data.btp_ip,
+			btp_password: data.btp_password,
+			ticker_enabled: (!! data.ticker_enabled),
+			ticker_url: data.ticker_url,
+			ticker_password: data.ticker_password,
+		};
 		send({
 			type: 'tournament_edit_props',
 			key: curt.key,
-			props: {
-				name: data.name,
-				btp_enabled: (!!data.btp_enabled),
-				btp_ip: data.btp_ip,
-				btp_password: data.btp_password,
-			},
+			props: props,
 		}, function(err) {
 			if (err) {
 				return cerror.net(err);

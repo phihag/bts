@@ -38,6 +38,10 @@ function default_handler_func(rerender, special_funcs, c) {
 		curt.name = c.val.name;
 		curt.btp_enabled = c.val.btp_enabled;
 		curt.btp_ip = c.val.btp_ip;
+		curt.ticker_enabled = c.val.ticker_enabled;
+		curt.ticker_url = c.val.ticker_url;
+		curt.ticker_password = c.val.ticker_password;
+
 		uiu.qsEach('.ct_name', function(el) {
 			if (el.tagName.toUpperCase() === 'INPUT') {
 				el.value = c.val.name;
@@ -51,6 +55,17 @@ function default_handler_func(rerender, special_funcs, c) {
 		uiu.qsEach('input[name="btp_ip"]', function(el) {
 			el.value = curt.btp_ip;
 		});
+
+		uiu.qsEach('input[name="ticker_enabled"]', function(el) {
+			el.checked = curt.ticker_enabled;
+		});
+		uiu.qsEach('input[name="ticker_url"]', function(el) {
+			el.value = curt.ticker_url;
+		});
+		uiu.qsEach('input[name="ticker_password"]', function(el) {
+			el.value = curt.ticker_password;
+		});
+
 		break;
 	case 'match_add':
 		curt.matches.push(c.val.match);
@@ -87,6 +102,9 @@ function default_handler_func(rerender, special_funcs, c) {
 		break;
 	case 'btp_status':
 		uiu.text_qs('.btp_status', 'BTP-Status: ' + c.val);
+		break;
+	case 'ticker_status':
+		uiu.text_qs('.ticker_status', 'Ticker-Status: ' + c.val);
 		break;
 	default:
 		cerror.silent('Unsupported change type ' + c.ctype);

@@ -17,6 +17,7 @@ const database = require('./database');
 const http_api = require('./http_api');
 const serror = require('./serror');
 const shortcuts = require('./shortcuts');
+const ticker_manager = require('./ticker_manager');
 const utils = require('./utils');
 const wshandler = require('./wshandler');
 
@@ -40,7 +41,7 @@ function read_config(callback, autocreate) {
 
 function main() {
 	async.waterfall([
-		read_config,
+		cb => read_config(cb, true),
 		function(config, cb) {
 			serror.setup(config);
 
@@ -49,8 +50,10 @@ function main() {
 		function (config, db, cb) {
 			const app = create_app(config, db);
 
-			btp_manager.init(app, cb);
-		},
+			btp_manager.init(app, (err) => cb(err, app));
+		}, function(app, cb) {
+			ticker_manager.init(app, cb);
+		}
 	], function(err) {
 		if (err) throw err;
 	});

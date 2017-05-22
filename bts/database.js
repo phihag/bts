@@ -9,7 +9,7 @@ const Datastore = require('nedb');
 const utils = require('./utils');
 
 function init(callback) {
-	var db = {};
+	const db = {};
 	const TABLES = [
 		'courts',
 		'matches',
@@ -17,7 +17,7 @@ function init(callback) {
 		'umpires',
 	];
 
-	var db_dir = path.join(utils.root_dir(), '/data');
+	const db_dir = path.join(utils.root_dir(), '/data');
 	if (! fs.existsSync(db_dir)) {
 		fs.mkdirSync(db_dir);
 	}
@@ -33,13 +33,7 @@ function init(callback) {
 	db.umpires.ensureIndex({fieldName: 'name', unique: true});
 	db.umpires.ensureIndex({fieldName: 'tournament_key', unique: false});
 
-	db.fetch_all = function() {
-		var args = [db];
-		for (var i = 0;i < arguments.length;i++) {
-			args.push(arguments[i]);
-		}
-		return fetch_all.apply(null, args);
-	};
+	setup_helpers(db);
 
 	async.parallel([function(cb) {
 		setup_autonum(cb, db, 'matches');
@@ -48,6 +42,16 @@ function init(callback) {
 	}], function(err) {
 		callback(err, db);
 	});
+}
+
+function setup_helpers(db) {
+	db.fetch_all = function() {
+		var args = [db];
+		for (var i = 0;i < arguments.length;i++) {
+			args.push(arguments[i]);
+		}
+		return fetch_all.apply(null, args);
+	};
 }
 
 function fetch_all(db, specs, callback) {
@@ -108,5 +112,6 @@ function setup_autonum(callback, db, collection, start) {
 }
 
 module.exports = {
-	init: init,
+	init,
+	setup_helpers,
 };

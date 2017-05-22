@@ -1,5 +1,6 @@
 'use strict';
 
+const crypto = require('crypto');
 const fs = require('fs');
 const path = require('path');
 
@@ -165,11 +166,16 @@ function deep_equal(x, y) {
 	return false;
 }
 
+function gen_token() {
+	return crypto.randomBytes(32).toString('hex');
+}
+
 module.exports = {
 	cmp,
 	cmp_key,
 	copy_file,
 	deep_equal,
+	gen_token,
 	make_index,
 	natcmp,
 	pad,

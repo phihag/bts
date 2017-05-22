@@ -47,6 +47,14 @@ h3 {
 	color: #666;
 	background: rgba(255, 255, 255, 0.8);
 }
+.ticker_status {
+	position: fixed;
+	bottom: 3em;
+	right: 0;
+	color: #666;
+	background: rgba(255, 255, 255, 0.8);
+}
+
 
 .errors {
 	position: fixed;
@@ -71,6 +79,7 @@ h3 {
 }
 
 .tournament_btp_fetch,
+.tournament_ticker_push,
 .tournament_settings_link {
 	float: right;
 	margin-right: 0.5em;

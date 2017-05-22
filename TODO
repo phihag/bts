@@ -1,3 +1,13 @@
+Ticker
+	set up ticker client
+	transmit to ticker on start
+	transmit to ticker on court change
+	transmit to ticker on press
+	manually push ticker
+	
+
+
+
 Anzeige schwarz-weiss / international, große Namen
 	display: Satznummern links von den Namen
 	weiß
@@ -6,9 +16,11 @@ server / receiver not transmitted
 better scoresheet link
 print scoresheet from match details
 icon for scoresheet
-kein :80
+
+:80 configuration
 Komplettansicht für alle Felder (vertikal)
 new displays (Moritz | André)
+internet scoresheet
 
 calc match players directly, don't go into the tree of From
     at Object.change_current_match (change.js:27)
@@ -19,7 +31,7 @@ calc match players directly, don't go into the tree of From
     at ui_on_change (conn_ui.js:28)
     at WebSocket.handle_message (conn.js:57)
 
-
+make an app for fullscreen
 
 
 start BTP API
@@ -37,7 +49,6 @@ start BTP API
 
 Ansage Spielfeld, 20 Sekunden nicht korrekt! (should use num if present)
 allow clicking everywhere to edit
-
 
 
 show duration in UI
@@ -74,6 +85,7 @@ delete matches (with proper warning)
 
 -------
 
+ticker: update status when enabling / disabling
 admin keepalive
 basic left-right layout
 allow to enter bup to finished match

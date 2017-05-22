@@ -19,7 +19,7 @@ function _construct_url(abspath) {
 
 function handle_message(ws_msg) {
 	var msg_json = ws_msg.data;
-	debug.log('>', msg_json.substring(0, 100));
+	debug.log('>', msg_json.substring(0, 1000));
 	var msg = JSON.parse(msg_json);
 	if (!msg) {
 		send({
