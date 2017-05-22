@@ -2,7 +2,6 @@
 
 const assert = require('assert');
 
-const serror = require('./serror');
 const ticker_conn = require('./ticker_conn');
 
 

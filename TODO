@@ -1,5 +1,4 @@
 Ticker
-	set up ticker client
 	transmit to ticker on start
 	transmit to ticker on court change
 	transmit to ticker on press
@@ -106,12 +105,15 @@ online display server
 show BTP match IDs in UI and allow to edit them
 
 -----
+ticker: use websocket
 transmit shuttle count
 umpire management by referee
 delete court (ask before)
 show error upon match creation
 add team (country) names on umpire sheet
 support for BTP match highlight
+ticker: serve state
+ticker: fall back to HTTP queries if no websocket available
 
 -----
 grep for all TODOs

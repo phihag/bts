@@ -24,4 +24,8 @@ _describe('utils', function() {
 		const this_fn = path.join(utils.root_dir(), 'test', 'test_utils.js');
 		fs.stat(this_fn, done);
 	});
+
+	_it('encode_html', function() {
+		assert.strictEqual(utils.encode_html('<"a>b<"a>b'), '&lt;&quot;a&gt;b&lt;&quot;a&gt;b');
+	});
 });

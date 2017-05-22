@@ -15,6 +15,8 @@ const utils = require('../bts/utils');
 const wshandler = require('../bts/wshandler');
 
 const tdatabase = require('./tdatabase');
+const tdata = require('./tdata');
+const tweb = require('./tweb');
 
 function read_config(callback, autocreate) {
 	fs.readFile('ticker_config.json', 'utf8', (err, config_json) => {
@@ -52,8 +54,9 @@ function main() {
 		function (config, db, cb) {
 			const app = create_app(config, db);
 
-			cb();
+			cb(null, app);
 		},
+		(app, cb) => tdata.recalc(app, cb),
 	], function(err) {
 		if (err) throw err;
 	});
@@ -71,9 +74,7 @@ function create_app(config, db) {
 
 	app.use('/bupdev/', express.static(path.join(utils.root_dir(), 'static/bup/dev/')));
 	app.use('/static/', express.static('static/', {}));
-	app.get('/', function(req, res) {
-		app.get('/', sticker.main_handler);
-	});
+	app.get('/', tweb.main_handler);
 	app.use(favicon(utils.root_dir() + '/static/icons/favicon.ico'));
 
 	wss.on('connection', function connection(ws) {

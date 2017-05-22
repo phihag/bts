@@ -1,4 +1,6 @@
 {
 	"port": 4001,
-	"report_errors": true
+	"report_errors": true,
+	"tournament_name": "Live-Ticker",
+	"note_html": "Tickering with <a href=\"https://github.com/phihag/bts\">bts</a>"
 }

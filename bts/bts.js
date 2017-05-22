@@ -53,7 +53,7 @@ function main() {
 			btp_manager.init(app, (err) => cb(err, app));
 		}, function(app, cb) {
 			ticker_manager.init(app, cb);
-		}
+		},
 	], function(err) {
 		if (err) throw err;
 	});

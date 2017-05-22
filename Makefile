@@ -10,7 +10,7 @@ help:
 	@echo '  run           Run the server in production mode'
 	@echo '  dev           Run the server in development mode'
 	@echo '  ticker-run    Run the ticker in production mode'
-	@echo '  ticker-dev           Run the ticker in development mode'
+	@echo '  ticker-dev    Run the ticker in development mode'
 	@echo '  clean         Remove temporary files'
 
 

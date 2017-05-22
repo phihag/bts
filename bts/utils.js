@@ -170,11 +170,16 @@ function gen_token() {
 	return crypto.randomBytes(32).toString('hex');
 }
 
+function encode_html(text) {
+	return text.replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
 module.exports = {
 	cmp,
 	cmp_key,
 	copy_file,
 	deep_equal,
+	encode_html,
 	gen_token,
 	make_index,
 	natcmp,

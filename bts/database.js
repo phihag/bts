@@ -64,7 +64,12 @@ function fetch_all(db, specs, callback) {
 			queryFunc = 'findOne';
 		}
 
-		db[spec.collection][queryFunc](spec.query, function (err, docs) {
+		const col = db[spec.collection];
+		if (!col && !done) {
+			done = true;
+			return callback(new Error('Cannot find collection ' + spec.collection));
+		}
+		col[queryFunc](spec.query, function (err, docs) {
 			if (done) {
 				return;  // Error occured already
 			}
