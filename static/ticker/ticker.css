@@ -5,17 +5,19 @@ html, body {
 	font-family: sans-serif;
 }
 .main {
-	margin: 0.5em 0.5em 0 0.5em;
+	margin: 0 0.5em 0 0.5em;
 }
 
 .topline {
-	margin-bottom: 0.2em;
+	margin: 0.3em 0 0.5em 0;
 }
+
+
 h1 {
 	margin: 0;
+	padding: 0;
 	font-size: inherit;
 	font-weight: bold;
-	float: left;
 }
 .note {
 	margin-top: 1em;
