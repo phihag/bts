@@ -139,7 +139,7 @@ class TickerConn {
 			if (err) return cb(err);
 
 			const interesting_ids = utils.filter_map(db_courts, c => c.match_id);
-			const interesting_matches = db_matches.filter(m => interesting_ids.includes(m.setup.match_id));
+			const interesting_matches = db_matches.filter(m => interesting_ids.includes(m._id));
 
 			return cb(null, {
 				courts: db_courts.map(craft_court),

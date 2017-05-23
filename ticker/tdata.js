@@ -47,7 +47,7 @@ function set(app, event, cb) {
 					_id: match._id,
 				}, match, {
 					upsert: true,
-				});
+				}, (err) => cb(err));
 			}, (err) => cb(err));
 		},
 		(cb) => {
@@ -56,7 +56,7 @@ function set(app, event, cb) {
 					_id: court._id,
 				}, court, {
 					upsert: true,
-				});
+				}, (err) => cb(err));
 			}, (err) => cb(err));
 		},
 		(cb) => {

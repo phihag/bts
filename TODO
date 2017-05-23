@@ -1,9 +1,7 @@
 Ticker
-	transfer matches as well
-	transmit to ticker on start
+	render ticker
 	transmit to ticker on court change
 	transmit to ticker on press
-	manually push ticker
 	refresh ticker automatically (on client)
 	keepalive for conn to ticker
 
