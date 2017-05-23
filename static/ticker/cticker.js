@@ -1,6 +1,6 @@
 'use strict';
 
-var INTERVAL = 5000;
+var INTERVAL = 5000; // TODO make this configurable in the ticker config
 var reported = false;
 
 function uiu_empty(node) {
@@ -27,7 +27,8 @@ function update() {
 		if (r.status === 200) {
 			var d = JSON.parse(r.responseText);
 			uiu_empty(error_display);
-			console.log('TODO: Would now update to ', d);
+			var container = document.querySelector('#courts_html');
+			container.innerHTML = d.courts_html;
 		} else {
 			cerror.silent('Ticker HTTP update failed with ' + r.status);
 			reported = true;

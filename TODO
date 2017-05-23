@@ -1,5 +1,4 @@
 Ticker
-	refresh ticker automatically (on client, fetch)
 	transmit to ticker on court change
 	transmit to ticker on press
 	keepalive for conn to ticker
@@ -61,6 +60,7 @@ move to court button
 HTTP API: suppress cache
 manually set current match on court
 
+support groups
 launch link allcourts-display
 edit umpire list
 allow adding new umpire for match

@@ -76,13 +76,11 @@ function init() {
 	try {
 		report_enabled = JSON.parse(report_enabled_json);
 	} catch(e) {
-		var msg = 'Error reporting JSON invalid: ' + report_enabled_json;
-		silent(msg);
+		silent('Error reporting JSON invalid: ' + report_enabled_json);
 		return;
 	}
 	if (report_enabled === null) {
-		var msg = 'Error reporting not configured';
-		silent(msg);
+		silent('Error reporting not configured');
 		return;
 	}
 	if (report_enabled) {
