@@ -6,7 +6,7 @@
 <link rel="stylesheet" href="{{static_path}}ticker/ticker.css" />
 <title>{{tournament_name_html}}</title>
 </head>
-<body>
+<body id="bts-data-holder" data-error-reporting="{{error_reporting}}">
 
 <div class="main">
 
@@ -17,9 +17,11 @@
 {{courts_html}}
 
 <div class="note">{{note_html}}</div>
+<div class="error"></div>
 </div>
 
-<script src="{{static_path}}libs/mustache.min.js"></script>
+<!-- <script src="{{static_path}}libs/mustache.min.js"></script> -->
+<script src="{{static_path}}js/cerror.js"></script>
 <script src="{{static_path}}ticker/cticker.js"></script>
 </body>
 </html>

@@ -77,6 +77,7 @@ function create_app(config, db) {
 	app.use('/static/', express.static('static/', {}));
 	app.get('/', tweb.main_handler);
 	app.use(favicon(utils.root_dir() + '/static/icons/favicon.ico'));
+	app.get('/qjson', tweb.qjson_handler);
 
 	wss.on('connection', function connection(ws) {
 		const location = url.parse(ws.upgradeReq.url, true);

@@ -1,16 +1,19 @@
 'use strict';
+// Do not use const; this is public-facing as part of the ticker
 
 var cerror = (function() {
 
-const REPORT_URL = 'https://aufschlagwechsel.de/bupbug/';
+var REPORT_URL = 'https://aufschlagwechsel.de/bupbug/';
 var count = -1;
-const error_list = [];
+var error_list = [];
 var report_enabled = true;
 
 function show(msg) {
 	error_list.push(msg);
-	uiu.show_qs('.errors');
-	uiu.text_qs('.errors', error_list.join('\n'));
+	if (typeof uiu !== 'undefined') {
+		uiu.show_qs('.errors');
+		uiu.text_qs('.errors', error_list.join('\n'));
+	}
 }
 
 function get_platform_info() {
@@ -32,7 +35,7 @@ function on_error(msg, script_url, line, col, err) {
 		return;
 	}
 
-	const report = {
+	var report = {
 		msg,
 		count,
 		_type: 'bts-error',
@@ -52,8 +55,8 @@ function on_error(msg, script_url, line, col, err) {
 		report.stack = err.stack;
 	}
 
-	const report_json = JSON.stringify(report);
-	const xhr = new XMLHttpRequest();
+	var report_json = JSON.stringify(report);
+	var xhr = new XMLHttpRequest();
 	xhr.open('POST', REPORT_URL, true);
 	xhr.setRequestHeader('Content-type', 'text/plain');  // To be a simple CORS request (avoid CORS preflight)
 	xhr.send(report_json);
@@ -69,16 +72,16 @@ function net(err)  {
 }
 
 function init() {
-	const report_enabled_json = document.getElementById('bts-data-holder').getAttribute('data-error-reporting');
+	var report_enabled_json = document.getElementById('bts-data-holder').getAttribute('data-error-reporting');
 	try {
 		report_enabled = JSON.parse(report_enabled_json);
 	} catch(e) {
-		const msg = 'Error reporting JSON invalid: ' + report_enabled_json;
+		var msg = 'Error reporting JSON invalid: ' + report_enabled_json;
 		silent(msg);
 		return;
 	}
 	if (report_enabled === null) {
-		const msg = 'Error reporting not configured';
+		var msg = 'Error reporting not configured';
 		silent(msg);
 		return;
 	}

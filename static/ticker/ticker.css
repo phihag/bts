@@ -78,3 +78,7 @@ table.court + table.court {
 	transform-origin: center;
 	transform: rotate(-90deg);
 }
+
+.error {
+	color: red;
+}

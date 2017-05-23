@@ -64,10 +64,10 @@ function cadmin_router() {
 	router.use(function(req, res, next) {
 		fs.readFile(path.join(utils.root_dir(), 'static', 'cbts.html'), 'utf8', function(err, html) {
 			if (err) return next(err);
-			res.set('Content-Type: text/html');
-			res.set('Cache-Control: no-cache, no-store, must-revalidate');
-			res.set('Pragma: no-cache');
-			res.set('Expires: 0');
+			res.set('Content-Type', 'text/html');
+			res.set('Cache-Control', 'no-cache, no-store, must-revalidate');
+			res.set('Pragma', 'no-cache');
+			res.set('Expires', '0');
 
 			html = html.replace(/{{error_reporting}}/g, JSON.stringify(serror.active(req.app.config)));
 			html = html.replace(/{{static_path}}/g, '/static/');
