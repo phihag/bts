@@ -2,7 +2,7 @@
 <tr>
 <td class="court_num" rowspan="2">{{num}}</td>
 {{^match}}
-<td class="court_empty" colspan="4" rowspan="2"></td>
+<td class="court_empty" colspan="{{gamesplus2}}" rowspan="2"></td>
 {{/match}}
 
 {{#match}}
@@ -10,6 +10,7 @@
 {{#team0scores}}
 <td class="court_score team0">{{.}}</td>
 {{/team0scores}}
+<td class="court_event" rowspan="2"><span>{{n}}</span></td>
 {{/match}}
 </tr>
 

@@ -7,8 +7,9 @@ const utils = require('../bts/utils');
 function prepare_mustache(m) {
 	m.p0str = m.p0.join('\n');
 	m.p1str = m.p1.join('\n');
-	// TODO look at counting to find out max number of matches
-	const game_ids = [0, 1, 2];
+	const max_game_count = 3; // TODO look it up from counting
+	m.gamesplus2 = max_game_count + 2;
+	const game_ids = utils.range(max_game_count);
 	for (const team_id of [0, 1]) {
 		m['team' + team_id + 'scores'] = game_ids.map((game_idx) => {
 			const gs = m.s[game_idx];

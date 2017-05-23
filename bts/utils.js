@@ -185,6 +185,14 @@ function filter_map(ar, cb) {
 	return res;
 }
 
+function range(n) {
+	var res = [];
+	for (var i = 0;i < n;i++) {
+		res.push(i);
+	}
+	return res;
+}
+
 module.exports = {
 	cmp,
 	cmp_key,
@@ -198,6 +206,7 @@ module.exports = {
 	pad,
 	pluck,
 	plucked_deep_equal,
+	range,
 	remove,
 	root_dir,
 	size,

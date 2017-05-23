@@ -5,19 +5,26 @@ html, body {
 	font-family: sans-serif;
 }
 .main {
-	margin: 0.5em 0.5em;
+	margin: 0.5em 0.5em 0 0.5em;
 }
 
+.topline {
+	margin-bottom: 0.2em;
+}
 h1 {
 	margin: 0;
-	font-size: 5vmin;
-	text-align: center;
+	font-size: inherit;
+	font-weight: bold;
+	float: left;
+}
+.note {
+	margin-top: 1em;
 }
 
 table.court {
 	margin: 0 auto;
 	border-collapse: collapse;
-	width: 98%;
+	width: 100%;
 	background: #f5f5ff;
 }
 table.court + table.court {
@@ -48,11 +55,17 @@ table.court + table.court {
 .court_score {
 	width: 1em;
 	font-size: 6vmin;
-	border-left: 0.1vmin solid #ddd;
+	border-left: 0.2vmin solid #ddd;
 	text-align: center;
 }
-
-
-.note {
-	margin-top: 1em;
+.court_event {
+	width: 2em;
+	max-width: 2em;
+	vertical-align: middle;
+}
+.court_event>span {
+	white-space: pre;
+	display: block;
+	transform-origin: center;
+	transform: translate(0, 1.2em) rotate(-90deg);
 }
