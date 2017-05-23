@@ -1,8 +1,4 @@
 Ticker
-	render ticker
-	sort
-	css alternate colors (very light)
-	render matches
 	transmit to ticker on court change
 	transmit to ticker on press
 	refresh ticker automatically (on client, fetch)

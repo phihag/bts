@@ -53,19 +53,26 @@ table.court + table.court {
 	white-space: pre-wrap;
 }
 .court_score {
-	width: 1em;
+	width: 1.3em;
 	font-size: 6vmin;
 	border-left: 0.2vmin solid #ddd;
 	text-align: center;
 }
-.court_event {
+.court_event, .court_event_div {
 	width: 2em;
 	max-width: 2em;
-	vertical-align: middle;
 }
-.court_event>span {
+.court_event>div {
+	width: 100%;
+	height: 100%;
+	vertical-align: middle;
+	display:flex;
+	justify-content:center;
+	align-items:center;
+}
+.court_event>div>span {
 	white-space: pre;
 	display: block;
 	transform-origin: center;
-	transform: translate(0, 1.2em) rotate(-90deg);
+	transform: rotate(-90deg);
 }
