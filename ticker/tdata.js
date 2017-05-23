@@ -2,6 +2,21 @@
 
 const async = require('async');
 
+const utils = require('../bts/utils');
+
+function prepare_mustache(m) {
+	m.p0str = m.p0.join('\n');
+	m.p1str = m.p1.join('\n');
+	// TODO look at counting to find out max number of matches
+	const game_ids = [0, 1, 2];
+	for (const team_id of [0, 1]) {
+		m['team' + team_id + 'scores'] = game_ids.map((game_idx) => {
+			const gs = m.s[game_idx];
+			return gs ? gs[team_id] : '';
+		});
+	}
+}
+
 function recalc(app, cb) {
 	app.db.fetch_all([{
 		collection: 'tcourts',
@@ -10,6 +25,8 @@ function recalc(app, cb) {
 	}], function(err, courts, matches) {
 		if (err) return cb(err);
 
+		courts.sort((c1, c2) => utils.cmp(parseInt(c1.num), parseInt(c2.num)));
+
 		for (const c of courts) {
 			if (!c.match_id) {
 				continue;
@@ -17,6 +34,7 @@ function recalc(app, cb) {
 			for (const m of matches) {
 				if (m._id === c.match_id) {
 					c.match = m;
+					prepare_mustache(m);
 					break;
 				}
 			}

@@ -1,5 +1,24 @@
-<table class="courts"><tbody>
-{{#courts_with_matches}}
-A COURT (TODO)
+{{#courts_with_matches}}<table class="court"><tbody>
+<tr>
+<td class="court_num" rowspan="2">{{num}}</td>
+{{^match}}
+<td class="court_empty" colspan="4" rowspan="2"></td>
+{{/match}}
+
+{{#match}}
+<td class="court_players team0">{{p0str}}</td>
+{{#team0scores}}
+<td class="court_score team0">{{.}}</td>
+{{/team0scores}}
+{{/match}}
+</tr>
+
+<tr>
+{{#match}}
+<td class="court_players team1">{{p1str}}</td>
+{{#team1scores}}
+<td class="court_score team1">{{.}}</td>
+{{/team1scores}}
+{{/match}}
+</tr></tbody></table>
 {{/courts_with_matches}}
-</tbody></table>

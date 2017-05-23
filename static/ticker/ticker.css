@@ -1,0 +1,58 @@
+html, body {
+	margin: 0;
+	padding: 0;
+	font-size: 3vmin;
+	font-family: sans-serif;
+}
+.main {
+	margin: 0.5em 0.5em;
+}
+
+h1 {
+	margin: 0;
+	font-size: 5vmin;
+	text-align: center;
+}
+
+table.court {
+	margin: 0 auto;
+	border-collapse: collapse;
+	width: 98%;
+	background: #f5f5ff;
+}
+table.court + table.court {
+	margin-top: 0.4em;
+}
+
+.team0 {
+	background: #f0f0f0;
+}
+.court_players.team0 {
+	padding-bottom: 0.3em;
+}
+.court_players.team1 {
+	padding-top: 0.3em;
+}
+.team1 {
+	background: #e0e0e0;
+}
+.court_num {
+	text-align: right;
+	padding: 0 0.5em 0 0.1em;
+	width: 1em;
+}
+.court_players {
+	padding-left: 0.6em;
+	white-space: pre-wrap;
+}
+.court_score {
+	width: 1em;
+	font-size: 6vmin;
+	border-left: 0.1vmin solid #ddd;
+	text-align: center;
+}
+
+
+.note {
+	margin-top: 1em;
+}

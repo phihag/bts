@@ -2,15 +2,20 @@
 <html>
 <head>
 <meta charset="utf-8" />
-<link rel="stylesheet" href="{{static_root}}ticker/ticker.css" />
+<link rel="stylesheet" href="{{static_path}}ticker/ticker.css" />
 <title>{{tournament_name_html}}</title>
 </head>
 <body>
+
+<div class="main">
+<h1>{{tournament_name_html}}</h1>
+
 {{courts_html}}
 
-<div id="note">{{note_html}}</div>
+<div class="note">{{note_html}}</div>
+</div>
 
-<script src="{{static_root}}libs/mustache.min.js"></script>
-<script src="{{static_root}}ticker/cticker.js"></script>
+<script src="{{static_path}}libs/mustache.min.js"></script>
+<script src="{{static_path}}ticker/cticker.js"></script>
 </body>
 </html>

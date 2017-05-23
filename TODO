@@ -1,12 +1,20 @@
 Ticker
 	render ticker
+	sort
+	css alternate colors (very light)
+	render matches
 	transmit to ticker on court change
 	transmit to ticker on press
-	refresh ticker automatically (on client)
+	refresh ticker automatically (on client, fetch)
 	keepalive for conn to ticker
 
+set up on dmo35.de
 
-highlight match currently on court
+Komplettansicht für alle Felder (vertikal)
+new displays (Moritz | André)
+
+auto-fetch from BTP
+
 print scoresheet from match details
 scoresheet link
 icon for scoresheet
@@ -17,8 +25,6 @@ server / receiver not transmitted
 
 
 :80 configuration
-Komplettansicht für alle Felder (vertikal)
-new displays (Moritz | André)
 internet scoresheet
 
 calc match players directly, don't go into the tree of From
@@ -42,6 +48,7 @@ Ansage Spielfeld, 20 Sekunden nicht korrekt! (should use num if present)
 allow clicking everywhere to edit
 ticker: store and display last update
 
+checkbox to make BTP readonly
 show duration in UI
 custom created matches must get a compatible match ID (and forbid changing the number)
 improve BTP API
@@ -106,6 +113,7 @@ add team (country) names on umpire sheet
 support for BTP match highlight
 ticker: serve state
 ticker: fall back to HTTP queries if no websocket available
+ticker: highlight changes
 
 -----
 grep for all TODOs
