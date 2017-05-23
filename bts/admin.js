@@ -210,7 +210,7 @@ function handle_ticker_pushall(app, ws, msg) {
 		return;
 	}
 
-	ticker_manager.pushall(msg.tournament_key);
+	ticker_manager.pushall(app, msg.tournament_key);
 	ws.respond(msg);
 }
 

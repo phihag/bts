@@ -65,7 +65,7 @@ function render_match_row(tr, match, court, include_court) {
 		uiu.el(score_td, 'span', {}, ' In Vorbereitung ');
 	}
 	uiu.el(score_td, 'span', {
-		'class': 'match_score',
+		'class': ('match_score' + ((court && (court.match_id === match._id)) ? ' match_score_current' : '')),
 		'data-match_id': match._id,
 	}, calc_score_str(match));
 }

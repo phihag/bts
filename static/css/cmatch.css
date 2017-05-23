@@ -49,6 +49,9 @@
 .match_team_won {
 	font-weight: bold;
 }
+.match_score_current {
+	font-weight: bold;
+}
 
 .match_no_umpire {
 	font-style: italic;

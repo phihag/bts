@@ -22,9 +22,14 @@ function change_score(cval) {
 }
 
 function change_current_match(cval) {
+	console.log('CHANGING MATCH', cval);
 	// Do not use courts_by_id since that may not be initialized in all views
 	const court = utils.find(curt.courts, c => c._id === cval.court_id);
-	court.match_id = cval.match_id;
+	if (court) {
+		court.match_id = cval.match_id;
+	} else {
+		cerror.silent('Cannot find court ' + JSON.stringify(cval.court_id));
+	}
 }
 
 function default_handler_func(rerender, special_funcs, c) {

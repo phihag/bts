@@ -4,8 +4,19 @@ const assert = require('assert');
 
 const ws_module = require('ws');
 
+const utils = require('./utils');
+const serror = require('./serror');
+
+
 const RECONNECT_TIMEOUT = 1000;
 
+function craft_court(c) {
+	return utils.pluck(c, ['num', 'match_id', '_id']);
+}
+
+function craft_match(m) {
+	return utils.pluck(m, ['setup', 'network_score', '_id']);
+}
 
 class TickerConn {
 	constructor(app, url, password, tournament_key) {
@@ -36,6 +47,7 @@ class TickerConn {
 		tc.ws = ws;
 		ws.on('open', function() {
 			tc.report_status('Verbunden.');
+			tc.pushall();
 		});
 		ws.on('message', function(data) {
 			let msg;
@@ -45,7 +57,9 @@ class TickerConn {
 				tc.report_status('Failed to receive ticker message: ' + e.message);
 				return;
 			}
-			tc.report_status('Fehler: ' + msg.message);
+			if ((msg.type === 'error') || ((msg.type === 'dmsg') && (msg.dtype === 'error'))) {
+				tc.report_status('Fehler: ' + msg.message);
+			}
 		});
 		ws.on('error', function() {
 			if (tc.ws !== ws) { // Terminated intentionally or as a race?
@@ -80,6 +94,25 @@ class TickerConn {
 		setTimeout(() => this.connect(), RECONNECT_TIMEOUT);
 	}
 
+	pushall() {
+		this._craft_event((err, event) => {
+			if (err) {
+				serror.silent('Failed to craft event: ' + err.message + ' ' + err.stack);
+				this.report_status('Konnte nicht Daten vorbereiten');
+				return;
+			}
+
+			if (!this.ws) {
+				return;
+			}
+
+			this.ws.send(JSON.stringify({
+				type: 'tset',
+				event,
+			}));
+		});
+	}
+
 	on_end() {
 		this.ws = null;
 		this.report_status('Verbindung verloren, versuche erneut ...');
@@ -91,6 +124,30 @@ class TickerConn {
 		const admin = require('./admin');
 		admin.notify_change(this.app, this.tournament_key, 'ticker_status', msg);
 	}
+
+	// Create the event version to send to the ticker
+	_craft_event(cb) {
+		const tournament_key = this.tournament_key;
+
+		this.app.db.fetch_all([{
+			collection: 'courts',
+			query: {tournament_key},
+		}, {
+			collection: 'matches',
+			query: {tournament_key},
+		}], (err, db_courts, db_matches) => {
+			if (err) return cb(err);
+
+			const interesting_ids = utils.filter_map(db_courts, c => c.match_id);
+			const interesting_matches = db_matches.filter(m => interesting_ids.includes(m.setup.match_id));
+
+			return cb(null, {
+				courts: db_courts.map(craft_court),
+				matches: interesting_matches.map(craft_match),
+			});
+		});
+	}
+
 }
 
 module.exports = {

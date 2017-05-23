@@ -174,11 +174,23 @@ function encode_html(text) {
 	return text.replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 }
 
+function filter_map(ar, cb) {
+	var res = [];
+	ar.forEach(function(el, idx) {
+		var mapped = cb(el, idx);
+		if (mapped) {
+			res.push(mapped);
+		}
+	});
+	return res;
+}
+
 module.exports = {
 	cmp,
 	cmp_key,
 	copy_file,
 	deep_equal,
+	filter_map,
 	encode_html,
 	gen_token,
 	make_index,

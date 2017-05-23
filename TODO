@@ -1,21 +1,22 @@
 Ticker
-	connect to ticker
+	transfer matches as well
 	transmit to ticker on start
 	transmit to ticker on court change
 	transmit to ticker on press
 	manually push ticker
-	
+	refresh ticker automatically (on client)
+	keepalive for conn to ticker
 
 
-
+highlight match currently on court
+print scoresheet from match details
+scoresheet link
+icon for scoresheet
 Anzeige schwarz-weiss / international, große Namen
 	display: Satznummern links von den Namen
 	weiß
 server / receiver not transmitted
 
-better scoresheet link
-print scoresheet from match details
-icon for scoresheet
 
 :80 configuration
 Komplettansicht für alle Felder (vertikal)
@@ -23,14 +24,6 @@ new displays (Moritz | André)
 internet scoresheet
 
 calc match players directly, don't go into the tree of From
-    at Object.change_current_match (change.js:27)
-    at Object.update_current_match [as court_current_match] (ctournament.js:123)
-    at default_handler_func (change.js:32)
-    at Object.on_change (change.js:5)
-    at Object.on_change (crouting.js:42)
-    at ui_on_change (conn_ui.js:28)
-    at WebSocket.handle_message (conn.js:57)
-
 make an app for fullscreen
 
 
@@ -49,7 +42,7 @@ start BTP API
 
 Ansage Spielfeld, 20 Sekunden nicht korrekt! (should use num if present)
 allow clicking everywhere to edit
-
+ticker: store and display last update
 
 show duration in UI
 custom created matches must get a compatible match ID (and forbid changing the number)

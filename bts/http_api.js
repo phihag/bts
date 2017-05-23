@@ -139,8 +139,8 @@ function score_handler(req, res) {
 				return;
 			}
 
-			db.courts.update(court_q, {$set: {match_id: match_id}}, {returnUpdadDocs: true}, (err, updated) => {
-				cb(err, match, updated, true);
+			db.courts.update(court_q, {$set: {match_id: match_id}}, {}, (err) => {
+				cb(err, match, court, true);
 			});
 		},
 		(match, court, changed_court, cb) => {

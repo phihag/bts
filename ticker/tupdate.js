@@ -1,5 +1,10 @@
 'use strict';
 
+const serror = require('../bts/serror');
+
+const tdata = require('./tdata');
+
+
 /**
 * Returns true iff everything is ok.
 */
@@ -13,13 +18,17 @@ function _require_msg(ws, msg, fields) {
 	return true;
 }
 
-function handle_update(app, ws, msg) {
-	if (!_require_msg(ws, msg, ['tournament_key'])) {
+function handle_tset(app, ws, msg) {
+	if (!_require_msg(ws, msg, ['event'])) {
 		return;
 	}
 
-	// TODO
-	ws.respond(msg);
+	tdata.set(app, msg.event, (err) => {
+		if (err) {
+			serror.silent('Failed tset: ' + err.message + ' ' + err.stack);
+		}
+		ws.respond(msg, err);
+	});
 }
 
 function on_connect(/*app, ws*/) {
@@ -32,7 +41,7 @@ function on_close(/*app, ws*/) {
 
 
 module.exports = {
-	handle_update,
+	handle_tset,
 	on_close,
 	on_connect,
 };
