@@ -49,6 +49,13 @@ function render_match_row(tr, match, court, include_court) {
 	});
 	edit_btn.addEventListener('click', on_edit_button_click);
 
+	const scoresheet_btn = uiu.el(actions_td, 'div', {
+		'class': 'vlink match_scoresheet_button',
+		'title': 'Schiedsrichterzettel',
+		'data-match__id': match._id,
+	});
+	scoresheet_btn.addEventListener('click', on_scoresheet_button_click);
+
 	if (include_court) {
 		uiu.el(tr, 'td', {}, court ? court.num : '');
 	}
@@ -99,6 +106,12 @@ function on_edit_button_click(e) {
 	const btn = e.target;
 	const match_id = btn.getAttribute('data-match__id');
 	ui_edit(match_id);
+}
+
+function on_scoresheet_button_click(e) {
+	const btn = e.target;
+	const match_id = btn.getAttribute('data-match__id');
+	ui_scoresheet(match_id);
 }
 
 function _make_setup(d) {
@@ -186,6 +199,40 @@ crouting.register(/t\/([a-z0-9]+)\/m\/([-a-zA-Z0-9_]+)\/edit$/, function(m) {
 		ui_edit(m[2]);
 	});
 }, change.default_handler(ui_edit));
+
+
+function _cancel_ui_scoresheet() {
+	const dlg = document.querySelector('.match_scoresheet_dialog');
+	if (!dlg) {
+		return; // Already cancelled
+	}
+	uiu.esc_stack_pop();
+	uiu.remove(dlg);
+	ctournament.ui_show();
+}
+
+function ui_scoresheet(match_id) {
+	const match = utils.find(curt.matches, m => m._id === match_id);
+	if (!match) {
+		cerror.silent('Match ' + match_id + ' konnte nicht gefunden werden');
+		return;
+	}
+	crouting.set('t/' + curt.key + '/m/' + match_id + '/scoresheet', {}, _cancel_ui_scoresheet);
+
+	uiu.esc_stack_push(_cancel_ui_scoresheet);
+
+	const body = uiu.qs('body');
+	const dialog_bg = uiu.el(body, 'div', 'dialog_bg match_scoresheet_dialog');
+	const dialog = uiu.el(dialog_bg, 'div', 'dialog');
+
+	const cancel_btn = uiu.el(dialog, 'div', 'match_cancel_link vlink', 'Zurück');
+	cancel_btn.addEventListener('click', _cancel_ui_scoresheet);	
+}
+crouting.register(/t\/([a-z0-9]+)\/m\/([-a-zA-Z0-9_]+)\/scoresheet$/, function(m) {
+	ctournament.switch_tournament(m[1], function() {
+		ui_scoresheet(m[2]);
+	});
+}, change.default_handler(ui_scoresheet));
 
 function render_match_table(container, matches, include_courts) {
 	const table = uiu.el(container, 'table', 'match_table');
