@@ -69,6 +69,7 @@ table.court + table.court {
 .court_event, .court_event_div {
 	width: 2em;
 	max-width: 2em;
+	font-size: 2vmin;
 }
 .court_event>div {
 	width: 100%;
