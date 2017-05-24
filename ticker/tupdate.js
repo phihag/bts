@@ -31,6 +31,19 @@ function handle_tset(app, ws, msg) {
 	});
 }
 
+function handle_tupdate_match(app, ws, msg) {
+	if (!_require_msg(ws, msg, ['match'])) {
+		return;
+	}
+
+	tdata.update_match(app, msg.match, (err) => {
+		if (err) {
+			serror.silent('Failed tupdate_match: ' + err.message + ' ' + err.stack);
+		}
+		ws.respond(msg, err);
+	});
+}
+
 function on_connect(/*app, ws*/) {
 	
 }
@@ -42,6 +55,7 @@ function on_close(/*app, ws*/) {
 
 module.exports = {
 	handle_tset,
+	handle_tupdate_match,
 	on_close,
 	on_connect,
 };

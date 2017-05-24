@@ -106,7 +106,35 @@ function set(app, event, cb) {
 	});
 }
 
+function update_match(app, match, cb) {
+	if (!match._id) {
+		return cb(new Error('Missing match ID'));
+	}
+
+	const now = Date.now();
+	const db = app.db;
+	async.waterfall([
+		(cb) => {
+			db.tmatches.update({
+				_id: match._id,
+			}, {$set: match}, {}, (err) => cb(err));
+		},
+		(cb) => {
+			db.ttournaments.update({_id: '__main__'}, {
+				_id: '__main__',
+				last_update: now,
+			}, {upsert: true}, (err) => cb(err));
+		},
+		(cb) => {
+			recalc(app, cb);
+		},
+	], (err) => {
+		cb(err);
+	});
+}
+
 module.exports = {
 	recalc,
 	set,
+	update_match,
 };

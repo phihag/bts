@@ -1,14 +1,8 @@
-Ticker
-	transmit to ticker on court change
-	transmit to ticker on press
-	keepalive for conn to ticker
-
 auto-fetch from BTP
 print scoresheet from match details
 
 Komplettansicht für alle Felder (vertikal)
 new displays (Moritz | André)
-
 
 scoresheet link
 icon for scoresheet
@@ -78,6 +72,7 @@ delete matches (with proper warning)
 
 -------
 
+keepalive for conn to ticker
 ticker: update status when enabling / disabling
 admin keepalive
 basic left-right layout

@@ -5,6 +5,7 @@ const async = require('async');
 const admin = require('./admin');
 const btp_manager = require('./btp_manager');
 const stournament = require('./stournament');
+const ticker_manager = require('./ticker_manager');
 const utils = require('./utils');
 
 // Returns true iff all params are met
@@ -150,10 +151,19 @@ function score_handler(req, res) {
 					court_id: court._id,
 				});
 			}
-			cb(null, match);
+			cb(null, match, changed_court);
 		},
-		(match, cb) => {
+		(match, changed_court, cb) => {
 			btp_manager.update_score(req.app, match);
+
+			cb(null, match, changed_court);
+		},
+		(match, changed_court, cb) => {
+			if (changed_court) {
+				ticker_manager.pushall(req.app, tournament_key);
+			} else {
+				ticker_manager.update_score(req.app, match);
+			}
 
 			cb();
 		},

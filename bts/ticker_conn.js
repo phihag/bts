@@ -109,19 +109,33 @@ class TickerConn {
 				return;
 			}
 
-			if (!this.ws) {
-				return;
-			}
-
-			try {
-				this.ws.send(JSON.stringify({
-					type: 'tset',
-					event,
-				}));
-			} catch(e) {
-				serror.silent('Failed to send ticker data: ' + e.message);
-			}
+			this.sendmsg({
+				type: 'tset',
+				event,
+			});
 		});
+	}
+
+	update_score(match) {
+		this.sendmsg({
+			type: 'tupdate_match',
+			match: {
+				_id: match._id,
+				s: match.network_score,
+			},
+		})
+	}
+
+	sendmsg(msg) {
+		if (!this.ws) {
+			return;
+		}
+
+		try {
+			this.ws.send(JSON.stringify(msg));
+		} catch(e) {
+			serror.silent('Failed to send ticker data: ' + e.message);
+		}
 	}
 
 	on_end() {

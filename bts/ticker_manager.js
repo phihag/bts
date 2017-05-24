@@ -33,6 +33,20 @@ function pushall(app, tkey) {
 	conn.pushall();
 }
 
+function update_score(app, match) {
+	assert(match);
+	const tkey = match.tournament_key;
+	assert(tkey);
+
+	const conn = conns_by_tkey.get(tkey);
+	if (!conn) {
+		// Do not output an error; this happens if ticker support gets disabled
+		return;
+	}
+
+	conn.update_score(match);
+}
+
 function init(app, cb) {
 	app.db.tournaments.find({}, (err, tournaments) => {
 		if (err) return cb(err);
@@ -58,4 +72,5 @@ module.exports = {
 	init,
 	reconfigure,
 	pushall,
+	update_score,
 };
