@@ -79,8 +79,8 @@ function create_app(config, db) {
 	app.use(favicon(utils.root_dir() + '/static/icons/favicon.ico'));
 	app.get('/qjson', tweb.qjson_handler);
 
-	wss.on('connection', function connection(ws) {
-		const location = url.parse(ws.upgradeReq.url, true);
+	wss.on('connection', function connection(ws, req) {
+		const location = url.parse(req.url, true);
 		if (location.path === '/ws/ticker') {
 			return wshandler.handle(tget, app, ws);
 		} else if (/^\/ws\/update/.test(location.path)) {
