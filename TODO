@@ -1,12 +1,8 @@
-Komplettansicht für alle Felder (vertikal)
 auto-fetch from BTP
 	test new code
 
-new displays (Moritz | André)
-Anzeige schwarz-weiss / international, große Namen
-	display: Satznummern links von den Namen
-	weiß
-server / receiver not transmitted
+new displays (Moritz)
+button to move off court
 
 WebSocket protocol for displays
 
@@ -62,6 +58,7 @@ delete matches (with proper warning)
 
 -------
 
+player who is left/right not transmitted to display
 keepalive for conn to ticker
 ticker: update status when enabling / disabling
 admin keepalive
