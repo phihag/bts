@@ -208,6 +208,7 @@ function _cancel_ui_scoresheet() {
 	}
 	uiu.esc_stack_pop();
 	uiu.remove(dlg);
+	uiu.show_qs('.main');
 	ctournament.ui_show();
 }
 
@@ -221,12 +222,41 @@ function ui_scoresheet(match_id) {
 
 	uiu.esc_stack_push(_cancel_ui_scoresheet);
 
+	uiu.hide_qs('.main');
 	const body = uiu.qs('body');
-	const dialog_bg = uiu.el(body, 'div', 'dialog_bg match_scoresheet_dialog');
-	const dialog = uiu.el(dialog_bg, 'div', 'dialog');
+	const dialog = uiu.el(body, 'div', 'match_scoresheet_dialog');
 
-	const cancel_btn = uiu.el(dialog, 'div', 'match_cancel_link vlink', 'Zurück');
+	const container = uiu.el(dialog, 'div');
+	const lang = 'de';
+	const pseudo_state = {
+		settings: {
+			shuttle_counter: true,
+		},
+		lang,
+	};
+	i18n.update_state(pseudo_state, lang);
+	i18n.register_lang(i18n_de);
+	i18n.register_lang(i18n_en);
+
+	const s = calc.remote_state(pseudo_state, match.setup, match.presses);
+	printing.set_orientation('landscape');
+	scoresheet.load_sheet(scoresheet.sheet_name(s.setup), function(xml) {
+		var svg = scoresheet.make_sheet_node(s, xml);
+		svg.setAttribute('class', 'scoresheet single_scoresheet');
+		// Usually we'd call importNode here to import the document here, but IE/Edge then ignores the styles
+		container.appendChild(svg);
+		scoresheet.sheet_render(s, svg);
+	}, '/bupdev/');
+
+	const scoresheet_buttons = uiu.el(dialog, 'div', 'match_scoresheet_buttons')
+
+	const cancel_btn = uiu.el(scoresheet_buttons, 'div', 'vlink', 'Zurück');
 	cancel_btn.addEventListener('click', _cancel_ui_scoresheet);	
+
+	const print_btn = uiu.el(scoresheet_buttons, 'button', {}, 'Drucken');
+	print_btn.addEventListener('click', function() {
+		window.print();
+	});
 }
 crouting.register(/t\/([a-z0-9]+)\/m\/([-a-zA-Z0-9_]+)\/scoresheet$/, function(m) {
 	ctournament.switch_tournament(m[1], function() {

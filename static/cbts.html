@@ -7,6 +7,7 @@
 <link rel="stylesheet" href="{{static_path}}css/toprow.css" />
 <link rel="stylesheet" href="{{static_path}}css/cmatch.css" />
 <link rel="stylesheet" href="{{static_path}}css/court.css" />
+<style id="printing_orientation"></style>
 </head>
 <body id="bts-data-holder" data-app-root="{{app_root}}" data-error-reporting="{{error_reporting}}">
 
@@ -25,8 +26,17 @@
 <!-- only used for bup -->
 <script src="{{root_path}}bupdev/libs/jquery.min.js"></script>
 <script src="{{root_path}}bupdev/libs/mousetrap.min.js"></script>
-<script src="{{root_path}}bupdev/js/uiu.js"></script>
+
+<script src="{{root_path}}bupdev/js/calc.js"></script>
+<script src="{{root_path}}bupdev/js/compat.js"></script>
+<script src="{{root_path}}bupdev/js/downloader.js"></script>
+<script src="{{root_path}}bupdev/js/i18n.js"></script>
+<script src="{{root_path}}bupdev/js/i18n_de.js"></script>
+<script src="{{root_path}}bupdev/js/i18n_en.js"></script>
+<script src="{{root_path}}bupdev/js/printing.js"></script>
 <script src="{{root_path}}bupdev/js/pronunciation.js"></script>
+<script src="{{root_path}}bupdev/js/scoresheet.js"></script>
+<script src="{{root_path}}bupdev/js/uiu.js"></script>
 <script src="{{root_path}}bupdev/js/utils.js"></script>
 
 <!-- routing first, since many modules depend on it -->

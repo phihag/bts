@@ -1,11 +1,11 @@
-auto-fetch from BTP
 print scoresheet from match details
-
+	ensure printing works
+	make PDF
 Komplettansicht für alle Felder (vertikal)
+auto-fetch from BTP
+
 new displays (Moritz | André)
 
-scoresheet link
-icon for scoresheet
 Anzeige schwarz-weiss / international, große Namen
 	display: Satznummern links von den Namen
 	weiß
@@ -80,6 +80,7 @@ allow to enter bup to finished match
 
 online ticker
 display one/all courts
+scoresheets should get updated in real time!
 
 move match to court via drag&drop
 make an android app
