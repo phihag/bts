@@ -23,7 +23,13 @@ function recalc(app, cb) {
 		collection: 'tcourts',
 	}, {
 		collection: 'tmatches',
-	}], function(err, courts, matches) {
+	}, {
+		queryFunc: 'findOne',
+		collection: 'ttournaments',
+		query: {
+			_id: '__main__',
+		},
+	}], function(err, courts, matches, tournament) {
 		if (err) return cb(err);
 
 		courts.sort((c1, c2) => utils.cmp(parseInt(c1.num), parseInt(c2.num)));
@@ -41,7 +47,14 @@ function recalc(app, cb) {
 			}
 		}
 
-		app.courts_with_matches = courts;
+		const td = {
+			courts_with_matches: courts,
+		};
+		if (tournament && tournament.last_update) {
+			td.last_update_str = utils.format_ts(tournament.last_update);
+		}
+
+		app.ticker_data = td;
 	});
 }
 
@@ -58,6 +71,7 @@ function set(app, event, cb) {
 		}
 	}
 
+	const now = Date.now();
 	const db = app.db;
 	async.waterfall([
 		(cb) => {
@@ -77,6 +91,12 @@ function set(app, event, cb) {
 					upsert: true,
 				}, (err) => cb(err));
 			}, (err) => cb(err));
+		},
+		(cb) => {
+			db.ttournaments.update({_id: '__main__'}, {
+				_id: '__main__',
+				last_update: now,
+			}, {upsert: true}, (err) => cb(err));
 		},
 		(cb) => {
 			recalc(app, cb);

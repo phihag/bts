@@ -9,9 +9,7 @@ const serror = require('../bts/serror');
 const mustache = require('../static/libs/mustache.min.js');
 
 function render_html(app, cb) {
-	const data = {
-		courts_with_matches: app.courts_with_matches,
-	};
+	const data = app.ticker_data || {};
 	fs.readFile(path.join(utils.root_dir(), 'static', 'ticker', 'courts.mustache'), 'utf8', (err, template) => {
 		if (err) return cb(err);
 
@@ -32,9 +30,11 @@ function main_handler(req, res, next) {
 			res.set('Pragma', 'no-cache');
 			res.set('Expires', '0');
 
-			html = html.replace(/{{error_reporting}}/g, JSON.stringify(serror.active(req.app.config)));
-			html = html.replace(/{{tournament_name_html}}/g, utils.encode_html(req.app.config.tournament_name));
-			html = html.replace(/{{note_html}}/g, req.app.config.note_html);
+			const app = req.app;
+			html = html.replace(/{{error_reporting}}/g, JSON.stringify(serror.active(app.config)));
+			html = html.replace(/{{tournament_name_html}}/g, utils.encode_html(app.config.tournament_name));
+			html = html.replace(/{{last_update_str}}/g, utils.encode_html(app.ticker_data ? (app.ticker_data.last_update_str || '') : ''));
+			html = html.replace(/{{note_html}}/g, app.config.note_html);
 			html = html.replace(/{{courts_html}}/g, courts_html);
 			html = html.replace(/{{static_path}}/g, '/static/');
 			html = html.replace(/{{root_path}}/g, '/');

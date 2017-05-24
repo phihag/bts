@@ -113,10 +113,14 @@ class TickerConn {
 				return;
 			}
 
-			this.ws.send(JSON.stringify({
-				type: 'tset',
-				event,
-			}));
+			try {
+				this.ws.send(JSON.stringify({
+					type: 'tset',
+					event,
+				}));
+			} catch(e) {
+				serror.silent('Failed to send ticker data: ' + e.message);
+			}
 		});
 	}
 

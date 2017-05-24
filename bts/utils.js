@@ -193,12 +193,21 @@ function range(n) {
 	return res;
 }
 
+function format_ts(ts) {
+	var d = new Date(ts);
+	return (
+		d.getDate() + '.' + (d.getMonth() + 1) + '.' + d.getFullYear() + ' ' +
+		pad(d.getHours(), 2) + ':' + pad(d.getMinutes(), 2) + ':' + pad(d.getSeconds(), 2)
+	);
+}
+
 module.exports = {
 	cmp,
 	cmp_key,
 	copy_file,
 	deep_equal,
 	filter_map,
+	format_ts,
 	encode_html,
 	gen_token,
 	make_index,

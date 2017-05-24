@@ -14,6 +14,7 @@ function init(callback) {
 	const TABLES = [
 		'tcourts',
 		'tmatches',
+		'ttournaments',
 	];
 
 	const db_dir = path.join(utils.root_dir(), '/ticker_data');
