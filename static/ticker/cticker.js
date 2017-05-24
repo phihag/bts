@@ -30,6 +30,8 @@ function update() {
 			var container = document.querySelector('#courts_html');
 			container.innerHTML = d.courts_html;
 			uiu_text(document.querySelector('.last_update_val'), d.last_update_str);
+		} else if (r.status === 0) {
+			uiu_text(error_display, 'Netzwerk-Fehler. Versuche erneut in ' + (INTERVAL / 1000) + ' Sekunden ...');
 		} else {
 			cerror.silent('Ticker HTTP update failed with ' + r.status);
 			reported = true;
