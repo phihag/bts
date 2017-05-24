@@ -29,6 +29,7 @@ function update() {
 			uiu_empty(error_display);
 			var container = document.querySelector('#courts_html');
 			container.innerHTML = d.courts_html;
+			uiu_text(document.querySelector('.last_update_val'), d.last_update_str);
 		} else {
 			cerror.silent('Ticker HTTP update failed with ' + r.status);
 			reported = true;

@@ -49,6 +49,7 @@ function qjson_handler(req, res, next) {
 
 		const d = {
 			courts_html,
+			last_update_str: (req.app.ticker_data ? req.app.ticker_data.last_update_str : ''),
 		};
 
 		res.set('Content-Type', 'text/plain');
