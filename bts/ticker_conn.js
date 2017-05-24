@@ -123,7 +123,7 @@ class TickerConn {
 				_id: match._id,
 				s: match.network_score,
 			},
-		})
+		});
 	}
 
 	sendmsg(msg) {

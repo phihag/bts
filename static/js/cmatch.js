@@ -251,14 +251,13 @@ function ui_scoresheet(match_id) {
 		scoresheet.sheet_render(s, svg);
 	}, '/bupdev/');
 
-	const scoresheet_buttons = uiu.el(dialog, 'div', 'match_scoresheet_buttons')
+	const scoresheet_buttons = uiu.el(dialog, 'div', 'match_scoresheet_buttons');
 
 	const cancel_btn = uiu.el(scoresheet_buttons, 'div', 'vlink', 'Zurück');
 	cancel_btn.addEventListener('click', _cancel_ui_scoresheet);	
 
 	const pdf_btn = uiu.el(scoresheet_buttons, 'button', {}, 'PDF');
 	pdf_btn.addEventListener('click', function() {
-		console.log('pseudo state', s)
 		const svg_nodes = document.querySelectorAll('.single_scoresheet');
 		scoresheet.save_pdf(s, svg_nodes);
 	});
@@ -576,6 +575,12 @@ if ((typeof module !== 'undefined') && (typeof require !== 'undefined')) {
 	var form_utils = require('../bup/js/form_utils');
 	var uiu = require('../bup/js/uiu');
 	var utils = require('../bup/js/utils');
+	var scoresheet = require('../bup/js/scoresheet');
+	var calc = require('../bup/js/calc');
+	var i18n = require('../bup/js/i18n');
+	var i18n_de = require('../bup/js/i18n_de');
+	var i18n_en = require('../bup/js/i18n_en');
+	var printing = require('../bup/js/printing');
 
     module.exports = cmatch;
 }
