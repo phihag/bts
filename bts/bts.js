@@ -104,8 +104,8 @@ function create_app(config, db) {
 	app.get('/h/:tournament_key/matches', http_api.matches_handler);
 	app.post('/h/:tournament_key/m/:match_id/score', http_api.score_handler);
 
-	wss.on('connection', function connection(ws) {
-		const location = url.parse(ws.upgradeReq.url, true);
+	wss.on('connection', function connection(ws, req) {
+		const location = url.parse(req.url, true);
 		if (location.path === '/ws/admin') {
 			return wshandler.handle(admin, app, ws);
 		} else if (location.path === '/ws/bup') {

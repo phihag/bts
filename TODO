@@ -3,14 +3,13 @@ Ticker
 	transmit to ticker on press
 	keepalive for conn to ticker
 
-set up on dmo35.de
+auto-fetch from BTP
+print scoresheet from match details
 
 Komplettansicht für alle Felder (vertikal)
 new displays (Moritz | André)
 
-auto-fetch from BTP
 
-print scoresheet from match details
 scoresheet link
 icon for scoresheet
 Anzeige schwarz-weiss / international, große Namen
