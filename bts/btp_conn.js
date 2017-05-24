@@ -43,7 +43,7 @@ function send_request(ip, xml_req, callback) {
 
 
 class BTPConn {
-	constructor(app, ip, password, tkey, enabled_autofetch) {
+	constructor(app, ip, password, tkey, enabled_autofetch, readonly) {
 		this.app = app;
 		this.last_status = 'Aktiviert';
 		this.ip = ip;
@@ -52,6 +52,7 @@ class BTPConn {
 		this.terminated = false;
 		this.enabled_autofetch = enabled_autofetch;
 		this.autofetch_timeout = null;
+		this.readonly = readonly;
 		this.connect();
 	}
 
@@ -155,6 +156,10 @@ class BTPConn {
 	}
 
 	update_score(match) {
+		if (this.readonly) {
+			return;
+		}
+
 		const req = btp_proto.update_request(match, this.key_unicode);
 
 		this.send(req, response => {

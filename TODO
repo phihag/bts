@@ -10,11 +10,9 @@ server / receiver not transmitted
 
 WebSocket protocol for displays
 
-:80 configuration
-internet scoresheet
+manually make a match on court the one that is being played
 
 ---
-
 
 btp: calc match players directly, don't go into the tree of From
 make an app for fullscreen and finding
@@ -28,7 +26,7 @@ start BTP API
 	automatically resync from time to time
 	updated team1_won from BTP
 
-checkbox to make BTP readonly
+test BTP readonly
 show duration in UI
 custom created matches must get a compatible match ID (and forbid changing the number)
 improve BTP API

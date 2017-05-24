@@ -42,6 +42,7 @@ function default_handler_func(rerender, special_funcs, c) {
 		curt.name = c.val.name;
 		curt.btp_enabled = c.val.btp_enabled;
 		curt.btp_autofetch_enabled = c.val.btp_autofetch_enabled;
+		curt.btp_readonly = c.val.btp_readonly;
 		curt.btp_ip = c.val.btp_ip;
 		curt.ticker_enabled = c.val.ticker_enabled;
 		curt.ticker_url = c.val.ticker_url;
@@ -54,19 +55,16 @@ function default_handler_func(rerender, special_funcs, c) {
 				uiu.text(el, c.val.name);
 			}
 		});
-		uiu.qsEach('input[name="btp_enabled"]', function(el) {
-			el.checked = curt.btp_enabled;
-		});
-		uiu.qsEach('input[name="btp_autofetch_enabled"]', function(el) {
-			el.checked = curt.btp_autofetch_enabled;
-		});
+		const CHECKBOXES = ['btp_enabled', 'btp_autofetch_enabled', 'btp_readonly', 'ticker_enabled'];
+		for (const cb_name of CHECKBOXES) {
+			uiu.qsEach('input[name="' + cb_name + '"]', function(el) {
+				el.checked = curt[cb_name];
+			});
+		}
 		uiu.qsEach('input[name="btp_ip"]', function(el) {
 			el.value = curt.btp_ip;
 		});
 
-		uiu.qsEach('input[name="ticker_enabled"]', function(el) {
-			el.checked = curt.ticker_enabled;
-		});
 		uiu.qsEach('input[name="ticker_url"]', function(el) {
 			el.value = curt.ticker_url;
 		});

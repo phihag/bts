@@ -18,7 +18,10 @@ function reconfigure(app, t) {
 		return;
 	}
 
-	const conn = new btp_conn.BTPConn(app, t.btp_ip, t.btp_password, t.key, t.btp_autofetch_enabled);
+	const conn = new btp_conn.BTPConn(
+		app,
+		t.btp_ip, t.btp_password, t.key,
+		t.btp_autofetch_enabled, t.btp_readonly);
 	conns_by_tkey.set(t.key, conn);
 }
 

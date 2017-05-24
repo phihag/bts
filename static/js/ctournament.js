@@ -264,6 +264,17 @@ function ui_edit() {
 	uiu.el(btp_autofetch_enabled_label, 'input', bae_attrs);
 	uiu.el(btp_autofetch_enabled_label, 'span', {}, 'Automatisch synchronisieren');
 
+	const btp_readonly_label = uiu.el(form, 'label');
+	const bro_attrs = {
+		type: 'checkbox',
+		name: 'btp_readonly',
+	};
+	if (curt.btp_readonly) {
+		bro_attrs.checked = 'checked';
+	}
+	uiu.el(btp_readonly_label, 'input', bro_attrs);
+	uiu.el(btp_readonly_label, 'span', {}, 'Nur lesen');
+
 	const btp_ip_label = uiu.el(form, 'label');
 	uiu.el(btp_ip_label, 'span', {}, 'BTP-IP:');
 	uiu.el(btp_ip_label, 'input', {
@@ -319,6 +330,7 @@ function ui_edit() {
 			name: data.name,
 			btp_enabled: (!!data.btp_enabled),
 			btp_autofetch_enabled: (!!data.btp_autofetch_enabled),
+			btp_readonly: (!!data.btp_readonly),
 			btp_ip: data.btp_ip,
 			btp_password: data.btp_password,
 			ticker_enabled: (!! data.ticker_enabled),
