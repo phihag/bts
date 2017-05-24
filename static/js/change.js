@@ -38,7 +38,7 @@ function default_handler_func(rerender, special_funcs, c) {
 	}
 
 	switch (c.ctype) {
-	case 'props':
+	case 'props': {
 		curt.name = c.val.name;
 		curt.btp_enabled = c.val.btp_enabled;
 		curt.btp_autofetch_enabled = c.val.btp_autofetch_enabled;
@@ -72,7 +72,7 @@ function default_handler_func(rerender, special_funcs, c) {
 			el.value = curt.ticker_password;
 		});
 
-		break;
+		break;}
 	case 'match_add':
 		curt.matches.push(c.val.match);
 		rerender();
