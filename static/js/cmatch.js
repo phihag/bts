@@ -237,8 +237,11 @@ function ui_scoresheet(match_id) {
 	i18n.update_state(pseudo_state, lang);
 	i18n.register_lang(i18n_de);
 	i18n.register_lang(i18n_en);
+	const setup = utils.deep_copy(match.setup);
+	setup.tournament_name = curt.name;
+	const s = calc.remote_state(pseudo_state, setup, match.presses);
+	s.ui = {};
 
-	const s = calc.remote_state(pseudo_state, match.setup, match.presses);
 	printing.set_orientation('landscape');
 	scoresheet.load_sheet(scoresheet.sheet_name(s.setup), function(xml) {
 		var svg = scoresheet.make_sheet_node(s, xml);
@@ -252,6 +255,13 @@ function ui_scoresheet(match_id) {
 
 	const cancel_btn = uiu.el(scoresheet_buttons, 'div', 'vlink', 'Zurück');
 	cancel_btn.addEventListener('click', _cancel_ui_scoresheet);	
+
+	const pdf_btn = uiu.el(scoresheet_buttons, 'button', {}, 'PDF');
+	pdf_btn.addEventListener('click', function() {
+		console.log('pseudo state', s)
+		const svg_nodes = document.querySelectorAll('.single_scoresheet');
+		scoresheet.save_pdf(s, svg_nodes);
+	});
 
 	const print_btn = uiu.el(scoresheet_buttons, 'button', {}, 'Drucken');
 	print_btn.addEventListener('click', function() {

@@ -1,6 +1,3 @@
-print scoresheet from match details
-	ensure printing works
-	make PDF
 Komplettansicht für alle Felder (vertikal)
 auto-fetch from BTP
 
@@ -95,6 +92,7 @@ online display server
 show BTP match IDs in UI and allow to edit them
 
 -----
+scoresheet: better PDF filenames (in tournament mode)
 ticker: use websocket
 transmit shuttle count
 umpire management by referee
