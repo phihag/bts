@@ -1,24 +1,23 @@
 Komplettansicht für alle Felder (vertikal)
 auto-fetch from BTP
+	test new code
 
 new displays (Moritz | André)
-
 Anzeige schwarz-weiss / international, große Namen
 	display: Satznummern links von den Namen
 	weiß
 server / receiver not transmitted
 
+WebSocket protocol for displays
 
 :80 configuration
 internet scoresheet
 
-calc match players directly, don't go into the tree of From
-make an app for fullscreen
+---
 
 
-start BTP API
-	update match data when reading from btp
-
+btp: calc match players directly, don't go into the tree of From
+make an app for fullscreen and finding
 start BTP API
 	on start transmit everything to BTP that's marked
 	transmit umpire changes to BTP
@@ -28,10 +27,6 @@ start BTP API
 	automatically push when BTP becomes available (everything marked with needsync)
 	automatically resync from time to time
 	updated team1_won from BTP
-
-Ansage Spielfeld, 20 Sekunden nicht korrekt! (should use num if present)
-allow clicking everywhere to edit
-ticker: store and display last update
 
 checkbox to make BTP readonly
 show duration in UI

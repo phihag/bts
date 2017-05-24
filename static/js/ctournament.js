@@ -253,6 +253,17 @@ function ui_edit() {
 	uiu.el(btp_enabled_label, 'input', ba_attrs);
 	uiu.el(btp_enabled_label, 'span', {}, 'BTP-Anbindung aktivieren');
 
+	const btp_autofetch_enabled_label = uiu.el(form, 'label');
+	const bae_attrs = {
+		type: 'checkbox',
+		name: 'btp_autofetch_enabled',
+	};
+	if (curt.btp_autofetch_enabled) {
+		bae_attrs.checked = 'checked';
+	}
+	uiu.el(btp_autofetch_enabled_label, 'input', bae_attrs);
+	uiu.el(btp_autofetch_enabled_label, 'span', {}, 'Automatisch synchronisieren');
+
 	const btp_ip_label = uiu.el(form, 'label');
 	uiu.el(btp_ip_label, 'span', {}, 'BTP-IP:');
 	uiu.el(btp_ip_label, 'input', {
@@ -307,6 +318,7 @@ function ui_edit() {
 		const props = {
 			name: data.name,
 			btp_enabled: (!!data.btp_enabled),
+			btp_autofetch_enabled: (!!data.btp_autofetch_enabled),
 			btp_ip: data.btp_ip,
 			btp_password: data.btp_password,
 			ticker_enabled: (!! data.ticker_enabled),

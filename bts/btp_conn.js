@@ -6,6 +6,7 @@ const btp_proto = require('./btp_proto');
 const btp_sync = require('./btp_sync');
 const serror = require('./serror');
 
+const AUTOFETCH_TIMEOUT = 5000;
 const CONNECT_TIMEOUT = 5000;
 const PORT = 9901; // 9901 for true BTP, 9002 for win7 machine
 
@@ -42,13 +43,15 @@ function send_request(ip, xml_req, callback) {
 
 
 class BTPConn {
-	constructor(app, ip, password, tkey) {
+	constructor(app, ip, password, tkey, enabled_autofetch) {
 		this.app = app;
 		this.last_status = 'Aktiviert';
 		this.ip = ip;
 		this.password = password;
 		this.tkey = tkey;
 		this.terminated = false;
+		this.enabled_autofetch = enabled_autofetch;
+		this.autofetch_timeout = null;
 		this.connect();
 	}
 
@@ -76,6 +79,7 @@ class BTPConn {
 
 			this.pushall();
 			this.fetch();
+			this.schedule_fetch();
 		});
 	}
 
@@ -88,6 +92,20 @@ class BTPConn {
 				}
 			});
 		});
+	}
+
+	schedule_fetch() {
+		if (this.terminated) {
+			return;
+		}
+		if (!this.enabled_autofetch) {
+			return;
+		}
+
+		this.autofetch_timeout = setTimeout(() => {
+			this.fetch();
+			this.schedule_fetch();
+		}, AUTOFETCH_TIMEOUT);
 	}
 
 	terminate() {
@@ -117,6 +135,10 @@ class BTPConn {
 	schedule_reconnect() {
 		if (this.terminated) {
 			return;
+		}
+		if (this.autofetch_timeout) {
+			clearTimeout(this.autofetch_timeout);
+			this.autofetch_timeout = null;
 		}
 		setTimeout(() => this.connect(), 500);
 	}
