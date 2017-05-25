@@ -132,7 +132,7 @@ class BTPConn {
 	pushall() {
 		this.app.db.matches.find(
 			{btp_needsync: true},
-			
+
 			(err, matches) => {
 				if (err) {
 					serror.silent('Failed to query needsynced: ' + err.message);
@@ -173,7 +173,7 @@ class BTPConn {
 			return;
 		}
 
-		const req = btp_proto.update_request(match, this.key_unicode);
+		const req = btp_proto.update_request(match, this.key_unicode, this.password);
 
 		this.send(req, response => {
 			const results = response.Action[0].Result;

@@ -50,7 +50,7 @@ function login_request(password) {
 	return res;
 }
 
-function update_request(match, key_unicode) {
+function update_request(match, key_unicode, password) {
 	const matches = [];
 	const res = {
 		Header: {
@@ -59,12 +59,13 @@ function update_request(match, key_unicode) {
 				Lo: 1,
 			},
 		},
-		Client: {
-			IP: 'bts',
-		},
 		Action: {
 			ID: 'SENDUPDATE',
+			Password: password,
 			Unicode: key_unicode,
+		},
+		Client: {
+			IP: 'bts',
 		},
 		Update: {
 			Tournament: {
