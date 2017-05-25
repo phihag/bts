@@ -172,6 +172,9 @@ class BTPConn {
 		if (this.readonly) {
 			return;
 		}
+		if (match.team1_won !== 'boolean') {
+			return;
+		}
 
 		const req = btp_proto.update_request(match, this.key_unicode, this.password);
 
