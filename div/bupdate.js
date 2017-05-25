@@ -84,7 +84,8 @@ function bupdate(target_dir, callback) {
 		});
 		download_file(req, zip_fn, cb);
 	}, function(cb) {
-		extract_zip(zip_fn, {dir: new_dir}, cb);
+		const new_dir_abs = path.resolve(new_dir);
+		extract_zip(zip_fn, {dir: new_dir_abs}, cb);
 	}, function(cb) {
 		const checksums_fn = path.join(new_dir, 'bup', 'checksums.json');
 		fs.readFile(checksums_fn, 'utf8', cb);
