@@ -85,6 +85,9 @@ function set(app, event, cb) {
 		},
 		(cb) => {
 			async.each(event.courts, (court, cb) => {
+				if (!court.match_id) {
+					court.match_id = false;
+				}
 				db.tcourts.update({
 					_id: court._id,
 				}, court, {
