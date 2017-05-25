@@ -123,7 +123,9 @@ function bupdate(target_dir, callback) {
 		safe_rimraf(backup_dir, cb);
 	}], function(err) {
 		if (err) {
-			safe_rimraf(tmp_dir);
+			safe_rimraf(tmp_dir, function(err) {
+				console.error('Final rimraf failed: ' + err.message);  // eslint-disable-line no-console
+			});
 			callback(err);
 			return;
 		}
