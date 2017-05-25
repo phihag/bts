@@ -141,7 +141,7 @@ class BTPConn {
 
 				for (const m of matches) {
 					if (typeof m.team1_won !== 'boolean') {
-						serror.silent('match ' + m._id + ' has needsync but is not over');
+						serror.silent('match ' + m._id + ' has needsync but is not finished');
 						continue;
 					}
 
