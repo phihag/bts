@@ -1,6 +1,6 @@
 BUPDEV=static/bup/dev
 
-default: run
+default: all
 
 help:
 	@echo 'make targets:'
