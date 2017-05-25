@@ -130,7 +130,20 @@ class BTPConn {
 
 	// Push the changes from all changed matches
 	pushall() {
-		// TODO filter by needsync
+		this.app.db.matches.find(
+			{btp_needsync: true},
+			
+			(err, matches) => {
+				if (err) {
+					serror.silent('Failed to query needsynced: ' + err.message);
+					return;
+				}
+
+				for (const m of matches) {
+					this.update_score(m);
+				}
+			}
+		);
 	}
 
 	schedule_reconnect() {
