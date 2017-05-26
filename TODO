@@ -1,5 +1,15 @@
+FINALS ARE MISSING
+
+redo paper matches
+fix up umpire matches
+
+
+
 changes after match are not taken over to BTP
 walkovers are not represented correctly!
+
+fetch program
+	fetch binary and store it
 
 intermittent connectivity problems (red flash: is this BTP sync?)
 overload in system when loading from BTP -> move this into separate process
@@ -11,7 +21,7 @@ install keep screen on
 
 ----
 
-Cannot navigate to "t/localtest/m/btp_localtest_Gruppe%202_9/edit". No handlers defined.
+make btp IDs configurable
 btp settings change fails sometimes!
 show stats from UI
 tests for parsing the matches from BTP
@@ -115,6 +125,7 @@ all courts
 online display server
 show BTP match IDs in UI and allow to edit them
 umpire selection: show estimated time to next
+show number of shuttles used
 
 -----
 scoresheet: better PDF filenames (in tournament mode)
