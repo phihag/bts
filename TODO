@@ -1,7 +1,8 @@
 FINALS ARE MISSING
+write detailled tests
 
+fix up matches without umpire
 redo paper matches
-fix up umpire matches
 
 
 
@@ -141,6 +142,7 @@ ticker: fall back to HTTP queries if no websocket available
 ticker: highlight changes
 
 -----
+search for all matches by one player (with shortcut)
 grep for all TODOs
 auth?
 keep data in automanaged git repo?
