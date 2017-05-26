@@ -1,6 +1,8 @@
-feld6: standby?
+feld6: standby? give back
+feld8: fix
+feld9: fix internet
 
-umpires+court get somehow deleted
+umpires+court get somehow deleted1
 walkovers are not represented correctly!
 
 overload in system when loading from BTP -> move this into separate process
@@ -109,6 +111,7 @@ btss: check time
 all courts
 online display server
 show BTP match IDs in UI and allow to edit them
+umpire selection: show estimated time to next
 
 -----
 scoresheet: better PDF filenames (in tournament mode)

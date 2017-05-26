@@ -61,7 +61,6 @@ function update_request(match, key_unicode, password) {
 		},
 		Action: {
 			ID: 'SENDUPDATE',
-			Password: password,
 			Unicode: key_unicode,
 		},
 		Client: {
@@ -73,6 +72,9 @@ function update_request(match, key_unicode, password) {
 			},
 		},
 	};
+	if (password) {
+		res.Action.Password = password;
+	}
 
 	assert(typeof match.team1_won === 'boolean');
 	const winner = match.team1_won ? 1 : 2;
