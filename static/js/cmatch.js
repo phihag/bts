@@ -267,7 +267,7 @@ function ui_scoresheet(match_id) {
 		window.print();
 	});
 }
-crouting.register(/t\/([a-z0-9]+)\/m\/([-a-zA-Z0-9%_]+)\/scoresheet$/, function(m) {
+crouting.register(/t\/([a-z0-9]+)\/m\/([-a-zA-Z0-9 _]+)\/scoresheet$/, function(m) {
 	ctournament.switch_tournament(m[1], function() {
 		ui_scoresheet(m[2]);
 	});

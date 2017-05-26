@@ -44,6 +44,7 @@ function on_change(c) {
 
 // Go to the handler for the specific URL
 function _load(path) {
+	path = decodeURIComponent(path);
 	if (!path.startsWith(path_prefix)) {
 		cerror.silent('Cannot route to path ' + path);
 		return;
