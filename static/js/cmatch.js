@@ -290,15 +290,6 @@ function render_unassigned(container) {
 
 	const unassigned_matches = curt.matches.filter(m => calc_section(m) === 'unassigned');
 	unassigned_matches.sort(function(m1, m2) {
-		if (!m1.setup.scheduled_time_str && m2.setup.scheduled_time_str) {
-			return 1;
-		}
-		if (m1.setup.scheduled_time_str && !m2.setup.scheduled_time_str) {
-			return -1;
-		}
-		const r1 = cbts_utils.natcmp(m1.setup.scheduled_time_str, m2.setup.scheduled_time_str);
-		if (r1 !== 0) return r1;
-
 		return cbts_utils.cmp(m1.setup.match_num, m2.setup.match_num);
 	});
 	render_match_table(container, unassigned_matches, false);
