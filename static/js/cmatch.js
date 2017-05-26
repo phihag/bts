@@ -194,7 +194,7 @@ function ui_edit(match_id) {
 	const cancel_btn = uiu.el(dialog, 'div', 'match_cancel_link vlink', 'Abbrechen');
 	cancel_btn.addEventListener('click', _cancel_ui_edit);	
 }
-crouting.register(/t\/([a-z0-9]+)\/m\/([-a-zA-Z0-9_]+)\/edit$/, function(m) {
+crouting.register(/t\/([a-z0-9]+)\/m\/([-a-zA-Z0-9_ ]+)\/edit$/, function(m) {
 	ctournament.switch_tournament(m[1], function() {
 		ui_edit(m[2]);
 	});
@@ -267,7 +267,7 @@ function ui_scoresheet(match_id) {
 		window.print();
 	});
 }
-crouting.register(/t\/([a-z0-9]+)\/m\/([-a-zA-Z0-9 _]+)\/scoresheet$/, function(m) {
+crouting.register(/t\/([a-z0-9]+)\/m\/([-a-zA-Z0-9_ ]+)\/scoresheet$/, function(m) {
 	ctournament.switch_tournament(m[1], function() {
 		ui_scoresheet(m[2]);
 	});
