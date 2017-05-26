@@ -38,6 +38,18 @@ function _calc_match_players(matches_by_pid, entries, players, bm) {
 		}
 	}
 
+	if (bm.Winner) {
+		const winner_num = bm.Winner[0];
+		if ((winner_num === 1) || (winner_num === 2)) { // Walkover
+			const from_id = (winner_num === 1) ? bm.From1[0] : bm.From2[0];
+			const winm = matches_by_pid.get(bm.DrawID[0] + '_' + from_id);
+			assert(winm);
+			const par = _calc_match_players(matches_by_pid, entries, players, winm);
+			bm.bts_winners = par;
+			return par;
+		}
+	}
+
 	// Normal match
 	assert(bm.DrawID);
 	assert(bm.DrawID[0]);
@@ -292,7 +304,7 @@ function integrate_umpires(app, tournament_key, btp_state, callback) {
 	var changed = false;
 
 	async.each(officials, (o, cb) => {
-		const name = o.FirstName[0] + ' ' + o.Name[0];
+		const name = (o.FirstName ? (o.FirstName[0] + ' ') : '') + o.Name[0];
 		const btp_id = o.ID[0];
 
 		app.db.umpires.findOne({tournament_key, name}, (err, cur) => {
@@ -308,7 +320,7 @@ function integrate_umpires(app, tournament_key, btp_state, callback) {
 			}
 
 			const u = {
-				_id: 'btp_' + btp_id,
+				_id: tournament_key + '_btp_' + btp_id,
 				btp_id,
 				name,
 				tournament_key,

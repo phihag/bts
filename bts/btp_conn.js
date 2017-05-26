@@ -2,6 +2,8 @@
 
 const net = require('net');
 
+const async = require('async');
+
 const btp_proto = require('./btp_proto');
 const btp_sync = require('./btp_sync');
 const serror = require('./serror');
@@ -178,20 +180,60 @@ class BTPConn {
 			return;
 		}
 
-		const req = btp_proto.update_request(match, this.key_unicode, this.password);
+		async.waterfall([
+			(cb) => {
+				if (!match.setup || !match.setup.umpire_name) {
+					return cb();
+				}
 
-		this.send(req, response => {
-			const results = response.Action[0].Result;
-			const rescode = results ? results[0] : 'no-result';
-			if (rescode === 1) {
-				this.app.db.matches.update({_id: match._id}, {$set: {btp_needsync: false}}, {}, (err) => {
+				this.app.db.umpires.findOne({
+					name: match.setup.umpire_name,
+					tournament_key: this.tkey,
+				}, (err, umpire) => {
 					if (err) {
-						serror.silent('Failed to mark match as synced: ' + err.message);
+						return cb(err);
 					}
+					return cb(null, umpire ? umpire.btp_id : null);
 				});
-			} else {
-				serror.silent('Score update for ' + match.btp_id + ' failed with error code ' + rescode);
+			},
+			(cb, umpire_btp_id) => {
+				if (!match.setup || !match.setup.court_id) {
+					return cb(null, umpire_btp_id);
+				}
+
+				this.app.courts.findOne({
+					tournament_key: this.tkey,
+					court_id: match.setup.court_id,
+				}, (err, court) => {
+					if (err) {
+						return cb(err);
+					}
+
+					return cb(null, umpire_btp_id, court ? court.btp_id : null);
+				});
+			},
+		], (err, umpire_btp_id, court_btp_id) => {
+			if (err) {
+				serror.silent('Error while fetching court/umpire: ' + err.message + '. Skipping sync of match ' + match._id);
+				return;
 			}
+			const req = btp_proto.update_request(
+				match, this.key_unicode, this.password, umpire_btp_id, court_btp_id);
+
+			this.send(req, response => {
+				const results = response.Action[0].Result;
+				const rescode = results ? results[0] : 'no-result';
+				if (rescode === 1) {
+					this.app.db.matches.update({_id: match._id}, {$set: {btp_needsync: false}}, {}, (err) => {
+						if (err) {
+							serror.silent('Failed to mark match as synced: ' + err.message);
+						}
+					});
+				} else {
+					serror.silent('Score update for ' + match.btp_id + ' failed with error code ' + rescode);
+				}
+			});
+
 		});
 	}
 }

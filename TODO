@@ -1,8 +1,7 @@
-scoresheets don't work live!!!
-
-umpires+court get somehow deleted!
 walkovers are not represented correctly!
+umpires+court get somehow deleted
 
+intermittent connectivity problems (red flash: is this BTP sync?)
 overload in system when loading from BTP -> move this into separate process
 	write script to sync manually, see diff
 	script to fetch manually
@@ -12,6 +11,12 @@ install keep screen on
 
 ----
 
+Cannot navigate to "t/localtest/m/btp_localtest_Gruppe%202_9/edit". No handlers defined.
+btp settings change fails sometimes!
+show stats from UI
+tests for parsing the matches from BTP
+	with walkover etc.
+order of upcoming matches sorts only by time, not date
 connectivity problems?
 backup at ticker
 	spinner which resolves to ok/fail
