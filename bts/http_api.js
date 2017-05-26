@@ -129,6 +129,44 @@ function matches_handler(req, res) {
 	});
 }
 
+function matchinfo_handler(req, res) {
+	const tournament_key = req.params.tournament_key;
+	const match_id = req.params.match_id;
+
+	const query = {
+		tournament_key,
+		_id: match_id,
+	};
+
+	req.app.db.fetch_all([{
+		collection: 'matches',
+		query,
+	}], function(err, match) {
+		if (err) {
+			res.json({
+				status: 'error',
+				message: err.message,
+			});
+			return;
+		}
+
+		if (!match) {
+			res.json({
+				status: 'error',
+				message: 'Cannot find match',
+			});
+			return;
+		}
+
+		const reply = {
+			status: 'ok',
+			match,
+		};
+		res.header('Content-Type', 'application/json');
+        res.send(JSON.stringify(reply, null, 4));
+	});
+}
+
 function score_handler(req, res) {
 	if (!_require_params(req, res, ['duration_ms', 'end_ts', 'network_score', 'team1_won', 'presses'])) return;
 
@@ -214,5 +252,6 @@ function score_handler(req, res) {
 module.exports = {
 	courts_handler,
 	matches_handler,
+	matchinfo_handler,
 	score_handler,
 };
