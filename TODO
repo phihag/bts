@@ -1,11 +1,18 @@
 raspberry pi timezone
-tdemo
+upload tdemo
 
+backup at ticker
+	spinner which resolves to ok/fail
+generate PDFs automatically
+	launch external program on match completion
+
+game number into PDF name if present!
+move off court 30s after match is finished if this match is still on court
+	option
 Eine PDF-Datei || alle PDF-Dateien -> Momme
-automatisch als PDF
 button to move off court
 button to move on court
-
+assert that bupdate does not leave tmp dirs
 
 new displays (Moritz)
 too small on Opera devices
