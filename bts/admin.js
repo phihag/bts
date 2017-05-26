@@ -227,6 +227,31 @@ function notify_change(app, tournament_key, ctype, val) {
 	}
 }
 
+function handle_umpfixup(app, ws, msg) {
+	if (!_require_msg(ws, msg, ['csv', 'tournament_key'])) {
+		return;
+	}
+
+	const remaining = [];
+
+	const lines = (
+		msg.csv
+		.split(/\n/).
+		map(line => line.replace(/#.*/, '').replace(/\s+$/, ''))
+		.filter(line => line.length > 0)
+	);
+	for (const line of lines) {
+		remaining.push({
+			line: line,
+			message: 'I do not like you',
+		});
+	}
+
+	ws.respond(msg, null, {
+		remaining,
+	});
+}
+
 function on_connect(app, ws) {
 	all_admins.push(ws);
 }
@@ -248,6 +273,7 @@ module.exports = {
 	handle_tournament_get,
 	handle_tournament_list,
 	handle_tournament_edit_props,
+	handle_umpfixup,
 	notify_change,
 	on_close,
 	on_connect,
