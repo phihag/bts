@@ -17,7 +17,7 @@ function _calc_match_players(matches_by_pid, entries, players, bm) {
 		return bm.bts_winners;
 	}
 
-	if (bm.EntryID) { // Either placeholer match or match won
+	if (bm.EntryID) { // Either placeholder match or match won
 		const e = entries.get(bm.EntryID[0]);
 		if (!e) {
 			throw new Error('Cannot find entry ' + bm.EntryID[0]);
@@ -330,7 +330,8 @@ function integrate_umpires(app, tournament_key, btp_state, callback) {
 	});
 }
 
-function fetch(app, tkey, response, callback) {
+// TODO move this into a separate process
+function get_btp_state(response) {
 	const btp_t = response.Result[0].Tournament[0];
 	const all_btp_matches = btp_t.Matches[0].Match;
 
@@ -352,13 +353,17 @@ function fetch(app, tkey, response, callback) {
 	for (const bm of matches) {
 		_calc_match_players(matches_by_pid, entries, players, bm);
 	}
-	const btp_state = {
+	return {
 		courts,
 		draws,
 		events,
 		matches,
 		officials,
 	};
+}
+
+function fetch(app, tkey, response, callback) {
+	const btp_state = get_btp_state(response);
 
 	async.waterfall([
 		cb => integrate_umpires(app, tkey, btp_state, cb),
@@ -369,4 +374,6 @@ function fetch(app, tkey, response, callback) {
 
 module.exports = {
 	fetch,
+	// testing
+	get_btp_state,
 };
