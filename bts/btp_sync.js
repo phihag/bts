@@ -38,18 +38,6 @@ function _calc_match_players(matches_by_pid, entries, players, bm) {
 		}
 	}
 
-	if (bm.Winner) {
-		const winner_num = bm.Winner[0];
-		if ((winner_num === 1) || (winner_num === 2)) { // Walkover
-			const from_id = (winner_num === 1) ? bm.From1[0] : bm.From2[0];
-			const winm = matches_by_pid.get(bm.DrawID[0] + '_' + from_id);
-			assert(winm);
-			const par = _calc_match_players(matches_by_pid, entries, players, winm);
-			bm.bts_winners = par;
-			return par;
-		}
-	}
-
 	// Normal match
 	assert(bm.DrawID);
 	assert(bm.DrawID[0]);

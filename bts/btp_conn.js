@@ -196,12 +196,12 @@ class BTPConn {
 					return cb(null, umpire ? umpire.btp_id : null);
 				});
 			},
-			(cb, umpire_btp_id) => {
+			(umpire_btp_id, cb) => {
 				if (!match.setup || !match.setup.court_id) {
 					return cb(null, umpire_btp_id);
 				}
 
-				this.app.courts.findOne({
+				this.app.db.courts.findOne({
 					tournament_key: this.tkey,
 					court_id: match.setup.court_id,
 				}, (err, court) => {
