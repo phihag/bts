@@ -1,15 +1,19 @@
-raspberry pi timezone
-tdemo
+umpires get somehow deleted
+walkovers are not represented correctly!
+overload in system when loading from BTP -> move this into separate process
+no-show matches
 
+Umpire assignments get overwritten by BTP!
 Eine PDF-Datei || alle PDF-Dateien -> Momme
 automatisch als PDF
 button to move off court
 button to move on court
 
 
-new displays (Moritz)
+set up backup displays
+new display (Moritz)
 too small on Opera devices
-WebSocket protocol for displays
+WebSocket protocol for displays?
 auto-fetch from BTP: test new code
 
 
@@ -17,6 +21,7 @@ manually make a match on court the one that is being played
 
 ---
 
+siege
 btp: calc match players directly, don't go into the tree of From
 make an app for fullscreen and finding
 start BTP API
