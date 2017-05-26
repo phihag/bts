@@ -39,8 +39,20 @@ function courts_handler(req, res) {
 
 function matches_handler(req, res) {
 	const tournament_key = req.params.tournament_key;
+	const now = Date.now();
+	const show_still = now - 60000;
 	const query = {
 		tournament_key,
+		$or: [
+			{
+				team1_won: null,
+			},
+			{
+				end_ts: {
+					$gt: show_still,
+				},
+			},
+		],
 	};
 	if (req.query.court) {
 		query['setup.court_id'] = req.query.court;

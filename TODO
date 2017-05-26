@@ -1,10 +1,19 @@
-umpires+court get somehow deleted
+feld6: standby?
+more than 1 match on court
 
+umpires+court get somehow deleted
 walkovers are not represented correctly!
 
 overload in system when loading from BTP -> move this into separate process
+	write script to sync manually, see diff
+	script to fetch manually
 no-show matches
 
+install keep screen on
+
+----
+
+connectivity problems?
 backup at ticker
 	spinner which resolves to ok/fail
 generate PDFs automatically
