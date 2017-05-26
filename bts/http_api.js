@@ -45,7 +45,18 @@ function matches_handler(req, res) {
 		tournament_key,
 		$or: [
 			{
-				team1_won: null,
+				$and: [
+					{
+						team1_won: {
+							$ne: true,
+						},
+					},
+					{
+						team1_won: {
+							$ne: false,
+						},
+					},
+				],
 			},
 			{
 				end_ts: {
