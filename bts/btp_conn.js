@@ -6,7 +6,7 @@ const btp_proto = require('./btp_proto');
 const btp_sync = require('./btp_sync');
 const serror = require('./serror');
 
-const AUTOFETCH_TIMEOUT = 5000;
+const AUTOFETCH_TIMEOUT = 45000;
 const CONNECT_TIMEOUT = 5000;
 const PORT = 9901; // 9901 for true BTP, 9002 for win7 machine
 
