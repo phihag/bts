@@ -1,7 +1,7 @@
 'use strict';
 
 var debug = (function() {
-const DEBUG_ENABLED = false;
+const DEBUG_ENABLED = true;
 
 function log(...args) {
 	if (DEBUG_ENABLED) {
