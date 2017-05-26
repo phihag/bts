@@ -1,5 +1,9 @@
+changes after match are not taken over to BTP
+matches which are over are shown as "in vorbereitung"?
+scoresheets missing
+
+
 walkovers are not represented correctly!
-umpires+court get somehow deleted
 
 intermittent connectivity problems (red flash: is this BTP sync?)
 overload in system when loading from BTP -> move this into separate process
