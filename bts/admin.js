@@ -228,7 +228,7 @@ function notify_change(app, tournament_key, ctype, val) {
 }
 
 function _fixup(app, matches_by_num, all_umpires, line, cb) {
-	const rem = /^\s*([0-9]+)\s*,([a-zA-ZäöüÄÖÜß0-9]+)\s*$/.exec(line);
+	const rem = /^\s*([0-9]+)\s*,\s*([a-zA-ZäöüÄÖÜß0-9][\sa-zA-ZäöüÄÖÜß0-9]*)\s*$/.exec(line);
 	if (!rem) {
 		return cb(null, {
 			line,
