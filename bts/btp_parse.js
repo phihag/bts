@@ -60,7 +60,12 @@ function _calc_match_players(matches_by_pid, entries, players, bm) {
 	if (p1ar && p2ar) {
 		bm.bts_complete = true;
 		if (bm.Winner) {
-			assert(bm.bts_winners);
+			if (! bm.bts_winners) {
+				return; // TODO: DM O35 has this for the groups
+				serror.silent(
+					'Strange match (num ' + bm.MatchNr + ') with Winner = ' + bm.Winner + ', '+
+					'but no winning players');
+			}
 			return;
 		}
 	}

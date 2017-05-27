@@ -1,8 +1,8 @@
-emit a nice scoresheet for walkovers
 fix up matches without umpire
 redo paper matches
 
 dedup matches
+emit a nice scoresheet for walkovers
 test
 	distinguish and handle walkovers
 
@@ -10,6 +10,7 @@ test
 all PDF scoresheets
 
 add button to hide matches from umpires
+separate submodules so that a crash in BTP | Ticker does not cause problems for the rest
 
 ----
 
@@ -18,6 +19,7 @@ changes after match are not taken over to BTP
 fetch program
 	fetch binary and store it
 
+Gruppe gewechselt von
 intermittent connectivity problems (red flash: is this BTP sync?)
 overload in system when loading from BTP -> move this into separate process
 	write script to sync manually, see diff
@@ -25,9 +27,11 @@ overload in system when loading from BTP -> move this into separate process
 no-show matches
 
 install keep screen on
+9: negative timer
 
 ----
 
+display for match control (take off once finished)
 make btp IDs configurable
 btp settings change fails sometimes!
 show stats from UI
