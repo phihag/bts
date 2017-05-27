@@ -227,28 +227,136 @@ function notify_change(app, tournament_key, ctype, val) {
 	}
 }
 
+function _fixup(app, matches_by_num, all_umpires, line, cb) {
+	const rem = /^\s*([0-9]+)\s*,([a-zA-ZäöüÄÖÜß0-9]+)\s*$/.exec(line);
+	if (!rem) {
+		return cb(null, {
+			line,
+			message: 'Does not match',
+		});
+	}
+
+	const match_num = parseInt(rem[1]);
+	const umpire_name = rem[2];
+
+	const match = matches_by_num.get(match_num);
+	if (!match) {
+		return cb(null, {
+			line,
+			message: 'Cannot find match ' + JSON.stringify(match_num),
+		});
+	}
+
+	const matching_umpires = all_umpires.filter(u => {
+		return u.name.toLowerCase().includes(umpire_name.toLowerCase());
+	});
+
+	if (matching_umpires.length === 0) {
+		return cb(null, {
+			line,
+			message: 'Cannot find any umpire named ' + umpire_name,
+		});
+	} else if (matching_umpires.length > 1) {
+		const matching_str = matching_umpires.map(u => u.name).join(', ');
+		return cb(null, {
+			line,
+			message: 'More than 1 umpire named ' + umpire_name + ' ' + matching_str,
+		});
+	}
+
+	if (typeof match.team1_won !== 'boolean') {
+		return cb(null, {
+			line,
+			message: 'Match ' + match_num + ' is not won yet',
+		});
+	}
+	if (!match.network_score || (match.network_score.length < 2)) {
+		return cb(null, {
+			line,
+			message: 'Scores not completed in match ' + match_num,
+		});
+	}
+
+	const ump = matching_umpires[0];
+	app.db.matches.update({
+		_id: match._id,
+	}, {
+		$set: {
+			'setup.umpire_name': ump.name,
+			btp_needsync: true,
+		},
+	}, {
+		returnUpdatedDocs: true,
+	}, (err, num_affected, new_match) => {
+		if (! new_match) {
+			return cb(new Error('Failed to update match ' + match_num));
+		}
+
+		btp_manager.update_score(app, new_match);
+
+		return cb(null, {
+			line: '',
+			message: 'done: ' + match_num + ', ' + ump.name,
+		});
+	});
+}
+
 function handle_umpfixup(app, ws, msg) {
 	if (!_require_msg(ws, msg, ['csv', 'tournament_key'])) {
 		return;
 	}
 
-	const remaining = [];
-
+	const tournament_key = msg.tournament_key;
 	const lines = (
 		msg.csv
 		.split(/\n/).
 		map(line => line.replace(/#.*/, '').replace(/\s+$/, ''))
 		.filter(line => line.length > 0)
 	);
-	for (const line of lines) {
-		remaining.push({
-			line: line,
-			message: 'I do not like you',
-		});
-	}
 
-	ws.respond(msg, null, {
-		remaining,
+	const db = app.db;
+	async.parallel([
+		(cb) => {
+			db.umpires.find({
+				tournament_key,
+			}, (err, all_umpires) => {
+				cb(err, all_umpires);
+			});
+		},
+		(cb) => {
+			db.matches.find({
+				tournament_key,
+			}, (err, all_matches) => {
+				cb(err, all_matches);
+			});
+		},
+	], (err, results) => {
+		if (err) {
+			return ws.respond(msg, err);
+		}
+		const [all_umpires, all_matches] = results;
+
+		const matches_by_num = new Map();
+		for (const m of all_matches) {
+			matches_by_num.set(m.setup.match_num, m);
+		}
+
+		async.map(lines, function(line, cb) {
+			try {
+				_fixup(app, matches_by_num, all_umpires, line, cb);
+			} catch(e) {
+				serror.silent('Error during umpfixup: ' + e.stack);
+				return ws.respond(msg, e);
+			}
+		}, function(err, all_results) {
+			if (err) {
+				return ws.respond(msg, err);
+			}
+			const remaining = all_results.filter(r => r);
+			return ws.respond(msg, null, {
+				remaining,
+			});
+		});
 	});
 }
 

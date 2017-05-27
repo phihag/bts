@@ -1,13 +1,17 @@
 fix up matches without umpire
+put matches in table
 redo paper matches
+
+all PDF scoresheets (locally here)
 
 dedup matches
 emit a nice scoresheet for walkovers
 test
 	distinguish and handle walkovers
 
+move BTP parsing into a separate process
+write a proto for incremental updates
 
-all PDF scoresheets
 
 add button to hide matches from umpires
 separate submodules so that a crash in BTP | Ticker does not cause problems for the rest
@@ -15,6 +19,7 @@ separate submodules so that a crash in BTP | Ticker does not cause problems for 
 ----
 
 changes after match are not taken over to BTP
+mark all matches in need of sync
 
 fetch program
 	fetch binary and store it
@@ -31,6 +36,7 @@ install keep screen on
 
 ----
 
+show devices incl charging/discharging + charge state
 display for match control (take off once finished)
 make btp IDs configurable
 btp settings change fails sometimes!

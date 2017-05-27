@@ -459,6 +459,7 @@ function ui_umpfixup() {
 		rows: 30,
 		name: 'csv',
 	});
+	textarea.value = '164,Keike';
 
 	const btn = uiu.el(form, 'button', {
 		'class': 'umpfixup_button',

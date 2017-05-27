@@ -110,6 +110,15 @@ h3 {
 	padding: 1em;
 }
 
+.umpfixup_dialog {
+	position: absolute;
+	top: 0;
+	min-height: 100vh;
+	left: 0;
+	right: 0;
+	z-index: 1000;
+	background: #fff;
+}
 .umpfixup_button {
 	display: block;
 	font-size: 5vmin;
