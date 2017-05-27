@@ -56,6 +56,12 @@ function render_match_row(tr, match, court, include_court) {
 	});
 	scoresheet_btn.addEventListener('click', on_scoresheet_button_click);
 
+	uiu.el(actions_td, 'a', {
+		'class': 'match_rawinfo',
+		'title': 'Technische Informationen',
+		'href': '/h/' + encodeURIComponent(curt.key) + '/m/' + encodeURIComponent(match._id) + '/info',
+	});
+
 	if (include_court) {
 		uiu.el(tr, 'td', {}, court ? court.num : '');
 	}

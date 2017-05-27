@@ -8,7 +8,8 @@
 }
 
 .match_edit_button,
-.match_scoresheet_button {
+.match_scoresheet_button,
+.match_rawinfo {
 	display: inline-block;
 	width: 1em;
 	min-width: 1em;
@@ -21,8 +22,12 @@
 	background-image: url(../icons/edit.svg);
 }
 .match_scoresheet_button {
-	margin: 0 0.3em 0 0.6em;
+	margin: 0 0 0 0.3em;
 	background-image: url(../icons/scoresheet.svg);
+}
+.match_rawinfo {
+	margin: 0 0.3em 0 0.6em;
+	background-image: url(../icons/rawinfo.svg);
 }
 
 .match_edit_button:hover,
