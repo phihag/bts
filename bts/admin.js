@@ -301,6 +301,29 @@ function _fixup(app, matches_by_num, all_umpires, line, cb) {
 	});
 }
 
+function handle_fetch_allscoresheets_data(app, ws, msg) {
+	if (!_require_msg(ws, msg, ['tournament_key'])) {
+		return;
+	}
+
+	const tournament_key = msg.tournament_key;
+	app.db.matches.find({
+		tournament_key,
+	}, function(err, all_matches) {
+		if (err) {
+			return ws.respond(msg, err);
+		}
+		const interesting_matches = all_matches.filter(
+			m => (m.presses && (m.presses.length > 0))
+		);
+
+		return ws.respond(msg, null, {
+			matches: interesting_matches,
+		});
+	});
+}
+
+
 function handle_umpfixup(app, ws, msg) {
 	if (!_require_msg(ws, msg, ['csv', 'tournament_key'])) {
 		return;
@@ -373,6 +396,7 @@ function on_close(app, ws) {
 
 module.exports = {
 	handle_btp_fetch,
+	handle_fetch_allscoresheets_data,
 	handle_create_tournament,
 	handle_courts_add,
 	handle_match_add,

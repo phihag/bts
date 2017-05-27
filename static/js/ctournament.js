@@ -494,6 +494,155 @@ crouting.register(/t\/([a-z0-9]+)\/umpfixup$/, function(m) {
 }, change.default_handler(ui_umpfixup));
 
 
+function _cancel_ui_allscoresheets() {
+	const dlg = document.querySelector('.allscoresheets_dialog');
+	if (!dlg) {
+		return; // Already cancelled
+	}
+	uiu.esc_stack_pop();
+	uiu.remove(dlg);
+	ui_show();
+}
+
+function _pad(n, width, z) {
+	z = z || '0';
+	n = n + '';
+	return n.length >= width ? n : new Array(width - n.length + 1).join(z) + n;
+}
+
+
+function _render_scoresheet(task, pos, cb) {
+	const {
+		container,
+		status,
+		progress,
+		matches,
+		pseudo_state,
+		tournament_name,
+		zip} = task;
+
+	if (pos >= matches.length) {
+		return cb();
+	}
+
+	progress.value = pos;
+	uiu.text(status, 'Rendere ' + (pos + 1) + ' / ' + (matches.length));
+
+	const match = matches[pos];
+	const setup = utils.deep_copy(match.setup);
+	setup.tournament_name = curt.name;
+	const s = calc.remote_state(pseudo_state, setup, match.presses);
+	s.ui = {};
+
+	scoresheet.load_sheet(scoresheet.sheet_name(setup), function(xml) {
+		var svg = scoresheet.make_sheet_node(s, xml);
+		svg.setAttribute('class', 'scoresheet single_scoresheet');
+		// Usually we'd call importNode here to import the document here, but IE/Edge then ignores the styles
+		container.appendChild(svg);
+		scoresheet.sheet_render(s, svg);
+
+		const title = (
+			tournament_name + ' ' + _pad(setup.match_num, 3, ' ') + ' ' + 
+			setup.event_name + ' ' + setup.match_name + ' ' +
+			pronunciation.teamtext_internal(s, 0) + ' v ' +
+			pronunciation.teamtext_internal(s, 1));
+		const props = {
+			title,
+			subject: 'Schiedsrichterzettel',
+			creator: 'bts with bup (https://github.com/phihag/bts/)',
+		};
+		const pdf = svg2pdf.make([svg], props, 'landscape');
+
+		const ab = pdf.output('arraybuffer');
+		zip.file(title.replace(/\s*\/\s*/g, ', ') + '.pdf', ab);
+
+		uiu.empty(container);
+		progress.value = pos + 1;
+		setTimeout(function() {
+			_render_scoresheet(task, pos + 1, cb);
+		}, 0);
+	}, '/bupdev/');
+}
+
+function ui_allscoresheets() {
+	crouting.set('t/' + curt.key + '/allscoresheets', {}, _cancel_ui_allscoresheets);
+
+	uiu.esc_stack_push(_cancel_ui_allscoresheets);
+
+	const body = uiu.qs('body');
+	const dialog_bg = uiu.el(body, 'div', 'dialog_bg allscoresheets_dialog');
+	const dialog = uiu.el(dialog_bg, 'div', 'dialog');
+
+	uiu.el(dialog, 'h3', {}, 'Generiere Schiedsrichterzettel');
+
+	const status = uiu.el(dialog, 'div', {}, 'Lade Daten ...');
+
+	const progress = uiu.el(dialog, 'progress', {
+		style: 'min-width: 60vw;',
+	});
+	send({
+		type: 'fetch_allscoresheets_data',
+		tournament_key: curt.key,
+	}, function (err, response) {
+		if (err) {
+			return cerror.net(err);
+		}
+
+		const matches = response.matches;
+		progress.max = matches.length;
+		uiu.text(status, 'Starte Rendering (' + matches.length + ' Spiele)');
+
+		const zip = new JSZip();
+		const container = uiu.el(dialog, 'div', {
+			'class': 'allscoresheets_svg_container',
+		});
+		printing.set_orientation('landscape');
+
+		const lang = 'de';
+		const pseudo_state = {
+			settings: {
+				shuttle_counter: true,
+			},
+			lang,
+		};
+		i18n.update_state(pseudo_state, lang);
+		i18n.register_lang(i18n_de);
+		i18n.register_lang(i18n_en);
+
+		const task = {
+			container,
+			status,
+			progress,
+			matches,
+			pseudo_state,
+			tournament_name: curt.name,
+			zip,
+		};
+
+		_render_scoresheet(task, 0, function() {
+			uiu.text(status, 'Generiere Zip.');
+			const zip_fn = curt.name + ' Schiedsrichterzettel.zip';
+			zip.generateAsync({type: 'blob'}).then(function(blob) {
+				uiu.text(status, 'Starte  Download.');
+
+				saveAs(blob, zip_fn);
+				uiu.text(status, 'Fertig.');
+			}).catch(function(error) {
+				uiu.text(status, 'Fehler: ' + error.stack);
+			});
+		});
+	});
+
+	const cancel_btn = uiu.el(dialog, 'div', 'vlink', 'Zurück');
+	cancel_btn.addEventListener('click', _cancel_ui_allscoresheets);
+}
+crouting.register(/t\/([a-z0-9]+)\/allscoresheets$/, function(m) {
+	ctournament.switch_tournament(m[1], function() {
+		ui_allscoresheets();
+	});
+}, change.default_handler(ui_allscoresheets));
+
+
 return {
 	init,
 	// For other modules
@@ -505,15 +654,26 @@ return {
 
 /*@DEV*/
 if ((typeof module !== 'undefined') && (typeof require !== 'undefined')) {
+	var calc = require('../bup/js/calc');
 	var cerror = require('./cerror');
 	var change = require('./change');
 	var cmatch = require('./cmatch');
 	var crouting = require('./crouting');
 	var debug = require('./debug');
 	var form_utils = require('./form_utils');
+	var i18n = require('../bup/js/i18n');
+	var i18n_de = require('../bup/js/i18n_de');
+	var i18n_en = require('../bup/js/i18n_en');
+	var printing = require('../bup/js/printing');
+	var pronunciation = require('../bup/js/pronunciation');
+	var scoresheet = require('../bup/js/scoresheet');
+	var svg2pdf = require('../bup/js/svg2pdf');
 	var toprow = require('./toprow');
 	var uiu = require('../bup/js/uiu');
 	var utils = require('../bup/bup/js/utils.js');
+
+	var JSZip = null; // External library
+	var saveAs = null; // External library
 
     module.exports = ctournament;
 }
