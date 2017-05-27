@@ -78,9 +78,7 @@ function update_request(match, key_unicode, password, umpire_btp_id, court_btp_i
 
 	assert(typeof match.team1_won === 'boolean');
 	const winner = match.team1_won ? 1 : 2;
-	if (!match.btp_match_ids) {
-		return; // Do not transmit
-	}
+	assert(match.btp_match_ids);
 	assert(match.btp_match_ids.length > 0);
 	assert(match.network_score);
 	assert(match.duration_ms);

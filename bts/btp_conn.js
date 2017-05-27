@@ -217,8 +217,15 @@ class BTPConn {
 				serror.silent('Error while fetching court/umpire: ' + err.message + '. Skipping sync of match ' + match._id);
 				return;
 			}
+
+			if (!match.btp_match_ids) {
+				// TODO: assert here?
+				return;
+			}
+
 			const req = btp_proto.update_request(
 				match, this.key_unicode, this.password, umpire_btp_id, court_btp_id);
+
 
 			this.send(req, response => {
 				const results = response.Action[0].Result;
