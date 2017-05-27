@@ -81,8 +81,7 @@ function update_request(match, key_unicode, password, umpire_btp_id, court_btp_i
 	assert(match.btp_match_ids);
 	assert(match.btp_match_ids.length > 0);
 	assert(match.network_score);
-	assert(match.duration_ms);
-	const duration_mins = Math.floor(match.duration_ms / 60000);
+	const duration_mins = match.duration_ms ? Math.floor(match.duration_ms / 60000) : 0;
 
 	for (const btp_m_id of match.btp_match_ids) {
 		assert(btp_m_id);

@@ -18,6 +18,7 @@ separate submodules so that a crash in BTP | Ticker does not cause problems for 
 
 ----
 
+put update_req in try..catch
 changes after match are not taken over to BTP
 mark all matches in need of sync
 
