@@ -1,13 +1,19 @@
-FINALS ARE MISSING
-write detailled tests
+test
+	distinguish and handle walkovers
+	scoresheet walkovers
+
+dedup matches
+test with current state
+go live
 
 fix up matches without umpire
 redo paper matches
 
+all PDF scoresheets
 
+----
 
 changes after match are not taken over to BTP
-walkovers are not represented correctly!
 
 fetch program
 	fetch binary and store it

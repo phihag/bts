@@ -8,9 +8,12 @@ function filter_matches(all_btp_matches) {
 	return all_btp_matches.filter(bm => (bm.IsMatch && bm.IsPlayable && bm.MatchNr && bm.MatchNr[0] && bm.From1));
 }
 
+// bts_players: Array of array of players participating.
+//              Only for matches, not individual players
+// bts_winners: Array of players who have won this match.
 function _calc_match_players(matches_by_pid, entries, players, bm) {
 	if (bm.bts_winners) {
-		return bm.bts_winners;
+		return;
 	}
 
 	if (bm.EntryID) { // Either placeholder match or match won
@@ -29,9 +32,8 @@ function _calc_match_players(matches_by_pid, entries, players, bm) {
 		}
 		bm.bts_winners = res;
 		if (! bm.IsMatch) {
-			// Placeholder, we're done here
-			res.bts_complete = true;
-			return res;
+			// Placeholder for one entry, we're done here
+			return;
 		}
 	}
 
@@ -39,28 +41,30 @@ function _calc_match_players(matches_by_pid, entries, players, bm) {
 	assert(bm.DrawID);
 	assert(bm.DrawID[0]);
 	if (!bm.From1) {
-		return null;
+		return;
 	}
 	assert(bm.From1);
 	assert(bm.From1[0]);
 	const m1 = matches_by_pid.get(bm.DrawID[0] + '_' + bm.From1[0]);
 	assert(m1);
-	const p1ar = _calc_match_players(matches_by_pid, entries, players, m1);
+	_calc_match_players(matches_by_pid, entries, players, m1);
+	const p1ar = m1.bts_winners;
 	assert(bm.From2);
 	assert(bm.From2[0]);
 	const m2 = matches_by_pid.get(bm.DrawID[0] + '_' + bm.From2[0]);
 	assert(m2);
-	const p2ar = _calc_match_players(matches_by_pid, entries, players, m2);
+	_calc_match_players(matches_by_pid, entries, players, m2);
+	const p2ar = m2.bts_winners;
 
 	bm.bts_players = [p1ar, p2ar];
 	if (p1ar && p2ar) {
 		bm.bts_complete = true;
 		if (bm.Winner) {
 			assert(bm.bts_winners);
-			return bm.bts_winners;
+			return;
 		}
 	}
-	return null; // No winner yet
+	return;
 }
 
 

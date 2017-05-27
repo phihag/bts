@@ -31,11 +31,23 @@ _describe('btp_parse', function() {
 			const heidi_sf = get_match(164);
 			assert(heidi_sf);
 			assert(heidi_sf.IsMatch && heidi_sf.IsMatch[0]);
-			const heidi_sf_players = btp_parse._calc_match_players(
-				bs._matches_by_pid, bs.entries, bs.players, heidi_sf);
-			assert.deepStrictEqual(heidi_sf_players.length, 1);
-			assert.deepStrictEqual(heidi_sf_players[0].Firstname[0], 'Heidi');
-			assert.deepStrictEqual(heidi_sf_players[0].Lastname[0], 'Bender');
+			const heidi_sf_players = heidi_sf.bts_players;
+			assert(heidi_sf_players);
+			assert.deepStrictEqual(heidi_sf_players.length, 2);
+			assert.deepStrictEqual(heidi_sf_players[0].length, 1);
+			assert(heidi_sf_players[0][0]);
+			assert.deepStrictEqual(heidi_sf_players[0][0].Firstname[0], 'Heidi');
+			assert.deepStrictEqual(heidi_sf_players[0][0].Lastname[0], 'Bender');
+			assert.deepStrictEqual(heidi_sf_players[1].length, 1);
+			assert(heidi_sf_players[1][0]);
+			assert.deepStrictEqual(heidi_sf_players[1][0].Firstname[0], 'Doris');
+			assert.deepStrictEqual(heidi_sf_players[1][0].Lastname[0], 'Prior');
+			const heidi_sf_winners = heidi_sf.bts_winners;
+			assert(heidi_sf_winners);
+			assert.deepStrictEqual(heidi_sf_winners.length, 1);
+			assert(heidi_sf_winners[0]);
+			assert.deepStrictEqual(heidi_sf_winners[0].Firstname[0], 'Heidi');
+			assert.deepStrictEqual(heidi_sf_winners[0].Lastname[0], 'Bender');
 
 			const doris_walkover = get_match(66);
 			assert(doris_walkover);
@@ -47,10 +59,25 @@ _describe('btp_parse', function() {
 			assert(heidi_walkover.EntryID && heidi_walkover.EntryID[0]);
 			assert(heidi_walkover.IsMatch && heidi_walkover.IsMatch[0]);
 			assert(heidi_walkover.Winner && (heidi_walkover.Winner[0] === 1));
-			assert(!heidi_walkover.bts_complete);
-			const heidi_walkover_players = btp_parse._calc_match_players(
-				bs._matches_by_pid, bs.entries, bs.players, heidi_walkover);
-			assert.deepStrictEqual(heidi_walkover_players.length, 1);
+			assert(heidi_walkover.bts_complete);
+			const heidi_walkover_players = heidi_walkover.bts_players;
+			assert(heidi_walkover_players);
+			assert.deepStrictEqual(heidi_walkover_players.length, 2);
+			assert.deepStrictEqual(heidi_walkover_players[0].length, 1);
+			assert(heidi_walkover_players[0][0]);
+			assert.deepStrictEqual(heidi_walkover_players[0].length, 1);
+			assert.deepStrictEqual(heidi_walkover_players[0][0].Firstname[0], 'Heidi');
+			assert.deepStrictEqual(heidi_walkover_players[0][0].Lastname[0], 'Bender');
+			assert(heidi_walkover_players[1][0]);
+			assert.deepStrictEqual(heidi_walkover_players[1].length, 1);
+			assert.deepStrictEqual(heidi_walkover_players[1][0].Firstname[0], 'Bertha');
+			assert.deepStrictEqual(heidi_walkover_players[1][0].Lastname[0], 'Plagens');
+			const heidi_walkover_winners = heidi_walkover.bts_winners;
+			assert(heidi_walkover_winners);
+			assert.deepStrictEqual(heidi_walkover_winners.length, 1);
+			assert(heidi_walkover_winners[0]);
+			assert.deepStrictEqual(heidi_walkover_winners[0].Firstname[0], 'Heidi');
+			assert.deepStrictEqual(heidi_walkover_winners[0].Lastname[0], 'Bender');
 
 			const heidi_nomatch = bs._matches_by_pid.get(heidi_walkover.DrawID[0] + '_' + heidi_walkover.From1[0]);
 			assert(heidi_nomatch);
@@ -58,16 +85,37 @@ _describe('btp_parse', function() {
 			assert(heidi_nomatch.IsMatch && heidi_nomatch.IsMatch[0]);
 			assert(heidi_nomatch.Winner && (heidi_nomatch.Winner[0] === 1));
 			assert(!heidi_nomatch.bts_complete);
-			const heidi_nomatch_players = btp_parse._calc_match_players(
-				bs._matches_by_pid, bs.entries, bs.players, heidi_nomatch);
-			assert.deepStrictEqual(heidi_nomatch_players.length, 1);
+			const heidi_nomatch_players = heidi_nomatch.bts_players;
+			assert(heidi_nomatch_players);
+			assert.deepStrictEqual(heidi_nomatch_players.length, 2);
+			assert.deepStrictEqual(heidi_nomatch_players[0].length, 1);
+			assert(heidi_nomatch_players[0][0]);
+			assert.deepStrictEqual(heidi_nomatch_players[0].length, 1);
+			assert.deepStrictEqual(heidi_nomatch_players[0][0].Firstname[0], 'Heidi');
+			assert.deepStrictEqual(heidi_nomatch_players[0][0].Lastname[0], 'Bender');
+			assert(heidi_nomatch_players[1] === undefined);
+			const heidi_nomatch_winners = heidi_nomatch.bts_winners;
+			assert(heidi_nomatch_winners);
+			assert.deepStrictEqual(heidi_nomatch_winners.length, 1);
+			assert(heidi_nomatch_winners[0]);
+			assert.deepStrictEqual(heidi_nomatch_winners[0].Firstname[0], 'Heidi');
+			assert.deepStrictEqual(heidi_nomatch_winners[0].Lastname[0], 'Bender');
 
 			const heidi_herself = bs._matches_by_pid.get(heidi_nomatch.DrawID[0] + '_' + heidi_nomatch.From1[0]);
 			assert(heidi_herself);
-			const heidi_herself_players = btp_parse._calc_match_players(
-				bs._matches_by_pid, bs.entries, bs.players, heidi_herself);
-			assert.deepStrictEqual(heidi_herself_players.length, 1);
+			assert(heidi_herself.EntryID);
+			assert(!heidi_herself.IsMatch);
+			assert(!heidi_herself.bts_complete);
+			// Players are uninteresting, this is not a match
+			const heidi_herself_winners = heidi_herself.bts_winners;
+			assert(heidi_herself_winners);
+			assert.deepStrictEqual(heidi_herself_winners.length, 1);
+			assert(heidi_herself_winners[0]);
+			assert.deepStrictEqual(heidi_herself_winners[0].Firstname[0], 'Heidi');
+			assert.deepStrictEqual(heidi_herself_winners[0].Lastname[0], 'Bender');
 
+
+			// TODO distinguish walkovers
 			done();
 		});
 	});
