@@ -1,12 +1,11 @@
-link to raw info
-scoresheet walkovers
+emit a nice scoresheet for walkovers
+fix up matches without umpire
+redo paper matches
 
 dedup matches
 test
 	distinguish and handle walkovers
 
-fix up matches without umpire
-redo paper matches
 
 all PDF scoresheets
 
