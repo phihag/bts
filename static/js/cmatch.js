@@ -222,7 +222,7 @@ crouting.register(/t\/([a-z0-9]+)\/m\/([-a-zA-Z0-9_ ]+)\/edit$/, function(m) {
 	ctournament.switch_tournament(m[1], function() {
 		ui_edit(m[2]);
 	});
-}, change.default_handler(function() {
+}, change.default_handler(() => {
 	const dlg = uiu.qs('.match_edit_dialog');
 	const match_id = dlg.getAttribute('data-match_id');
 	ui_edit(match_id);
@@ -252,7 +252,9 @@ function ui_scoresheet(match_id) {
 
 	uiu.hide_qs('.main');
 	const body = uiu.qs('body');
-	const dialog = uiu.el(body, 'div', 'match_scoresheet_dialog');
+	const dialog = uiu.el(body, 'div', 'match_scoresheet_dialog', {
+		'data-match_id': match_id,
+	});
 
 	const container = uiu.el(dialog, 'div');
 	const lang = 'de';
@@ -299,7 +301,11 @@ crouting.register(/t\/([a-z0-9]+)\/m\/([-a-zA-Z0-9_ ]+)\/scoresheet$/, function(
 	ctournament.switch_tournament(m[1], function() {
 		ui_scoresheet(m[2]);
 	});
-}, change.default_handler(ui_scoresheet));
+}, change.default_handler(() => {
+	const dlg = uiu.qs('.match_scoresheet_dialog');
+	const match_id = dlg.getAttribute('data-match_id');
+	ui_scoresheet(match_id);
+}));
 
 function render_match_table(container, matches, include_courts) {
 	const table = uiu.el(container, 'table', 'match_table');

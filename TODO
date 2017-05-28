@@ -2,11 +2,18 @@ scoresheet in UI fails
 scoresheet in realtime
 make unnecessary matches disappear by editing them
 
+button "not my match!"
+d/moritz: game points may not match reality
+d/moritz: show court number
+server identity is missing in displaymode
+
+move BTP into separate process and only communicate differences
 dedup matches
 emit a nice scoresheet for walkovers
 test
 	distinguish and handle walkovers
 
+nicer error when network fails
 add button to hide matches from umpires
 separate submodules so that a crash in BTP | Ticker does not cause problems for the rest
 
@@ -31,6 +38,7 @@ no-show matches
 
 install keep screen on
 9: negative timer
+btp: test leaving out umpires in update requests?
 
 ----
 
