@@ -203,7 +203,7 @@ class BTPConn {
 
 				this.app.db.courts.findOne({
 					tournament_key: this.tkey,
-					court_id: match.setup.court_id,
+					_id: match.setup.court_id,
 				}, (err, court) => {
 					if (err) {
 						return cb(err);

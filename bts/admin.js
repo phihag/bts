@@ -187,12 +187,26 @@ function handle_match_edit(app, ws, msg) {
 	}
 	const tournament_key = msg.tournament_key;
 	const setup = _extract_setup(msg.setup);
-	app.db.matches.update({_id: msg.id, tournament_key}, {$set: {setup}}, {}, function(err) {
+	app.db.matches.update({_id: msg.id, tournament_key}, {$set: {setup}}, {returnUpdatedDocs: true}, function(err, numAffected, changed_match) {
 		if (err) {
 			ws.respond(msg, err);
 			return;
 		}
+		if (numAffected !== 1) {
+			ws.respond(msg, new Error('Cannot find match ' + msg.id + ' of tournament ' + tournament_key + ' in database'));
+			return;
+		}
+		if (changed_match._id !== msg.id) {
+			const errmsg = 'Match ' + changed_match._id + ' changed by accident, intended to change ' + msg.id + ' (old nedb version?)';
+			serror.silent(errmsg);
+			ws.respond(msg, new Error(errmsg));
+			return;
+		}
+
 		notify_change(app, tournament_key, 'match_edit', {match__id: msg.id, setup});
+		if (msg.btp_update) {
+			btp_manager.update_score(app, changed_match);
+		}
 		ws.respond(msg, err);
 	});
 }

@@ -159,7 +159,9 @@ function ui_edit(match_id) {
 	uiu.esc_stack_push(_cancel_ui_edit);
 
 	const body = uiu.qs('body');
-	const dialog_bg = uiu.el(body, 'div', 'dialog_bg match_edit_dialog');
+	const dialog_bg = uiu.el(body, 'div', 'dialog_bg match_edit_dialog', {
+		'data-match_id': match_id,
+	});
 	const dialog = uiu.el(dialog_bg, 'div', 'dialog');
 	
 	uiu.el(dialog, 'h3', {}, 'Match bearbeiten');
@@ -172,10 +174,25 @@ function ui_edit(match_id) {
 	});
 	const table = uiu.el(form, 'table');
 	const tbody = uiu.el(table, 'tbody');
-	const trs = render_edit(tbody, match);
+	render_edit(tbody, match);
 
-	const btn_td = uiu.el(trs[0], 'td', {rowspan: 2});
-	const btn = uiu.el(btn_td, 'button', {
+	const buttons = uiu.el(form, 'div', {
+		style: 'margin-top: 0.5em;',
+	});
+
+	if (curt.btp_enabled) {
+		const sendbtp_label = uiu.el(buttons, 'label', {
+			style: 'margin: 0 1em 0 0;',
+		});
+
+		uiu.el(sendbtp_label, 'input', {
+			type: 'checkbox',
+			name: 'btp_update',
+		});
+		sendbtp_label.appendChild(document.createTextNode('auch in BTP ändern'));
+	}
+
+	const btn = uiu.el(buttons, 'button', {
 		'class': 'match_save_button',
 		role: 'submit',
 	}, 'Ändern');
@@ -188,6 +205,7 @@ function ui_edit(match_id) {
 			id: d.match_id,
 			setup,
 			tournament_key: curt.key,
+			btp_update: (curt.btp_enabled && !! d.btp_update),
 		}, function match_edit_callback(err) {
 			btn.removeAttribute('disabled');
 			if (err) {
@@ -204,7 +222,11 @@ crouting.register(/t\/([a-z0-9]+)\/m\/([-a-zA-Z0-9_ ]+)\/edit$/, function(m) {
 	ctournament.switch_tournament(m[1], function() {
 		ui_edit(m[2]);
 	});
-}, change.default_handler(ui_edit));
+}, change.default_handler(function() {
+	const dlg = uiu.qs('.match_edit_dialog');
+	const match_id = dlg.getAttribute('data-match_id');
+	ui_edit(match_id);
+}));
 
 
 function _cancel_ui_scoresheet() {
