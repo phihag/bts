@@ -22,8 +22,12 @@ function init(callback) {
 		fs.mkdirSync(db_dir);
 	}
 
+	const macos_noindex_file = path.join(db_dir, '.metadata_never_index');
+	const macos_noindex_fd = fs.openSync(macos_noindex_file, 'a');
+	fs.closeSync(macos_noindex_fd);
+
 	TABLES.forEach(function(key) {
-		db[key] = new Datastore({filename: db_dir + '/' + key, autoload: true});
+		db[key] = new Datastore({filename: path.join(db_dir, key), autoload: true});
 	});
 
 	db.courts.ensureIndex({fieldName: 'tournament_key', unique: false});
