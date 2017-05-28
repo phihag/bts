@@ -1,8 +1,8 @@
 scoresheet in UI fails
 scoresheet in realtime
+make unnecessary matches disappear by editing them
 
 dedup matches
-make unnecessary matches disappear
 emit a nice scoresheet for walkovers
 test
 	distinguish and handle walkovers
