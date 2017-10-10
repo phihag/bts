@@ -1,29 +1,33 @@
 {
-	"name": "bts",
-	"version": "0.0.1",
-	"author": "Philipp Hagemeister <phihag@phihag.de>",
-	"description": "Badminton Tournament Server",
-	"scripts": {
-		"test": "mocha test/"
-	},
-	"dependencies": {
-		"async": "*",
-		"body-parser": "*",
-		"express": "*",
-		"extract-zip": "*",
-		"nedb": "*",
-		"request": "*",
-		"rimraf": "*",
-		"serve-favicon": "*",
-		"xmldom": "*",
-		"ws": "*"
-	},
-	"devDependencies": {
-		"eslint": "*",
-		"mocha": "*",
-		"stylelint": "*",
-		"stylelint-config-standard": "*",
-		"supervisor": "*"
-	},
-	"private": true
+  "name": "bts",
+  "version": "0.0.1",
+  "author": "Philipp Hagemeister <phihag@phihag.de>",
+  "description": "Badminton Tournament Server",
+  "scripts": {
+    "test": "mocha test/",
+    "snyk-protect": "snyk protect",
+    "prepublish": "npm run snyk-protect"
+  },
+  "dependencies": {
+    "async": "*",
+    "body-parser": "*",
+    "express": "*",
+    "extract-zip": "*",
+    "nedb": "*",
+    "request": "*",
+    "rimraf": "*",
+    "serve-favicon": "*",
+    "xmldom": "*",
+    "ws": "*",
+    "snyk": "^1.42.5"
+  },
+  "devDependencies": {
+    "eslint": "*",
+    "mocha": "*",
+    "stylelint": "*",
+    "stylelint-config-standard": "*",
+    "supervisor": "*"
+  },
+  "private": true,
+  "snyk": true
 }
