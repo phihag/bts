@@ -12,6 +12,7 @@ function init(callback) {
 	const db = {};
 	const TABLES = [
 		'courts',
+		'event',
 		'matches',
 		'tournaments',
 		'umpires',
@@ -33,6 +34,7 @@ function init(callback) {
 	db.courts.ensureIndex({fieldName: 'tournament_key', unique: false});
 	db.matches.ensureIndex({fieldName: 'court_id', unique: false});
 	db.matches.ensureIndex({fieldName: 'tournament_key', unique: false});
+	db.matches.ensureIndex({fieldName: 'event_key', unique: false});
 	db.tournaments.ensureIndex({fieldName: 'key', unique: true});
 	db.umpires.ensureIndex({fieldName: 'name', unique: true});
 	db.umpires.ensureIndex({fieldName: 'tournament_key', unique: false});

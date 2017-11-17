@@ -1,3 +1,13 @@
+auth
+set up service
+localize to en
+apache configuration
+
+
+
+set up team tournament (requires events)
+team event creation
+go into match stats
 scoresheet in realtime
 make unnecessary matches disappear by editing them
 
@@ -9,7 +19,6 @@ server identity is missing in displaymode
 
 move BTP into separate process and only communicate differences
 dedup matches
-emit a nice scoresheet for walkovers
 test
 	distinguish and handle walkovers
 
