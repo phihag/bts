@@ -23,8 +23,8 @@ function switch_tournament(tournament_key, success_cb) {
 		}
 
 		curt = response.tournament;
-		uiu.text_qs('.btp_status', 'BTP-Status: ' + curt.btp_status);
-		uiu.text_qs('.ticker_status', 'Ticker-Status: ' + curt.ticker_status);
+		uiu.text_qs('.btp_status', 'BTP status: ' + curt.btp_status);
+		uiu.text_qs('.ticker_status', 'Ticker status: ' + curt.ticker_status);
 		success_cb();
 	});
 }
@@ -34,8 +34,8 @@ function ui_create() {
 
 	uiu.empty(main);
 	const form = uiu.el(main, 'form');
-	uiu.el(form, 'h2', {}, 'Turnier erstellen');
-	const id_label = uiu.el(form, 'label', {}, 'Turnier-ID:');
+	uiu.el(form, 'h2', {}, 'Create tournament');
+	const id_label = uiu.el(form, 'label', {}, 'tournament ID (all lowercase, no spaces):');
 	const key_input = uiu.el(id_label, 'input', {
 		type: 'text',
 		name: 'key',
@@ -45,7 +45,7 @@ function ui_create() {
 	});
 	uiu.el(form, 'button', {
 		role: 'submit',
-	}, 'Turnier erstellen');
+	}, 'Create tournament');
 	key_input.focus();
 
 	form_utils.onsubmit(form, function(data) {
@@ -64,7 +64,7 @@ function ui_create() {
 function ui_list() {
 	crouting.set('t/');
 	toprow.set([{
-		label: 'Turniere',
+		label: 'Tournaments',
 		func: ui_list,
 	}]);
 
@@ -82,7 +82,7 @@ crouting.register(/t\/$/, ui_list, change.default_handler);
 function list_show(tournaments) {
 	const main = uiu.qs('.main');
 	uiu.empty(main);
-	uiu.el(main, 'h1', {}, 'Turniere');
+	uiu.el(main, 'h1', {}, 'Tournaments');
 	tournaments.forEach(function(t) {
 		const link = uiu.el(main, 'div', 'vlink', t.name || t.key);
 		link.addEventListener('click', function() {
@@ -92,7 +92,7 @@ function list_show(tournaments) {
 
 	const create_btn = uiu.el(main, 'button', {
 		role: 'button',
-	}, 'Turnier erstellen ...');
+	}, 'Create tournament ...');
 	create_btn.addEventListener('click', ui_create);
 }
 
@@ -156,24 +156,24 @@ function ui_ticker_push() {
 function ui_show() {
 	crouting.set('t/:key/', {key: curt.key});
 	toprow.set([{
-		label: 'Turniere',
+		label: 'Tournaments',
 		func: ui_list,
 	}, {
 		label: curt.name || curt.key,
 		func: ui_show,
 		'class': 'ct_name',
 	}], [{
-		label: 'Anzeige',
+		label: 'Scoreboard',
 		href: '/bup/#btsh_e=' + encodeURIComponent(curt.key) + '&display&dm_style=oncourt',
 	}, {
-		label: 'Schiedsrichter-Panel',
+		label: 'Umpire Panel',
 		href: '/bup/#btsh_e=' + encodeURIComponent(curt.key),
 	}]);
 
 	const main = uiu.qs('.main');
 	uiu.empty(main);
 
-	const settings_btn = uiu.el(main, 'div', 'tournament_settings_link vlink', 'Turnier bearbeiten');
+	const settings_btn = uiu.el(main, 'div', 'tournament_settings_link vlink', 'edit tournament');
 	settings_btn.addEventListener('click', ui_edit);
 
 	if (curt.btp_enabled) {
@@ -205,14 +205,14 @@ _route_single(/t\/([a-z0-9]+)\/$/, ui_show, change.default_handler(_show_render_
 function ui_edit() {
 	crouting.set('t/:key/edit', {key: curt.key});
 	toprow.set([{
-		label: 'Turniere',
+		label: 'Tournaments',
 		func: ui_list,
 	}, {
 		label: curt.name || curt.key,
 		func: ui_show,
 		'class': 'ct_name',
 	}, {
-		label: 'Turnier bearbeiten',
+		label: 'Edit tournament',
 		func: ui_edit,
 	}]);
 
@@ -221,13 +221,13 @@ function ui_edit() {
 
 	const form = uiu.el(main, 'form', 'tournament_settings');
 	const key_label = uiu.el(form, 'label');
-	uiu.el(key_label, 'span', {}, 'Turnier-Id:');
+	uiu.el(key_label, 'span', {}, 'Tournament id:');
 	uiu.el(key_label, 'input', {
 		type: 'text',
 		name: 'key',
 		readonly: 'readonly',
 		disabled: 'disabled',
-		title: 'Kann nicht geändert werden',
+		title: 'Can not be changed',
 		'class': 'uneditable',
 		value: curt.key,
 	});
@@ -360,11 +360,11 @@ function ui_edit() {
 		const actions_td = uiu.el(tr, 'td', {});
 		const del_btn = uiu.el(actions_td, 'button', {
 			'data-court-id': c._id,
-		}, 'Löschen');
+		}, 'Delete');
 		del_btn.addEventListener('click', function(e) {
 			const del_btn = e.target;
 			const court_id = del_btn.getAttribute('data-court-id');
-			if (confirm('Court ' + court_id + ' wirklich löschen?')) {
+			if (confirm('Do you really want to delete ' + court_id + '? (Will not do anything yet!)')) {
 				debug.log('TODO: would now delete court');
 			}
 		});
@@ -383,7 +383,7 @@ function ui_edit() {
 	});
 	const courts_add_button = uiu.el(courts_add_form, 'button', {
 		role: 'button',
-	}, '.. Courts hinzufügen');
+	}, 'Add Courts');
 	form_utils.onsubmit(courts_add_form, function(data) {
 		courts_add_button.setAttribute('disabled', 'disabled');
 		const court_count = parseInt(data.count);
@@ -431,7 +431,7 @@ function _cancel_ui_umpfixup() {
 	if (!dlg) {
 		return; // Already cancelled
 	}
-	uiu.esc_stack_pop();
+	cbts_utils.esc_stack_pop();
 	uiu.remove(dlg);
 	ui_show();
 }
@@ -439,7 +439,7 @@ function _cancel_ui_umpfixup() {
 function ui_umpfixup() {
 	crouting.set('t/' + curt.key + '/umpfixup', {}, _cancel_ui_umpfixup);
 
-	uiu.esc_stack_push(_cancel_ui_umpfixup);
+	cbts_utils.esc_stack_push(_cancel_ui_umpfixup);
 
 	const body = uiu.qs('body');
 	const dialog_bg = uiu.el(body, 'div', 'umpfixup_dialog');
@@ -484,7 +484,7 @@ function ui_umpfixup() {
 		});
 	});
 
-	const cancel_btn = uiu.el(dialog, 'div', 'match_cancel_link vlink', 'Abbrechen');
+	const cancel_btn = uiu.el(dialog, 'div', 'match_cancel_link vlink', 'Cancel');
 	cancel_btn.addEventListener('click', _cancel_ui_umpfixup);
 }
 crouting.register(/t\/([a-z0-9]+)\/umpfixup$/, function(m) {
@@ -499,7 +499,7 @@ function _cancel_ui_allscoresheets() {
 	if (!dlg) {
 		return; // Already cancelled
 	}
-	uiu.esc_stack_pop();
+	cbts_utils.esc_stack_pop();
 	uiu.remove(dlg);
 	ui_show();
 }
@@ -567,7 +567,7 @@ function _render_scoresheet(task, pos, cb) {
 function ui_allscoresheets() {
 	crouting.set('t/' + curt.key + '/allscoresheets', {}, _cancel_ui_allscoresheets);
 
-	uiu.esc_stack_push(_cancel_ui_allscoresheets);
+	cbts_utils.esc_stack_push(_cancel_ui_allscoresheets);
 
 	const body = uiu.qs('body');
 	const dialog_bg = uiu.el(body, 'div', 'dialog_bg allscoresheets_dialog');
@@ -598,7 +598,7 @@ function ui_allscoresheets() {
 		});
 		printing.set_orientation('landscape');
 
-		const lang = 'de';
+		const lang = 'en';
 		const pseudo_state = {
 			settings: {
 				shuttle_counter: true,

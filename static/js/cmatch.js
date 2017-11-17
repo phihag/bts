@@ -28,12 +28,12 @@ function render_match_table_header(table, include_courts) {
 		uiu.el(title_tr, 'th', {}, 'Court');
 	}
 	uiu.el(title_tr, 'th', {}, '#');
-	uiu.el(title_tr, 'th', {}, 'Spiel');
+	uiu.el(title_tr, 'th', {}, 'Match');
 	uiu.el(title_tr, 'th', {
 		colspan: 3,
-	}, 'Spieler');
-	uiu.el(title_tr, 'th', {}, 'Schiedsrichter');
-	uiu.el(title_tr, 'th', {}, 'Stand');
+	}, 'Players');
+	uiu.el(title_tr, 'th', {}, 'Umpire');
+	uiu.el(title_tr, 'th', {}, 'State');
 }
 
 function render_match_row(tr, match, court, include_court) {
@@ -72,7 +72,7 @@ function render_match_row(tr, match, court, include_court) {
 	uiu.el(tr, 'td', ((match.team1_won === true) ? 'match_team_won' : ''), calc_players_str(setup, 0));
 	uiu.el(tr, 'td', 'match_vs', 'v');
 	uiu.el(tr, 'td', ((match.team1_won === false) ? 'match_team_won ' : '') + 'match_team2', calc_players_str(setup, 1));
-	uiu.el(tr, 'td', (setup.umpire_name ? 'match_umpire' : 'match_no_umpire'), setup.umpire_name || 'Kein Schiedsrichter');
+	uiu.el(tr, 'td', (setup.umpire_name ? 'match_umpire' : 'match_no_umpire'), setup.umpire_name || 'No umpire');
 	const score_td = uiu.el(tr, 'td');
 	if (court && (court.match_id !== match._id) && (typeof match.team1_won !== 'boolean')) {
 		uiu.el(score_td, 'span', {}, ' In Vorbereitung ');
@@ -143,7 +143,7 @@ function _cancel_ui_edit() {
 	if (!dlg) {
 		return; // Already cancelled
 	}
-	uiu.esc_stack_pop();
+	cbts_utils.esc_stack_pop();
 	uiu.remove(dlg);
 	ctournament.ui_show();
 }
@@ -156,7 +156,7 @@ function ui_edit(match_id) {
 	}
 	crouting.set('t/' + curt.key + '/m/' + match_id + '/edit', {}, _cancel_ui_edit);
 
-	uiu.esc_stack_push(_cancel_ui_edit);
+	cbts_utils.esc_stack_push(_cancel_ui_edit);
 
 	const body = uiu.qs('body');
 	const dialog_bg = uiu.el(body, 'div', 'dialog_bg match_edit_dialog', {
@@ -164,7 +164,7 @@ function ui_edit(match_id) {
 	});
 	const dialog = uiu.el(dialog_bg, 'div', 'dialog');
 	
-	uiu.el(dialog, 'h3', {}, 'Match bearbeiten');
+	uiu.el(dialog, 'h3', {}, 'Edit match');
 
 	const form = uiu.el(dialog, 'form');
 	uiu.el(form, 'input', {
@@ -195,7 +195,7 @@ function ui_edit(match_id) {
 	const btn = uiu.el(buttons, 'button', {
 		'class': 'match_save_button',
 		role: 'submit',
-	}, 'Ändern');
+	}, 'Change');
 
 	form_utils.onsubmit(form, function(d) {
 		const setup = _make_setup(d);
@@ -215,7 +215,7 @@ function ui_edit(match_id) {
 		});
 	});
 
-	const cancel_btn = uiu.el(dialog, 'div', 'match_cancel_link vlink', 'Abbrechen');
+	const cancel_btn = uiu.el(dialog, 'div', 'match_cancel_link vlink', 'Cancel');
 	cancel_btn.addEventListener('click', _cancel_ui_edit);	
 }
 crouting.register(/t\/([a-z0-9]+)\/m\/([-a-zA-Z0-9_ ]+)\/edit$/, function(m) {
@@ -234,7 +234,7 @@ function _cancel_ui_scoresheet() {
 	if (!dlg) {
 		return; // Already cancelled
 	}
-	uiu.esc_stack_pop();
+	cbts_utils.esc_stack_pop();
 	uiu.remove(dlg);
 	uiu.show_qs('.main');
 	ctournament.ui_show();
@@ -248,16 +248,17 @@ function ui_scoresheet(match_id) {
 	}
 	crouting.set('t/' + curt.key + '/m/' + match_id + '/scoresheet', {}, _cancel_ui_scoresheet);
 
-	uiu.esc_stack_push(_cancel_ui_scoresheet);
+	cbts_utils.esc_stack_push(_cancel_ui_scoresheet);
 
 	uiu.hide_qs('.main');
 	const body = uiu.qs('body');
-	const dialog = uiu.el(body, 'div', 'match_scoresheet_dialog', {
+	const dialog = uiu.el(body, 'div', {
+		'class': 'match_scoresheet_dialog',
 		'data-match_id': match_id,
 	});
 
 	const container = uiu.el(dialog, 'div');
-	const lang = 'de';
+	const lang = 'en';
 	const pseudo_state = {
 		settings: {
 			shuttle_counter: true,
@@ -283,7 +284,7 @@ function ui_scoresheet(match_id) {
 
 	const scoresheet_buttons = uiu.el(dialog, 'div', 'match_scoresheet_buttons');
 
-	const cancel_btn = uiu.el(scoresheet_buttons, 'div', 'vlink', 'Zurück');
+	const cancel_btn = uiu.el(scoresheet_buttons, 'div', 'vlink', 'Back');
 	cancel_btn.addEventListener('click', _cancel_ui_scoresheet);	
 
 	const pdf_btn = uiu.el(scoresheet_buttons, 'button', {}, 'PDF');
@@ -292,7 +293,7 @@ function ui_scoresheet(match_id) {
 		scoresheet.save_pdf(s, svg_nodes);
 	});
 
-	const print_btn = uiu.el(scoresheet_buttons, 'button', {}, 'Drucken');
+	const print_btn = uiu.el(scoresheet_buttons, 'button', {}, 'Print');
 	print_btn.addEventListener('click', function() {
 		window.print();
 	});
@@ -320,7 +321,7 @@ function render_match_table(container, matches, include_courts) {
 
 function render_unassigned(container) {
 	uiu.empty(container);
-	uiu.el(container, 'h3', {}, 'Noch nicht zugewiesene Spiele');
+	uiu.el(container, 'h3', {}, 'Unassigned Matches');
 
 	const unassigned_matches = curt.matches.filter(m => calc_section(m) === 'unassigned');
 	unassigned_matches.sort(function(m1, m2) {
@@ -331,7 +332,7 @@ function render_unassigned(container) {
 
 function render_finished(container) {
 	uiu.empty(container);
-	uiu.el(container, 'h3', {}, 'Abgeschlossene Spiele');
+	uiu.el(container, 'h3', {}, 'Finished Matches');
 
 	const matches = curt.matches.filter(m => calc_section(m) === 'finished');
 	render_match_table(container, matches, true);
@@ -413,7 +414,7 @@ function render_edit(tbody, match) {
 	const tr0 = uiu.el(tbody, 'tr');
 	const tr1 = uiu.el(tbody, 'tr');
 
-	uiu.el(tr0, 'td', 'match_label', 'Nummer:');
+	uiu.el(tr0, 'td', 'match_label', 'Number:');
 	const num_td = uiu.el(tr0, 'td');
 	uiu.el(num_td, 'input', {
 		type: 'text',
@@ -425,13 +426,13 @@ function render_edit(tbody, match) {
 		tabindex: 1,
 	});
 
-	uiu.el(tr1, 'td', 'match_label', 'Zeit:');
+	uiu.el(tr1, 'td', 'match_label', 'Time:');
 	const time_td = uiu.el(tr1, 'td');
 	uiu.el(time_td, 'input', {
 		type: 'text',
 		name: 'scheduled_time_str',
 		pattern: '^[0-9]{1,2}:[0-9]{1,2}$',
-		title: 'Uhrzeit im 24-Stunden-Format, z.B. 12:34',
+		title: 'Time in 24 hour format, e.g. 12:34',
 		size: 3,
 		value: setup.scheduled_time_str || '',
 	});
@@ -441,7 +442,7 @@ function render_edit(tbody, match) {
 	uiu.el(event_td, 'input', {
 		type: 'text',
 		name: 'event_name',
-		placeholder: 'z.B. MX O55',
+		placeholder: 'e.g. MX O55',
 		size: 10,
 		value: setup.event_name || '',
 	});
@@ -450,7 +451,7 @@ function render_edit(tbody, match) {
 	uiu.el(match_name_td, 'input', {
 		type: 'text',
 		name: 'match_name',
-		placeholder: 'z.B. Halbfinale',
+		placeholder: 'e.g. semi-finals',
 		size: 10,
 		value: setup.match_name || '',
 	});
@@ -467,7 +468,7 @@ function render_edit(tbody, match) {
 	uiu.el(t0p1td, 'input', {
 		type: 'text',
 		name: 'team0player1name',
-		placeholder: '(Einzel)',
+		placeholder: '(Singles)',
 		value: player_names.team0player1name,
 		tabindex: 3,
 	});
@@ -489,7 +490,7 @@ function render_edit(tbody, match) {
 	uiu.el(t1p1td, 'input', {
 		type: 'text',
 		name: 'team1player1name',
-		placeholder: '(Einzel)',
+		placeholder: '(Singles)',
 		value: player_names.team1player1name,
 		tabindex: 5,
 	});
@@ -503,7 +504,7 @@ function render_edit(tbody, match) {
 	});
 	uiu.el(court_select, 'option', {
 		value: '',
-	}, 'Nicht zugewiesen');
+	}, 'Not assigned');
 	if (curt) {
 		for (const court of curt.courts) {
 			const attrs = {
@@ -516,7 +517,7 @@ function render_edit(tbody, match) {
 		}
 	}
 
-	uiu.el(tr1, 'td', 'match_label', 'Schiedsrichter:');
+	uiu.el(tr1, 'td', 'match_label', 'Umpire:');
 	const umpire_td = uiu.el(tr1, 'td');
 	const umpire_select = uiu.el(umpire_td, 'select', {
 		name: 'umpire_name',
@@ -532,7 +533,7 @@ function render_umpire_options(select, curval) {
 	uiu.el(select, 'option', {
 		value: '',
 		style: 'font-style: italic;',
-	}, 'Kein Schiedsrichter');
+	}, 'No umpire');
 	for (const u of curt.umpires) {
 		const attrs = {
 			value: u.name,
@@ -556,7 +557,7 @@ function render_create(container) {
 	const btn = uiu.el(btn_td, 'button', {
 		'class': 'match_save_button',
 		role: 'submit',
-	}, 'Match hinzufügen');
+	}, 'Add Match');
 
 	form_utils.onsubmit(form, function(d) {
 		const setup = _make_setup(d);

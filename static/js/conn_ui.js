@@ -5,9 +5,9 @@ var c = conn(ui_on_status, ui_on_change);
 
 function ui_on_status(status) {
 	var text = {
-		connecting: 'Verbindung wird aufgebaut ...',
-		connected: 'Verbunden.',
-		waiting: 'Verbindung verloren.',
+		connecting: 'Connecting ...',
+		connected: 'Connecting.',
+		waiting: 'Connection lost.',
 	}[status.code];
 	if (status.code === 'error') {
 		text = 'Fehler: ' + status.message;

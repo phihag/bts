@@ -1,10 +1,11 @@
 auth
 set up service
-localize to en
+tls
 apache configuration
 
 
 
+proper i18n
 set up team tournament (requires events)
 team event creation
 go into match stats
