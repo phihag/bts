@@ -655,6 +655,7 @@ return {
 /*@DEV*/
 if ((typeof module !== 'undefined') && (typeof require !== 'undefined')) {
 	var calc = require('../bup/js/calc');
+	var cbts_utils = require('./cbts_utils');
 	var cerror = require('./cerror');
 	var change = require('./change');
 	var cmatch = require('./cmatch');

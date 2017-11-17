@@ -70,5 +70,7 @@ return {
 /*@DEV*/
 if ((typeof module !== 'undefined') && (typeof require !== 'undefined')) {
     module.exports = cbts_utils;
+
+    var Mousetrap = null; // Mousetrap library
 }
 /*/@DEV*/

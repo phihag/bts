@@ -1,11 +1,14 @@
 set up service
 tls
 apache configuration
+mail Matthew
 
 
 auth
-
 proper i18n
+
+----
+
 set up team tournament (requires events)
 team event creation
 go into match stats
