@@ -164,7 +164,7 @@ function ui_show() {
 		'class': 'ct_name',
 	}], [{
 		label: 'Scoreboard',
-		href: '/bup/#btsh_e=' + encodeURIComponent(curt.key) + '&display&dm_style=oncourt',
+		href: '/bup/#btsh_e=' + encodeURIComponent(curt.key) + '&display&dm_style=international',
 	}, {
 		label: 'Umpire Panel',
 		href: '/bup/#btsh_e=' + encodeURIComponent(curt.key),
