@@ -38,10 +38,10 @@
 .match_table {
 	border-collapse: collapse;
 }
-.match_table>thead>tr>th {
+.match_table > thead > tr > th {
 	text-align: left;
 }
-.match_table>tbody>tr:hover>td {
+.match_table > tbody > tr:hover > td {
 	background: #ddd;
 }
 

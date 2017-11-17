@@ -16,6 +16,6 @@
 	float: right;
 	margin-right: 0.5em;
 }
-.toprow_right > *+* {
+.toprow_right > * + * {
 	margin-left: 1.2em;
 }
