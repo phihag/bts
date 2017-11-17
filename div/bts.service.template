@@ -1,0 +1,13 @@
+[Unit]
+Description=bts
+
+[Service]
+ExecStart=/usr/bin/env node BTS_ROOT_DIR/bts/bts.js
+Type=simple
+User=bts
+Group=bts
+WorkingDirectory=BTS_ROOT_DIR
+Restart=always
+
+[Install]
+WantedBy=multi-user.target

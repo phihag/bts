@@ -11,6 +11,7 @@ help:
 	@echo '  dev           Run the server in development mode'
 	@echo '  ticker-run    Run the ticker in production mode'
 	@echo '  ticker-dev    Run the ticker in development mode'
+	@echo '  install-service Install a service to automatically start bts'
 	@echo '  clean         Remove temporary files'
 
 
@@ -51,4 +52,9 @@ install-bup-dev:
 	if test -e ${BUPDEV} ; then cd ${BUPDEV} && git pull; fi
 	if test '!' -e ${BUPDEV} ; then git clone https://github.com/phihag/bup.git ${BUPDEV} && cd static/bup/dev && make download-libs; fi
 
-.PHONY: default help deps dev test clean install-libs force-install-libs cleantestcache lint jshint eslint bupdate install-bup-dev ticker-dev ticker-run
+install-service:
+	sed -e "s#BTS_ROOT_DIR#$$PWD#" div/bts.service.template > /etc/systemd/system/bts.service
+	systemctl enable bbt
+	systemctl start bbt
+
+.PHONY: default help deps dev test clean install-libs force-install-libs cleantestcache lint jshint eslint bupdate install-bup-dev ticker-dev ticker-run install-service

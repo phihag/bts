@@ -1,9 +1,9 @@
-auth
 set up service
 tls
 apache configuration
 
 
+auth
 
 proper i18n
 set up team tournament (requires events)
