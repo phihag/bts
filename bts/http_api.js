@@ -98,7 +98,7 @@ function matches_handler(req, res) {
 				presses_json: JSON.stringify(dm.presses),
 				network_score: dm.network_score,
 				network_team1_serving: dm.network_team1_serving,
-				network_teams_player1_even: dm.teams_player1_even,
+				network_teams_player1_even: dm.network_teams_player1_even,
 			};
 		});
 
@@ -179,7 +179,7 @@ function score_handler(req, res) {
 	const update = {
 		network_score: req.body.network_score,
 		network_team1_serving: req.body.network_team1_serving,
-		network_teams_player1_even: req.body.teams_player1_even,
+		network_teams_player1_even: req.body.network_teams_player1_even,
 		team1_won: req.body.team1_won,
 		presses: req.body.presses,
 		duration_ms: req.body.duration_ms,
