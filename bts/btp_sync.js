@@ -208,7 +208,7 @@ function integrate_courts(app, tournament_key, btp_state, callback) {
 
 				if (cur_court) {
 					// Add BTP ID
-					app.db.courts.update(alt_query, {$set: btp_id}, {}, (err) => cb(err));
+					app.db.courts.update(alt_query, {$set: {btp_id}}, {}, (err) => cb(err));
 					return;
 				}
 
