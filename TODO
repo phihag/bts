@@ -1,4 +1,14 @@
+i18n for DMO35
+test everything for DMO35
+do not use FileSaver anymore, use bup's built-in features
 
+
+---
+
+
+add umpires / service judges UI
+select service judge in UI
+discover what happened in bts error reports
 auth
 proper i18n
 
