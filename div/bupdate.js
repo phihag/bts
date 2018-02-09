@@ -69,7 +69,7 @@ function main() {
 }
 
 function bupdate(target_dir, callback) {
-	const tmp_token = process.pid;
+	const tmp_token = process.pid + '_' + Date.now() + '_' + crypto.randomBytes(4).readUInt32LE(0);
 	const tmp_dir = path.join(target_dir, 'bupdate_tmp_' + tmp_token);
 	const new_dir = path.join(tmp_dir, 'new');
 	const final_dir = path.join(target_dir, 'downloaded');
