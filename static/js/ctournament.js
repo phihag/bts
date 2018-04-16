@@ -77,7 +77,7 @@ function ui_list() {
 		list_show(response.tournaments);
 	});
 }
-crouting.register(/t\/$/, ui_list, change.default_handler);
+crouting.register(/^t\/$/, ui_list, change.default_handler);
 
 function list_show(tournaments) {
 	const main = uiu.qs('.main');
