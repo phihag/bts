@@ -90,6 +90,7 @@ function rerender() {
 
 function _set_path(new_path) {
 	history.pushState(null, '', new_path);
+	_load(new_path);
 }
 
 function init() {
