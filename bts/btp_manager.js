@@ -21,7 +21,8 @@ function reconfigure(app, t) {
 	const conn = new btp_conn.BTPConn(
 		app,
 		t.btp_ip, t.btp_password, t.key,
-		t.btp_autofetch_enabled, t.btp_readonly);
+		t.btp_autofetch_enabled, t.btp_readonly,
+		t.is_team);
 	conns_by_tkey.set(t.key, conn);
 }
 

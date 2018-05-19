@@ -10,10 +10,11 @@ const serror = require('./serror');
 
 const AUTOFETCH_TIMEOUT = 30000;
 const CONNECT_TIMEOUT = 5000;
-const PORT = 9901; // 9901 for true BTP, 9002 for win7 machine
+const BTP_PORT = 9901; // 9901 for true BTP, 9002 for win7 machine
+const BLP_PORT = 9911;
 
 
-function send_request(ip, xml_req, callback) {
+function send_request(ip, xml_req, is_team, callback) {
 	var encoded_req;
 	try {
 		encoded_req = btp_proto.encode(xml_req);
@@ -21,7 +22,8 @@ function send_request(ip, xml_req, callback) {
 		serror.silent('Error while encoding for BTP:' + e.message);
 		return callback(e);
 	}
-	const client = net.connect({host: ip, port: PORT, timeout: CONNECT_TIMEOUT}, () => {
+	const port = is_team ? BLP_PORT : BTP_PORT;
+	const client = net.connect({host: ip, port, timeout: CONNECT_TIMEOUT}, () => {
 		client.write(encoded_req);
 	});
 
@@ -45,7 +47,7 @@ function send_request(ip, xml_req, callback) {
 
 
 class BTPConn {
-	constructor(app, ip, password, tkey, enabled_autofetch, readonly) {
+	constructor(app, ip, password, tkey, enabled_autofetch, readonly, is_team) {
 		this.app = app;
 		this.last_status = 'Aktiviert';
 		this.ip = ip;
@@ -55,6 +57,7 @@ class BTPConn {
 		this.enabled_autofetch = enabled_autofetch;
 		this.autofetch_timeout = null;
 		this.readonly = readonly;
+		this.is_team = is_team;
 		this.connect();
 	}
 
@@ -119,7 +122,7 @@ class BTPConn {
 	send(xml_req, success_cb) {
 		if (this.terminated) return;
 
-		send_request(this.ip, xml_req, (err, response) => {
+		send_request(this.ip, xml_req, this.is_team, (err, response) => {
 			if (err) {
 				this.report_status('Verbindungsfehler: ' + err.message);
 				this.schedule_reconnect();

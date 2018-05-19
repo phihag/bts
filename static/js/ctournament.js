@@ -241,6 +241,18 @@ function ui_edit() {
 		'class': 'ct_name',
 	});
 
+	// Team?
+	const is_team_label = uiu.el(form, 'label');
+	const is_team_attrs = {
+		type: 'checkbox',
+		name: 'is_team',
+	};
+	if (curt.is_team) {
+		is_team_attrs.checked = 'checked';
+	}
+	uiu.el(is_team_label, 'input', is_team_attrs);
+	uiu.el(is_team_label, 'span', {}, 'Mannschafts-Wettbewerb');
+
 	// BTP
 	const btp_enabled_label = uiu.el(form, 'label');
 	const ba_attrs = {
@@ -328,6 +340,7 @@ function ui_edit() {
 	form_utils.onsubmit(form, function(data) {
 		const props = {
 			name: data.name,
+			is_team: (!!data.is_team),
 			btp_enabled: (!!data.btp_enabled),
 			btp_autofetch_enabled: (!!data.btp_autofetch_enabled),
 			btp_readonly: (!!data.btp_readonly),

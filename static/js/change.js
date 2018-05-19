@@ -40,6 +40,7 @@ function default_handler_func(rerender, special_funcs, c) {
 	switch (c.ctype) {
 	case 'props': {
 		curt.name = c.val.name;
+		curt.is_team = c.val.is_team;
 		curt.btp_enabled = c.val.btp_enabled;
 		curt.btp_autofetch_enabled = c.val.btp_autofetch_enabled;
 		curt.btp_readonly = c.val.btp_readonly;
