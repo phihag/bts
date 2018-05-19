@@ -467,7 +467,7 @@ function render_edit(tbody, match) {
 		name: 'team0player0name',
 		required: 'required',
 		value: player_names.team0player0name,
-		tabindex: 2,
+		tabindex: 20,
 	});
 	const t0p1td = uiu.el(tr1, 'td');
 	uiu.el(t0p1td, 'input', {
@@ -475,7 +475,7 @@ function render_edit(tbody, match) {
 		name: 'team0player1name',
 		placeholder: ci18n('(Singles)'),
 		value: player_names.team0player1name,
-		tabindex: 3,
+		tabindex: 21,
 	});
 
 	uiu.el(tr0, 'td', {
@@ -489,7 +489,7 @@ function render_edit(tbody, match) {
 		name: 'team1player0name',
 		required: 'required',
 		value: player_names.team1player0name,
-		tabindex: 4,
+		tabindex: 30,
 	});
 	const t1p1td = uiu.el(tr1, 'td');
 	uiu.el(t1p1td, 'input', {
@@ -497,7 +497,7 @@ function render_edit(tbody, match) {
 		name: 'team1player1name',
 		placeholder: ci18n('(Singles)'),
 		value: player_names.team1player1name,
-		tabindex: 5,
+		tabindex: 31,
 	});
 
 	uiu.el(tr0, 'td', 'match_label', 'Court:');
@@ -543,6 +543,7 @@ function render_edit(tbody, match) {
 			name: 'team0name',
 			required: 'required',
 			value: (setup.teams && setup.teams[0] && setup.teams[0].name) ? setup.teams[0].name : '',
+			tabindex: 22,
 		});
 
 		uiu.el(tr2, 'td');
@@ -552,6 +553,7 @@ function render_edit(tbody, match) {
 			name: 'team1name',
 			required: 'required',
 			value: (setup.teams && setup.teams[1] && setup.teams[1].name) ? setup.teams[1].name : '',
+			tabindex: 32,
 		});
 
 		res.push(tr2);
