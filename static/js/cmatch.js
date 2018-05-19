@@ -321,7 +321,7 @@ function render_match_table(container, matches, include_courts) {
 
 function render_unassigned(container) {
 	uiu.empty(container);
-	uiu.el(container, 'h3', {}, 'Unassigned Matches');
+	uiu.el(container, 'h3', {}, ci18n('Unassigned Matches'));
 
 	const unassigned_matches = curt.matches.filter(m => calc_section(m) === 'unassigned');
 	unassigned_matches.sort(function(m1, m2) {

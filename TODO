@@ -1,5 +1,12 @@
 i18n for DMO35
-do not use FileSaver anymore, use bup's built-in features
+
+support for teams
+
+
+
+----
+
+do not use FileSaver anymore, use bup's built-in features; test saving all scoresheets as zip
 highlight courts where referee is currently called in blinking red
 add umpires / service judges UI
 select service judge in UI

@@ -5,6 +5,7 @@ var state = {}; // eslint-disable-line no-unused-vars
 function init() {
 	cerror.init();
 	conn_ui.ui_connect();
+	ci18n.init();
 }
 
 document.addEventListener('DOMContentLoaded', init);
