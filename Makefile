@@ -63,5 +63,7 @@ ticker-install-service:
 	sed -e "s#BTS_ROOT_DIR#$$PWD#" div/btsticker.service.template > /etc/systemd/system/btsticker.service
 	systemctl enable btsticker
 	systemctl start btsticker
+	mkdir -p ticker_data
+	chmod a+rwx ticker_data
 
 .PHONY: default help deps dev test clean install-libs force-install-libs cleantestcache lint jshint eslint bupdate install-bup-dev ticker-dev ticker-run install-service ticker-install-service
