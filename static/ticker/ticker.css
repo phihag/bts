@@ -1,7 +1,7 @@
 html, body {
 	margin: 0;
 	padding: 0;
-	font-size: 1.5vmin;
+	font-size: 20px;
 	font-family: sans-serif;
 }
 .main {
@@ -62,14 +62,14 @@ table.court + table.court {
 }
 .court_score {
 	width: 1.3em;
-	font-size: 3vmin;
+	font-size: 40px;
 	border-left: 0.1vmin solid #ddd;
 	text-align: center;
 }
 .court_event, .court_event_div {
 	width: 2em;
 	max-width: 2em;
-	font-size: 1vmin;
+	font-size: 20px;
 }
 .court_event>div {
 	width: 100%;
