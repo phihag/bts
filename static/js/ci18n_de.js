@@ -4,6 +4,13 @@ var ci18n_de = {
 '_name': 'Deutsch (Deutschland)',
 
 'Unassigned Matches': 'Nicht zugewiesene Spiele',
+'edit tournament': 'Turnier bearbeiten',
+'Court': 'Court',
+'Match': 'Spiel',
+'Players': 'Spieler',
+'Umpire': 'Schiedsrichter',
+'State': 'Status',
+'Finished Matches': 'Abgeschlossene Spiele',
 
 };
 

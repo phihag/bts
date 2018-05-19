@@ -25,15 +25,15 @@ function render_match_table_header(table, include_courts) {
 	const title_tr = uiu.el(thead, 'tr');
 	uiu.el(title_tr, 'th'); // Buttons holder
 	if (include_courts) {
-		uiu.el(title_tr, 'th', {}, 'Court');
+		uiu.el(title_tr, 'th', {}, ci18n('Court'));
 	}
 	uiu.el(title_tr, 'th', {}, '#');
-	uiu.el(title_tr, 'th', {}, 'Match');
+	uiu.el(title_tr, 'th', {}, ci18n('Match'));
 	uiu.el(title_tr, 'th', {
 		colspan: 3,
-	}, 'Players');
-	uiu.el(title_tr, 'th', {}, 'Umpire');
-	uiu.el(title_tr, 'th', {}, 'State');
+	}, ci18n('Players'));
+	uiu.el(title_tr, 'th', {}, ci18n('Umpire'));
+	uiu.el(title_tr, 'th', {}, ci18n('State'));
 }
 
 function render_match_row(tr, match, court, include_court) {
@@ -332,7 +332,7 @@ function render_unassigned(container) {
 
 function render_finished(container) {
 	uiu.empty(container);
-	uiu.el(container, 'h3', {}, 'Finished Matches');
+	uiu.el(container, 'h3', {}, ci18n('Finished Matches'));
 
 	const matches = curt.matches.filter(m => calc_section(m) === 'finished');
 	render_match_table(container, matches, true);

@@ -173,7 +173,7 @@ function ui_show() {
 	const main = uiu.qs('.main');
 	uiu.empty(main);
 
-	const settings_btn = uiu.el(main, 'div', 'tournament_settings_link vlink', 'edit tournament');
+	const settings_btn = uiu.el(main, 'div', 'tournament_settings_link vlink', ci18n('edit tournament'));
 	settings_btn.addEventListener('click', ui_edit);
 
 	if (curt.btp_enabled) {
@@ -212,7 +212,7 @@ function ui_edit() {
 		func: ui_show,
 		'class': 'ct_name',
 	}, {
-		label: 'Edit tournament',
+		label: ci18n('edit tournament'),
 		func: ui_edit,
 	}]);
 
