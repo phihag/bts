@@ -53,6 +53,7 @@ install-bup-dev:
 	if test '!' -e ${BUPDEV} ; then git clone https://github.com/phihag/bup.git ${BUPDEV} && cd static/bup/dev && make download-libs; fi
 
 install-service:
+	useradd -m --system bts
 	sed -e "s#BTS_ROOT_DIR#$$PWD#" div/bts.service.template > /etc/systemd/system/bts.service
 	systemctl enable bts
 	systemctl start bts
