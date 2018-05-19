@@ -414,7 +414,7 @@ function render_edit(tbody, match) {
 	const tr0 = uiu.el(tbody, 'tr');
 	const tr1 = uiu.el(tbody, 'tr');
 
-	uiu.el(tr0, 'td', 'match_label', 'Number:');
+	uiu.el(tr0, 'td', 'match_label', ci18n('Number:'));
 	const num_td = uiu.el(tr0, 'td');
 	uiu.el(num_td, 'input', {
 		type: 'text',
@@ -426,7 +426,7 @@ function render_edit(tbody, match) {
 		tabindex: 1,
 	});
 
-	uiu.el(tr1, 'td', 'match_label', 'Time:');
+	uiu.el(tr1, 'td', 'match_label', ci18n('Time:'));
 	const time_td = uiu.el(tr1, 'td');
 	uiu.el(time_td, 'input', {
 		type: 'text',
@@ -442,7 +442,7 @@ function render_edit(tbody, match) {
 	uiu.el(event_td, 'input', {
 		type: 'text',
 		name: 'event_name',
-		placeholder: 'e.g. MX O55',
+		placeholder: ci18n('e.g. MX O55'),
 		size: 10,
 		value: setup.event_name || '',
 	});
@@ -451,7 +451,7 @@ function render_edit(tbody, match) {
 	uiu.el(match_name_td, 'input', {
 		type: 'text',
 		name: 'match_name',
-		placeholder: 'e.g. semi-finals',
+		placeholder: ci18n('e.g. semi-finals'),
 		size: 10,
 		value: setup.match_name || '',
 	});
@@ -468,7 +468,7 @@ function render_edit(tbody, match) {
 	uiu.el(t0p1td, 'input', {
 		type: 'text',
 		name: 'team0player1name',
-		placeholder: '(Singles)',
+		placeholder: ci18n('(Singles)'),
 		value: player_names.team0player1name,
 		tabindex: 3,
 	});
@@ -490,7 +490,7 @@ function render_edit(tbody, match) {
 	uiu.el(t1p1td, 'input', {
 		type: 'text',
 		name: 'team1player1name',
-		placeholder: '(Singles)',
+		placeholder: ci18n('(Singles)'),
 		value: player_names.team1player1name,
 		tabindex: 5,
 	});
@@ -517,7 +517,7 @@ function render_edit(tbody, match) {
 		}
 	}
 
-	uiu.el(tr1, 'td', 'match_label', 'Umpire:');
+	uiu.el(tr1, 'td', 'match_label', ci18n('Umpire:'));
 	const umpire_td = uiu.el(tr1, 'td');
 	const umpire_select = uiu.el(umpire_td, 'select', {
 		name: 'umpire_name',

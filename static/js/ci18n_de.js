@@ -10,7 +10,14 @@ var ci18n_de = {
 'Players': 'Spieler',
 'Umpire': 'Schiedsrichter',
 'State': 'Status',
+'Umpire:': 'Schiedsrichter:',
 'Finished Matches': 'Abgeschlossene Spiele',
+'Time:': 'Zeit:',
+'(Singles)': '(Einzel)',
+'e.g. MX O55': 'z.B. MX O55',
+'e.g. semi-finals': 'z.B. Halbfinale',
+'Number:': '#:',
+
 
 };
 
