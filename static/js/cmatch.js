@@ -164,7 +164,7 @@ function ui_edit(match_id) {
 	});
 	const dialog = uiu.el(dialog_bg, 'div', 'dialog');
 	
-	uiu.el(dialog, 'h3', {}, 'Edit match');
+	uiu.el(dialog, 'h3', {}, ci18n('Edit match'));
 
 	const form = uiu.el(dialog, 'form');
 	uiu.el(form, 'input', {
@@ -179,6 +179,10 @@ function ui_edit(match_id) {
 	const buttons = uiu.el(form, 'div', {
 		style: 'margin-top: 0.5em;',
 	});
+
+	if (curt.is_team) {
+		console.log('this is a team');
+	}
 
 	if (curt.btp_enabled) {
 		const sendbtp_label = uiu.el(buttons, 'label', {
@@ -195,7 +199,7 @@ function ui_edit(match_id) {
 	const btn = uiu.el(buttons, 'button', {
 		'class': 'match_save_button',
 		role: 'submit',
-	}, 'Change');
+	}, ci18n('Change'));
 
 	form_utils.onsubmit(form, function(d) {
 		const setup = _make_setup(d);
@@ -215,7 +219,7 @@ function ui_edit(match_id) {
 		});
 	});
 
-	const cancel_btn = uiu.el(dialog, 'div', 'match_cancel_link vlink', 'Cancel');
+	const cancel_btn = uiu.el(dialog, 'div', 'match_cancel_link vlink', ci18n('Cancel'));
 	cancel_btn.addEventListener('click', _cancel_ui_edit);	
 }
 crouting.register(/t\/([a-z0-9]+)\/m\/([-a-zA-Z0-9_ ]+)\/edit$/, function(m) {
@@ -533,7 +537,7 @@ function render_umpire_options(select, curval) {
 	uiu.el(select, 'option', {
 		value: '',
 		style: 'font-style: italic;',
-	}, 'No umpire');
+	}, ci18n('No umpire'));
 	for (const u of curt.umpires) {
 		const attrs = {
 			value: u.name,

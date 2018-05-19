@@ -17,6 +17,10 @@ var ci18n_de = {
 'e.g. MX O55': 'z.B. MX O55',
 'e.g. semi-finals': 'z.B. Halbfinale',
 'Number:': '#:',
+'Cancel': 'Abbrechen',
+'Change': 'Ändern',
+'No umpire': 'Kein Schiedsrichter',
+'Edit match': 'Match bearbeiten',
 
 
 };

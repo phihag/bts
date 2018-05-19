@@ -484,7 +484,7 @@ function ui_umpfixup() {
 		});
 	});
 
-	const cancel_btn = uiu.el(dialog, 'div', 'match_cancel_link vlink', 'Cancel');
+	const cancel_btn = uiu.el(dialog, 'div', 'match_cancel_link vlink', ci18n('Cancel'));
 	cancel_btn.addEventListener('click', _cancel_ui_umpfixup);
 }
 crouting.register(/t\/([a-z0-9]+)\/umpfixup$/, function(m) {
