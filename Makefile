@@ -53,13 +53,13 @@ install-bup-dev:
 	if test '!' -e ${BUPDEV} ; then git clone https://github.com/phihag/bup.git ${BUPDEV} && cd static/bup/dev && make download-libs; fi
 
 install-service:
-	useradd -m --system bts
+	id -u bts >/dev/null 2>&1 || useradd -m --system bts
 	sed -e "s#BTS_ROOT_DIR#$$PWD#" div/bts.service.template > /etc/systemd/system/bts.service
 	systemctl enable bts
 	systemctl start bts
 
 ticker-install-service:
-	useradd -m --system btsticker
+	id -u btsticker >/dev/null 2>&1 || useradd -m --system btsticker
 	sed -e "s#BTS_ROOT_DIR#$$PWD#" div/btsticker.service.template > /etc/systemd/system/btsticker.service
 	systemctl enable btsticker
 	systemctl start btsticker
