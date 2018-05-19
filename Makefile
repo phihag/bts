@@ -58,4 +58,10 @@ install-service:
 	systemctl enable bts
 	systemctl start bts
 
-.PHONY: default help deps dev test clean install-libs force-install-libs cleantestcache lint jshint eslint bupdate install-bup-dev ticker-dev ticker-run install-service
+ticker-install-service:
+	useradd -m --system btsticker
+	sed -e "s#BTS_ROOT_DIR#$$PWD#" div/btsticker.service.template > /etc/systemd/system/btsticker.service
+	systemctl enable btsticker
+	systemctl start btsticker
+
+.PHONY: default help deps dev test clean install-libs force-install-libs cleantestcache lint jshint eslint bupdate install-bup-dev ticker-dev ticker-run install-service ticker-install-service

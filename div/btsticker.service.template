@@ -1,0 +1,13 @@
+[Unit]
+Description=bts ticker
+
+[Service]
+ExecStart=/usr/bin/env node BTS_ROOT_DIR/ticker/ticker.js
+Type=simple
+User=btsticker
+Group=btsticker
+WorkingDirectory=BTS_ROOT_DIR
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
