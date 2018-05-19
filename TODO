@@ -1,7 +1,8 @@
-support for teams / BLP teams
 
-
-match edit fails
+score update freezes from time to time
+BLP support
+match throws error
+tab order order of add/edit is wrong
 ----
 
 do not use FileSaver anymore, use bup's built-in features; test saving all scoresheets as zip
