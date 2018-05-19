@@ -93,6 +93,7 @@ function matches_handler(req, res) {
 		const matches = db_matches.map(function(dm) {
 			const setup = dm.setup;
 			setup.match_id = 'bts_' + dm._id;
+			setup.team_competition = tournament.is_team;
 			return {
 				setup,
 				presses_json: JSON.stringify(dm.presses),
