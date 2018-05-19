@@ -1,7 +1,7 @@
 support for teams / BLP teams
 
 
-
+match edit fails
 ----
 
 do not use FileSaver anymore, use bup's built-in features; test saving all scoresheets as zip

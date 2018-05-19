@@ -123,6 +123,12 @@ function on_scoresheet_button_click(e) {
 function _make_setup(d) {
 	const is_doubles = !! d.team0player1name;
 	const teams = [_make_team(d, 0), _make_team(d, 1)];
+	if (d.team0name) {
+		teams[0].name = d.team0name;
+	}
+	if (d.team1name) {
+		teams[1].name = d.team1name;
+	}
 	const player_count = is_doubles ? 2 : 1;
 	const incomplete = !teams.every(team => (team.players.length === player_count));
 	return {
@@ -179,11 +185,6 @@ function ui_edit(match_id) {
 	const buttons = uiu.el(form, 'div', {
 		style: 'margin-top: 0.5em;',
 	});
-
-	if (curt.is_team) {
-		console.log('this is a team');
-	}
-
 	if (curt.btp_enabled) {
 		const sendbtp_label = uiu.el(buttons, 'label', {
 			style: 'margin: 0 1em 0 0;',
@@ -529,7 +530,34 @@ function render_edit(tbody, match) {
 	});
 	render_umpire_options(umpire_select, setup.umpire_name);
 
-	return [tr0, tr1];
+	const res = [tr0, tr1];
+	if (curt.is_team) {
+		const tr2 = uiu.el(tbody, 'tr');
+
+		uiu.el(tr2, 'td', {
+			colspan: 4,
+		}, 'Teams:');
+		const td_team0 = uiu.el(tr2, 'td');
+		uiu.el(td_team0, 'input', {
+			type: 'text',
+			name: 'team0name',
+			required: 'required',
+			value: (setup.teams && setup.teams[0] && setup.teams[0].name) ? setup.teams[0].name : '',
+		});
+
+		uiu.el(tr2, 'td');
+		const td_team1 = uiu.el(tr2, 'td');
+		uiu.el(td_team1, 'input', {
+			type: 'text',
+			name: 'team1name',
+			required: 'required',
+			value: (setup.teams && setup.teams[1] && setup.teams[1].name) ? setup.teams[1].name : '',
+		});
+
+		res.push(tr2);
+	}
+
+	return res;
 }
 
 function render_umpire_options(select, curval) {
