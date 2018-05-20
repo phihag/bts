@@ -24,6 +24,7 @@ var ci18n_de = {
 'Back': 'Zurück',
 'PDF': 'PDF',
 'Print': 'Drucken',
+'Add Match': 'Spiel hinzufügen',
 
 };
 

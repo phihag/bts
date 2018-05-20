@@ -591,7 +591,7 @@ function render_create(container) {
 	const btn = uiu.el(btn_td, 'button', {
 		'class': 'match_save_button',
 		role: 'submit',
-	}, 'Add Match');
+	}, ci18n('Add Match'));
 
 	form_utils.onsubmit(form, function(d) {
 		const setup = _make_setup(d);
