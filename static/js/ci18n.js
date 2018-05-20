@@ -36,7 +36,7 @@ function register_all() {
 }
 
 function init() {
-	//lang = detect_lang();
+	lang = detect_lang();
 	lang = 'de'; // TODO Forced for DHM
 	register_all();
 }
@@ -77,8 +77,13 @@ function simple_translate(str, data) {
 	return translate(lang, str, data);
 }
 
+function get_lang() {
+	return lang;
+}
+
 simple_translate.register_all = register_all;
 simple_translate.init = init;
+simple_translate.get_lang = get_lang;
 return simple_translate;
 })();
 

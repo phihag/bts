@@ -638,7 +638,7 @@ function ui_allscoresheets() {
 			zip.generateAsync({type: 'blob'}).then(function(blob) {
 				uiu.text(status, 'Starte  Download.');
 
-				saveAs(blob, zip_fn);
+				save_file(blob, zip_fn);
 				uiu.text(status, 'Fertig.');
 			}).catch(function(error) {
 				uiu.text(status, 'Fehler: ' + error.stack);
@@ -671,6 +671,7 @@ if ((typeof module !== 'undefined') && (typeof require !== 'undefined')) {
 	var cbts_utils = require('./cbts_utils');
 	var cerror = require('./cerror');
 	var change = require('./change');
+	var ci18n = require('./ci18n');
 	var cmatch = require('./cmatch');
 	var crouting = require('./crouting');
 	var debug = require('./debug');
@@ -685,9 +686,9 @@ if ((typeof module !== 'undefined') && (typeof require !== 'undefined')) {
 	var toprow = require('./toprow');
 	var uiu = require('../bup/js/uiu');
 	var utils = require('../bup/bup/js/utils.js');
+	var save_file = require('../bup/bup/js/save_file.js');
 
 	var JSZip = null; // External library
-	var saveAs = null; // External library
 
     module.exports = ctournament;
 }

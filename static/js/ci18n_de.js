@@ -21,7 +21,9 @@ var ci18n_de = {
 'Change': 'Ändern',
 'No umpire': 'Kein Schiedsrichter',
 'Edit match': 'Match bearbeiten',
-
+'Back': 'Zurück',
+'PDF': 'PDF',
+'Print': 'Drucken',
 
 };
 

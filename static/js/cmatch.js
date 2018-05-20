@@ -263,7 +263,7 @@ function ui_scoresheet(match_id) {
 	});
 
 	const container = uiu.el(dialog, 'div');
-	const lang = 'en';
+	const lang = ci18n.get_lang();
 	const pseudo_state = {
 		settings: {
 			shuttle_counter: true,
@@ -289,16 +289,16 @@ function ui_scoresheet(match_id) {
 
 	const scoresheet_buttons = uiu.el(dialog, 'div', 'match_scoresheet_buttons');
 
-	const cancel_btn = uiu.el(scoresheet_buttons, 'div', 'vlink', 'Back');
+	const cancel_btn = uiu.el(scoresheet_buttons, 'div', 'vlink', ci18n('Back'));
 	cancel_btn.addEventListener('click', _cancel_ui_scoresheet);	
 
-	const pdf_btn = uiu.el(scoresheet_buttons, 'button', {}, 'PDF');
+	const pdf_btn = uiu.el(scoresheet_buttons, 'button', {}, ci18n('PDF'));
 	pdf_btn.addEventListener('click', function() {
 		const svg_nodes = document.querySelectorAll('.single_scoresheet');
 		scoresheet.save_pdf(s, svg_nodes);
 	});
 
-	const print_btn = uiu.el(scoresheet_buttons, 'button', {}, 'Print');
+	const print_btn = uiu.el(scoresheet_buttons, 'button', {}, ci18n('Print'));
 	print_btn.addEventListener('click', function() {
 		window.print();
 	});
@@ -630,6 +630,7 @@ if ((typeof module !== 'undefined') && (typeof require !== 'undefined')) {
 	var cbts_utils = require('./cbts_utils');
 	var cerror = require('../bup/js/cerror');
 	var change = require('./change');
+	var ci18n = require('./ci18n');
 	var crouting = require('./crouting');
 	var ctournament = require('./ctournament');
 	var form_utils = require('../bup/js/form_utils');

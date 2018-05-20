@@ -1,9 +1,11 @@
 
+lint
+scoresheet language
 show duration for finished matches
 score update freezes from time to time
 BLP support
 match throws error
-tab order order of add/edit is wrong
+texchnical export should be supported by bup
 ----
 
 do not use FileSaver anymore, use bup's built-in features; test saving all scoresheets as zip
