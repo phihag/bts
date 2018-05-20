@@ -26,6 +26,7 @@ var ci18n_de = {
 'Print': 'Drucken',
 'Add Match': 'Spiel hinzufügen',
 ' Ready to start ': ' Spielbereit ',
+'Not assigned': 'Nicht zugewiesen',
 
 };
 

@@ -509,7 +509,7 @@ function render_edit(tbody, match) {
 	});
 	uiu.el(court_select, 'option', {
 		value: '',
-	}, 'Not assigned');
+	}, ci18n('Not assigned'));
 	if (curt) {
 		for (const court of curt.courts) {
 			const attrs = {
