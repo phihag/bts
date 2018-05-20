@@ -25,6 +25,7 @@ var ci18n_de = {
 'PDF': 'PDF',
 'Print': 'Drucken',
 'Add Match': 'Spiel hinzufügen',
+' Ready to start ': ' Spielbereit ',
 
 };
 

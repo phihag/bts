@@ -75,7 +75,7 @@ function render_match_row(tr, match, court, include_court) {
 	uiu.el(tr, 'td', (setup.umpire_name ? 'match_umpire' : 'match_no_umpire'), setup.umpire_name || 'No umpire');
 	const score_td = uiu.el(tr, 'td');
 	if (court && (court.match_id !== match._id) && (typeof match.team1_won !== 'boolean')) {
-		uiu.el(score_td, 'span', {}, ' Ready to start ');
+		uiu.el(score_td, 'span', {}, ci18n(' Ready to start '));
 	}
 	uiu.el(score_td, 'span', {
 		'class': ('match_score' + ((court && (court.match_id === match._id)) ? ' match_score_current' : '')),
