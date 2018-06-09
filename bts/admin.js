@@ -154,7 +154,7 @@ function _extract_setup(msg_setup) {
 		setup.match_name = '# ' + setup.match_num;
 	}
 	setup.counting = '3x21';
-	setup.team_competition = false;
+	setup.team_competition = curt.is_team;
 	return setup;
 }
 
