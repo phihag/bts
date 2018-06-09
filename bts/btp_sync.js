@@ -18,9 +18,38 @@ function _craft_team(par) {
 	}
 
 	const players = par.map(p => {
-		return {name: p.Firstname + ' ' + p.Lastname};
+		const pres = {
+			name: p.Firstname + ' ' + p.Lastname,
+		};
+		if (p.Country && p.Country[0]) {
+			pres.nationality = p.Country[0];
+		}
+		return pres;
 	});
-	return {players};
+
+	const tres = {
+		players,
+	};
+
+	if ((players.length === 2) && (players[0].nationality != players[1].nationality)) {
+		tres.name = players[0].nationality + ' / ' + players[1].nationality;
+	} else if ((players.length > 0) && (players[0].nationality)) {
+		tres.name = {
+			'GER': 'Germany',
+			'FRA': 'France',
+			'SWE': 'Sweden',
+			'POL': 'Poland',
+			'ENG': 'England',
+			'LUX': 'Luxembourg',
+			'BEL': 'Belgium',
+			'RUS': 'Russia',
+			'ITA': 'Italy',
+			'AUT': 'Austria',
+			'EST': 'Estonia',
+		}[players[0].nationality];
+	}
+
+	return tres;
 }
 
 function _craft_teams(bm) {
