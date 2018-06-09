@@ -241,7 +241,7 @@ function ui_edit() {
 		'class': 'ct_name',
 	});
 
-	// Team?
+	// Team competition?
 	const is_team_label = uiu.el(form, 'label');
 	const is_team_attrs = {
 		type: 'checkbox',
@@ -251,7 +251,19 @@ function ui_edit() {
 		is_team_attrs.checked = 'checked';
 	}
 	uiu.el(is_team_label, 'input', is_team_attrs);
-	uiu.el(is_team_label, 'span', {}, 'Mannschafts-Wettbewerb');
+	uiu.el(is_team_label, 'span', {}, ci18n('team competition'));
+
+	// Nation competition?
+	const is_nation_competition_label = uiu.el(form, 'label');
+	const is_nation_competition_attrs = {
+		type: 'checkbox',
+		name: 'is_nation_competition',
+	};
+	if (curt.is_nation_competition) {
+		is_nation_competition_attrs.checked = 'checked';
+	}
+	uiu.el(is_nation_competition_label, 'input', is_nation_competition_attrs);
+	uiu.el(is_nation_competition_label, 'span', {}, ci18n('nation competition'));
 
 	// BTP
 	const btp_enabled_label = uiu.el(form, 'label');
@@ -336,11 +348,12 @@ function ui_edit() {
 
 	uiu.el(form, 'button', {
 		role: 'submit',
-	}, 'Ändern');
+	}, ci18n('Change'));
 	form_utils.onsubmit(form, function(data) {
 		const props = {
 			name: data.name,
 			is_team: (!!data.is_team),
+			is_nation_competition: (!!data.is_nation_competition),
 			btp_enabled: (!!data.btp_enabled),
 			btp_autofetch_enabled: (!!data.btp_autofetch_enabled),
 			btp_readonly: (!!data.btp_readonly),

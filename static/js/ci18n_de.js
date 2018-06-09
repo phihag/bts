@@ -27,6 +27,8 @@ var ci18n_de = {
 'Add Match': 'Spiel hinzufügen',
 ' Ready to start ': ' Spielbereit ',
 'Not assigned': 'Nicht zugewiesen',
+'team competition': 'Mannschafts-Wettbewerb',
+'nation competition': 'Nationen-Wettbewerb',
 
 };
 

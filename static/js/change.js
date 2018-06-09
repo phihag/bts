@@ -41,6 +41,7 @@ function default_handler_func(rerender, special_funcs, c) {
 	case 'props': {
 		curt.name = c.val.name;
 		curt.is_team = c.val.is_team;
+		curt.is_nation_competition = c.is_nation_competition;
 		curt.btp_enabled = c.val.btp_enabled;
 		curt.btp_autofetch_enabled = c.val.btp_autofetch_enabled;
 		curt.btp_readonly = c.val.btp_readonly;
@@ -56,7 +57,7 @@ function default_handler_func(rerender, special_funcs, c) {
 				uiu.text(el, c.val.name);
 			}
 		});
-		const CHECKBOXES = ['btp_enabled', 'btp_autofetch_enabled', 'btp_readonly', 'ticker_enabled'];
+		const CHECKBOXES = ['is_team', 'is_nation_competition', 'btp_enabled', 'btp_autofetch_enabled', 'btp_readonly', 'ticker_enabled'];
 		for (const cb_name of CHECKBOXES) {
 			uiu.qsEach('input[name="' + cb_name + '"]', function(el) {
 				el.checked = curt[cb_name];

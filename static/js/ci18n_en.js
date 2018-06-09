@@ -27,6 +27,8 @@ var ci18n_en = {
 'Add Match': 'Add Match',
 ' Ready to start ': ' Ready to start ',
 'Not assigned': 'Not assigned',
+'team competition': 'team competition',
+'nation competition': 'nation competition',
 
 };
 
