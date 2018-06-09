@@ -1,15 +1,26 @@
+english in tournament options
+
+-----
+
+referee view:
+	used shuttles per court (warning if more than x)
+	cards if any
+	duration
+	Referee
 
 lint
-scoresheet language
 show duration for finished matches
 score update freezes from time to time
 BLP support
+support service judges
+umpire editing dialog
 match throws error
-texchnical export should be supported by bup
+technical export should be supported by bup
+Dockerfile for bts
+Dockerfile for btsticker
 ----
 
-do not use FileSaver anymore, use bup's built-in features; test saving all scoresheets as zip
-highlight courts where referee is currently called in blinking red
+test ticker on mobile
 add umpires / service judges UI
 select service judge in UI
 use websocket protocol

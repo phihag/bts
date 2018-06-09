@@ -2,7 +2,7 @@
 var ci18n = (function() {
 
 var languages = {};
-var lang = 'de';
+var lang = 'en';
 
 function register_lang(lang) {
 	languages[lang._code] = lang;
@@ -37,7 +37,7 @@ function register_all() {
 
 function init() {
 	lang = detect_lang();
-	lang = 'de'; // TODO Forced for DHM
+	lang = 'en'; // TODO Forced for Babolat
 	register_all();
 }
 
@@ -89,6 +89,7 @@ return simple_translate;
 
 /*@DEV*/
 if ((typeof module !== 'undefined') && (typeof require !== 'undefined')) {
+	var utils = require('../bup/js/utils');
 	var ci18n_de = require('./ci18n_de');
 	var ci18n_en = require('./ci18n_en');
 	ci18n.register_all();
