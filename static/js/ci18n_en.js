@@ -26,7 +26,7 @@ var ci18n_en = {
 'Print': 'Print',
 'Add Match': 'Add Match',
 ' Ready to start ': ' Ready to start ',
-
+'Not assigned': 'Not assigned',
 
 };
 
