@@ -94,7 +94,7 @@ function matches_handler(req, res) {
 			const setup = dm.setup;
 			setup.match_id = 'bts_' + dm._id;
 			setup.team_competition = tournament.is_team;
-			setup.is_nation_competition = tournament.is_nation_competition;
+			setup.nation_competition = tournament.is_nation_competition;
 			return {
 				setup,
 				presses_json: JSON.stringify(dm.presses),
