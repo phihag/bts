@@ -177,11 +177,11 @@ function ui_show() {
 	settings_btn.addEventListener('click', ui_edit);
 
 	if (curt.btp_enabled) {
-		const btp_fetch_btn = uiu.el(main, 'button', 'tournament_btp_fetch', 'Von BTP aktualisieren');
+		const btp_fetch_btn = uiu.el(main, 'button', 'tournament_btp_fetch', ci18n('update from BTP'));
 		btp_fetch_btn.addEventListener('click', ui_btp_fetch);
 	}
 	if (curt.ticker_enabled) {
-		const ticker_push_btn = uiu.el(main, 'button', 'tournament_ticker_push', 'Ticker aktualisieren');
+		const ticker_push_btn = uiu.el(main, 'button', 'tournament_ticker_push', ci18n('update ticker'));
 		ticker_push_btn.addEventListener('click', ui_ticker_push);
 	}
 

@@ -29,6 +29,9 @@ var ci18n_en = {
 'Not assigned': 'Not assigned',
 'team competition': 'team competition',
 'nation competition': 'nation competition',
+'update from BTP': 'update from BTP',
+'update ticker': 'update ticker',
+
 
 };
 
