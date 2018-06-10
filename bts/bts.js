@@ -83,14 +83,6 @@ function create_app(config, db) {
 	const server = require('http').createServer();
 	const app = express();
 	const wss = new ws_module.Server({server: server});
-app.engine('pug', require('pug').__express);
-app.engine('jade', require('jade').__express);
-
-app.set('view engine','pug');
-app.set('view engine','jade');
-console.log('engines', Object.keys(app.engines))
-console.log('get view', app.get('view engine'))
-
 
 	app.config = config;
 	app.db = db;
