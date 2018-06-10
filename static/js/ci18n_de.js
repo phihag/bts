@@ -28,7 +28,7 @@ var ci18n_de = {
 ' Ready to start ': ' Spielbereit ',
 'Not assigned': 'Nicht zugewiesen',
 'team competition': 'Mannschafts-Wettbewerb',
-'nation competition': 'Nationen-Wettbewerb',
+'nation competition': 'Internationales Turnier',
 'update from BTP': 'Von BTP aktualisieren',
 'update ticker': 'Ticker aktualisieren',
 

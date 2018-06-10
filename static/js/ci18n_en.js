@@ -28,7 +28,7 @@ var ci18n_en = {
 ' Ready to start ': ' Ready to start ',
 'Not assigned': 'Not assigned',
 'team competition': 'team competition',
-'nation competition': 'nation competition',
+'nation competition': 'international competition',
 'update from BTP': 'update from BTP',
 'update ticker': 'update ticker',
 
