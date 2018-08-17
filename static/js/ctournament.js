@@ -64,7 +64,7 @@ function ui_create() {
 function ui_list() {
 	crouting.set('t/');
 	toprow.set([{
-		label: 'Tournaments',
+		label: ci18n('Tournaments'),
 		func: ui_list,
 	}]);
 

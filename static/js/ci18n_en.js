@@ -31,7 +31,7 @@ var ci18n_en = {
 'nation competition': 'international competition',
 'update from BTP': 'update from BTP',
 'update ticker': 'update ticker',
-
+'Tournaments': 'Tournaments',
 
 };
 

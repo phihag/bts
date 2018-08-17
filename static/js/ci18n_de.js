@@ -31,6 +31,7 @@ var ci18n_de = {
 'nation competition': 'Internationales Turnier',
 'update from BTP': 'Von BTP aktualisieren',
 'update ticker': 'Ticker aktualisieren',
+'Tournaments': 'Turniere',
 
 };
 
