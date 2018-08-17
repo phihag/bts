@@ -37,7 +37,7 @@ function register_all() {
 
 function init() {
 	lang = detect_lang();
-	lang = 'en'; // TODO Forced for Babolat
+	lang = 'de'; // TODO Forced for Beuel
 	register_all();
 }
 
