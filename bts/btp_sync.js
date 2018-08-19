@@ -313,7 +313,12 @@ function integrate_umpires(app, tournament_key, btp_state, callback) {
 }
 
 function fetch(app, tkey, response, callback) {
-	const btp_state = btp_parse.get_btp_state(response);
+	let btp_state;
+	try {
+		btp_state = btp_parse.get_btp_state(response);
+	} catch (e) {
+		return callback(e);
+	}
 
 	async.waterfall([
 		cb => integrate_umpires(app, tkey, btp_state, cb),

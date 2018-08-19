@@ -1,3 +1,16 @@
+make run should be in a loop with autorestart
+feature: force language for tournament
+ghost games
+spiel-Status manuell aus btp ziehen
+Ansicht Turnierbaum
+editing tournament name fails
+show upcoming games only
+show current + upcoming games
+
+bug: going to scoresheet fails, going back fails as well
+option to hide matches without time fro main view
+
+
 flag
 
 setting btp data fails for some reason sometimes
