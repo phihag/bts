@@ -7,14 +7,14 @@
 		"test": "mocha test/"
 	},
 	"dependencies": {
-		"async": "*",
+		"async": "2.6.0",
 		"body-parser": "*",
 		"express": "*",
 		"extract-zip": "*",
 		"jade": "^1.11.0",
 		"nedb": "*",
 		"pug": "^2.0.3",
-		"request": "*",
+		"request": "2.84.0",
 		"rimraf": "*",
 		"serve-favicon": "*",
 		"ws": "*",
