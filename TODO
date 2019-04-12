@@ -1,7 +1,20 @@
+referee view
+	courts
+
+	team score
+	upcoming games?
+	flashing red when referee
+
+
+output
+
+bupdate
+
+link to stats
 make run should be in a loop with autorestart
 feature: force language for tournament
-ghost games
-spiel-Status manuell aus btp ziehen
+ghost games?
+Spiel-Status manuell aus btp ziehen, override our state
 Ansicht Turnierbaum
 editing tournament name fails
 show upcoming games only
