@@ -32,6 +32,10 @@ var ci18n_en = {
 'update from BTP': 'update from BTP',
 'update ticker': 'update ticker',
 'Tournaments': 'Tournaments',
+'referee view': 'Referee view',
+'Connecting ...': 'Connecting ...',
+'Connected': 'Connected',
+'Connection lost': 'Connection lost',
 
 };
 

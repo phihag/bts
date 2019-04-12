@@ -32,6 +32,10 @@ var ci18n_de = {
 'update from BTP': 'Von BTP aktualisieren',
 'update ticker': 'Ticker aktualisieren',
 'Tournaments': 'Turniere',
+'referee view': 'Referee-Ansicht',
+'Connecting ...': 'Verbinde ...',
+'Connected': 'Verbunden',
+'Connection lost': 'Verbindung verloren',
 
 };
 
