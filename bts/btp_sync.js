@@ -93,7 +93,6 @@ function integrate_matches(app, tkey, btp_state, court_map, callback) {
 			if (err) return cb(err);
 
 			if (cur_match && cur_match.btp_needsync) {
-				console.log('btp_needsync');
 				cb();
 				return;
 			}
@@ -109,7 +108,6 @@ function integrate_matches(app, tkey, btp_state, court_map, callback) {
 
 			const scheduled_time_str = (bm.PlannedTime ? _date_str(bm.PlannedTime[0]) : undefined);
 			let match_name = 'matchtypeno:' + JSON.stringify(bm.MatchTypeNo); // bm.RoundName[0];
-			console.log(Object.keys(bm))
 			match_name = {
 				1: 'HE',
 				2: 'DE',
