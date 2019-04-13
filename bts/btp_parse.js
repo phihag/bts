@@ -98,7 +98,6 @@ return; // dead code ahead
 	return;
 }
 
-
 // TODO move this into a separate process
 function get_btp_state(response) {
 	const btp_t = response.Result[0].Tournament[0];
@@ -107,6 +106,9 @@ function get_btp_state(response) {
 	const all_btp_team_matches = btp_t.Matches[0].Match;
 	const team_matches_by_id = utils.make_index(
 		all_btp_team_matches, tm => tm.ID[0]);
+
+	const teams_by_id = utils.make_index(btp_t.Teams[0].Team, b => b.ID[0]);
+	const teamplayers_by_playerid = utils.make_index(btp_t.TeamPlayers[0].TeamPlayer, tp => tp.PlayerID[0]);
 
 	const all_btp_matches = btp_t.PlayerMatches[0].PlayerMatch;
 	const matches = filter_matches(all_btp_matches);
@@ -125,12 +127,22 @@ function get_btp_state(response) {
 	for (const bm of matches) {
 		const tm = team_matches_by_id.get(bm.TeamMatchID[0]);
 		if (!tm) {
-			console.log('Match without teammatch: ' + JSON.stringify(bm));
+			console.log('Missing team match!');
 			continue;
 		}
 		bm.DrawID = tm.DrawID;
 
 		_calc_match_players(null, entries, players, bm);
+
+		const pt1 = teamplayers_by_playerid.get(bm.Team1Player1ID[0]);
+		const team1_id = pt1.TeamID[0];
+		const t1 = teams_by_id.get(team1_id).Name[0];
+		bm.bts_players[0].bts_team_name = t1;
+
+		const pt2 = teamplayers_by_playerid.get(bm.Team2Player1ID[0]);
+		const team2_id = pt2.TeamID[0];
+		const t2 = teams_by_id.get(team2_id).Name[0];
+		bm.bts_players[1].bts_team_name = t2;
 	}
 	return {
 		courts,

@@ -31,7 +31,9 @@ function _craft_team(par) {
 		players,
 	};
 
-	if ((players.length === 2) && (players[0].nationality != players[1].nationality)) {
+	if (par.bts_team_name) {
+		tres.name = par.bts_team_name;
+	} else if ((players.length === 2) && (players[0].nationality != players[1].nationality)) {
 		tres.name = players[0].nationality + ' / ' + players[1].nationality;
 	} else if ((players.length > 0) && (players[0].nationality)) {
 		tres.name = {
@@ -107,6 +109,7 @@ function integrate_matches(app, tkey, btp_state, court_map, callback) {
 			assert((gtid === 1) || (gtid === 2));
 
 			const scheduled_time_str = (bm.PlannedTime ? _date_str(bm.PlannedTime[0]) : undefined);
+			// TODO: this should be determined automatically
 			let match_name = 'matchtypeno:' + JSON.stringify(bm.MatchTypeNo); // bm.RoundName[0];
 			match_name = {
 				1: 'HE',
