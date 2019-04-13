@@ -23,6 +23,10 @@ function _calc_match_players(matches_by_pid, entries, players, bm) {
 		}
 
 		const p1 = players.get(e.Player1ID[0]);
+		if (!p1) {
+			// console.log('Cannot find player');
+			return;
+		}
 		assert(p1);
 		const res = [p1];
 		if (e.Player2ID) {
