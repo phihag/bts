@@ -94,7 +94,7 @@ class BTPConn {
 		this.send(ir, response => {
 			btp_sync.fetch(this.app, this.tkey, response, (err) => {
 				if (err) {
-					this.report_status('Synchronisations-Fehler: ' + err.message);
+					this.report_status('Synchronisations-Fehler: ' + err.stack);
 				}
 			});
 		});

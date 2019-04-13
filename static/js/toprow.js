@@ -28,6 +28,7 @@ function update_container(container, elems, with_sep) {
 
 function set(elems, right_elems) {
 	const left = uiu.qs('.toprow');
+	uiu.show(left);
 	update_container(left, elems, true);
 
 	const right = uiu.el(left, 'div', 'toprow_right');
@@ -35,6 +36,11 @@ function set(elems, right_elems) {
 		right_elems = [];
 	}
 	update_container(right, right_elems, false);
+}
+
+function hide() {
+	const toprow = uiu.qs('.toprow');
+	uiu.hide(toprow);
 }
 
 function link(href) {
@@ -45,6 +51,7 @@ function link(href) {
 
 return {
 	link,
+	hide,
 	set,
 };
 

@@ -78,6 +78,7 @@ h3 {
 	cursor: not-allowed;
 }
 
+.tournament_referee_view_link,
 .tournament_btp_fetch,
 .tournament_ticker_push,
 .tournament_settings_link {

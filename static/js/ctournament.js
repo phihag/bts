@@ -185,6 +185,10 @@ function ui_show() {
 		ticker_push_btn.addEventListener('click', ui_ticker_push);
 	}
 
+	const referee_btn = uiu.el(main, 'a', {
+		'href': 'referee',
+		'class': 'tournament_referee_view_link',
+	}, ci18n('referee view'))
 
 	uiu.el(main, 'h1', 'tournament_name ct_name', curt.name || curt.key);
 
@@ -687,6 +691,7 @@ if ((typeof module !== 'undefined') && (typeof require !== 'undefined')) {
 	var ci18n = require('./ci18n');
 	var cmatch = require('./cmatch');
 	var crouting = require('./crouting');
+	var creferee = require('./creferee');
 	var debug = require('./debug');
 	var form_utils = require('./form_utils');
 	var i18n = require('../bup/js/i18n');
