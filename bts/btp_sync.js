@@ -133,7 +133,7 @@ function integrate_matches(app, tkey, btp_state, court_map, callback) {
 
 			const setup = {
 				incomplete: !bm.bts_complete,
-				is_doubles: (gtid === 2),
+				is_doubles: (teams[0].players.length === 2),
 				match_num,
 				counting: '3x21',
 				team_competition: false,
