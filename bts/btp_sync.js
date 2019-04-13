@@ -31,8 +31,8 @@ function _craft_team(par) {
 		players,
 	};
 
-	if (par.bts_team_name) {
-		tres.name = par.bts_team_name;
+	if (par[0].bts_team_name) {
+		tres.name = par[0].bts_team_name;
 	} else if ((players.length === 2) && (players[0].nationality != players[1].nationality)) {
 		tres.name = players[0].nationality + ' / ' + players[1].nationality;
 	} else if ((players.length > 0) && (players[0].nationality)) {

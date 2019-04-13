@@ -137,12 +137,12 @@ function get_btp_state(response) {
 		const pt1 = teamplayers_by_playerid.get(bm.Team1Player1ID[0]);
 		const team1_id = pt1.TeamID[0];
 		const t1 = teams_by_id.get(team1_id).Name[0];
-		bm.bts_players[0].bts_team_name = t1;
+		bm.bts_players[0][0].bts_team_name = t1;
 
 		const pt2 = teamplayers_by_playerid.get(bm.Team2Player1ID[0]);
 		const team2_id = pt2.TeamID[0];
 		const t2 = teams_by_id.get(team2_id).Name[0];
-		bm.bts_players[1].bts_team_name = t2;
+		bm.bts_players[1][0].bts_team_name = t2;
 	}
 	return {
 		courts,
