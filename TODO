@@ -1,11 +1,12 @@
 test with individual
 	in particular KO
-
-test with group matches
-
-configure default view
-
+	test with tournament
+	test transmission
 nationalities
+
+make referee view in bup
+
+configure default display view -> Gregor
 
 referee view
 	courts
@@ -19,7 +20,6 @@ start itests?
 
 add large test suite for BTP / LP
 
-configure default display view -> Gregor
 
 fix league + normal, add lots of test cases
 
