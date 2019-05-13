@@ -37,7 +37,6 @@ function register_all() {
 
 function init() {
 	lang = detect_lang();
-	lang = 'de'; // TODO Forced for Beuel
 	register_all();
 }
 
