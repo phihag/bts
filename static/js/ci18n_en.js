@@ -45,6 +45,7 @@ var ci18n_en = {
 'tournament:edit:language:auto': 'Not set (browser default)',
 'tournament:edit:name': 'Name:',
 'tournament:edit:courts': 'Courts:',
+'tournament:edit:dm_style': 'Default display style:',
 'tournament:edit:btp:enabled': 'Enable BTP synchronization',
 'tournament:edit:btp:autofetch_enabled': 'Automatic synchronization',
 'tournament:edit:btp:readonly': 'Read only',

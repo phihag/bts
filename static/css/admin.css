@@ -91,10 +91,12 @@ h3 {
 	padding: 0;
 	border: none;
 }
-.tournament_settings > label, .tournament_settings fieldset > label {
+.tournament_settings > label,
+.tournament_settings fieldset > label {
 	display: block;
 }
-.tournament_settings > label > span, .tournament_settings fieldset > label > span {
+.tournament_settings > label > span,
+.tournament_settings fieldset > label > span {
 	display: inline-block;
 	min-width: 5em;
 }

@@ -159,6 +159,7 @@ function ui_ticker_push() {
 function ui_show() {
 	crouting.set('t/:key/', {key: curt.key});
 	const bup_lang = ((curt.language && curt.language !== 'auto') ? '&lang=' + encodeURIComponent(curt.language) : '');
+	const bup_dm_style = '&dm_style=' + encodeURIComponent(curt.dm_style || 'international');
 	toprow.set([{
 		label: ci18n('Tournaments'),
 		func: ui_list,
@@ -171,7 +172,7 @@ function ui_show() {
 		href: '/bup/#btsh_e=' + encodeURIComponent(curt.key) + '&display&dm_style=bts_referee' + bup_lang,
 	}, {
 		label: 'Scoreboard',
-		href: '/bup/#btsh_e=' + encodeURIComponent(curt.key) + '&display&dm_style=teamcourt' + bup_lang,
+		href: '/bup/#btsh_e=' + encodeURIComponent(curt.key) + '&display' + bup_dm_style + bup_lang,
 	}, {
 		label: 'Umpire Panel',
 		href: '/bup/#btsh_e=' + encodeURIComponent(curt.key) + bup_lang,
@@ -290,6 +291,25 @@ function ui_edit() {
 	}
 	uiu.el(is_nation_competition_label, 'input', is_nation_competition_attrs);
 	uiu.el(is_nation_competition_label, 'span', {}, ci18n('nation competition'));
+
+	// Default display
+	const cur_dm_style = curt.dm_style || 'international';
+	const dm_style_label = uiu.el(form, 'label');
+	uiu.el(dm_style_label, 'span', {}, ci18n('tournament:edit:dm_style'));
+	const dm_style_select = uiu.el(dm_style_label, 'select', {
+		name: 'dm_style',
+		required: 'required',
+	});
+	const all_dm_styles = displaymode.ALL_STYLES;
+	for (const s of all_dm_styles) {
+		const s_attrs = {
+			value: s,
+		};
+		if (s === cur_dm_style) {
+			s_attrs.selected = 'selected';
+		}
+		uiu.el(dm_style_select, 'option', s_attrs, s);
+	}
 
 	// BTP
 	const btp_fieldset = uiu.el(form, 'fieldset');
@@ -707,6 +727,7 @@ return {
 /*@DEV*/
 if ((typeof module !== 'undefined') && (typeof require !== 'undefined')) {
 	var calc = require('../bup/js/calc');
+	var displaymode = require('../bup/js/displaymode');
 	var cbts_utils = require('./cbts_utils');
 	var cerror = require('./cerror');
 	var change = require('./change');

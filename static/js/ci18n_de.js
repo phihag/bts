@@ -45,6 +45,7 @@ var ci18n_de = {
 'tournament:edit:language:auto': 'Nicht gesetzt (Browser-Einstellung)',
 'tournament:edit:name': 'Name:',
 'tournament:edit:courts': 'Felder:',
+'tournament:edit:dm_style': 'Standard-Ansicht:',
 'tournament:edit:btp:enabled': 'BTP-Anbindung aktivieren',
 'tournament:edit:btp:autofetch_enabled': 'Automatisch synchronisieren',
 'tournament:edit:btp:readonly': 'Nur lesen',

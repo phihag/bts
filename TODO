@@ -7,8 +7,6 @@ nationalities
 bup display increase font size
 bup display flags
 
-configure default display view -> Gregor
-
 make referee view in bup
 referee view
 	courts
@@ -29,7 +27,14 @@ translate everything
 
 test whether we need an option for service judges
 
+clarify bup setup & update
 
+write Dockerfile
+
+
+settings: use i18n names in dm_style
+
+translate btp status / ticker status
 
 set only one main tournament at a time
 
