@@ -73,7 +73,7 @@ function render_match_row(tr, match, court, include_court) {
 	uiu.el(tr, 'td', ((match.team1_won === true) ? 'match_team_won' : ''), calc_players_str(setup, 0));
 	uiu.el(tr, 'td', 'match_vs', 'v');
 	uiu.el(tr, 'td', ((match.team1_won === false) ? 'match_team_won ' : '') + 'match_team2', calc_players_str(setup, 1));
-	uiu.el(tr, 'td', (setup.umpire_name ? 'match_umpire' : 'match_no_umpire'), setup.umpire_name || 'No umpire');
+	uiu.el(tr, 'td', (setup.umpire_name ? 'match_umpire' : 'match_no_umpire'), setup.umpire_name || ci18n('No umpire'));
 	const score_td = uiu.el(tr, 'td');
 	if (court && (court.match_id !== match._id) && (typeof match.team1_won !== 'boolean')) {
 		uiu.el(score_td, 'span', {}, ci18n(' Ready to start '));

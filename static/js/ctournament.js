@@ -160,7 +160,7 @@ function ui_show() {
 	crouting.set('t/:key/', {key: curt.key});
 	const bup_lang = ((curt.language && curt.language !== 'auto') ? '&lang=' + encodeURIComponent(curt.language) : '');
 	toprow.set([{
-		label: 'Tournaments',
+		label: ci18n('Tournaments'),
 		func: ui_list,
 	}, {
 		label: curt.name || curt.key,
