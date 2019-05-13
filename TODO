@@ -1,5 +1,3 @@
-clean lint
-
 test with individual
 	in particular KO
 	test with tournament
@@ -31,9 +29,9 @@ translate everything
 
 test whether we need an option for service judges
 
-set language with /u short URLs
 
 
+set only one main tournament at a time
 
 add large test suite for BTP / LP
 

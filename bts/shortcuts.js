@@ -23,7 +23,8 @@ function display_handler(req, res) {
 		if (err) return _error(res, err);
 		if (!t) return serve_404(res);
 
-		let redir_url = '/bup/#btsh_e=' + encodeURIComponent(t.key) + '&display&dm_style=andre';
+		const bup_lang = ((t.language && t.language !== 'auto') ? '&lang=' + encodeURIComponent(t.language) : '');
+		let redir_url = '/bup/#btsh_e=' + encodeURIComponent(t.key) + '&display&dm_style=andre' + bup_lang;
 		if (/^[0-9]+$/.test(req.params.courtnum)) {
 			redir_url += '&court=' + encodeURIComponent(t.key + '_' + req.params.courtnum);
 		}
@@ -37,7 +38,8 @@ function umpire_handler(req, res) {
 		if (err) return _error(res, err);
 		if (!t) return serve_404(res);
 
-		let redir_url = '/bup/#btsh_e=' + encodeURIComponent(t.key);
+		const bup_lang = ((t.language && t.language !== 'auto') ? '&lang=' + encodeURIComponent(t.language) : '');
+		let redir_url = '/bup/#btsh_e=' + encodeURIComponent(t.key) + bup_lang;
 		if (/^[0-9]+$/.test(req.params.courtnum)) {
 			redir_url += '&court=' + encodeURIComponent(t.key + '_' + req.params.courtnum);
 		}
