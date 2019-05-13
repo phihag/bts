@@ -1,12 +1,22 @@
+test with league
+	in particular KO
+
+test with group matches
+
 referee view
 	courts
-
 	team score
 	upcoming games?
 	flashing red when referee
+	highlight nearly done matches
 
+add large test suite for BTP / LP
 
-output
+configure default display view -> Gregor
+
+fix league + normal, add lots of test cases
+
+umpire view (also allow to see / edit internal IDs)
 
 bupdate
 
