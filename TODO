@@ -3,6 +3,7 @@ test with individual
 	test with tournament
 	test transmission
 nationalities
+test whether we need an option for service judges
 
 bup display increase font size
 bup display flags
@@ -24,8 +25,6 @@ changing settings should not jump, but get confirmation
 debug view to see all changes sent
 
 translate everything
-
-test whether we need an option for service judges
 
 clarify bup setup & update
 
