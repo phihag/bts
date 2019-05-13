@@ -23,6 +23,9 @@ function switch_tournament(tournament_key, success_cb) {
 		}
 
 		curt = response.tournament;
+		if (curt.language && curt.language !== 'auto') {
+			ci18n.switch_language(curt.language);
+		}
 		uiu.text_qs('.btp_status', 'BTP status: ' + curt.btp_status);
 		uiu.text_qs('.ticker_status', 'Ticker status: ' + curt.ticker_status);
 		success_cb();
@@ -34,8 +37,8 @@ function ui_create() {
 
 	uiu.empty(main);
 	const form = uiu.el(main, 'form');
-	uiu.el(form, 'h2', {}, 'Create tournament');
-	const id_label = uiu.el(form, 'label', {}, 'tournament ID (all lowercase, no spaces):');
+	uiu.el(form, 'h2', {}, ci18n('Create tournament'));
+	const id_label = uiu.el(form, 'label', {}, ci18n('create:id:label'));
 	const key_input = uiu.el(id_label, 'input', {
 		type: 'text',
 		name: 'key',
@@ -45,7 +48,7 @@ function ui_create() {
 	});
 	uiu.el(form, 'button', {
 		role: 'submit',
-	}, 'Create tournament');
+	}, ci18n('Create tournament'));
 	key_input.focus();
 
 	form_utils.onsubmit(form, function(data) {
@@ -155,6 +158,7 @@ function ui_ticker_push() {
 
 function ui_show() {
 	crouting.set('t/:key/', {key: curt.key});
+	const bup_lang = ((curt.language && curt.language !== 'auto') ? '&lang=' + encodeURIComponent(curt.language) : '');
 	toprow.set([{
 		label: 'Tournaments',
 		func: ui_list,
@@ -163,11 +167,14 @@ function ui_show() {
 		func: ui_show,
 		'class': 'ct_name',
 	}], [{
+		label: ci18n('referee view') + ' ' + ci18n('experimental'),
+		href: '/bup/#btsh_e=' + encodeURIComponent(curt.key) + '&display&dm_style=bts_referee' + bup_lang,
+	}, {
 		label: 'Scoreboard',
-		href: '/bup/#btsh_e=' + encodeURIComponent(curt.key) + '&display&dm_style=teamcourt',
+		href: '/bup/#btsh_e=' + encodeURIComponent(curt.key) + '&display&dm_style=teamcourt' + bup_lang,
 	}, {
 		label: 'Umpire Panel',
-		href: '/bup/#btsh_e=' + encodeURIComponent(curt.key),
+		href: '/bup/#btsh_e=' + encodeURIComponent(curt.key) + bup_lang,
 	}]);
 
 	const main = uiu.qs('.main');
@@ -184,11 +191,6 @@ function ui_show() {
 		const ticker_push_btn = uiu.el(main, 'button', 'tournament_ticker_push', ci18n('update ticker'));
 		ticker_push_btn.addEventListener('click', ui_ticker_push);
 	}
-
-	const referee_btn = uiu.el(main, 'a', {
-		'href': 'referee',
-		'class': 'tournament_referee_view_link',
-	}, ci18n('referee view'))
 
 	uiu.el(main, 'h1', 'tournament_name ct_name', curt.name || curt.key);
 
@@ -225,7 +227,7 @@ function ui_edit() {
 
 	const form = uiu.el(main, 'form', 'tournament_settings');
 	const key_label = uiu.el(form, 'label');
-	uiu.el(key_label, 'span', {}, 'Tournament id:');
+	uiu.el(key_label, 'span', {}, ci18n('tournament:edit:id'));
 	uiu.el(key_label, 'input', {
 		type: 'text',
 		name: 'key',
@@ -235,8 +237,9 @@ function ui_edit() {
 		'class': 'uneditable',
 		value: curt.key,
 	});
+
 	const name_label = uiu.el(form, 'label');
-	uiu.el(name_label, 'span', {}, 'Name:');
+	uiu.el(name_label, 'span', {}, ci18n('tournament:edit:name'));
 	uiu.el(name_label, 'input', {
 		type: 'text',
 		name: 'name',
@@ -244,6 +247,25 @@ function ui_edit() {
 		value: curt.name || curt.key,
 		'class': 'ct_name',
 	});
+
+	// Tournament language selection
+	const language_label = uiu.el(form, 'label');
+	uiu.el(language_label, 'span', {}, ci18n('tournament:edit:language'));
+	const language_select = uiu.el(language_label, 'select', {
+		name: 'language',
+		required: 'required',
+	});
+	const all_langs = ci18n.get_all_languages();
+	uiu.el(language_select, 'option', {value: 'auto'}, ci18n('tournament:edit:language:auto'));
+	for (const l of all_langs) {
+		const l_attrs = {
+			value: l._code,
+		};
+		if (l._code === curt.language) {
+			l_attrs.selected = 'selected';
+		}
+		uiu.el(language_select, 'option', l_attrs, l._name);
+	}
 
 	// Team competition?
 	const is_team_label = uiu.el(form, 'label');
@@ -270,7 +292,8 @@ function ui_edit() {
 	uiu.el(is_nation_competition_label, 'span', {}, ci18n('nation competition'));
 
 	// BTP
-	const btp_enabled_label = uiu.el(form, 'label');
+	const btp_fieldset = uiu.el(form, 'fieldset');
+	const btp_enabled_label = uiu.el(btp_fieldset, 'label');
 	const ba_attrs = {
 		type: 'checkbox',
 		name: 'btp_enabled',
@@ -279,9 +302,9 @@ function ui_edit() {
 		ba_attrs.checked = 'checked';
 	}
 	uiu.el(btp_enabled_label, 'input', ba_attrs);
-	uiu.el(btp_enabled_label, 'span', {}, 'BTP-Anbindung aktivieren');
+	uiu.el(btp_enabled_label, 'span', {}, ci18n('tournament:edit:btp:enabled'));
 
-	const btp_autofetch_enabled_label = uiu.el(form, 'label');
+	const btp_autofetch_enabled_label = uiu.el(btp_fieldset, 'label');
 	const bae_attrs = {
 		type: 'checkbox',
 		name: 'btp_autofetch_enabled',
@@ -290,9 +313,9 @@ function ui_edit() {
 		bae_attrs.checked = 'checked';
 	}
 	uiu.el(btp_autofetch_enabled_label, 'input', bae_attrs);
-	uiu.el(btp_autofetch_enabled_label, 'span', {}, 'Automatisch synchronisieren');
+	uiu.el(btp_autofetch_enabled_label, 'span', {}, ci18n('tournament:edit:btp:autofetch_enabled'));
 
-	const btp_readonly_label = uiu.el(form, 'label');
+	const btp_readonly_label = uiu.el(btp_fieldset, 'label');
 	const bro_attrs = {
 		type: 'checkbox',
 		name: 'btp_readonly',
@@ -301,27 +324,27 @@ function ui_edit() {
 		bro_attrs.checked = 'checked';
 	}
 	uiu.el(btp_readonly_label, 'input', bro_attrs);
-	uiu.el(btp_readonly_label, 'span', {}, 'Nur lesen');
+	uiu.el(btp_readonly_label, 'span', {}, ci18n('tournament:edit:btp:readonly'));
 
-	const btp_ip_label = uiu.el(form, 'label');
-	uiu.el(btp_ip_label, 'span', {}, 'BTP-IP:');
+	const btp_ip_label = uiu.el(btp_fieldset, 'label');
+	uiu.el(btp_ip_label, 'span', {}, ci18n('tournament:edit:btp:ip'));
 	uiu.el(btp_ip_label, 'input', {
 		type: 'text',
 		name: 'btp_ip',
 		value: (curt.btp_ip || ''),
 	});
 
-	const btp_password_label = uiu.el(form, 'label');
-	uiu.el(btp_password_label, 'span', {}, 'BTP-Passwort:');
+	const btp_password_label = uiu.el(btp_fieldset, 'label');
+	uiu.el(btp_password_label, 'span', {}, ci18n('tournament:edit:btp:password'));
 	uiu.el(btp_password_label, 'input', {
 		type: 'text',
 		name: 'btp_password',
 		value: (curt.btp_password || ''),
 	});
 
-
 	// Ticker
-	const ticker_enabled_label = uiu.el(form, 'label');
+	const ticker_fieldset = uiu.el(form, 'fieldset');
+	const ticker_enabled_label = uiu.el(ticker_fieldset, 'label');
 	const te_attrs = {
 		type: 'checkbox',
 		name: 'ticker_enabled',
@@ -332,7 +355,7 @@ function ui_edit() {
 	uiu.el(ticker_enabled_label, 'input', te_attrs);
 	uiu.el(ticker_enabled_label, 'span', {}, 'Ticker aktivieren');
 
-	const ticker_url_label = uiu.el(form, 'label');
+	const ticker_url_label = uiu.el(ticker_fieldset, 'label');
 	uiu.el(ticker_url_label, 'span', {}, 'Ticker-Addresse:');
 	uiu.el(ticker_url_label, 'input', {
 		type: 'text',
@@ -340,7 +363,7 @@ function ui_edit() {
 		value: (curt.ticker_url || ''),
 	});
 
-	const ticker_password_label = uiu.el(form, 'label');
+	const ticker_password_label = uiu.el(ticker_fieldset, 'label');
 	uiu.el(ticker_password_label, 'span', {}, 'Ticker-Passwort:');
 	uiu.el(ticker_password_label, 'input', {
 		type: 'text',
@@ -348,14 +371,13 @@ function ui_edit() {
 		value: (curt.ticker_password || ''),
 	});
 
-
-
 	uiu.el(form, 'button', {
 		role: 'submit',
 	}, ci18n('Change'));
 	form_utils.onsubmit(form, function(data) {
 		const props = {
 			name: data.name,
+			language: data.language,
 			is_team: (!!data.is_team),
 			is_nation_competition: (!!data.is_nation_competition),
 			btp_enabled: (!!data.btp_enabled),
@@ -379,7 +401,7 @@ function ui_edit() {
 		});
 	});
 
-	uiu.el(main, 'h2', {}, 'Courts');
+	uiu.el(main, 'h2', {}, ci18n('tournament:edit:courts'));
 
 	const courts_table = uiu.el(main, 'table');
 	const courts_tbody = uiu.el(courts_table, 'tbody');
@@ -691,7 +713,6 @@ if ((typeof module !== 'undefined') && (typeof require !== 'undefined')) {
 	var ci18n = require('./ci18n');
 	var cmatch = require('./cmatch');
 	var crouting = require('./crouting');
-	var creferee = require('./creferee');
 	var debug = require('./debug');
 	var form_utils = require('./form_utils');
 	var i18n = require('../bup/js/i18n');

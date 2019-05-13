@@ -40,6 +40,11 @@ function init() {
 	register_all();
 }
 
+function switch_language(new_lang) {
+	lang = new_lang;
+	// TODO maybe update current texts
+}
+
 function translate(langcode, str, data, fallback) {
 	var lang = languages[langcode];
 	if (! lang) {
@@ -80,9 +85,15 @@ function get_lang() {
 	return lang;
 }
 
+function get_all_languages() {
+	return Object.values(languages);
+}
+
 simple_translate.register_all = register_all;
 simple_translate.init = init;
 simple_translate.get_lang = get_lang;
+simple_translate.switch_language = switch_language;
+simple_translate.get_all_languages = get_all_languages;
 return simple_translate;
 })();
 

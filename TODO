@@ -1,13 +1,17 @@
+clean lint
+
 test with individual
 	in particular KO
 	test with tournament
 	test transmission
 nationalities
 
-make referee view in bup
+bup display increase font size
+bup display flags
 
 configure default display view -> Gregor
 
+make referee view in bup
 referee view
 	courts
 	team score
@@ -15,11 +19,25 @@ referee view
 	flashing red when referee
 	highlight nearly done matches
 
+configure colors for match
+
 start itests?
+
+changing settings should not jump, but get confirmation
+
+debug view to see all changes sent
+
+translate everything
+
+test whether we need an option for service judges
+
+set language with /u short URLs
+
 
 
 add large test suite for BTP / LP
 
+when language changes automatically update everybody (including links to bup)
 
 fix league + normal, add lots of test cases
 

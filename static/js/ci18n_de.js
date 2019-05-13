@@ -36,7 +36,24 @@ var ci18n_de = {
 'Connecting ...': 'Verbinde ...',
 'Connected': 'Verbunden',
 'Connection lost': 'Verbindung verloren',
+'Create tournament': 'Turnier erstellen',
+'create:id:label': 'Turnier-ID (Kleinbuchstaben, keine Leerzeichen):',
+'experimental': '(experimentell)',
 
+'tournament:edit:id': 'Turnier-ID:',
+'tournament:edit:language': 'Sprache:',
+'tournament:edit:language:auto': 'Nicht gesetzt (Browser-Einstellung)',
+'tournament:edit:name': 'Name:',
+'tournament:edit:courts': 'Felder:',
+'tournament:edit:btp:enabled': 'BTP-Anbindung aktivieren',
+'tournament:edit:btp:autofetch_enabled': 'Automatisch synchronisieren',
+'tournament:edit:btp:readonly': 'Nur lesen',
+'tournament:edit:btp:ip': 'IP:',
+'tournament:edit:btp:password': 'BTP-Passwort:',
+
+'match:rawinfo': 'Technische Informationen',
+'match:scoresheet': 'Schiedsrichterzettel',
+'match:edit': 'Bearbeiten',
 };
 
 /*@DEV*/

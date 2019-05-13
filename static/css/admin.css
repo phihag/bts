@@ -85,10 +85,16 @@ h3 {
 	float: right;
 	margin-right: 0.5em;
 }
-.tournament_settings > label {
+
+.tournament_settings fieldset {
+	margin: 1em 0;
+	padding: 0;
+	border: none;
+}
+.tournament_settings > label, .tournament_settings fieldset > label {
 	display: block;
 }
-.tournament_settings > label > span {
+.tournament_settings > label > span, .tournament_settings fieldset > label > span {
 	display: inline-block;
 	min-width: 5em;
 }

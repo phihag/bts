@@ -46,19 +46,20 @@ function render_match_row(tr, match, court, include_court) {
 	const edit_btn = uiu.el(actions_td, 'div', {
 		'class': 'vlink match_edit_button',
 		'data-match__id': match._id,
+		'title': ci18n('match:edit'),
 	});
 	edit_btn.addEventListener('click', on_edit_button_click);
 
 	const scoresheet_btn = uiu.el(actions_td, 'div', {
 		'class': 'vlink match_scoresheet_button',
-		'title': 'Schiedsrichterzettel',
+		'title': ci18n('match:scoresheet'),
 		'data-match__id': match._id,
 	});
 	scoresheet_btn.addEventListener('click', on_scoresheet_button_click);
 
 	uiu.el(actions_td, 'a', {
 		'class': 'match_rawinfo',
-		'title': 'Technische Informationen',
+		'title': ci18n('match:rawinfo'),
 		'href': '/h/' + encodeURIComponent(curt.key) + '/m/' + encodeURIComponent(match._id) + '/info',
 	});
 

@@ -53,6 +53,7 @@ function send(msg, cb) { // eslint-disable-line no-unused-vars
 
 /*@DEV*/
 if ((typeof module !== 'undefined') && (typeof require !== 'undefined')) {
+	var ci18n = require('./ci18n');
 	var conn = require('./conn');
 	var crouting = require('./crouting');
 	var uiu = null; // UI only
