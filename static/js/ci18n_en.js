@@ -50,7 +50,12 @@ var ci18n_en = {
 'tournament:edit:btp:autofetch_enabled': 'Automatic synchronization',
 'tournament:edit:btp:readonly': 'Read only',
 'tournament:edit:btp:ip': 'IP address:',
-'tournament:edit:btp:password': 'BTP Password:',
+'tournament:edit:btp:password': 'BTP password:',
+
+'tournament:edit:ticker_enabled': 'Activate online ticker',
+'tournament:edit:ticker_url': 'Ticker URL:',
+'tournament:edit:ticker_password': 'Ticker password:',
+
 
 'match:rawinfo': 'Technical information',
 'match:scoresheet': 'Scoresheet',

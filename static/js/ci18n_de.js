@@ -52,6 +52,10 @@ var ci18n_de = {
 'tournament:edit:btp:ip': 'IP:',
 'tournament:edit:btp:password': 'BTP-Passwort:',
 
+'tournament:edit:ticker_enabled': 'Ticker aktivieren',
+'tournament:edit:ticker_url': 'Ticker-Adresse:',
+'tournament:edit:ticker_password': 'Ticker-Passwort:',
+
 'match:rawinfo': 'Technische Informationen',
 'match:scoresheet': 'Schiedsrichterzettel',
 'match:edit': 'Bearbeiten',

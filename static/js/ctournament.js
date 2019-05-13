@@ -373,10 +373,10 @@ function ui_edit() {
 		te_attrs.checked = 'checked';
 	}
 	uiu.el(ticker_enabled_label, 'input', te_attrs);
-	uiu.el(ticker_enabled_label, 'span', {}, 'Ticker aktivieren');
+	uiu.el(ticker_enabled_label, 'span', {}, ci18n('tournament:edit:ticker_enabled'));
 
 	const ticker_url_label = uiu.el(ticker_fieldset, 'label');
-	uiu.el(ticker_url_label, 'span', {}, 'Ticker-Addresse:');
+	uiu.el(ticker_url_label, 'span', {}, ci18n('tournament:edit:ticker_url'));
 	uiu.el(ticker_url_label, 'input', {
 		type: 'text',
 		name: 'ticker_url',
@@ -384,7 +384,7 @@ function ui_edit() {
 	});
 
 	const ticker_password_label = uiu.el(ticker_fieldset, 'label');
-	uiu.el(ticker_password_label, 'span', {}, 'Ticker-Passwort:');
+	uiu.el(ticker_password_label, 'span', {}, ci18n('tournament:edit:ticker_password'));
 	uiu.el(ticker_password_label, 'input', {
 		type: 'text',
 		name: 'ticker_password',
