@@ -5,20 +5,33 @@ test with individual
 nationalities
 test whether we need an option for service judges
 
-bup display increase font size
-bup display flags
-
-make referee view in bup
-referee view
-	courts
-	team score
-	upcoming games?
-	flashing red when referee
-	highlight nearly done matches
+fullscreen ask
 
 configure colors for match
 
+dm_style Babb international with flags
+
+make referee view
+referee view
+	add (ws?) API
+	courts
+	upcoming games?
+	flashing red when referee
+	highlight nearly done matches
+	umpire
+	last matches?
+	upcoming matches?
+	shortcut /r
+
+
+allow marking one tournament as active
+
+bup display increase font size
+bup display flags
+
 start itests?
+
+referee-like mode remote ocntrol
 
 changing settings should not jump, but get confirmation
 
@@ -27,6 +40,8 @@ debug view to see all changes sent
 translate everything
 
 clarify bup setup & update
+
+relay to another host?
 
 write Dockerfile
 
