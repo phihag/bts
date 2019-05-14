@@ -4,6 +4,13 @@ test with individual
 	test transmission
 nationalities
 test whether we need an option for service judges
+sync service judge!
+
+remove intro text -> Marcel
+smaller print buttons -> Marcel
+
+
+automatically print if something special happens -> Marcel
 
 fullscreen ask
 
@@ -24,12 +31,18 @@ referee view
 	shortcut /r
 
 
+should not update automatically on start
+
 better name for qualifications
 
 helper program to get all data from BTP, as binary or as JSON
 
 
 allow marking one tournament as active
+
+better error if ticker URL is invalid
+
+doc ticker
 
 bup display increase font size
 bup display flags
