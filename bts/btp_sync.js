@@ -78,7 +78,8 @@ function integrate_matches(app, tkey, btp_state, court_map, callback) {
 
 		const match_num = bm.MatchNr[0];
 		assert(typeof match_num === 'number');
-		const btp_id = tkey + '_' + draw.Name[0] + '_' + match_num;
+		const discipline_name = (event.Name[0] === draw.Name[0]) ? draw.Name[0] : event.Name[0] + '_' + draw.Name[0];
+		const btp_id = tkey + '_' + discipline_name + '_' + match_num;
 		const btp_match_ids = [{
 			id: bm.ID[0],
 			draw: bm.DrawID[0],
@@ -113,7 +114,7 @@ function integrate_matches(app, tkey, btp_state, court_map, callback) {
 
 			const scheduled_time_str = (bm.PlannedTime ? _date_str(bm.PlannedTime[0]) : undefined);
 			const match_name = bm.RoundName[0];
-			const event_name = draw.Name[0];
+			const event_name = (event.Name[0] === draw.Name[0]) ? draw.Name[0] : event.Name[0] + ' - ' + draw.Name[0];
 			const teams = _craft_teams(bm);
 
 			const btp_player_ids = [];
