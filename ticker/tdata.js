@@ -12,7 +12,8 @@ function prepare_mustache(m) {
 	const game_ids = utils.range(max_game_count);
 	for (const team_id of [0, 1]) {
 		m['team' + team_id + 'scores'] = game_ids.map((game_idx) => {
-			const gs = m.s[game_idx];
+			if (!m.s) return '';
+			const gs = m.s[game_idx] ;
 			return gs ? gs[team_id] : '';
 		});
 	}
