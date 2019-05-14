@@ -31,9 +31,7 @@ function _craft_team(par) {
 		players,
 	};
 
-	if (par[0].bts_team_name) {
-		tres.name = par[0].bts_team_name;
-	} else if ((players.length === 2) && (players[0].nationality != players[1].nationality)) {
+	if ((players.length === 2) && (players[0].nationality != players[1].nationality)) {
 		tres.name = players[0].nationality + ' / ' + players[1].nationality;
 	} else if ((players.length > 0) && (players[0].nationality)) {
 		tres.name = {
@@ -78,13 +76,13 @@ function integrate_matches(app, tkey, btp_state, court_map, callback) {
 		const event = events.get(draw.EventID[0]);
 		assert(event);
 
-		const match_num = bm.ID[0];
+		const match_num = bm.MatchNr[0];
 		assert(typeof match_num === 'number');
 		const btp_id = tkey + '_' + draw.Name[0] + '_' + match_num;
 		const btp_match_ids = [{
 			id: bm.ID[0],
 			draw: bm.DrawID[0],
-			// planning: bm.PlanningID[0],
+			planning: bm.PlanningID[0],
 		}];
 
 		const query = {
@@ -99,6 +97,11 @@ function integrate_matches(app, tkey, btp_state, court_map, callback) {
 				return;
 			}
 
+			if (!bm.IsMatch) {
+				cb();
+				return;
+			}
+
 			if (!bm.bts_complete) {
 				// TODO: register them as incomplete, but continue instead of returning
 				cb();
@@ -109,18 +112,7 @@ function integrate_matches(app, tkey, btp_state, court_map, callback) {
 			assert((gtid === 1) || (gtid === 2));
 
 			const scheduled_time_str = (bm.PlannedTime ? _date_str(bm.PlannedTime[0]) : undefined);
-			// TODO: this should be determined automatically
-			let match_name = 'matchtypeno:' + JSON.stringify(bm.MatchTypeNo); // bm.RoundName[0];
-			match_name = {
-				1: 'HE',
-				2: 'DE',
-				3: 'HD',
-				4: 'DD',
-				5: 'MX',
-			}[bm.MatchTypeID[0]] || ('type ' + bm.MatchTypeID[0] + '/' + bm.MatchTypeNo[0]);
-			if (match_name && bm.MatchTypeNo[0]) {
-				match_name = bm.MatchTypeNo[0] + '.' + match_name;
-			}
+			const match_name = bm.RoundName[0];
 			const event_name = draw.Name[0];
 			const teams = _craft_teams(bm);
 
@@ -133,7 +125,7 @@ function integrate_matches(app, tkey, btp_state, court_map, callback) {
 
 			const setup = {
 				incomplete: !bm.bts_complete,
-				is_doubles: (teams[0].players.length === 2),
+				is_doubles: (gtid === 2),
 				match_num,
 				counting: '3x21',
 				team_competition: false,
