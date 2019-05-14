@@ -200,6 +200,12 @@ function score_handler(req, res) {
  
 	async.waterfall([
 		cb => db.matches.update(query, {$set: update}, {returnUpdatedDocs: true}, (err, _, match) => cb(err, match)),
+		(match, cb) => {
+			if (!match) {
+				return cb(new Error('Cannot find match ' + JSON.stringify(match)));
+			}
+			return cb(null, match);
+		},
 		(match, cb) => db.courts.findOne(court_q, (err, court) => cb(err, match, court)),
 		(match, court, cb) => {
 			if (court.match_id === match_id) {
