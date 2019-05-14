@@ -148,6 +148,11 @@ function integrate_matches(app, tkey, btp_state, court_map, callback) {
 				assert(o);
 				setup.umpire_name = o.FirstName + ' ' + o.Name;
 			}
+			if (bm.Official2ID) {
+				const o = officials.get(bm.Official2ID[0]);
+				assert(o);
+				setup.service_judge_name = o.FirstName + ' ' + o.Name;
+			}
 
 			const match = {
 				tournament_key: tkey,

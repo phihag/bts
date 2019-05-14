@@ -146,6 +146,7 @@ function _extract_setup(msg_setup) {
 		'match_name',
 		'match_num',
 		'umpire_name',
+		'service_judge_name',
 		'is_doubles',
 		'incomplete',
 		'scheduled_time_str',

@@ -1,9 +1,3 @@
-test with individual
-	in particular KO
-	test with tournament
-	test transmission
-nationalities
-test whether we need an option for service judges
 sync service judge!
 
 remove intro text -> Marcel
@@ -12,7 +6,7 @@ smaller print buttons -> Marcel
 
 automatically print if something special happens -> Marcel
 
-fullscreen ask
+fullscreen ask better
 
 configure colors for match
 
@@ -37,6 +31,8 @@ better name for qualifications
 
 helper program to get all data from BTP, as binary or as JSON
 
+
+itest changing service judge in UI
 
 allow marking one tournament as active
 

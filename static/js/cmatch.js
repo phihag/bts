@@ -73,7 +73,8 @@ function render_match_row(tr, match, court, include_court) {
 	uiu.el(tr, 'td', ((match.team1_won === true) ? 'match_team_won' : ''), calc_players_str(setup, 0));
 	uiu.el(tr, 'td', 'match_vs', 'v');
 	uiu.el(tr, 'td', ((match.team1_won === false) ? 'match_team_won ' : '') + 'match_team2', calc_players_str(setup, 1));
-	uiu.el(tr, 'td', (setup.umpire_name ? 'match_umpire' : 'match_no_umpire'), setup.umpire_name || ci18n('No umpire'));
+	uiu.el(tr, 'td', (setup.umpire_name ? 'match_umpire' : 'match_no_umpire'),
+		(setup.umpire_name || ci18n('No umpire')) + (setup.service_judge_name ? '+' + setup.service_judge_name : ''));
 	const score_td = uiu.el(tr, 'td');
 	if (court && (court.match_id !== match._id) && (typeof match.team1_won !== 'boolean')) {
 		uiu.el(score_td, 'span', {}, ci18n(' Ready to start '));
@@ -139,6 +140,7 @@ function _make_setup(d) {
 		scheduled_time_str: d.scheduled_time_str,
 		event_name: d.event_name,
 		umpire_name: d.umpire_name,
+		service_judge_name: d.service_judge_name,
 		teams,
 		is_doubles,
 		incomplete,
@@ -419,6 +421,7 @@ function render_edit(tbody, match) {
 
 	const tr0 = uiu.el(tbody, 'tr');
 	const tr1 = uiu.el(tbody, 'tr');
+	const tr2 = uiu.el(tbody, 'tr');
 
 	uiu.el(tr0, 'td', 'match_label', ci18n('Number:'));
 	const num_td = uiu.el(tr0, 'td');
@@ -523,22 +526,39 @@ function render_edit(tbody, match) {
 		}
 	}
 
-	uiu.el(tr1, 'td', 'match_label', ci18n('Umpire:'));
-	const umpire_td = uiu.el(tr1, 'td');
-	const umpire_select = uiu.el(umpire_td, 'select', {
+	// Spacer
+	uiu.el(tr1, 'td', {colspan: 2});
+
+	// One large line
+	const officials_td = uiu.el(tr2, 'td', {colspan: 9, style: 'text-align: left'});
+
+	// Umpire
+	uiu.el(officials_td, 'span', 'match_label', ci18n('Umpire:'));
+	const umpire_select = uiu.el(officials_td, 'select', {
 		name: 'umpire_name',
 		size: 1,
 	});
 	render_umpire_options(umpire_select, setup.umpire_name);
 
-	const res = [tr0, tr1];
-	if (curt.is_team) {
-		const tr2 = uiu.el(tbody, 'tr');
+	// Service judge
+	uiu.el(officials_td, 'span', {
+		'class': 'match_label',
+		'style': 'margin-left: 1em;',
+	}, ci18n('Service judge:'));
+	const service_judge_select = uiu.el(officials_td, 'select', {
+		name: 'service_judge_name',
+		size: 1,
+	});
+	render_umpire_options(service_judge_select, setup.service_judge_name, true);
 
-		uiu.el(tr2, 'td', {
+	const res = [tr0, tr1, tr2];
+	if (curt.is_team) {
+		const tr3 = uiu.el(tbody, 'tr');
+
+		uiu.el(tr3, 'td', {
 			colspan: 4,
 		}, 'Teams:');
-		const td_team0 = uiu.el(tr2, 'td');
+		const td_team0 = uiu.el(tr3, 'td');
 		uiu.el(td_team0, 'input', {
 			type: 'text',
 			name: 'team0name',
@@ -547,8 +567,8 @@ function render_edit(tbody, match) {
 			tabindex: 22,
 		});
 
-		uiu.el(tr2, 'td');
-		const td_team1 = uiu.el(tr2, 'td');
+		uiu.el(tr3, 'td');
+		const td_team1 = uiu.el(tr3, 'td');
 		uiu.el(td_team1, 'input', {
 			type: 'text',
 			name: 'team1name',
@@ -557,18 +577,18 @@ function render_edit(tbody, match) {
 			tabindex: 32,
 		});
 
-		res.push(tr2);
+		res.push(tr3);
 	}
 
 	return res;
 }
 
-function render_umpire_options(select, curval) {
+function render_umpire_options(select, curval, is_service_judge) {
 	uiu.empty(select);
 	uiu.el(select, 'option', {
 		value: '',
 		style: 'font-style: italic;',
-	}, ci18n('No umpire'));
+	}, is_service_judge ? ci18n('No service judge') : ci18n('No umpire'));
 	for (const u of curt.umpires) {
 		const attrs = {
 			value: u.name,

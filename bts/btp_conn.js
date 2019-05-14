@@ -196,12 +196,28 @@ class BTPConn {
 					if (err) {
 						return cb(err);
 					}
-					return cb(null, umpire ? umpire.btp_id : null);
+
+					const umpire_btp_id = umpire ? umpire.btp_id : null;
+					if (!match.setup.service_judge_name) {
+						return cb(null, umpire_btp_id, null);
+					}
+
+					this.app.db.umpires.findOne({
+						name: match.setup.service_judge_name,
+						tournament_key: this.tkey,
+					}, (err, service_judge) => {
+						if (err) {
+							return cb(err);
+						}
+
+						const service_judge_btp_id = service_judge ? service_judge.btp_id : null;
+						return cb(null, umpire_btp_id, service_judge_btp_id);
+					});
 				});
 			},
-			(umpire_btp_id, cb) => {
+			(umpire_btp_id, service_judge_btp_id, cb) => {
 				if (!match.setup || !match.setup.court_id) {
-					return cb(null, umpire_btp_id, null);
+					return cb(null, umpire_btp_id, service_judge_btp_id, null);
 				}
 
 				this.app.db.courts.findOne({
@@ -212,10 +228,10 @@ class BTPConn {
 						return cb(err);
 					}
 
-					return cb(null, umpire_btp_id, court ? court.btp_id : null);
+					return cb(null, umpire_btp_id, service_judge_btp_id, court ? court.btp_id : null);
 				});
 			},
-		], (err, umpire_btp_id, court_btp_id) => {
+		], (err, umpire_btp_id, service_judge_btp_id, court_btp_id) => {
 			if (err) {
 				serror.silent('Error while fetching court/umpire: ' + err.message + '. Skipping sync of match ' + match._id);
 				return;
@@ -227,7 +243,7 @@ class BTPConn {
 			}
 
 			const req = btp_proto.update_request(
-				match, this.key_unicode, this.password, umpire_btp_id, court_btp_id);
+				match, this.key_unicode, this.password, umpire_btp_id, service_judge_btp_id, court_btp_id);
 
 			this.send(req, response => {
 				const results = response.Action[0].Result;

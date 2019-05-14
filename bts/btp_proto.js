@@ -50,7 +50,7 @@ function login_request(password) {
 	return res;
 }
 
-function update_request(match, key_unicode, password, umpire_btp_id, court_btp_id) {
+function update_request(match, key_unicode, password, umpire_btp_id, service_judge_btp_id, court_btp_id) {
 	const matches = [];
 	const res = {
 		Header: {
@@ -108,6 +108,9 @@ function update_request(match, key_unicode, password, umpire_btp_id, court_btp_i
 		};
 		if (umpire_btp_id) {
 			m.Official1ID = umpire_btp_id;
+		}
+		if (service_judge_btp_id) {
+			m.Official2ID = service_judge_btp_id;
 		}
 		if (court_btp_id) {
 			m.CourtID = court_btp_id;
