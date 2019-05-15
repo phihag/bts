@@ -17,6 +17,10 @@ function prepare_mustache(m) {
 			return gs ? gs[team_id] : '';
 		});
 	}
+
+	if (m.n) {
+		m.n = m.n.replace(' - Qualification', 'Q');
+	}
 }
 
 function recalc(app, cb) {

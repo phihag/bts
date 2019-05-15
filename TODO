@@ -1,8 +1,4 @@
-sync service judge!
-
-remove intro text -> Marcel
 smaller print buttons -> Marcel
-
 
 automatically print if something special happens -> Marcel
 
@@ -24,6 +20,7 @@ referee view
 	upcoming matches?
 	shortcut /r
 
+order unassigned matches by date + time
 
 should not update automatically on start
 
