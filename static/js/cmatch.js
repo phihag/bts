@@ -141,7 +141,16 @@ function render_players_el(parentNode, setup, team_id) {
 
 function prepare_render(t) {
 	t.matches.sort(function(m1, m2) {
-		// TODO sort by start time here
+		if (m1.setup.scheduled_time_str && !m2.setup.scheduled_time_str) {
+			return -1;
+		} else if (m2.setup.scheduled_time_str && !m1.setup.scheduled_time_str) {
+			return 1;
+		}
+		const cmp1 = cbts_utils.cmp(m1.setup.scheduled_date, m2.setup.scheduled_date);
+		if (cmp1 != 0) return cmp1;
+		const cmp2 = cbts_utils.cmp(m1.setup.scheduled_time_str, m2.setup.scheduled_time_str);
+		if (cmp2 != 0) return cmp2;
+
 		return cbts_utils.cmp(m1.setup.match_num, m2.setup.match_num);
 	});
 
@@ -373,9 +382,6 @@ function render_unassigned(container) {
 	uiu.el(container, 'h3', {}, ci18n('Unassigned Matches'));
 
 	const unassigned_matches = curt.matches.filter(m => calc_section(m) === 'unassigned');
-	unassigned_matches.sort(function(m1, m2) {
-		return cbts_utils.cmp(m1.setup.match_num, m2.setup.match_num);
-	});
 	render_match_table(container, unassigned_matches, false);
 }
 

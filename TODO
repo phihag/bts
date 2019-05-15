@@ -12,6 +12,8 @@ nationalities in overview as flags
 output matchid|players|court|umpires|shuttles -> fix shuttles
 
 
+shuttle stats per day (+ number of matches, average)
+
 referee view
 
 transmit device id | device name | battery state (if present)?
