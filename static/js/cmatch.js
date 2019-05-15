@@ -123,9 +123,10 @@ function render_players_el(parentNode, setup, team_id) {
 
 	render_flag_el(parentNode, nat0);
 	uiu.el(parentNode, 'span', {}, team.players[0].name);
-	uiu.el(parentNode, 'span', {}, ' / ');
 
 	if (team.players.length > 1) {
+		uiu.el(parentNode, 'span', {}, ' / ');
+
 		const nat1 = team.players[1] && team.players[1].nationality;
 		const p1_el = uiu.el(parentNode, 'span', {
 			'style': 'white-space: pre',
@@ -140,6 +141,7 @@ function render_players_el(parentNode, setup, team_id) {
 
 function prepare_render(t) {
 	t.matches.sort(function(m1, m2) {
+		// TODO sort by start time here
 		return cbts_utils.cmp(m1.setup.match_num, m2.setup.match_num);
 	});
 
