@@ -1,16 +1,19 @@
-nationalities on court in bup umpire view -> Oliver / Michael
 shuttles broken!
 	as Shuttles
-	read
-	write
-	show on top
+	read from BTP
+	write to BTP
+	edit
+	send from bup
 display:
 	Nachname capitalized, Vorname in Singles
 	larger font size (cut off)
 	configure colors for match
-nationalities in overview as flags
 output matchid|players|court|umpires|shuttles -> fix shuttles
+compare (shuttles) between BTP and us
 
+
+
+changing match in bts should not destroy nationalities!
 
 shuttle stats per day (+ number of matches, average)
 
@@ -24,9 +27,10 @@ smaller print buttons -> Marcel
 
 automatically print if something special happens -> Marcel
 
-fullscreen ask better
-
 use bup's flag
+
+bts fix changing stuff from bts and in BTP
+
 
 make referee view
 referee view
@@ -39,6 +43,8 @@ referee view
 	last matches?
 	upcoming matches?
 	shortcut /r
+
+switch to promises
 
 order unassigned matches by date + time
 
