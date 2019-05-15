@@ -1,3 +1,4 @@
+nationalities on court in bup umpire view -> Oliver / Michael
 shuttles broken!
 	as Shuttles
 	read
@@ -7,12 +8,15 @@ display:
 	Nachname capitalized, Vorname in Singles
 	larger font size (cut off)
 	configure colors for match
-nationalities on court in bup umpire view -> Oliver
-referee view
-entering into scoresheet and going back is broken, need to back out
 nationalities in overview as flags
-Ireland
+output matchid|players|court|umpires|shuttles -> fix shuttles
 
+
+referee view
+
+transmit device id | device name | battery state (if present)?
+
+entering into scoresheet and going back is broken, need to back out
 
 smaller print buttons -> Marcel
 
@@ -20,8 +24,7 @@ automatically print if something special happens -> Marcel
 
 fullscreen ask better
 
-
-dm_style Babb international with flags
+use bup's flag
 
 make referee view
 referee view
@@ -113,10 +116,12 @@ country a little larger on display
 -----
 
 referee view:
-	used shuttles per court (warning if more than x)
+	used shuttles per court
 	cards if any
 	duration
 	Referee
+	mark if duration is very long
+	highlight if close to end
 
 lint
 show duration for finished matches

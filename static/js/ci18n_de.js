@@ -61,6 +61,7 @@ var ci18n_de = {
 'match:rawinfo': 'Technische Informationen',
 'match:scoresheet': 'Schiedsrichterzettel',
 'match:edit': 'Bearbeiten',
+'match:incomplete': '[Unvollständig!] ',
 };
 
 /*@DEV*/

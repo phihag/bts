@@ -70,9 +70,11 @@ function render_match_row(tr, match, court, include_court) {
 	const match_str = (setup.scheduled_time_str ? (setup.scheduled_time_str + ' ') : '') + (setup.match_name ? (setup.match_name + ' ') : '') + setup.event_name;
 	uiu.el(tr, 'td', 'match_num', setup.match_num);
 	uiu.el(tr, 'td', {}, match_str);
-	uiu.el(tr, 'td', ((match.team1_won === true) ? 'match_team_won' : ''), calc_players_str(setup, 0));
+	const players0 = uiu.el(tr, 'td', ((match.team1_won === true) ? 'match_team_won' : ''));
+	render_players_el(players0, setup, 0);
 	uiu.el(tr, 'td', 'match_vs', 'v');
-	uiu.el(tr, 'td', ((match.team1_won === false) ? 'match_team_won ' : '') + 'match_team2', calc_players_str(setup, 1));
+	const players1 = uiu.el(tr, 'td', ((match.team1_won === false) ? 'match_team_won ' : '') + 'match_team2');
+	render_players_el(players1, setup, 1);
 	uiu.el(tr, 'td', (setup.umpire_name ? 'match_umpire' : 'match_no_umpire'),
 		(setup.umpire_name || ci18n('No umpire')) + (setup.service_judge_name ? '+' + setup.service_judge_name : ''));
 	const score_td = uiu.el(tr, 'td');
@@ -94,9 +96,54 @@ function update_match_score(m) {
 function calc_players_str(setup, team_id) {
 	const players = setup.teams[team_id].players.map(p => p.name).join(' / ');
 	return (
-		(setup.incomplete ? '[Unvollständig!] ' : '') +
+		(setup.incomplete ? ci18n('match:incomplete') : '') +
 		(players ? players : '')
 	);
+}
+
+function show_flag(e) {
+	const img = e.target;
+	alert(img.getAttribute('title') + ' (' + img.getAttribute('data-nationality') + ')');
+}
+
+function render_flag_el(parentNode, nationality) {
+	const img = uiu.el(parentNode, 'img', {
+		style: 'height:1em;width:1em;vertical-align:text-top;',
+		src: '/static/flags/' + nationality + '.svg',
+		alt: nationality,
+		title: countries.lookup(nationality),
+		'data-nationality': nationality,
+	});
+	img.addEventListener('click', show_flag);
+}
+
+function render_players_el(parentNode, setup, team_id) {
+	const team = setup.teams[team_id];
+	if (setup.incomplete) {
+		uiu.el(parentNode, 'span', {}, ci18n('match:incomplete'));
+	}
+
+	const nat0 = team.players[0] && team.players[0].nationality;
+	if (!curt.is_nation_competition || !nat0) {
+		uiu.el(parentNode, 'span', {}, team.players.map(p => p.name).join(' / '));
+		return;
+	}
+
+	render_flag_el(parentNode, nat0);
+	uiu.el(parentNode, 'span', {}, team.players[0].name);
+	uiu.el(parentNode, 'span', {}, ' / ');
+
+	if (team.players.length > 1) {
+		const nat1 = team.players[1] && team.players[1].nationality;
+		const p1_el = uiu.el(parentNode, 'span', {
+			'style': 'white-space: pre',
+		});
+		if (nat1 && (nat1 !== nat0)) {
+			render_flag_el(p1_el, nat1);
+		}
+
+		uiu.el(p1_el, 'span', {}, team.players[1].name);
+	}
 }
 
 function prepare_render(t) {

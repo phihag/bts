@@ -63,6 +63,7 @@ var ci18n_en = {
 'match:scoresheet': 'Scoresheet',
 'match:edit': 'Edit',
 
+'match:incomplete': '[incomplete!] ',
 };
 
 /*@DEV*/
