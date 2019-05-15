@@ -191,6 +191,9 @@ function score_handler(req, res) {
 		update.btp_winner = (update.team1_won === true) ? 1 : 2;
 		update.btp_needsync = true;
 	}
+	if (req.body.shuttle_count) {
+		update.shuttle_count = req.body.shuttle_count;
+	}
 
 	const court_q = {
 		tournament_key,

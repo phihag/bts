@@ -1,9 +1,5 @@
 shuttles broken!
-	as Shuttles
-	read from BTP
-	write to BTP
 	edit
-	send from bup
 display:
 	Nachname capitalized, Vorname in Singles
 	larger font size (cut off)
@@ -30,6 +26,8 @@ automatically print if something special happens -> Marcel
 use bup's flag
 
 bts fix changing stuff from bts and in BTP
+
+transmit retired status to BTP
 
 
 make referee view

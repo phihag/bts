@@ -82,6 +82,7 @@ function update_request(match, key_unicode, password, umpire_btp_id, service_jud
 	assert(match.btp_match_ids.length > 0);
 	assert(match.network_score);
 	const duration_mins = match.duration_ms ? Math.floor(match.duration_ms / 60000) : 0;
+	const shuttle_count = match.shuttle_count;
 
 	for (const btp_m_id of match.btp_match_ids) {
 		assert(btp_m_id);
@@ -114,6 +115,9 @@ function update_request(match, key_unicode, password, umpire_btp_id, service_jud
 		}
 		if (court_btp_id) {
 			m.CourtID = court_btp_id;
+		}
+		if (shuttle_count) {
+			m.Shuttles = shuttle_count;
 		}
 
 		matches.push({Match: m});

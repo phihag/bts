@@ -25,6 +25,8 @@ function _craft_team(par) {
 	const players = par.map(p => {
 		const pres = {
 			name: p.Firstname + ' ' + p.Lastname,
+			firstname: p.Firstname,
+			lastname: p.Lastname,
 		};
 		if (p.Country && p.Country[0]) {
 			pres.nationality = p.Country[0];
@@ -166,6 +168,9 @@ function integrate_matches(app, tkey, btp_state, court_map, callback) {
 			}
 			if (bm.Sets) {
 				match.network_score = _parse_score(bm);
+			}
+			if (bm.Shuttles) {
+				match.shuttle_count = bm.Shuttles[0];
 			}
 			match._id = 'btp_' + btp_id;
 
