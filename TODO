@@ -1,10 +1,25 @@
+shuttles broken!
+	as Shuttles
+	read
+	write
+	show on top
+display:
+	Nachname capitalized, Vorname in Singles
+	larger font size (cut off)
+	configure colors for match
+nationalities on court in bup umpire view -> Oliver
+referee view
+entering into scoresheet and going back is broken, need to back out
+nationalities in overview as flags
+Ireland
+
+
 smaller print buttons -> Marcel
 
 automatically print if something special happens -> Marcel
 
 fullscreen ask better
 
-configure colors for match
 
 dm_style Babb international with flags
 
