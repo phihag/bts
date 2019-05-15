@@ -9,8 +9,12 @@ const countries = require('./countries');
 const utils = require('./utils');
 
 
-function _date_str(dt) {
+function _time_str(dt) {
 	return utils.pad(dt.hour, 2, '0') + ':' + utils.pad(dt.minute, 2, '0');
+}
+
+function _date_str(dt) {
+	return utils.pad(dt.year, 2, '0') + '-' + utils.pad(dt.month, 2, '0') + '-' + utils.pad(dt.day, 2, '0');
 }
 
 function _craft_team(par) {
@@ -101,7 +105,8 @@ function integrate_matches(app, tkey, btp_state, court_map, callback) {
 			const gtid = event.GameTypeID[0];
 			assert((gtid === 1) || (gtid === 2));
 
-			const scheduled_time_str = (bm.PlannedTime ? _date_str(bm.PlannedTime[0]) : undefined);
+			const scheduled_time_str = (bm.PlannedTime ? _time_str(bm.PlannedTime[0]) : undefined);
+			const scheduled_date = (bm.PlannedTime ? _date_str(bm.PlannedTime[0]) : undefined);
 			const match_name = bm.RoundName[0];
 			const event_name = (event.Name[0] === draw.Name[0]) ? draw.Name[0] : event.Name[0] + ' - ' + draw.Name[0];
 			const teams = _craft_teams(bm);
@@ -125,6 +130,9 @@ function integrate_matches(app, tkey, btp_state, court_map, callback) {
 			};
 			if (scheduled_time_str) {
 				setup.scheduled_time_str = scheduled_time_str;
+			}
+			if (scheduled_date) {
+				setup.scheduled_date = scheduled_date;
 			}
 			if (bm.CourtID) {
 				const btp_court_id = bm.CourtID[0];

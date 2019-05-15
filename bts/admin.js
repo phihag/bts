@@ -150,6 +150,7 @@ function _extract_setup(msg_setup) {
 		'is_doubles',
 		'incomplete',
 		'scheduled_time_str',
+		'scheduled_date',
 		'teams',
 	]);
 	if (!setup.match_name && setup.match_num) {
