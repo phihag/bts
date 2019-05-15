@@ -93,14 +93,6 @@ function update_match_score(m) {
 	});
 }
 
-function calc_players_str(setup, team_id) {
-	const players = setup.teams[team_id].players.map(p => p.name).join(' / ');
-	return (
-		(setup.incomplete ? ci18n('match:incomplete') : '') +
-		(players ? players : '')
-	);
-}
-
 function show_flag(e) {
 	const img = e.target;
 	alert(img.getAttribute('title') + ' (' + img.getAttribute('data-nationality') + ')');
@@ -699,6 +691,7 @@ if ((typeof module !== 'undefined') && (typeof require !== 'undefined')) {
 	var cerror = require('../bup/js/cerror');
 	var change = require('./change');
 	var ci18n = require('./ci18n');
+	var countries = require('./countries');
 	var crouting = require('./crouting');
 	var ctournament = require('./ctournament');
 	var form_utils = require('../bup/js/form_utils');

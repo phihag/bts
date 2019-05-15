@@ -198,7 +198,7 @@ const COUNTRIES_TABLE = {
 	'ZIM': 'Zimbabwe',
 };
 
-var countries = (function() {
+var countries = (function() { // eslint-disable-line no-unused-vars
 
 function lookup(code) {
 	const res = COUNTRIES_TABLE[code];
@@ -211,15 +211,15 @@ function lookup(code) {
 return {
 	COUNTRIES_TABLE,
 	lookup,
-}
+};
 })();
 
 /*@DEV*/
 if ((typeof module !== 'undefined') && (typeof require !== 'undefined')) {
 	var cerror = require('./cerror');
 
-    module.exports = {
-    	COUNTRIES_TABLE,
-    };
+	module.exports = {
+		COUNTRIES_TABLE,
+	};
 }
 /*/@DEV*/
