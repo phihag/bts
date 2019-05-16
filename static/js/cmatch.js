@@ -424,7 +424,12 @@ function render_courts(container) {
 
 function _make_player(d, team_idx, player_idx) {
 	const name = d['team' + team_idx + 'player' + player_idx + 'name'];
-	return name ? {name} : null;
+	const nationality = d['team' + team_idx + 'player' + player_idx + 'nationality'];
+	if (!name) return null;
+	return {
+		name,
+		nationality,
+	};
 }
 
 function _make_team(d, team_idx) {
@@ -443,9 +448,13 @@ function _make_team(d, team_idx) {
 function _extract_player_names(setup) {
 	const res = {
 		team0player0name: '',
+		team0player0nationality: '',
 		team0player1name: '',
+		team0player1nationality: '',
 		team1player0name: '',
+		team1player0nationality: '',
 		team1player1name: '',
+		team1player1nationality: '',
 	};
 	const teams = setup.teams || [];
 	teams.forEach(function(team, team_idx) {
@@ -457,6 +466,7 @@ function _extract_player_names(setup) {
 			if (!player.name) return;
 
 			res['team' + team_idx + 'player' + player_idx + 'name'] = player.name;
+			res['team' + team_idx + 'player' + player_idx + 'nationality'] = player.nationality;
 		});
 	});
 	return res;
@@ -514,6 +524,12 @@ function render_edit(tbody, match) {
 
 	const t0p0td = uiu.el(tr0, 'td');
 	uiu.el(t0p0td, 'input', {
+		maxlength: 3,
+		size: 3,
+		name: 'team0player0nationality',
+		value: player_names.team0player0nationality,
+	});
+	uiu.el(t0p0td, 'input', {
 		type: 'text',
 		name: 'team0player0name',
 		required: 'required',
@@ -521,6 +537,12 @@ function render_edit(tbody, match) {
 		tabindex: 20,
 	});
 	const t0p1td = uiu.el(tr1, 'td');
+	uiu.el(t0p1td, 'input', {
+		maxlength: 3,
+		size: 3,
+		name: 'team0player1nationality',
+		value: player_names.team0player1nationality,
+	});
 	uiu.el(t0p1td, 'input', {
 		type: 'text',
 		name: 'team0player1name',
@@ -536,6 +558,12 @@ function render_edit(tbody, match) {
 
 	const t1p0td = uiu.el(tr0, 'td');
 	uiu.el(t1p0td, 'input', {
+		maxlength: 3,
+		size: 3,
+		name: 'team1player0nationality',
+		value: player_names.team1player0nationality,
+	});
+	uiu.el(t1p0td, 'input', {
 		type: 'text',
 		name: 'team1player0name',
 		required: 'required',
@@ -543,6 +571,12 @@ function render_edit(tbody, match) {
 		tabindex: 30,
 	});
 	const t1p1td = uiu.el(tr1, 'td');
+	uiu.el(t1p1td, 'input', {
+		maxlength: 3,
+		size: 3,
+		name: 'team1player1nationality',
+		value: player_names.team1player1nationality,
+	});
 	uiu.el(t1p1td, 'input', {
 		type: 'text',
 		name: 'team1player1name',
