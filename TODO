@@ -1,11 +1,15 @@
+allow deleting matches
+display next matches
 shuttles broken!
 	edit
 display:
-	Nachname capitalized, Vorname in Singles
+	Nachname capitalized, Vorname in Singles (new: bwf)
 	larger font size (cut off)
 	configure colors for match
 output matchid|players|court|umpires|shuttles -> fix shuttles
-compare (shuttles) between BTP and us
+order by real order
+
+resync a match option
 
 
 

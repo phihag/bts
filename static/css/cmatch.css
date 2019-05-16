@@ -66,6 +66,21 @@
 .match_score_current {
 	font-weight: bold;
 }
+.match_shuttle_count {
+	white-space: pre;
+}
+.match_shuttle_count span::before {
+	content: '';
+	display: inline-block;
+	width: 1em;
+	height: 1em;
+	background-image: url("../../bup/icons/shuttle.svg");
+	background-size: contain;
+	background-position: center;
+}
+.match_shuttle_count {
+	padding-left: 1em;
+}
 
 .match_no_umpire {
 	font-style: italic;

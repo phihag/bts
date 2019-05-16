@@ -33,7 +33,8 @@ function render_match_table_header(table, include_courts) {
 		colspan: 3,
 	}, ci18n('Players'));
 	uiu.el(title_tr, 'th', {}, ci18n('Umpire'));
-	uiu.el(title_tr, 'th', {}, ci18n('State'));
+	uiu.el(title_tr, 'th', {}, '');
+	uiu.el(title_tr, 'th', {}, '');
 }
 
 function render_match_row(tr, match, court, include_court) {
@@ -85,6 +86,8 @@ function render_match_row(tr, match, court, include_court) {
 		'class': ('match_score' + ((court && (court.match_id === match._id)) ? ' match_score_current' : '')),
 		'data-match_id': match._id,
 	}, calc_score_str(match));
+	const shuttle_td = uiu.el(tr, 'td', 'match_shuttle_count');
+	uiu.el(shuttle_td, 'span', {}, match.shuttle_count || '');
 }
 
 function update_match_score(m) {
@@ -410,7 +413,7 @@ function render_courts(container) {
 		}, c.num);
 
 		if (court_matches.length === 0) {
-			uiu.el(tr, 'td', {colspan: 8}, '');
+			uiu.el(tr, 'td', {colspan: 9}, '');
 		} else {
 			let i = 0;
 			for (const cm of court_matches) {
