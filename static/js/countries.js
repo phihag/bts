@@ -188,7 +188,7 @@ const COUNTRIES_TABLE = {
 	'UGA': 'Uganda',
 	'UKR': 'Ukraine',
 	'URU': 'Uruguay',
-	'USA': 'United States',
+	'USA': 'USA',
 	'UZB': 'Uzbekistan',
 	'VAN': 'Vanuatu',
 	'VEN': 'Venezuela',

@@ -1,12 +1,9 @@
+firstname should not be deleted when editing a match, make edit firstname + lastname
 allow deleting matches
 order by real order
 display next matches
-firstname should not be deleted when editing a match
-display:
-	Nachname capitalized, Vorname in Singles (new: bwf)
-	larger font size (cut off)
-	configure colors for match
 output matchid|players|court|umpires|shuttles -> fix shuttles
+display: add logo to show when tournament is inactive
 
 resync a match option
 
