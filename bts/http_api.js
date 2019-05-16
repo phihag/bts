@@ -256,6 +256,7 @@ function score_handler(req, res) {
 			match_id,
 			network_score: update.network_score,
 			team1_won: update.team1_won,
+			shuttle_count: update.shuttle_count,
 		});
 		res.json({status: 'ok'});
 	});

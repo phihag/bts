@@ -87,12 +87,22 @@ function render_match_row(tr, match, court, include_court) {
 		'data-match_id': match._id,
 	}, calc_score_str(match));
 	const shuttle_td = uiu.el(tr, 'td', 'match_shuttle_count');
-	uiu.el(shuttle_td, 'span', {}, match.shuttle_count || '');
+	uiu.el(shuttle_td, 'span', {
+		'class': (
+			'match_shuttle_count_display' +
+			(match.shuttle_count ? ' match_shuttle_count_display_active' : '')
+		),
+		'data-match_id': match._id,
+	}, match.shuttle_count || '');
 }
 
 function update_match_score(m) {
 	uiu.qsEach('.match_score[data-match_id=' + JSON.stringify(m._id) + ']', function(score_el) {
 		uiu.text(score_el, calc_score_str(m));
+	});
+	uiu.qsEach('.match_shuttle_count_display[data-match_id=' + JSON.stringify(m._id) + ']', function(el) {
+		uiu.text(el, m.shuttle_count || '');
+		uiu.setClass(el, 'match_shuttle_count_display_active', !!m.shuttle_count);
 	});
 }
 

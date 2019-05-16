@@ -114,6 +114,7 @@ function update_score(c) {
 	m.network_score = cval.network_score;
 	m.presses = cval.presses;
 	m.team1_won = cval.team1_won;
+	m.shuttle_count = cval.shuttle_count;
 	const new_section = cmatch.calc_section(m);
 
 	if (old_section === new_section) {

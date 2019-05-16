@@ -69,18 +69,18 @@
 .match_shuttle_count {
 	white-space: pre;
 	text-align: right;
+	padding-left: 1em;
 }
 .match_shuttle_count span::after {
 	content: '';
 	display: inline-block;
 	width: 1em;
 	height: 1em;
+}
+.match_shuttle_count span.match_shuttle_count_display_active::after {
 	background-image: url("../../bup/icons/shuttle.svg");
 	background-size: contain;
 	background-position: center;
-}
-.match_shuttle_count {
-	padding-left: 1em;
 }
 
 .match_no_umpire {
