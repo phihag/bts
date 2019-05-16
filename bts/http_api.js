@@ -95,6 +95,22 @@ function matches_handler(req, res) {
 			setup.match_id = 'bts_' + dm._id;
 			setup.team_competition = tournament.is_team;
 			setup.nation_competition = tournament.is_nation_competition;
+			for (const t of setup.teams) {
+				if (!t.players) continue;
+
+				for (const p of t.players) {
+					if (p.lastname) continue;
+
+					const m = /^(.*)\s+(\S+)$/.exec(p.name);
+					if (m) {
+						p.firstname = m[1];
+						p.lastname = m[2];
+					} else {
+						p.firstname = '';
+						p.lastname = p.name;
+					}
+				}
+			}
 			return {
 				setup,
 				presses_json: JSON.stringify(dm.presses),

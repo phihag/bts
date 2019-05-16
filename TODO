@@ -1,6 +1,7 @@
 allow deleting matches
 order by real order
 display next matches
+firstname should not be deleted when editing a match
 display:
 	Nachname capitalized, Vorname in Singles (new: bwf)
 	larger font size (cut off)
@@ -9,6 +10,12 @@ output matchid|players|court|umpires|shuttles -> fix shuttles
 
 resync a match option
 
+
+umpire handling
+	swap between umpire and AR
+	drag&drop anywhere
+	promote first umpires to match
+	display state
 
 edit shuttle count
 
