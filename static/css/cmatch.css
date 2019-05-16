@@ -69,7 +69,7 @@
 .match_shuttle_count {
 	white-space: pre;
 }
-.match_shuttle_count span::before {
+.match_shuttle_count span::after {
 	content: '';
 	display: inline-block;
 	width: 1em;
