@@ -68,6 +68,7 @@
 }
 .match_shuttle_count {
 	white-space: pre;
+	text-align: right;
 }
 .match_shuttle_count span::after {
 	content: '';
