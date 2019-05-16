@@ -24,9 +24,9 @@ function _craft_team(par) {
 
 	const players = par.map(p => {
 		const pres = {
-			name: p.Firstname + ' ' + p.Lastname,
-			firstname: p.Firstname,
-			lastname: p.Lastname,
+			name: p.Firstname[0] + ' ' + p.Lastname[0],
+			firstname: p.Firstname[0],
+			lastname: p.Lastname[0],
 		};
 		if (p.Country && p.Country[0]) {
 			pres.nationality = p.Country[0];
