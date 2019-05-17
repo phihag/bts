@@ -361,66 +361,6 @@ function handle_fetch_allscoresheets_data(app, ws, msg) {
 	});
 }
 
-
-function handle_umpfixup(app, ws, msg) {
-	if (!_require_msg(ws, msg, ['csv', 'tournament_key'])) {
-		return;
-	}
-
-	const tournament_key = msg.tournament_key;
-	const lines = (
-		msg.csv
-		.split(/\n/).
-		map(line => line.replace(/#.*/, '').replace(/\s+$/, ''))
-		.filter(line => line.length > 0)
-	);
-
-	const db = app.db;
-	async.parallel([
-		(cb) => {
-			db.umpires.find({
-				tournament_key,
-			}, (err, all_umpires) => {
-				cb(err, all_umpires);
-			});
-		},
-		(cb) => {
-			db.matches.find({
-				tournament_key,
-			}, (err, all_matches) => {
-				cb(err, all_matches);
-			});
-		},
-	], (err, results) => {
-		if (err) {
-			return ws.respond(msg, err);
-		}
-		const [all_umpires, all_matches] = results;
-
-		const matches_by_num = new Map();
-		for (const m of all_matches) {
-			matches_by_num.set(m.setup.match_num, m);
-		}
-
-		async.map(lines, function(line, cb) {
-			try {
-				_fixup(app, matches_by_num, all_umpires, line, cb);
-			} catch(e) {
-				serror.silent('Error during umpfixup: ' + e.stack);
-				return ws.respond(msg, e);
-			}
-		}, function(err, all_results) {
-			if (err) {
-				return ws.respond(msg, err);
-			}
-			const remaining = all_results.filter(r => r);
-			return ws.respond(msg, null, {
-				remaining,
-			});
-		});
-	});
-}
-
 function on_connect(app, ws) {
 	all_admins.push(ws);
 }
