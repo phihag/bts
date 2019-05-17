@@ -63,6 +63,8 @@ var ci18n_de = {
 'match:edit': 'Bearbeiten',
 'match:incomplete': '[Unvollständig!] ',
 'match:edit:scheduled_date': 'Datum:',
+'match:edit:delete': 'Löschen',
+'match:delete:really': 'Wirklich Spiel {match_id} löschen?',
 };
 
 /*@DEV*/

@@ -90,6 +90,16 @@ function default_handler_func(rerender, special_funcs, c) {
 		rerender();
 		}
 		break;
+	case 'match_delete':
+		{
+		const match_id = c.val.match__id;
+		const deleted = utils.remove_cb(curt.matches, m => m._id === match_id);
+		if (!deleted) {
+			cerror.silent('Cannot find deleted match ' + match_id);
+		}
+		rerender();
+		}
+		break;
 	case 'courts_changed':
 		curt.courts = c.val.all_courts;
 		rerender();

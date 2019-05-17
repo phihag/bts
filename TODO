@@ -1,7 +1,5 @@
 error if property missing in editing but exists in current setup
-
-firstname should not be deleted when editing a match, make edit firstname + lastname
-color handler
+store colors
 display: add logo to show when tournament is inactive
 
 

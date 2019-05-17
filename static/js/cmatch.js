@@ -234,6 +234,22 @@ function _cancel_ui_edit() {
 	ctournament.ui_show();
 }
 
+function _delete_match_btn_click(e) {
+	const match_id = e.target.getAttribute('data-match_id');
+	if (! confirm(ci18n('match:delete:really', {match_id}))) return;
+
+	send({
+		type: 'match_delete',
+		id: match_id,
+		tournament_key: curt.key,
+	}, function (err) {
+		if (err) {
+			return cerror.net(err);
+		}
+		_cancel_ui_edit();
+	});
+}
+
 function ui_edit(match_id) {
 	const match = utils.find(curt.matches, m => m._id === match_id);
 	if (!match) {
@@ -298,8 +314,14 @@ function ui_edit(match_id) {
 		});
 	});
 
-	const cancel_btn = uiu.el(dialog, 'div', 'match_cancel_link vlink', ci18n('Cancel'));
-	cancel_btn.addEventListener('click', _cancel_ui_edit);	
+	const more_buttons = uiu.el(dialog, 'div');
+	const delete_btn = uiu.el(more_buttons, 'button', {
+		style: 'margin-right: 1em;',
+		'data-match_id': match_id,
+	}, ci18n('match:edit:delete'));
+	delete_btn.addEventListener('click', _delete_match_btn_click);
+	const cancel_btn = uiu.el(more_buttons, 'span', 'match_cancel_link vlink', ci18n('Cancel'));
+	cancel_btn.addEventListener('click', _cancel_ui_edit);
 }
 crouting.register(/t\/([a-z0-9]+)\/m\/([-a-zA-Z0-9_ ]+)\/edit$/, function(m) {
 	ctournament.switch_tournament(m[1], function() {

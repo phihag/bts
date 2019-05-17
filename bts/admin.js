@@ -190,6 +190,7 @@ function handle_match_edit(app, ws, msg) {
 	}
 	const tournament_key = msg.tournament_key;
 	const setup = _extract_setup(msg.setup);
+	// TODO get old setup, make sure no key has been removed
 	app.db.matches.update({_id: msg.id, tournament_key}, {$set: {setup}}, {returnUpdatedDocs: true}, function(err, numAffected, changed_match) {
 		if (err) {
 			ws.respond(msg, err);
@@ -210,6 +211,26 @@ function handle_match_edit(app, ws, msg) {
 		if (msg.btp_update) {
 			btp_manager.update_score(app, changed_match);
 		}
+		ws.respond(msg, err);
+	});
+}
+
+function handle_match_delete(app, ws, msg) {
+	if (!_require_msg(ws, msg, ['tournament_key', 'id'])) {
+		return;
+	}
+	const tournament_key = msg.tournament_key;
+	app.db.matches.remove({_id: msg.id, tournament_key}, {}, function(err, numRemoved) {
+		if (err) {
+			ws.respond(msg, err);
+			return;
+		}
+		if (numRemoved !== 1) {
+			ws.respond(msg, new Error('Cannot find match ' + msg.id + ' of tournament ' + tournament_key + ' to remove in database'));
+			return;
+		}
+
+		notify_change(app, tournament_key, 'match_delete', {match__id: msg.id});
 		ws.respond(msg, err);
 	});
 }
@@ -417,6 +438,7 @@ module.exports = {
 	handle_create_tournament,
 	handle_courts_add,
 	handle_match_add,
+	handle_match_delete,
 	handle_match_edit,
 	handle_ticker_pushall,
 	handle_tournament_get,
