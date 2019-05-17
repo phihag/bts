@@ -1,9 +1,13 @@
+error if property missing in editing but exists in current setup
+
 firstname should not be deleted when editing a match, make edit firstname + lastname
+color handler
+display: add logo to show when tournament is inactive
+
+
 allow deleting matches
 order by real order
 display next matches
-output matchid|players|court|umpires|shuttles -> fix shuttles
-display: add logo to show when tournament is inactive
 
 resync a match option
 

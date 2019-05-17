@@ -64,6 +64,7 @@ var ci18n_en = {
 'match:edit': 'Edit',
 
 'match:incomplete': '[incomplete!] ',
+'match:edit:scheduled_date': 'Date:',
 };
 
 /*@DEV*/

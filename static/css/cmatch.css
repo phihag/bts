@@ -30,6 +30,17 @@
 	background-image: url(../icons/rawinfo.svg);
 }
 
+.edit_match_container {
+	text-align: left;
+}
+.edit_match_container > div {
+	margin: 0.2em 0;
+}
+.edit_match_container > div > span {
+	display: inline-block;
+	padding-left: 1em;
+}
+
 .match_edit_button:hover,
 .match_scoresheet_button:hover {
 	opacity: 1;

@@ -186,7 +186,7 @@ function on_scoresheet_button_click(e) {
 }
 
 function _make_setup(d) {
-	const is_doubles = !! d.team0player1name;
+	const is_doubles = !! d.team0player1lastname;
 	const teams = [_make_team(d, 0), _make_team(d, 1)];
 	if (d.team0name) {
 		teams[0].name = d.team0name;
@@ -244,9 +244,7 @@ function ui_edit(match_id) {
 		name: 'match_id',
 		value: match_id,
 	});
-	const table = uiu.el(form, 'table');
-	const tbody = uiu.el(table, 'tbody');
-	render_edit(tbody, match);
+	render_edit(form, match);
 
 	const buttons = uiu.el(form, 'div', {
 		style: 'margin-top: 0.5em;',
@@ -436,12 +434,17 @@ function render_courts(container) {
 }
 
 function _make_player(d, team_idx, player_idx) {
-	const name = d['team' + team_idx + 'player' + player_idx + 'name'];
+	const firstname = d['team' + team_idx + 'player' + player_idx + 'firstname'];
+	const lastname = d['team' + team_idx + 'player' + player_idx + 'lastname'];
 	const nationality = d['team' + team_idx + 'player' + player_idx + 'nationality'];
-	if (!name) return null;
+
+	if (!lastname) return null;
+
 	return {
-		name,
+		firstname,
+		lastname,
 		nationality,
+		name: firstname + ' ' + lastname,
 	};
 }
 
@@ -458,16 +461,12 @@ function _make_team(d, team_idx) {
 	return {players};
 }
 
-function _extract_player_names(setup) {
+function _extract_players(setup) {
 	const res = {
-		team0player0name: '',
-		team0player0nationality: '',
-		team0player1name: '',
-		team0player1nationality: '',
-		team1player0name: '',
-		team1player0nationality: '',
-		team1player1name: '',
-		team1player1nationality: '',
+		team0player0: {name: '', nationality: '', firstname: '', lastname: ''},
+		team0player1: {name: '', nationality: '', firstname: '', lastname: ''},
+		team1player0: {name: '', nationality: '', firstname: '', lastname: ''},
+		team1player1: {name: '', nationality: '', firstname: '', lastname: ''},
 	};
 	const teams = setup.teams || [];
 	teams.forEach(function(team, team_idx) {
@@ -476,26 +475,22 @@ function _extract_player_names(setup) {
 
 		team.players.forEach(function(player, player_idx) {
 			if (!player) return;
-			if (!player.name) return;
+			utils.annotate_lastname(player);
 
-			res['team' + team_idx + 'player' + player_idx + 'name'] = player.name;
-			res['team' + team_idx + 'player' + player_idx + 'nationality'] = player.nationality;
+			res['team' + team_idx + 'player' + player_idx] = player;
 		});
 	});
 	return res;
 }
 
-function render_edit(tbody, match) {
+function render_edit(form, match) {
 	const setup = match.setup || {};
-	const player_names = _extract_player_names(setup);
+	const player_names = _extract_players(setup);
 
-	const tr0 = uiu.el(tbody, 'tr');
-	const tr1 = uiu.el(tbody, 'tr');
-	const tr2 = uiu.el(tbody, 'tr');
-
-	uiu.el(tr0, 'td', 'match_label', ci18n('Number:'));
-	const num_td = uiu.el(tr0, 'td');
-	uiu.el(num_td, 'input', {
+	const edit_match_container = uiu.el(form, 'div', 'edit_match_container');
+	const metadata = uiu.el(edit_match_container, 'div');
+	uiu.el(metadata, 'span', 'match_label', ci18n('Number:'));
+	uiu.el(metadata, 'input', {
 		type: 'text',
 		name: 'match_num',
 		pattern: '^[0-9]+$',
@@ -505,29 +500,17 @@ function render_edit(tbody, match) {
 		tabindex: 1,
 	});
 
-	uiu.el(tr1, 'td', 'match_label', ci18n('Time:'));
-	const time_td = uiu.el(tr1, 'td');
-	uiu.el(time_td, 'input', {
-		type: 'text',
-		name: 'scheduled_time_str',
-		pattern: '^[0-9]{1,2}:[0-9]{1,2}$',
-		title: 'Time in 24 hour format, e.g. 12:34',
-		size: 3,
-		value: setup.scheduled_time_str || '',
-	});
-
-	uiu.el(tr0, 'td', 'match_label', 'Event:');
-	const event_td = uiu.el(tr0, 'td');
-	uiu.el(event_td, 'input', {
+	uiu.el(metadata, 'span', 'match_label', 'Event:');
+	uiu.el(metadata, 'input', {
 		type: 'text',
 		name: 'event_name',
 		placeholder: ci18n('e.g. MX O55'),
 		size: 10,
 		value: setup.event_name || '',
 	});
-	uiu.el(tr1, 'td', 'match_label', 'Match:');
-	const match_name_td = uiu.el(tr1, 'td');
-	uiu.el(match_name_td, 'input', {
+
+	uiu.el(metadata, 'span', 'match_label', 'Match:');
+	uiu.el(metadata, 'input', {
 		type: 'text',
 		name: 'match_name',
 		placeholder: ci18n('e.g. semi-finals'),
@@ -535,18 +518,52 @@ function render_edit(tbody, match) {
 		value: setup.match_name || '',
 	});
 
+	const start = uiu.el(edit_match_container, 'div');
+	uiu.el(start, 'span', 'match_label', ci18n('match:edit:scheduled_date'));
+	uiu.el(start, 'input', {
+		type: 'text',
+		name: 'scheduled_date',
+		pattern: '^[0-9]{4,}-(?:0[0-9]|10|11|12)-(?:[012][0-9]|30|31)$',
+		title: 'Date in ISO8601 format, e.g. 2020-05-30',
+		size: 6,
+		value: setup.scheduled_date || '',
+	});
+
+	uiu.el(start, 'span', 'match_label', ci18n('Time:'));
+	uiu.el(start, 'input', {
+		type: 'text',
+		name: 'scheduled_time_str',
+		pattern: '^[0-9]{2}:[0-9]{2}$',
+		title: 'Time in 24 hour format, e.g. 09:23',
+		size: 3,
+		value: setup.scheduled_time_str || '',
+	});
+
+	const player_table = uiu.el(edit_match_container, 'table');
+	const player_tbody = uiu.el(player_table, 'tbody');
+	const tr0 = uiu.el(player_tbody, 'tr');
+	const tr1 = uiu.el(player_tbody, 'tr');
 	const t0p0td = uiu.el(tr0, 'td');
 	uiu.el(t0p0td, 'input', {
 		maxlength: 3,
 		size: 3,
 		name: 'team0player0nationality',
-		value: player_names.team0player0nationality,
+		value: player_names.team0player0.nationality,
 	});
 	uiu.el(t0p0td, 'input', {
 		type: 'text',
-		name: 'team0player0name',
+		style: 'width: 5em;',
+		name: 'team0player0firstname',
 		required: 'required',
-		value: player_names.team0player0name,
+		value: player_names.team0player0.firstname,
+		tabindex: 20,
+	});
+	uiu.el(t0p0td, 'input', {
+		type: 'text',
+		style: 'width: 6em;',
+		name: 'team0player0lastname',
+		required: 'required',
+		value: player_names.team0player0.lastname,
 		tabindex: 20,
 	});
 	const t0p1td = uiu.el(tr1, 'td');
@@ -554,13 +571,21 @@ function render_edit(tbody, match) {
 		maxlength: 3,
 		size: 3,
 		name: 'team0player1nationality',
-		value: player_names.team0player1nationality,
+		value: player_names.team0player1.nationality,
 	});
 	uiu.el(t0p1td, 'input', {
 		type: 'text',
-		name: 'team0player1name',
+		style: 'width: 5em;',
+		name: 'team0player1firstname',
+		value: player_names.team0player1.firstname,
+		tabindex: 21,
+	});
+	uiu.el(t0p1td, 'input', {
+		type: 'text',
+		name: 'team0player1lastname',
+		style: 'width: 6em;',
 		placeholder: ci18n('(Singles)'),
-		value: player_names.team0player1name,
+		value: player_names.team0player1.lastname,
 		tabindex: 21,
 	});
 
@@ -574,13 +599,22 @@ function render_edit(tbody, match) {
 		maxlength: 3,
 		size: 3,
 		name: 'team1player0nationality',
-		value: player_names.team1player0nationality,
+		value: player_names.team1player0.nationality,
 	});
 	uiu.el(t1p0td, 'input', {
 		type: 'text',
-		name: 'team1player0name',
+		style: 'width: 5em;',
+		name: 'team1player0firstname',
 		required: 'required',
-		value: player_names.team1player0name,
+		value: player_names.team1player0.firstname,
+		tabindex: 30,
+	});
+	uiu.el(t1p0td, 'input', {
+		type: 'text',
+		style: 'width: 6em;',
+		name: 'team1player0lastname',
+		required: 'required',
+		value: player_names.team1player0.lastname,
 		tabindex: 30,
 	});
 	const t1p1td = uiu.el(tr1, 'td');
@@ -588,19 +622,55 @@ function render_edit(tbody, match) {
 		maxlength: 3,
 		size: 3,
 		name: 'team1player1nationality',
-		value: player_names.team1player1nationality,
+		value: player_names.team1player1.nationality,
 	});
 	uiu.el(t1p1td, 'input', {
 		type: 'text',
-		name: 'team1player1name',
+		style: 'width: 5em;',
+		name: 'team1player1firstname',
+		value: player_names.team1player1.firstname,
+		tabindex: 31,
+	});
+	uiu.el(t1p1td, 'input', {
+		type: 'text',
+		name: 'team1player1lastname',
+		style: 'width: 6em;',
 		placeholder: ci18n('(Singles)'),
-		value: player_names.team1player1name,
+		value: player_names.team1player1.lastname,
 		tabindex: 31,
 	});
 
-	uiu.el(tr0, 'td', 'match_label', 'Court:');
-	const court_td = uiu.el(tr0, 'td');
-	const court_select = uiu.el(court_td, 'select', {
+	if (curt.is_team) {
+		const team_tr = uiu.el(player_tbody, 'tr');
+
+		uiu.el(team_tr, 'td', {
+			colspan: 4,
+		}, 'Teams:');
+		const td_team0 = uiu.el(team_tr, 'td');
+		uiu.el(td_team0, 'input', {
+			type: 'text',
+			name: 'team0name',
+			required: 'required',
+			value: (setup.teams && setup.teams[0] && setup.teams[0].name) ? setup.teams[0].name : '',
+			tabindex: 22,
+		});
+
+		uiu.el(team_tr, 'td');
+		const td_team1 = uiu.el(team_tr, 'td');
+		uiu.el(td_team1, 'input', {
+			type: 'text',
+			name: 'team1name',
+			required: 'required',
+			value: (setup.teams && setup.teams[1] && setup.teams[1].name) ? setup.teams[1].name : '',
+			tabindex: 32,
+		});
+	}
+
+	const assigned = uiu.el(edit_match_container, 'div', {
+		style: 'margin-top: 1em',
+	});
+	uiu.el(assigned, 'span', 'match_label', 'Court:');
+	const court_select = uiu.el(assigned, 'select', {
 		'class': 'court_selector',
 		name: 'court_id',
 		size: 1,
@@ -620,61 +690,24 @@ function render_edit(tbody, match) {
 		}
 	}
 
-	// Spacer
-	uiu.el(tr1, 'td', {colspan: 2});
-
-	// One large line
-	const officials_td = uiu.el(tr2, 'td', {colspan: 9, style: 'text-align: left'});
-
 	// Umpire
-	uiu.el(officials_td, 'span', 'match_label', ci18n('Umpire:'));
-	const umpire_select = uiu.el(officials_td, 'select', {
+	uiu.el(assigned, 'span', 'match_label', ci18n('Umpire:'));
+	const umpire_select = uiu.el(assigned, 'select', {
 		name: 'umpire_name',
 		size: 1,
 	});
 	render_umpire_options(umpire_select, setup.umpire_name);
 
 	// Service judge
-	uiu.el(officials_td, 'span', {
+	uiu.el(assigned, 'span', {
 		'class': 'match_label',
 		'style': 'margin-left: 1em;',
 	}, ci18n('Service judge:'));
-	const service_judge_select = uiu.el(officials_td, 'select', {
+	const service_judge_select = uiu.el(assigned, 'select', {
 		name: 'service_judge_name',
 		size: 1,
 	});
 	render_umpire_options(service_judge_select, setup.service_judge_name, true);
-
-	const res = [tr0, tr1, tr2];
-	if (curt.is_team) {
-		const tr3 = uiu.el(tbody, 'tr');
-
-		uiu.el(tr3, 'td', {
-			colspan: 4,
-		}, 'Teams:');
-		const td_team0 = uiu.el(tr3, 'td');
-		uiu.el(td_team0, 'input', {
-			type: 'text',
-			name: 'team0name',
-			required: 'required',
-			value: (setup.teams && setup.teams[0] && setup.teams[0].name) ? setup.teams[0].name : '',
-			tabindex: 22,
-		});
-
-		uiu.el(tr3, 'td');
-		const td_team1 = uiu.el(tr3, 'td');
-		uiu.el(td_team1, 'input', {
-			type: 'text',
-			name: 'team1name',
-			required: 'required',
-			value: (setup.teams && setup.teams[1] && setup.teams[1].name) ? setup.teams[1].name : '',
-			tabindex: 32,
-		});
-
-		res.push(tr3);
-	}
-
-	return res;
 }
 
 function render_umpire_options(select, curval, is_service_judge) {
@@ -697,13 +730,11 @@ function render_umpire_options(select, curval, is_service_judge) {
 function render_create(container) {
 	uiu.empty(container);
 	const form = uiu.el(container, 'form');
-	const table = uiu.el(form, 'table');
-	const tbody = uiu.el(table, 'tbody');
 
-	const trs = render_edit(tbody, {});
+	render_edit(form, {});
 
-	const btn_td = uiu.el(trs[0], 'td', {rowspan: 2});
-	const btn = uiu.el(btn_td, 'button', {
+	const btn_container = uiu.el(form, 'div', {rowspan: 2});
+	const btn = uiu.el(btn_container, 'button', {
 		'class': 'match_save_button',
 		role: 'submit',
 	}, ci18n('Add Match'));

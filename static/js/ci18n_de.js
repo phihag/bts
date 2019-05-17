@@ -62,6 +62,7 @@ var ci18n_de = {
 'match:scoresheet': 'Schiedsrichterzettel',
 'match:edit': 'Bearbeiten',
 'match:incomplete': '[Unvollständig!] ',
+'match:edit:scheduled_date': 'Datum:',
 };
 
 /*@DEV*/
