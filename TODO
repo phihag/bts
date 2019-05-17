@@ -1,16 +1,10 @@
-displays tomorrow: add left-bwf
-scoreonly-large
-store colors
 display: add logo to show when tournament is inactive
-
+store colors
 
 report serror if property missing in editing but exists in current setup
-allow deleting matches
-order by real order
 display next matches
 
 resync a match option
-
 
 umpire handling
 	swap between umpire and AR
@@ -18,7 +12,15 @@ umpire handling
 	promote first umpires to match
 	display state
 
+automatically print (on different machine, as client)
+
+not moved on court: lesser opacity
+
+heartbeat, show if device is disconnected
+
 edit shuttle count
+
+sync highlight
 
 changing match in bts should not destroy nationalities!
 
