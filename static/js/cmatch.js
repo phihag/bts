@@ -185,14 +185,28 @@ function on_scoresheet_button_click(e) {
 	ui_scoresheet(match_id);
 }
 
+function _nation_team_name(nat0, nat1) {
+	if (nat1 && nat0 && (nat0 != nat1)) {
+		return countries.lookup(nat0) + ' / ' + countries.lookup(nat1);
+	}
+	if (nat0) {
+		return countries.lookup(nat0);
+	}
+	return '';
+}
+
 function _make_setup(d) {
 	const is_doubles = !! d.team0player1lastname;
 	const teams = [_make_team(d, 0), _make_team(d, 1)];
 	if (d.team0name) {
 		teams[0].name = d.team0name;
+	} else if (curt.is_nation_competition) {
+		teams[0].name = _nation_team_name(d.team0player0nationality, d.team0player1nationality);
 	}
 	if (d.team1name) {
 		teams[1].name = d.team1name;
+	} else if (curt.is_nation_competition) {
+		teams[1].name = _nation_team_name(d.team1player0nationality, d.team1player1nationality);
 	}
 	const player_count = is_doubles ? 2 : 1;
 	const incomplete = !teams.every(team => (team.players.length === player_count));
