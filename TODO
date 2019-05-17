@@ -1,8 +1,9 @@
-error if property missing in editing but exists in current setup
+copy order from btp
 store colors
 display: add logo to show when tournament is inactive
 
 
+report serror if property missing in editing but exists in current setup
 allow deleting matches
 order by real order
 display next matches

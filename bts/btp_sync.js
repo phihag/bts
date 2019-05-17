@@ -172,6 +172,9 @@ function integrate_matches(app, tkey, btp_state, court_map, callback) {
 			if (bm.Shuttles) {
 				match.shuttle_count = bm.Shuttles[0];
 			}
+			if (bm.DisplayOrder) {
+				match.match_order = bm.DisplayOrder[0];
+			}
 			match._id = 'btp_' + btp_id;
 
 			if (cur_match) {
