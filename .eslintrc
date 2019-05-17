@@ -25,5 +25,8 @@
     },
     "globals": {
     },
+    "parserOptions": {
+        "ecmaVersion": 2017
+    },
     "extends": "eslint:recommended"
 }

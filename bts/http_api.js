@@ -1,6 +1,8 @@
 'use strict';
 
+const assert = require('assert');
 const async = require('async');
+const path = require('path');
 
 const admin = require('./admin');
 const btp_manager = require('./btp_manager');
@@ -277,8 +279,31 @@ function score_handler(req, res) {
 		res.json({status: 'ok'});
 	});
 }
+
+function logo_handler(req, res) {
+	const {tournament_key, logo_id} = req.params;
+	assert(tournament_key);
+	assert(logo_id);
+	const m = /^[-0-9a-f]+\.(gif|png|jpg|jpeg|svg|webp)$/.exec(logo_id);
+	assert(m, `Invalid logo ${logo_id}`);
+	const mime = {
+		gif: 'image/gif',
+		png: 'image/png',
+		jpg: 'image/jpeg',
+		jpeg: 'image/jpeg',
+		svg: 'image/svg+xml',
+		webp: 'image/webp',
+	}[m[1]];
+	assert(mime, `Unsupported ext ${JSON.stringify(m[1])}`);
+
+	const fn = path.join(utils.root_dir(), 'data', 'logos', path.basename(logo_id));
+	res.setHeader('Content-Type', mime);
+	res.sendFile(fn);
+}
+
 module.exports = {
 	courts_handler,
+	logo_handler,
 	matches_handler,
 	matchinfo_handler,
 	score_handler,

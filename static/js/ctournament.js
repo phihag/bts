@@ -210,6 +210,29 @@ _route_single(/t\/([a-z0-9]+)\/$/, ui_show, change.default_handler(_show_render_
 	court_current_match: update_current_match,
 }));
 
+function _upload_logo(e) {
+	const input = e.target;
+	if (!input.files.length) return;
+
+	const reader = new FileReader();
+	reader.readAsDataURL(input.files[0]);
+	reader.onload = () => {
+		send({
+			type: 'tournament_upload_logo',
+			tournament_key: curt.key,
+			data_url: reader.result,
+		}, (err) => {
+			if (err) {
+				return cerror.net(err);
+			}
+			input.closest('form').reset();
+		});
+	};
+	reader.onerror = (e) => {
+		alert('Failed to upload: ' + e);
+	};
+}
+
 function ui_edit() {
 	crouting.set('t/:key/edit', {key: curt.key});
 	toprow.set([{
@@ -423,6 +446,20 @@ function ui_edit() {
 		});
 	});
 
+	uiu.el(main, 'h2', {}, ci18n('tournament:edit:logo'));
+	const logo_form = uiu.el(main, 'form');
+	if (curt.logo_id) {
+		uiu.el(logo_form, 'img', {
+			style: 'background: #000; height: 15vh;',
+			src: '/h/' + encodeURIComponent(curt.key) + '/logo/' + curt.logo_id,
+		});
+	}
+	const logo_button = uiu.el(logo_form, 'input', {
+		type: 'file',
+		accept: 'image/*',
+	});
+	logo_button.addEventListener('change', _upload_logo);
+
 	uiu.el(main, 'h2', {}, ci18n('tournament:edit:courts'));
 
 	const courts_table = uiu.el(main, 'table');
@@ -499,7 +536,6 @@ function init() {
 	});
 }
 crouting.register(/^$/, init, change.default_handler);
-
 
 function _cancel_ui_allscoresheets() {
 	const dlg = document.querySelector('.allscoresheets_dialog');
@@ -685,6 +721,6 @@ if ((typeof module !== 'undefined') && (typeof require !== 'undefined')) {
 
 	var JSZip = null; // External library
 
-    module.exports = ctournament;
+	module.exports = ctournament;
 }
 /*/@DEV*/

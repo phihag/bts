@@ -67,6 +67,10 @@ var ci18n_en = {
 'match:edit:scheduled_date': 'Date:',
 'match:edit:delete': 'Delete match',
 'match:delete:really': 'Really delete match {match_id}?',
+'tournament:edit:logo': 'Logo',
+'tournament:edit:logo:nologo': 'No logo',
+'tournament:edit:logo:upload': 'Upload logo',
+
 };
 
 /*@DEV*/

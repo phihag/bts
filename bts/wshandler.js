@@ -48,18 +48,31 @@ function handle(mod, app, ws) {
 			}
 
 			const func = mod['handle_' + msg.type];
-			if (! func) {
-				ws.sendmsg({
-					type: 'error',
-					message: 'Unsupported message type ' + msg.type,
-					rid: msg.rid,
-				});
+			if (func) {
+				func(app, ws, msg);
 				return;
 			}
 
-			func(app, ws, msg);
+			const promise_func = mod['async_handle_' + msg.type];
+			if (promise_func) {
+				(async() => {
+					try {
+						await promise_func(app, ws, msg);
+					} catch(e) {
+						serror.silent('Error in async message handler: ' + e.stack);
+						return;
+					}
+				})();
+				return;
+			}
+
+			ws.sendmsg({
+				type: 'error',
+				message: 'Unsupported message type ' + msg.type,
+				rid: msg.rid,
+			});
 		} catch (e) {
-			serror.silent('Error in message handler: ' + e.message + ', ' + e.stack);
+			serror.silent('Error in message handler: ' + e.stack);
 			return;
 		}
 	});

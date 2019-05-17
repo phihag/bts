@@ -104,6 +104,7 @@ function create_app(config, db) {
 	app.get('/h/:tournament_key/matches', http_api.matches_handler);
 	app.post('/h/:tournament_key/m/:match_id/score', http_api.score_handler);
 	app.get('/h/:tournament_key/m/:match_id/info', http_api.matchinfo_handler);
+	app.get('/h/:tournament_key/logo/:logo_id', http_api.logo_handler);
 
 	wss.on('connection', function connection(ws, req) {
 		const location = url.parse(req.url, true);

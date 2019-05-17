@@ -65,6 +65,9 @@ var ci18n_de = {
 'match:edit:scheduled_date': 'Datum:',
 'match:edit:delete': 'Löschen',
 'match:delete:really': 'Wirklich Spiel {match_id} löschen?',
+'tournament:edit:logo': 'Logo',
+'tournament:edit:logo:nologo': 'Kein Logo',
+'tournament:edit:logo:upload': 'Logo hochladen',
 };
 
 /*@DEV*/

@@ -1,6 +1,10 @@
 'use strict';
 
 const async = require('async');
+const fs = require('fs');
+const path = require('path');
+const uuidv4 = require('uuid/v4');
+const {promisify} = require('util');
 
 const btp_manager = require('./btp_manager');
 const serror = require('./serror');
@@ -265,80 +269,6 @@ function notify_change(app, tournament_key, ctype, val) {
 	}
 }
 
-function _fixup(app, matches_by_num, all_umpires, line, cb) {
-	const rem = /^\s*([0-9]+)\s*,\s*([a-zA-ZäöüÄÖÜß0-9][\sa-zA-ZäöüÄÖÜß0-9]*)\s*$/.exec(line);
-	if (!rem) {
-		return cb(null, {
-			line,
-			message: 'Does not match',
-		});
-	}
-
-	const match_num = parseInt(rem[1]);
-	const umpire_name = rem[2];
-
-	const match = matches_by_num.get(match_num);
-	if (!match) {
-		return cb(null, {
-			line,
-			message: 'Cannot find match ' + JSON.stringify(match_num),
-		});
-	}
-
-	const matching_umpires = all_umpires.filter(u => {
-		return u.name.toLowerCase().includes(umpire_name.toLowerCase());
-	});
-
-	if (matching_umpires.length === 0) {
-		return cb(null, {
-			line,
-			message: 'Cannot find any umpire named ' + umpire_name,
-		});
-	} else if (matching_umpires.length > 1) {
-		const matching_str = matching_umpires.map(u => u.name).join(', ');
-		return cb(null, {
-			line,
-			message: 'More than 1 umpire named ' + umpire_name + ' ' + matching_str,
-		});
-	}
-
-	if (typeof match.team1_won !== 'boolean') {
-		return cb(null, {
-			line,
-			message: 'Match ' + match_num + ' is not won yet',
-		});
-	}
-	if (!match.network_score || (match.network_score.length < 2)) {
-		return cb(null, {
-			line,
-			message: 'Scores not completed in match ' + match_num,
-		});
-	}
-
-	const ump = matching_umpires[0];
-	app.db.matches.update({
-		_id: match._id,
-	}, {
-		$set: {
-			'setup.umpire_name': ump.name,
-			btp_needsync: true,
-		},
-	}, {
-		returnUpdatedDocs: true,
-	}, (err, num_affected, new_match) => {
-		if (! new_match) {
-			return cb(new Error('Failed to update match ' + match_num));
-		}
-
-		btp_manager.update_score(app, new_match);
-
-		return cb(null, {
-			line: '',
-			message: 'done: ' + match_num + ', ' + ump.name,
-		});
-	});
-}
-
 function handle_fetch_allscoresheets_data(app, ws, msg) {
 	if (!_require_msg(ws, msg, ['tournament_key'])) {
 		return;
@@ -371,8 +301,54 @@ function on_close(app, ws) {
 	}
 }
 
+async function async_handle_tournament_upload_logo(app, ws, msg) {
+	if (!_require_msg(ws, msg, ['tournament_key', 'data_url'])) {
+		return;
+	}
+
+	const tournament = await app.db.tournaments.findOne_async({
+		key: msg.tournament_key,
+	});
+	if (!tournament) {
+		ws.respond(msg, {message: `Could not find tournament ${msg.tournament_key}`});
+		return;
+	}
+
+	const m = /^data:(image\/[a-z+]+)(?:;base64)?,([A-Za-z0-9+/=]+)$/.exec(msg.data_url);
+	if (!m) {
+		ws.respond(msg, {message: `Invalid base64 URI, starts with ${msg.data_url.slice(0, 80)}`});
+		return;
+	}
+	const mime_type = m[1];
+	const logo_b64 = m[2];
+
+	const ext = {
+		'image/gif': 'gif',
+		'image/png': 'png',
+		'image/jpeg': 'jpg',
+		'image/svg+xml': 'svg',
+		'image/webp': 'webp',
+	}[mime_type];
+	if (!ext) {
+		ws.respond(msg, {message: `Unsupported mime type ${mime_type}`});
+		return;
+	}
+
+	const buf = Buffer.from(logo_b64, 'base64');
+	const logo_id = uuidv4() + '.' + ext;
+	await promisify(fs.writeFile)(path.join(utils.root_dir(), 'data', 'logos', logo_id), buf);
+
+	const [_, updated_tournament] = await app.db.tournaments.update_async( // eslint-disable-line no-unused-vars
+		{key: msg.tournament_key},
+		{$set: {logo_id}},
+		{returnUpdatedDocs: true});
+	notify_change(app, msg.tournament_key, 'props', updated_tournament);
+
+	return ws.respond(msg, null, {});
+}
 
 module.exports = {
+	async_handle_tournament_upload_logo,
 	handle_btp_fetch,
 	handle_fetch_allscoresheets_data,
 	handle_create_tournament,
@@ -384,7 +360,6 @@ module.exports = {
 	handle_tournament_get,
 	handle_tournament_list,
 	handle_tournament_edit_props,
-	handle_umpfixup,
 	notify_change,
 	on_close,
 	on_connect,

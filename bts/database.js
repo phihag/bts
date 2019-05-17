@@ -2,6 +2,7 @@
 
 const fs = require('fs');
 const path = require('path');
+const {promisify} = require('util');
 
 const async = require('async');
 const Datastore = require('nedb');
@@ -27,6 +28,11 @@ function init(callback) {
 	const macos_noindex_fd = fs.openSync(macos_noindex_file, 'a');
 	fs.closeSync(macos_noindex_fd);
 
+	const logos_dir = path.join(db_dir, 'logos');
+	if (! fs.existsSync(logos_dir)) {
+		fs.mkdirSync(logos_dir);
+	}
+
 	TABLES.forEach(function(key) {
 		db[key] = new Datastore({filename: path.join(db_dir, key), autoload: true});
 	});
@@ -51,6 +57,18 @@ function init(callback) {
 }
 
 function setup_helpers(db) {
+	for (const single_database of Object.values(db)) {
+		single_database.find_async = promisify(single_database.find);
+		single_database.findOne_async = promisify(single_database.findOne);
+		single_database.update_async = (...args) => {
+			return new Promise((resolve, reject) => {
+				single_database.update(...args, (err, ...results) => {
+					if (err) return reject(err);
+					return resolve(results);
+				});
+			});
+		};
+	}
 	db.fetch_all = function() {
 		var args = [db];
 		for (var i = 0;i < arguments.length;i++) {

@@ -1,4 +1,8 @@
 display: add logo to show when tournament is inactive
+option to hide match from bup list
+
+when deleting a match reset it on court
+
 store colors
 
 report serror if property missing in editing but exists in current setup
@@ -27,6 +31,8 @@ changing match in bts should not destroy nationalities!
 shuttle stats per day (+ number of matches, average)
 
 referee view
+
+link to allscoresheet
 
 transmit device id | device name | battery state (if present)?
 

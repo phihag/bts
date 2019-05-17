@@ -41,7 +41,7 @@ function default_handler_func(rerender, special_funcs, c) {
 	case 'props': {
 		curt.name = c.val.name;
 		curt.is_team = c.val.is_team;
-		curt.is_nation_competition = c.is_nation_competition;
+		curt.is_nation_competition = c.val.is_nation_competition;
 		curt.btp_enabled = c.val.btp_enabled;
 		curt.btp_autofetch_enabled = c.val.btp_autofetch_enabled;
 		curt.btp_readonly = c.val.btp_readonly;
@@ -49,6 +49,7 @@ function default_handler_func(rerender, special_funcs, c) {
 		curt.ticker_enabled = c.val.ticker_enabled;
 		curt.ticker_url = c.val.ticker_url;
 		curt.ticker_password = c.val.ticker_password;
+		curt.logo_id = c.val.logo_id;
 
 		uiu.qsEach('.ct_name', function(el) {
 			if (el.tagName.toUpperCase() === 'INPUT') {

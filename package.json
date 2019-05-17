@@ -1,6 +1,6 @@
 {
 	"name": "bts",
-	"version": "0.0.1",
+	"version": "1.0.0",
 	"author": "Philipp Hagemeister <phihag@phihag.de>",
 	"description": "Badminton Tournament Server",
 	"scripts": {
@@ -17,6 +17,7 @@
 		"request": "^2.88.0",
 		"rimraf": "*",
 		"serve-favicon": "*",
+		"uuid": "^3.3.2",
 		"ws": "*",
 		"xmldom": "*"
 	},
