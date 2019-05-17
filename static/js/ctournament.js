@@ -406,6 +406,7 @@ function ui_edit() {
 			btp_readonly: (!!data.btp_readonly),
 			btp_ip: data.btp_ip,
 			btp_password: data.btp_password,
+			dm_style: data.dm_style,
 			ticker_enabled: (!! data.ticker_enabled),
 			ticker_url: data.ticker_url,
 			ticker_password: data.ticker_password,
