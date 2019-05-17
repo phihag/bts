@@ -1,4 +1,6 @@
-copy order from btp
+respect order
+displays tomorrow: add left-bwf
+onlyscore: fix distance between numbers
 store colors
 display: add logo to show when tournament is inactive
 

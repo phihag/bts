@@ -164,6 +164,11 @@ function prepare_render(t) {
 		const cmp2 = cbts_utils.cmp(m1.setup.scheduled_time_str, m2.setup.scheduled_time_str);
 		if (cmp2 != 0) return cmp2;
 
+		if ((m1.match_order !== undefined) && (m2.match_order !== undefined)) {
+			const cmp_result = cbts_utils.cmp(m1.match_order, m2.match_order);
+			if (cmp_result != 0) return cmp_result;
+		}
+
 		return cbts_utils.cmp(m1.setup.match_num, m2.setup.match_num);
 	});
 
