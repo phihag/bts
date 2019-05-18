@@ -55,8 +55,12 @@ function handle_tournament_edit_props(app, ws, msg) {
 			ws.respond(msg, err);
 			return;
 		}
-		btp_manager.reconfigure(app, t);
-		ticker_manager.reconfigure(app, t);
+		if (utils.has_key(props, k => /^btp_/.test(k))) {
+			btp_manager.reconfigure(app, t);
+		}
+		if (utils.has_key(props, k => /^ticker_/.test(k))) {
+			ticker_manager.reconfigure(app, t);
+		}
 		notify_change(app, key, 'props', t);
 
 		ws.respond(msg, err);

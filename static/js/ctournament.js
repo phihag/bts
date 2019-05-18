@@ -234,6 +234,7 @@ function _upload_logo(e) {
 }
 
 function ui_edit() {
+	console.log('rendering ui_edit')
 	crouting.set('t/:key/edit', {key: curt.key});
 	toprow.set([{
 		label: 'Tournaments',
@@ -446,14 +447,24 @@ function ui_edit() {
 		});
 	});
 
-	uiu.el(main, 'h2', {}, ci18n('tournament:edit:logo'));
-	const logo_form = uiu.el(main, 'form');
+	const logo_preview_container = uiu.el(main, 'div', {
+		style: (
+			'float:right;position:relative;text-align:center;' +
+			'height: 216px; width: 384px; font-size: 35px;' +
+			'background:' + (curt.logo_background_color || '#000000') + ';' +
+			'color:' + (curt.logo_foreground_color || '#aaaaaa') + ';'
+		),
+	});
 	if (curt.logo_id) {
-		uiu.el(logo_form, 'img', {
-			style: 'background: #000; height: 15vh;',
+		uiu.el(logo_preview_container, 'img', {
+			style: 'height: 151px;',
 			src: '/h/' + encodeURIComponent(curt.key) + '/logo/' + curt.logo_id,
 		});
+		uiu.el(logo_preview_container, 'div', {}, 'Court 42');
 	}
+
+	uiu.el(main, 'h2', {}, ci18n('tournament:edit:logo'));
+	const logo_form = uiu.el(main, 'form');
 	const logo_button = uiu.el(logo_form, 'input', {
 		type: 'file',
 		accept: 'image/*',
@@ -480,7 +491,7 @@ function ui_edit() {
 		});
 	});
 	const fg_col_label = uiu.el(logo_colors_container, 'label', {}, ci18n('tournament:edit:logo:foreground'));
-	const fg_col_input = uiu.el(logo_colors_container, 'input', {
+	const fg_col_input = uiu.el(fg_col_label, 'input', {
 		type: 'color',
 		name: 'logo_foreground_color',
 		value: curt.logo_foreground_color || '#aaaaaa',

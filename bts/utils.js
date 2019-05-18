@@ -201,6 +201,13 @@ function format_ts(ts) {
 	);
 }
 
+function has_key(obj, testfunc) {
+	for (const k in obj) {
+		if (testfunc(k)) return true;
+	}
+	return false;
+}
+
 module.exports = {
 	cmp,
 	cmp_key,
@@ -210,6 +217,7 @@ module.exports = {
 	format_ts,
 	encode_html,
 	gen_token,
+	has_key,
 	make_index,
 	natcmp,
 	pad,
