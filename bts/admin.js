@@ -236,7 +236,7 @@ async function async_handle_match_delete(app, ws, msg) {
 		return;
 	}
 
-	await app.db.courts.update_async({match_id: msg.id}, {$set: {match_id: null}}, {});
+	await app.db.courts.update_async({match_id: msg.id}, {$unset: {match_id: true}}, {});
 
 	notify_change(app, tournament_key, 'match_delete', {match__id: msg.id});
 	ws.respond(msg);
