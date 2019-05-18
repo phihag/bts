@@ -178,7 +178,7 @@ class TickerConn {
 				if (!m) continue;
 				if (!m.end_ts) continue;
 
-				if (m.end_ts < now + 15 * 60 * 1000) {
+				if (m.end_ts < now - 15 * 60 * 1000) {
 					c.match_id = null;
 				}
 			}
