@@ -1,9 +1,19 @@
+clear empt courts
+
+shuttle_count sometimes missing?
+
 option to hide match from bup list, fade out in our list
 bup: show nationality in choice of server / receiver
 
 bup btsh should update event (e.g. color)
 
 when deleting a match reset court if it got that match
+
+active players list for finals
+
+logo preview should update immediately
+logo preview should incorporate bg color
+logo preview should show foreground color
 
 store colors
 

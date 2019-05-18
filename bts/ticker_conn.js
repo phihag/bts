@@ -166,6 +166,23 @@ class TickerConn {
 			const interesting_ids = utils.filter_map(db_courts, c => c.match_id);
 			const interesting_matches = db_matches.filter(m => interesting_ids.includes(m._id));
 
+			const matches_by_id = new Map();
+			for (const m of interesting_matches) {
+				matches_by_id.set(m._id, m);
+			}
+
+			// Hide old matches
+			const now = Date.now();
+			for (const c of db_courts) {
+				const m = matches_by_id.get(c.match_id);
+				if (!m) continue;
+				if (!m.end_ts) continue;
+
+				if (m.end_ts < now + 15 * 60 * 1000) {
+					c.match_id = null;
+				}
+			}
+
 			return cb(null, {
 				courts: db_courts.map(craft_court),
 				matches: interesting_matches.map(craft_match),
