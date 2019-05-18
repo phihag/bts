@@ -47,7 +47,8 @@ function handle_tournament_edit_props(app, ws, msg) {
 		'btp_ip', 'btp_password',
 		'is_team', 'is_nation_competition',
 		'ticker_enabled', 'ticker_url', 'ticker_password',
-		'language', 'dm_style']);
+		'language', 'dm_style',
+		'logo_background_color', 'logo_foreground_color']);
 
 	app.db.tournaments.update({key}, {$set: props}, {returnUpdatedDocs: true}, function(err, num, t) {
 		if (err) {

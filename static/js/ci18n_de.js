@@ -68,6 +68,8 @@ var ci18n_de = {
 'tournament:edit:logo': 'Logo',
 'tournament:edit:logo:nologo': 'Kein Logo',
 'tournament:edit:logo:upload': 'Logo hochladen',
+'tournament:edit:logo:background': 'Logo-Hintergrund:',
+'tournament:edit:logo:foreground': 'Farbe für Text auf Logo:',
 };
 
 /*@DEV*/

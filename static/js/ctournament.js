@@ -459,6 +459,45 @@ function ui_edit() {
 		accept: 'image/*',
 	});
 	logo_button.addEventListener('change', _upload_logo);
+	const logo_colors_container = uiu.el(logo_form, 'div', {style: 'display: block'});
+	const bg_col_label = uiu.el(logo_colors_container, 'label', {}, ci18n('tournament:edit:logo:background'));
+	const logo_background_color_input = uiu.el(logo_colors_container, 'input', {
+		type: 'color',
+		name: 'logo_background_color',
+		value: curt.logo_background_color || '#000000',
+	});
+	logo_background_color_input.addEventListener('change', (e) => {
+		send({
+			type: 'tournament_edit_props',
+			key: curt.key,
+			props: {
+				logo_background_color: e.target.value,
+			},
+		}, function(err) {
+			if (err) {
+				return cerror.net(err);
+			}
+		});
+	});
+	const fg_col_label = uiu.el(logo_colors_container, 'label', {}, ci18n('tournament:edit:logo:foreground'));
+	const fg_col_input = uiu.el(logo_colors_container, 'input', {
+		type: 'color',
+		name: 'logo_foreground_color',
+		value: curt.logo_foreground_color || '#aaaaaa',
+	});
+	fg_col_input.addEventListener('change', (e) => {
+		send({
+			type: 'tournament_edit_props',
+			key: curt.key,
+			props: {
+				logo_foreground_color: e.target.value,
+			},
+		}, function(err) {
+			if (err) {
+				return cerror.net(err);
+			}
+		});
+	});
 
 	uiu.el(main, 'h2', {}, ci18n('tournament:edit:courts'));
 

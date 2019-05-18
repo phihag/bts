@@ -143,6 +143,8 @@ function matches_handler(req, res) {
 		if (tournament.logo_id) {
 			event.tournament_logo_url = `/h/${encodeURIComponent(tournament_key)}/logo/${tournament.logo_id}`;
 		}
+		event.tournament_logo_background_color = tournament.logo_background_color || '#000000';
+		event.tournament_logo_foreground_color = tournament.logo_foreground_color || '#aaaaaa';
 
 		const reply = {
 			status: 'ok',

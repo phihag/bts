@@ -70,7 +70,8 @@ var ci18n_en = {
 'tournament:edit:logo': 'Logo',
 'tournament:edit:logo:nologo': 'No logo',
 'tournament:edit:logo:upload': 'Upload logo',
-
+'tournament:edit:logo:background': 'Logo background:',
+'tournament:edit:logo:foreground': 'Logo foreground:',
 };
 
 /*@DEV*/
