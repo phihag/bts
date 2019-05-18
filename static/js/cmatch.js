@@ -802,6 +802,7 @@ return {
 	calc_section,
 	prepare_render,
 	render_create,
+	render_flag_el,
 	render_finished,
 	render_unassigned,
 	render_courts,

@@ -118,3 +118,7 @@ h3 {
 	border-bottom-right-radius: 0.5em;
 	padding: 1em;
 }
+
+.nationstats_table tr:nth-child(odd) td {
+	background: #eee;
+}

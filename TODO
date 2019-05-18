@@ -1,4 +1,9 @@
-spurious umpire_changed events if reconnecting to bup
+preview should update automatically (when somebody else changes it)
+
+improve allscoresheets
+	font size
+	i18n doc title
+	link
 
 shuttle_count sometimes missing?
 

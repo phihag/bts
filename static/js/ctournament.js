@@ -234,7 +234,6 @@ function _upload_logo(e) {
 }
 
 function ui_edit() {
-	console.log('rendering ui_edit')
 	crouting.set('t/:key/edit', {key: curt.key});
 	toprow.set([{
 		label: 'Tournaments',
@@ -472,7 +471,7 @@ function ui_edit() {
 	logo_button.addEventListener('change', _upload_logo);
 	const logo_colors_container = uiu.el(logo_form, 'div', {style: 'display: block'});
 	const bg_col_label = uiu.el(logo_colors_container, 'label', {}, ci18n('tournament:edit:logo:background'));
-	const logo_background_color_input = uiu.el(logo_colors_container, 'input', {
+	const logo_background_color_input = uiu.el(bg_col_label, 'input', {
 		type: 'color',
 		name: 'logo_background_color',
 		value: curt.logo_background_color || '#000000',
@@ -735,6 +734,92 @@ crouting.register(/t\/([a-z0-9]+)\/allscoresheets$/, function(m) {
 	});
 }, change.default_handler(ui_allscoresheets));
 
+function _cancel_ui_nationstats() {
+	const dlg = document.querySelector('.nationstats_dialog');
+	if (!dlg) {
+		return; // Already cancelled
+	}
+	cbts_utils.esc_stack_pop();
+	uiu.remove(dlg);
+	ui_show();
+}
+
+function ui_nationstats() {
+	crouting.set('t/' + curt.key + '/nationstats', {}, _cancel_ui_nationstats);
+
+	cbts_utils.esc_stack_push(_cancel_ui_nationstats);
+
+	const body = uiu.qs('body');
+	const dialog_bg = uiu.el(body, 'div', 'dialog_bg nationstats_dialog');
+
+	const dialog = uiu.el(dialog_bg, 'div', {
+		'class': 'dialog',
+		style: 'font-size: 26px',
+	});
+
+	const all_players = new Map();
+	for (const m of curt.matches) {
+		for (const t of m.setup.teams) {
+			for (const p of t.players) {
+				all_players.set(p.name, p);
+			}
+		}
+	}
+
+	const by_nation = new Map();
+	for (const p of all_players.values()) {
+		const nationality = p.nationality || 'unspecified';
+		let cur = by_nation.get(nationality);
+		if (!cur) {
+			cur = [];
+			by_nation.set(nationality, cur);
+		}
+		cur.push(p);
+	}
+
+	uiu.el(dialog, 'div', {}, ci18n('nationstats:summary', {
+		player_count: all_players.size,
+		nation_count: by_nation.size,
+	}));
+
+	const nation_counts = Array.from(by_nation.entries()).map(([nationality, players]) => {
+		return {
+			nationality,
+			count: players.length,
+		};
+	});
+	nation_counts.sort((n1, n2) => {
+		const count_cmp = utils.cmp(n2.count, n1.count);
+		if (count_cmp != 0) return count_cmp;
+		return utils.cmp(n1.nationality, n2.nationality);
+	});
+	
+	const table = uiu.el(dialog, 'table', {
+		'class': 'nationstats_table',
+		style: 'border-collapse:collapse;',
+	});
+	const tbody = uiu.el(table, 'tbody');
+	for (const nc of nation_counts) {
+		const tr = uiu.el(tbody, 'tr');
+
+		const flag_td = uiu.el(tr, 'td');
+		cmatch.render_flag_el(flag_td, nc.nationality);
+
+		uiu.el(tr, 'td', {
+			style: 'text-align:left;',
+		}, countries.lookup(nc.nationality));
+
+		uiu.el(tr, 'td', {style: 'text-align:right;font-weight:bold;padding:0 0.6em;'}, nc.count);
+	}
+
+	const cancel_btn = uiu.el(dialog, 'div', 'vlink', ci18n('Back'));
+	cancel_btn.addEventListener('click', _cancel_ui_nationstats);
+}
+crouting.register(/t\/([a-z0-9]+)\/nationstats$/, function(m) {
+	ctournament.switch_tournament(m[1], function() {
+		ui_nationstats();
+	});
+}, change.default_handler(ui_nationstats));
 
 return {
 	init,
@@ -754,6 +839,7 @@ if ((typeof module !== 'undefined') && (typeof require !== 'undefined')) {
 	var change = require('./change');
 	var ci18n = require('./ci18n');
 	var cmatch = require('./cmatch');
+	var countries = require('./countries');
 	var crouting = require('./crouting');
 	var debug = require('./debug');
 	var form_utils = require('./form_utils');

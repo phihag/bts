@@ -72,6 +72,8 @@ var ci18n_en = {
 'tournament:edit:logo:upload': 'Upload logo',
 'tournament:edit:logo:background': 'Logo background:',
 'tournament:edit:logo:foreground': 'Logo foreground:',
+
+'nationstats:summary': '{player_count} players from {nation_count} nations',
 };
 
 /*@DEV*/
