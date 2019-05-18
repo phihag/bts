@@ -140,6 +140,9 @@ function matches_handler(req, res) {
 			matches,
 			courts,
 		};
+		if (tournament.logo_id) {
+			event.tournament_logo_url = `/h/${encodeURIComponent(tournament_key)}/logo/${tournament.logo_id}`;
+		}
 
 		const reply = {
 			status: 'ok',
@@ -298,6 +301,7 @@ function logo_handler(req, res) {
 
 	const fn = path.join(utils.root_dir(), 'data', 'logos', path.basename(logo_id));
 	res.setHeader('Content-Type', mime);
+	res.setHeader('Cache-Control', 'public, max-age=31536000');
 	res.sendFile(fn);
 }
 
