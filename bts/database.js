@@ -60,6 +60,7 @@ function setup_helpers(db) {
 	for (const single_database of Object.values(db)) {
 		single_database.find_async = promisify(single_database.find);
 		single_database.findOne_async = promisify(single_database.findOne);
+		single_database.remove_async = promisify(single_database.remove);
 		single_database.update_async = (...args) => {
 			return new Promise((resolve, reject) => {
 				single_database.update(...args, (err, ...results) => {

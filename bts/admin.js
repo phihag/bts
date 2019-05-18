@@ -219,24 +219,27 @@ function handle_match_edit(app, ws, msg) {
 	});
 }
 
-function handle_match_delete(app, ws, msg) {
+async function async_handle_match_delete(app, ws, msg) {
 	if (!_require_msg(ws, msg, ['tournament_key', 'id'])) {
 		return;
 	}
 	const tournament_key = msg.tournament_key;
-	app.db.matches.remove({_id: msg.id, tournament_key}, {}, function(err, numRemoved) {
-		if (err) {
-			ws.respond(msg, err);
-			return;
-		}
-		if (numRemoved !== 1) {
-			ws.respond(msg, new Error('Cannot find match ' + msg.id + ' of tournament ' + tournament_key + ' to remove in database'));
-			return;
-		}
-
-		notify_change(app, tournament_key, 'match_delete', {match__id: msg.id});
+	let num_removed;
+	try {
+		num_removed = await app.db.matches.remove_async({_id: msg.id, tournament_key}, {});
+	} catch (err) {
 		ws.respond(msg, err);
-	});
+		return;
+	}
+	if (num_removed !== 1) {
+		ws.respond(msg, new Error('Cannot find match ' + msg.id + ' of tournament ' + tournament_key + ' to remove in database'));
+		return;
+	}
+
+	await app.db.courts.update_async({match_id: msg.id}, {$set: {match_id: null}}, {});
+
+	notify_change(app, tournament_key, 'match_delete', {match__id: msg.id});
+	ws.respond(msg);
 }
 
 function handle_btp_fetch(app, ws, msg) {
@@ -348,13 +351,13 @@ async function async_handle_tournament_upload_logo(app, ws, msg) {
 }
 
 module.exports = {
+	async_handle_match_delete,
 	async_handle_tournament_upload_logo,
 	handle_btp_fetch,
 	handle_fetch_allscoresheets_data,
 	handle_create_tournament,
 	handle_courts_add,
 	handle_match_add,
-	handle_match_delete,
 	handle_match_edit,
 	handle_ticker_pushall,
 	handle_tournament_get,

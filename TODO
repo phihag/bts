@@ -1,6 +1,5 @@
-cache logo
-bup: show nationality in choice of server / receiver
 option to hide match from bup list, fade out in our list
+bup: show nationality in choice of server / receiver
 
 when deleting a match reset court if it got that match
 
