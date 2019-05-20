@@ -1,16 +1,31 @@
+make update_score async (and catch errors)
+
+sync umpire nationaliy
+
+doc installation (+docker)
+
+doc usage (e.g. locking, handles etc.)
+
+nationstats should include umpires
+
 preview should update automatically (when somebody else changes it)
+
+scoresheets should also update automatically
+
+edit umpires
 
 improve allscoresheets
 	font size
 	i18n doc title
-	link
-
-shuttle_count sometimes missing?
+	should also store JSON
+	link to (at bottom, include nationstats as well)
 
 option to hide match from bup list, fade out in our list
 bup: show nationality in choice of server / receiver
 
 bup btsh should update event (e.g. color)
+
+bup: dual-color everything
 
 when deleting a match reset court if it got that match
 
