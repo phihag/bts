@@ -186,7 +186,7 @@ class BTPConn {
 		async.waterfall([
 			(cb) => {
 				if (!match.setup || !match.setup.umpire_name) {
-					return cb(null, null);
+					return cb(null, null, null);
 				}
 
 				this.app.db.umpires.findOne({
