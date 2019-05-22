@@ -1,5 +1,7 @@
 make update_score async (and catch errors)
 
+more tests for update_score (->Georg)
+
 sync umpire nationaliy
 
 doc installation (+docker)
@@ -13,6 +15,8 @@ preview should update automatically (when somebody else changes it)
 scoresheets should also update automatically
 
 edit umpires
+
+umpire report (including discpline)
 
 improve allscoresheets
 	font size

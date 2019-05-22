@@ -282,7 +282,7 @@ function integrate_umpires(app, tournament_key, btp_state, callback) {
 	var changed = false;
 
 	async.each(officials, (o, cb) => {
-		const name = (o.FirstName ? (o.FirstName[0] + ' ') : '') + ((o.Name[0] && o.Name[0]) ? o.Name[0] : '');
+		const name = (o.FirstName ? (o.FirstName[0] + ' ') : '') + ((o.Name && o.Name[0]) ? o.Name[0] : '');
 		if (!name) {
 			return cb();
 		}
