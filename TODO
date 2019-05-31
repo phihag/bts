@@ -1,8 +1,34 @@
+umpire management
+	overview of umpires + oncourt + last match (how long ago)
+	button set umpire of match (read before)
+
+dmode international should show discipline
+
+fix umpire syncing
+
+prevent setting a match to 0:0 (and log in console or database!) if match is already done
+
+display next matches
+
+check if switching to other tab and back works
+
+ticker: allow overriding all from different tournaments (clear if != tournament)
+
+clean umpire ui for bup
+
+test groups btp
+
+test resigning btp
+
+test walkover btp
+
 make update_score async (and catch errors)
 
 more tests for update_score (->Georg)
 
 sync umpire nationaliy
+
+handle no nationality correctly in edit screen
 
 doc installation (+docker)
 
@@ -10,19 +36,29 @@ doc usage (e.g. locking, handles etc.)
 
 nationstats should include umpires
 
-preview should update automatically (when somebody else changes it)
+logo preview should update automatically (when somebody else changes it)
+
+program to record and compare state
 
 scoresheets should also update automatically
 
 edit umpires
 
+clear btp sync errors
+
 umpire report (including discpline)
+
+advanced filtering (by court etc.)
 
 improve allscoresheets
 	font size
 	i18n doc title
 	should also store JSON
 	link to (at bottom, include nationstats as well)
+
+mirror another instance (this checks the proto)
+
+export URL to export everything (+ SHA256)
 
 option to hide match from bup list, fade out in our list
 bup: show nationality in choice of server / receiver
@@ -135,6 +171,7 @@ relay to another host?
 
 write Dockerfile
 
+umpire stats (also by event / discipline?)
 
 settings: use i18n names in dm_style
 

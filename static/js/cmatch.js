@@ -114,9 +114,9 @@ function show_flag(e) {
 function render_flag_el(parentNode, nationality) {
 	const img = uiu.el(parentNode, 'img', {
 		style: 'height:1em;width:1em;vertical-align:text-top;',
-		src: '/static/flags/' + nationality + '.svg',
-		alt: nationality,
-		title: countries.lookup(nationality),
+		src: '/static/flags/' + (nationality || 'unknown') + '.svg',
+		alt: nationality || '??',
+		title: nationality ? countries.lookup(nationality) : '??',
 		'data-nationality': nationality,
 	});
 	img.addEventListener('click', show_flag);
