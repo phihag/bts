@@ -22,8 +22,8 @@ function export_winners() {
 	const table = [];
 	for (const match of curt.matches) {
 		if (typeof match.team1_won !== 'boolean') continue;
-		if (!/HF|Finale/.test(match.setup.match_name)) continue;
-		if (match.setup.scheduled_date_str !== today) continue;
+		if (!/HF|Finale/i.test(match.setup.match_name)) continue;
+		if (match.setup.scheduled_date !== today) continue;
 		const is_semifinals = /HF/.test(match.setup.match_name);
 
 		const event_m = /([A-Z]+)\s*([OU]\s*[0-9]+)/.exec(match.setup.event_name);
