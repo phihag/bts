@@ -69,7 +69,7 @@ function export_winners() {
 
 	table.sort((rowa, rowb) => {
 		// age group
-		cmp = cbts_utils.natcmp(rowa[0], rowb[0]);
+		let cmp = cbts_utils.natcmp(rowa[0], rowb[0]);
 		if (cmp !== 0) return cmp;
 
 		// discipline
