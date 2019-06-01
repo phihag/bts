@@ -26,14 +26,17 @@ function calc_umpire_status(t) {
 				u.last_on_court_ts = m.end_ts;
 			}
 		}
-
-		if (m.setup.court_id) {
+		if (typeof m.team1_won !== 'boolean') {
 			u.status = 'oncourt';
 		}
 	}
 
 	const umpires = Array.from(umpires_by_name.values());
-	umpires.sort(utils.cmp_key('name'));
+	umpires.sort((u0, u1) => {
+		let cmp = utils.cmp_key('last_on_court_ts')(u0, u1);
+		if (cmp !== 0) return cmp;
+		return utils.cmp_key('name')(u0, u1);
+	});
 	return umpires;
 }
 
@@ -68,6 +71,9 @@ function _ui_status_update() {
 
 	uiu.el(container, 'h3', {}, ci18n('umpires:status:ready'));
 	_ui_render_table(container, umpires, 'ready');
+
+	uiu.el(container, 'h3', {}, ci18n('umpires:status:paused'));
+	_ui_render_table(container, umpires, 'paused');
 }
 
 function ui_status() {
