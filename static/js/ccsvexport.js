@@ -105,31 +105,9 @@ return {
 
 /*@DEV*/
 if ((typeof module !== 'undefined') && (typeof require !== 'undefined')) {
-	var calc = require('../bup/js/calc');
-	var displaymode = require('../bup/js/displaymode');
 	var cbts_utils = require('./cbts_utils');
-	var cerror = require('./cerror');
-	var change = require('./change');
-	var ci18n = require('./ci18n');
-	var cmatch = require('./cmatch');
-	var countries = require('./countries');
-	var crouting = require('./crouting');
-	var cumpires = require('./cumpires');
-	var debug = require('./debug');
-	var form_utils = require('./form_utils');
-	var i18n = require('../bup/js/i18n');
-	var i18n_de = require('../bup/js/i18n_de');
-	var i18n_en = require('../bup/js/i18n_en');
-	var printing = require('../bup/js/printing');
-	var pronunciation = require('../bup/js/pronunciation');
-	var scoresheet = require('../bup/js/scoresheet');
-	var svg2pdf = require('../bup/js/svg2pdf');
-	var toprow = require('./toprow');
-	var uiu = require('../bup/js/uiu');
 	var utils = require('../bup/bup/js/utils.js');
 	var save_file = require('../bup/bup/js/save_file.js');
-
-	var JSZip = null; // External library
 
 	module.exports = ccsvexport;
 }
