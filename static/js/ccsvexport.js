@@ -6,11 +6,11 @@ function make_csv(table) {
 	return table.map(row => {
 		return row.map(val => {
 			const str = '' + val;
-			if (/^[-_a-z0-9A-Z]+$/.test(str)) {
+			if (/^[-:_a-z0-9A-Z]+$/.test(str)) {
 				return str;
 			}
 			return '"' + str.replace('"', '""') + '"';
-		});
+		}).join(',');
 	}).join('\r\n');
 }
 
