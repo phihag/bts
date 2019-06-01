@@ -37,46 +37,50 @@ function render_match_table_header(table, include_courts) {
 	uiu.el(title_tr, 'th', {}, '');
 }
 
-function render_match_row(tr, match, court, include_court) {
+function render_match_row(tr, match, court, style) {
 	if (!court) {
 		court = curt.courts_by_id[match.setup.court_id];
 	}
 
 	const setup = match.setup;
-	const actions_td = uiu.el(tr, 'td');
-	const edit_btn = uiu.el(actions_td, 'div', {
-		'class': 'vlink match_edit_button',
-		'data-match__id': match._id,
-		'title': ci18n('match:edit'),
-	});
-	edit_btn.addEventListener('click', on_edit_button_click);
+	if (style === 'default' || style === 'plain') {
+		const actions_td = uiu.el(tr, 'td');
+		const edit_btn = uiu.el(actions_td, 'div', {
+			'class': 'vlink match_edit_button',
+			'data-match__id': match._id,
+			'title': ci18n('match:edit'),
+		});
+		edit_btn.addEventListener('click', on_edit_button_click);
 
-	const scoresheet_btn = uiu.el(actions_td, 'div', {
-		'class': 'vlink match_scoresheet_button',
-		'title': ci18n('match:scoresheet'),
-		'data-match__id': match._id,
-	});
-	scoresheet_btn.addEventListener('click', on_scoresheet_button_click);
+		const scoresheet_btn = uiu.el(actions_td, 'div', {
+			'class': 'vlink match_scoresheet_button',
+			'title': ci18n('match:scoresheet'),
+			'data-match__id': match._id,
+		});
+		scoresheet_btn.addEventListener('click', on_scoresheet_button_click);
 
-	uiu.el(actions_td, 'a', {
-		'class': 'match_rawinfo',
-		'title': ci18n('match:rawinfo'),
-		'href': '/h/' + encodeURIComponent(curt.key) + '/m/' + encodeURIComponent(match._id) + '/info',
-	});
+		uiu.el(actions_td, 'a', {
+			'class': 'match_rawinfo',
+			'title': ci18n('match:rawinfo'),
+			'href': '/h/' + encodeURIComponent(curt.key) + '/m/' + encodeURIComponent(match._id) + '/info',
+		});
+	}
 
-	if (include_court) {
+	if (style === 'default') {
 		uiu.el(tr, 'td', {}, court ? court.num : '');
 	}
 
-	const match_str = (setup.scheduled_time_str ? (setup.scheduled_time_str + ' ') : '') + (setup.match_name ? (setup.match_name + ' ') : '') + setup.event_name;
-	uiu.el(tr, 'td', 'match_num', setup.match_num);
-	uiu.el(tr, 'td', {}, match_str);
+	if (style === 'default' || style === 'plain') {
+		const match_str = (setup.scheduled_time_str ? (setup.scheduled_time_str + ' ') : '') + (setup.match_name ? (setup.match_name + ' ') : '') + setup.event_name;
+		uiu.el(tr, 'td', 'match_num', setup.match_num);
+		uiu.el(tr, 'td', {}, match_str);
+	}
 	const players0 = uiu.el(tr, 'td', ((match.team1_won === true) ? 'match_team_won' : ''));
 	render_players_el(players0, setup, 0);
 	uiu.el(tr, 'td', 'match_vs', 'v');
 	const players1 = uiu.el(tr, 'td', ((match.team1_won === false) ? 'match_team_won ' : '') + 'match_team2');
 	render_players_el(players1, setup, 1);
-	uiu.el(tr, 'td', (setup.umpire_name ? 'match_umpire' : 'match_no_umpire'),
+	uiu.el(tr, 'td', (setup.umpire_name ? ('match_umpire match_umpire_style_' + style) : 'match_no_umpire'),
 		(setup.umpire_name || ci18n('No umpire')) + (setup.service_judge_name ? '+' + setup.service_judge_name : ''));
 	const score_td = uiu.el(tr, 'td');
 	if (court && (court.match_id !== match._id) && (typeof match.team1_won !== 'boolean')) {
@@ -425,7 +429,7 @@ function render_match_table(container, matches, include_courts) {
 
 	for (const m of matches) {
 		const tr = uiu.el(tbody, 'tr');
-		render_match_row(tr, m, null, include_courts);
+		render_match_row(tr, m, null, include_courts ? 'default' : 'plain');
 	}
 }
 
@@ -445,7 +449,8 @@ function render_finished(container) {
 	render_match_table(container, matches, true);
 }
 
-function render_courts(container) {
+function render_courts(container, style) {
+	style = style || 'plain';
 	uiu.empty(container);
 	const table = uiu.el(container, 'table', 'match_table');
 	const tbody = uiu.el(table, 'tbody');
@@ -467,7 +472,7 @@ function render_courts(container) {
 			let i = 0;
 			for (const cm of court_matches) {
 				const my_tr = (i > 0) ? uiu.el(tbody, 'tr') : tr;
-				render_match_row(my_tr, cm, c);
+				render_match_row(my_tr, cm, c, style);
 				i++;
 			}
 		}

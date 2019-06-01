@@ -169,9 +169,6 @@ function ui_show() {
 		func: ui_show,
 		'class': 'ct_name',
 	}], [{
-		label: ci18n('referee view') + ' ' + ci18n('experimental'),
-		href: '/bup/#btsh_e=' + encodeURIComponent(curt.key) + '&display&dm_style=bts_referee' + bup_lang,
-	}, {
 		label: 'Scoreboard',
 		href: '/bup/#btsh_e=' + encodeURIComponent(curt.key) + '&display' + bup_dm_style + bup_lang,
 	}, {
@@ -204,6 +201,15 @@ function ui_show() {
 	cmatch.render_create(match_create_container);
 	uiu.el(main, 'div', 'finished_container');
 	_show_render_matches();
+
+	const footer_links = uiu.el(main, 'div', 'footer_links');
+	const umpires_link = uiu.el(footer_links, 'span', 'vlink', ci18n('umpires:status:heading'));
+	umpires_link.addEventListener('click', cumpires.ui_status);
+
+	if (/dmo/.test(curt.name)) {
+		const csvexport_link = uiu.el(footer_links, 'span', 'vlink', ci18n('csvexport:winners'));
+		csvexport_link.addEventListener('click', ccsvexport.export_winners);
+	}
 }
 _route_single(/t\/([a-z0-9]+)\/$/, ui_show, change.default_handler(_show_render_matches, {
 	score: update_score,
@@ -236,7 +242,7 @@ function _upload_logo(e) {
 function ui_edit() {
 	crouting.set('t/:key/edit', {key: curt.key});
 	toprow.set([{
-		label: 'Tournaments',
+		label: ci18n('Tournaments'),
 		func: ui_list,
 	}, {
 		label: curt.name || curt.key,
@@ -812,6 +818,9 @@ function ui_nationstats() {
 		uiu.el(tr, 'td', {style: 'text-align:right;font-weight:bold;padding:0 0.6em;'}, nc.count);
 	}
 
+	console.log(curt.umpires);
+
+
 	const cancel_btn = uiu.el(dialog, 'div', 'vlink', ci18n('Back'));
 	cancel_btn.addEventListener('click', _cancel_ui_nationstats);
 }
@@ -826,6 +835,7 @@ return {
 	// For other modules
 	switch_tournament,
 	ui_show,
+	ui_list,
 };
 
 })();
@@ -835,12 +845,14 @@ if ((typeof module !== 'undefined') && (typeof require !== 'undefined')) {
 	var calc = require('../bup/js/calc');
 	var displaymode = require('../bup/js/displaymode');
 	var cbts_utils = require('./cbts_utils');
+	var ccsvexport = require('./ccsvexport');
 	var cerror = require('./cerror');
 	var change = require('./change');
 	var ci18n = require('./ci18n');
 	var cmatch = require('./cmatch');
 	var countries = require('./countries');
 	var crouting = require('./crouting');
+	var cumpires = require('./cumpires');
 	var debug = require('./debug');
 	var form_utils = require('./form_utils');
 	var i18n = require('../bup/js/i18n');

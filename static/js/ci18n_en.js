@@ -74,6 +74,11 @@ var ci18n_en = {
 'tournament:edit:logo:foreground': 'Logo foreground:',
 
 'nationstats:summary': '{player_count} players from {nation_count} nations',
+
+'umpires:status:heading': 'Umpires',
+'umpires:status:ready': 'Ready',
+
+'csvexport:winners': 'CSV export (winner\'s certificates)',
 };
 
 /*@DEV*/

@@ -72,6 +72,11 @@ var ci18n_de = {
 'tournament:edit:logo:foreground': 'Farbe für Text auf Logo:',
 
 'nationstats:summary': '{player_count} Spieler aus {nation_count} verschiedenen Ländern',
+
+'umpires:status:heading': 'Schiedsrichter',
+'umpires:status:ready': 'Bereit',
+
+'csvexport:winners': 'CSV-Export für Siegerurkunden',
 };
 
 /*@DEV*/

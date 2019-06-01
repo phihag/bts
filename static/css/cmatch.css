@@ -131,6 +131,10 @@
 	min-width: 5em;
 }
 
+.match_umpire_style_umpires {
+	font-weight: bold;
+}
+
 
 @media print {
 	.toprow,

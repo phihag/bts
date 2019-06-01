@@ -122,3 +122,14 @@ h3 {
 .nationstats_table tr:nth-child(odd) td {
 	background: #eee;
 }
+
+.footer_links {
+	margin-top:1em;
+	margin-bottom:0.5em;
+}
+.footer_links span {
+	display: inline-block;
+}
+.footer_links span + span{
+	margin-left: 1em;
+}
