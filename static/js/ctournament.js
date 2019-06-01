@@ -206,7 +206,7 @@ function ui_show() {
 	const umpires_link = uiu.el(footer_links, 'span', 'vlink', ci18n('umpires:status:heading'));
 	umpires_link.addEventListener('click', cumpires.ui_status);
 
-	if (/dmo/.test(curt.name)) {
+	if (/dmo/.test(curt.id) || /O35/.test(curt.name)) {
 		const csvexport_link = uiu.el(footer_links, 'span', 'vlink', ci18n('csvexport:winners'));
 		csvexport_link.addEventListener('click', ccsvexport.export_winners);
 	}
