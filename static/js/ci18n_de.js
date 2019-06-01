@@ -75,6 +75,9 @@ var ci18n_de = {
 
 'umpires:status:heading': 'Schiedsrichter',
 'umpires:status:ready': 'Bereit',
+'umpires:status:pause': 'In Pause',
+'umpires:paused_since': 'seit {time}',
+'umpires:last_on_court': 'letztes Spiel endete {time}',
 
 'csvexport:winners': 'CSV-Export für Siegerurkunden',
 };

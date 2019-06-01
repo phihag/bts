@@ -7,14 +7,13 @@ function calc_umpire_status(t) {
 	const umpires_by_name = new Map();
 	for (const u of t.umpires) {
 		umpires_by_name.set(u.name, u);
-		if (u.paused_since) {
+		if (u.paused_since_ts) {
 			u.status = 'paused';
 		} else {
 			u.status = 'ready';
 		}
 	}
 
-	const matches_by_court_id = new Map();
 	for (const m of t.matches) {
 		if (!m.setup.umpire_name) continue;
 		const u = umpires_by_name.get(m.setup.umpire_name);
@@ -39,7 +38,24 @@ function calc_umpire_status(t) {
 }
 
 function _ui_render_table(container, umpires, status) {
+	const table = uiu.el(container, 'table');
+	const tbody = uiu.el(table, 'tbody');
+	for (const u of umpires) {
+		if (u.status !== status) continue;
 
+		const tr = uiu.el(tbody, 'tr');
+		if (curt.is_nation_competition) {
+			const flag_td = uiu.el(tr, 'td');
+			cmatch.render_flag_el(flag_td, u.nationality);
+		}
+		uiu.el(tr, 'td', {}, u.name);
+		if (status === 'paused') {
+			uiu.el(tr, 'td', 'umpires_since',
+				(u.paused_since_ts ? ci18n('umpires:paused_since', {time: utils.timesecs_str(u.paused_since_ts)}) : ''));
+		}
+		uiu.el(tr, 'td', 'umpires_since',
+			(u.last_on_court_ts ? ci18n('umpires:last_on_court', {time: utils.timesecs_str(u.last_on_court_ts)}) : ''));
+	}
 }
 
 function _ui_status_update() {
@@ -51,17 +67,7 @@ function _ui_status_update() {
 	const umpires = calc_umpire_status(curt);
 
 	uiu.el(container, 'h3', {}, ci18n('umpires:status:ready'));
-
-	const table = uiu.el(container, 'table');
-	const tbody = uiu.el(table, 'tbody');
-	for (const u of umpires) {
-		const tr = uiu.el(tbody, 'tr');
-		if (curt.is_nation_competition) {
-			const flag_td = uiu.el(tr, 'td');
-			cmatch.render_flag_el(flag_td, u.nationality);
-		}
-		uiu.el(tr, 'td', {}, u.name);
-	}
+	_ui_render_table(container, umpires, 'ready');
 }
 
 function ui_status() {
@@ -80,7 +86,7 @@ function ui_status() {
 	const main = uiu.qs('.main');
 	uiu.empty(main);
 
-	const container = uiu.el(main, 'div', 'umpires_status');
+	uiu.el(main, 'div', 'umpires_status');
 	_ui_status_update();
 }
 crouting.register(/t\/([a-z0-9]+)\/umpires$/, function(m) {
@@ -98,8 +104,13 @@ return {
 
 /*@DEV*/
 if ((typeof module !== 'undefined') && (typeof require !== 'undefined')) {
+	var ci18n = require('./ci18n.js');
+	var change = require('./change.js');
 	var cmatch = require('./cmatch.js');
 	var crouting = require('./crouting.js');
+	var ctournament = require('./ctournament.js');
+	var toprow = require('./toprow.js');
+	var uiu = require('../bup/js/uiu.js');
 	var utils = require('../bup/js/utils.js');
 
 	module.exports = cumpires;
