@@ -68,16 +68,6 @@ function export_winners() {
 	}
 
 	table.sort((rowa, rowb) => {
-		const enda = rowa[9], endb = rowb[9];
-		if (enda && !endb) return -1;
-		if (!enda && endb) return 1;
-
-		let cmp;
-		if (enda && endb) {
-			cmp = cbts_utils.natcmp(enda, endb);
-			if (cmp !== 0) return cmp;
-		}
-
 		// age group
 		cmp = cbts_utils.natcmp(rowa[0], rowb[0]);
 		if (cmp !== 0) return cmp;
@@ -87,7 +77,7 @@ function export_winners() {
 		if (cmp !== 1) return cmp;
 
 		// place
-		return cbts_utils.natcmp('' + rowa[3], '' + rowb[3]);
+		return - cbts_utils.natcmp('' + rowa[3], '' + rowb[3]);
 	});
 
 
