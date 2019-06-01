@@ -68,8 +68,18 @@ function export_winners() {
 	}
 
 	table.sort((rowa, rowb) => {
+		const enda = rowa[9], endb = rowb[9];
+		if (enda && !endb) return -1;
+		if (!enda && endb) return 1;
+
+		let cmp;
+		if (enda && endb) {
+			cmp = cbts_utils.natcmp(enda, endb);
+			if (cmp !== 0) return cmp;
+		}
+
 		// age group
-		let cmp = cbts_utils.natcmp(rowa[0], rowb[0]);
+		cmp = cbts_utils.natcmp(rowa[0], rowb[0]);
 		if (cmp !== 0) return cmp;
 
 		// discipline
@@ -84,7 +94,7 @@ function export_winners() {
 	table.unshift(header);
 	const csv = make_csv(table);
 	const blob = new Blob([csv], {type: 'text/csv'});
- 	save_file(blob, 'urkunden.csv');
+	save_file(blob, 'urkunden.csv');
 }
 
 return {
@@ -121,6 +131,6 @@ if ((typeof module !== 'undefined') && (typeof require !== 'undefined')) {
 
 	var JSZip = null; // External library
 
-	module.exports = ctournament;
+	module.exports = ccsvexport;
 }
 /*/@DEV*/
