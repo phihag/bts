@@ -1,10 +1,31 @@
 umpire management
 	overview of umpires + oncourt + last match (how long ago)
+	include upcoming matches
 	button set umpire of match (read before)
 
-dmode international should show discipline
+do not accept if fewer presses!
 
-fix umpire syncing
+test that realtime sync works if disconnect
+
+correct sync of walkover
+
+link to presses view
+
+overview: very slightly color alternate lines
+
+test state sync live, fetch whole state in intervals
+
+scoresheet to PDF printing looks wonky
+
+flash red if mark
+
+mode international should show discipline
+
+light referee mode
+	submit battery if available and flagged
+	submit umpire name
+
+semi-automatic match control: show next 4 matches, flash if empty court
 
 prevent setting a match to 0:0 (and log in console or database!) if match is already done
 
@@ -21,6 +42,10 @@ test groups btp
 test resigning btp
 
 test walkover btp
+
+fix sync of retired
+
+check umpire syncing after match start
 
 make update_score async (and catch errors)
 
