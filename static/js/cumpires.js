@@ -33,6 +33,8 @@ function calc_umpire_status(t) {
 
 	const umpires = Array.from(umpires_by_name.values());
 	umpires.sort((u0, u1) => {
+		if (!u0.last_on_court_ts && u1.last_on_court_ts) return -1;
+		if (u0.last_on_court_ts && !u1.last_on_court_ts) return 1;
 		let cmp = utils.cmp_key('last_on_court_ts')(u0, u1);
 		if (cmp !== 0) return cmp;
 		return utils.cmp_key('name')(u0, u1);
@@ -54,10 +56,10 @@ function _ui_render_table(container, umpires, status) {
 		uiu.el(tr, 'td', {}, u.name);
 		if (status === 'paused') {
 			uiu.el(tr, 'td', 'umpires_since',
-				(u.paused_since_ts ? ci18n('umpires:paused_since', {time: utils.timesecs_str(u.paused_since_ts)}) : ''));
+				(u.paused_since_ts ? ci18n('umpires:paused_since', {time: utils.time_str(u.paused_since_ts)}) : ''));
 		}
 		uiu.el(tr, 'td', 'umpires_since',
-			(u.last_on_court_ts ? ci18n('umpires:last_on_court', {time: utils.timesecs_str(u.last_on_court_ts)}) : ''));
+			(u.last_on_court_ts ? ci18n('umpires:last_on_court', {time: utils.time_str(u.last_on_court_ts)}) : ''));
 	}
 }
 
