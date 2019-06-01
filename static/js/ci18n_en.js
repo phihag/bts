@@ -77,7 +77,7 @@ var ci18n_en = {
 
 'umpires:status:heading': 'Umpires',
 'umpires:status:ready': 'Ready',
-'umpires:status:pause': 'Reserve',
+'umpires:status:paused': 'Reserve',
 'umpires:paused_since': 'since {time}',
 'umpires:last_on_court': 'previous match ended at {time}',
 
