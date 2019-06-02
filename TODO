@@ -1,9 +1,19 @@
+script to download (raw / json / ...)
+	script to convert
+	filter by match ID
+
+export/import tournament
+
+show duration at mouseover
+
+cap end_ts to our time
+
 umpire management
 	overview of umpires + oncourt + last match (how long ago)
 	include upcoming matches
 	button set umpire of match (read before)
 
-dmode clean: with 0
+option to hide match (at least from UI, maybe from umpires)
 
 do not accept if fewer presses!
 
@@ -14,6 +24,8 @@ correct sync of walkover
 check that we sync correctly even if multiple changes (checkbox: allow changes from BTP, default on)
 
 link to presses view
+
+ui should show whether 0:0 or warmup
 
 overview: very slightly color alternate lines
 
