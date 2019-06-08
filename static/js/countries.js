@@ -149,6 +149,7 @@ const COUNTRIES_TABLE = {
 	'PRK': 'North Korea',
 	'PUR': 'Puerto Rico',
 	'QAT': 'Qatar',
+	'ROM': 'Romania',
 	'ROU': 'Romania',
 	'RSA': 'South Africa',
 	'RUS': 'Russia',
