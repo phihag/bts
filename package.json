@@ -7,6 +7,7 @@
 		"test": "mocha test/"
 	},
 	"dependencies": {
+		"argparse": "^1.0.10",
 		"async": "*",
 		"body-parser": "*",
 		"express": "*",

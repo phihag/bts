@@ -2,6 +2,15 @@ script to download (raw / json / ...)
 	script to convert
 	filter by match ID
 
+colors for teams!
+
+list devices
+	devices should report court, current match id, battery charging, battery level
+
+scoresheet should show scheduled time
+
+script to download & compare
+
 export/import tournament
 
 show duration at mouseover
@@ -16,6 +25,7 @@ umpire management
 option to hide match (at least from UI, maybe from umpires)
 
 do not accept if fewer presses!
+	write a test case
 
 test that realtime sync works if disconnect
 
@@ -26,6 +36,8 @@ check that we sync correctly even if multiple changes (checkbox: allow changes f
 link to presses view
 
 ui should show whether 0:0 or warmup
+
+sync notes / highlights
 
 overview: very slightly color alternate lines
 
