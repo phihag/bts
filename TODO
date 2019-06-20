@@ -85,6 +85,10 @@ handle no nationality correctly in edit screen
 
 doc installation (+docker)
 
+ticker: nicen up
+ticker: show statistics
+ticker: force language
+
 doc usage (e.g. locking, handles etc.)
 
 nationstats should include umpires
@@ -134,6 +138,8 @@ report serror if property missing in editing but exists in current setup
 display next matches
 
 resync a match option
+
+support http://www.cup2000.com/tournament-software/
 
 umpire handling
 	swap between umpire and AR
