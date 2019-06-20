@@ -39,6 +39,53 @@ function courts_handler(req, res) {
 	});
 }
 
+function create_match_representation(tournament, match) {
+	const setup = match.setup;
+	setup.match_id = 'bts_' + match._id;
+	setup.team_competition = tournament.is_team;
+	setup.nation_competition = tournament.is_nation_competition;
+	for (const t of setup.teams) {
+		if (!t.players) continue;
+
+		for (const p of t.players) {
+			if (p.lastname) continue;
+
+			const m = /^(.*)\s+(\S+)$/.exec(p.name);
+			if (m) {
+				p.firstname = m[1];
+				p.lastname = m[2];
+			} else {
+				p.firstname = '';
+				p.lastname = p.name;
+			}
+		}
+	}
+
+	const res = {
+		setup,
+		network_score: match.network_score,
+		network_team1_serving: match.network_team1_serving,
+		network_teams_player1_even: match.network_teams_player1_even,
+	};
+	if (match.presses) {
+		res.presses_json = JSON.stringify(match.presses);
+	}
+	return res;
+}
+
+function create_event_representation(tournament) {
+	const res = {
+		id: 'bts_' + tournament.key,
+		tournament_name: tournament.name,
+	};
+	if (tournament.logo_id) {
+		res.tournament_logo_url = `/h/${encodeURIComponent(tournament.key)}/logo/${tournament.logo_id}`;
+	}
+	res.tournament_logo_background_color = tournament.logo_background_color || '#000000';
+	res.tournament_logo_foreground_color = tournament.logo_foreground_color || '#aaaaaa';
+	return res;
+}
+
 function matches_handler(req, res) {
 	const tournament_key = req.params.tournament_key;
 	const now = Date.now();
@@ -92,35 +139,7 @@ function matches_handler(req, res) {
 			return;
 		}
 
-		const matches = db_matches.map(function(dm) {
-			const setup = dm.setup;
-			setup.match_id = 'bts_' + dm._id;
-			setup.team_competition = tournament.is_team;
-			setup.nation_competition = tournament.is_nation_competition;
-			for (const t of setup.teams) {
-				if (!t.players) continue;
-
-				for (const p of t.players) {
-					if (p.lastname) continue;
-
-					const m = /^(.*)\s+(\S+)$/.exec(p.name);
-					if (m) {
-						p.firstname = m[1];
-						p.lastname = m[2];
-					} else {
-						p.firstname = '';
-						p.lastname = p.name;
-					}
-				}
-			}
-			return {
-				setup,
-				presses_json: JSON.stringify(dm.presses),
-				network_score: dm.network_score,
-				network_team1_serving: dm.network_team1_serving,
-				network_teams_player1_even: dm.network_teams_player1_even,
-			};
-		});
+		const matches = db_matches.map(dbm => create_match_representation(tournament, dbm));
 
 		db_courts.sort(utils.cmp_key('num'));
 		const courts = db_courts.map(function(dc) {
@@ -134,17 +153,9 @@ function matches_handler(req, res) {
 			return res;
 		});
 
-		const event = {
-			id: 'bts_' + tournament_key,
-			tournament_name: tournament.name,
-			matches,
-			courts,
-		};
-		if (tournament.logo_id) {
-			event.tournament_logo_url = `/h/${encodeURIComponent(tournament_key)}/logo/${tournament.logo_id}`;
-		}
-		event.tournament_logo_background_color = tournament.logo_background_color || '#000000';
-		event.tournament_logo_foreground_color = tournament.logo_foreground_color || '#aaaaaa';
+		const event = create_event_representation(tournament);
+		event.matches = matches;
+		event.courts = courts;
 
 		const reply = {
 			status: 'ok',
@@ -164,9 +175,12 @@ function matchinfo_handler(req, res) {
 	};
 
 	req.app.db.fetch_all([{
+		collection: 'tournaments',
+		query: {key: tournament_key},
+	}, {
 		collection: 'matches',
 		query,
-	}], function(err, match) {
+	}], function(err, tournaments, matches) {
 		if (err) {
 			res.json({
 				status: 'error',
@@ -175,7 +189,15 @@ function matchinfo_handler(req, res) {
 			return;
 		}
 
-		if (!match) {
+		if (tournaments.length !== 1) {
+			res.json({
+				status: 'error',
+				message: 'Cannot find tournament',
+			});
+			return;
+		}
+
+		if (matches.length !== 1) {
 			res.json({
 				status: 'error',
 				message: 'Cannot find match',
@@ -183,9 +205,20 @@ function matchinfo_handler(req, res) {
 			return;
 		}
 
+		const [tournament] = tournaments;
+		const [match] = matches;
+		const event = create_event_representation(tournament);
+		const match_repr = create_match_representation(tournament, match);
+		if (match_repr.presses_json) {
+			// Parse JSON-in-JSON (for performance reasons) for nicer output
+			match_repr.presses = JSON.parse(match_repr.presses_json);
+			delete match_repr.presses_json;
+		}
+		event.matches = [match_repr];
+
 		const reply = {
 			status: 'ok',
-			match,
+			event,
 		};
 		res.header('Content-Type', 'application/json');
         res.send(JSON.stringify(reply, null, 4));
