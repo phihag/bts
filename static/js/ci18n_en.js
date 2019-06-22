@@ -73,6 +73,7 @@ var ci18n_en = {
 'tournament:edit:logo:background': 'Logo background:',
 'tournament:edit:logo:foreground': 'Logo foreground:',
 
+'nationstats': 'Nation stats',
 'nationstats:summary': '{player_count} players from {nation_count} nations',
 
 'umpires:status:heading': 'Umpires',

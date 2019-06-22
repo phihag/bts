@@ -1,8 +1,20 @@
+link nationstats on bottom (if international tournament)
+
+remove countries from bts; use bup's definition
+
+docker image
+
+provide and document make update
+
+automated download should not fire all the time
+
+fix updating settings
+
 script to download (raw / json / ...)
 	script to convert
 	filter by match ID
 
-colors for teams!
+colors for teams per match!
 
 list devices
 	devices should report court, current match id, battery charging, battery level

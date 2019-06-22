@@ -51,7 +51,7 @@ function _ui_render_table(container, umpires, status) {
 		const tr = uiu.el(tbody, 'tr');
 		if (curt.is_nation_competition) {
 			const flag_td = uiu.el(tr, 'td');
-			cmatch.render_flag_el(flag_td, u.nationality);
+			cflags.render_flag_el(flag_td, u.nationality);
 		}
 		uiu.el(tr, 'td', {}, u.name);
 		if (status === 'paused') {
@@ -112,6 +112,7 @@ return {
 
 /*@DEV*/
 if ((typeof module !== 'undefined') && (typeof require !== 'undefined')) {
+	var cflags = require('./cflags');
 	var ci18n = require('./ci18n.js');
 	var change = require('./change.js');
 	var cmatch = require('./cmatch.js');

@@ -110,22 +110,6 @@ function update_match_score(m) {
 	});
 }
 
-function show_flag(e) {
-	const img = e.target;
-	alert(img.getAttribute('title') + ' (' + img.getAttribute('data-nationality') + ')');
-}
-
-function render_flag_el(parentNode, nationality) {
-	const img = uiu.el(parentNode, 'img', {
-		style: 'height:1em;width:1em;vertical-align:text-top;',
-		src: '/static/flags/' + (nationality || 'unknown') + '.svg',
-		alt: nationality || '??',
-		title: nationality ? countries.lookup(nationality) : '??',
-		'data-nationality': nationality,
-	});
-	img.addEventListener('click', show_flag);
-}
-
 function render_players_el(parentNode, setup, team_id) {
 	const team = setup.teams[team_id];
 	if (setup.incomplete) {
@@ -138,7 +122,7 @@ function render_players_el(parentNode, setup, team_id) {
 		return;
 	}
 
-	render_flag_el(parentNode, nat0);
+	cflags.render_flag_el(parentNode, nat0);
 	uiu.el(parentNode, 'span', {}, team.players[0].name);
 
 	if (team.players.length > 1) {
@@ -149,7 +133,7 @@ function render_players_el(parentNode, setup, team_id) {
 			'style': 'white-space: pre',
 		});
 		if (nat1 && (nat1 !== nat0)) {
-			render_flag_el(p1_el, nat1);
+			cflags.render_flag_el(p1_el, nat1);
 		}
 
 		uiu.el(p1_el, 'span', {}, team.players[1].name);
@@ -807,7 +791,6 @@ return {
 	calc_section,
 	prepare_render,
 	render_create,
-	render_flag_el,
 	render_finished,
 	render_unassigned,
 	render_courts,
@@ -822,6 +805,7 @@ return {
 if ((typeof module !== 'undefined') && (typeof require !== 'undefined')) {
 	var cbts_utils = require('./cbts_utils');
 	var cerror = require('../bup/js/cerror');
+	var cflags = require('./cflags');
 	var change = require('./change');
 	var ci18n = require('./ci18n');
 	var countries = require('./countries');

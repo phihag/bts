@@ -205,7 +205,7 @@ var countries = (function() { // eslint-disable-line no-unused-vars
 
 function lookup(code) {
 	const res = COUNTRIES_TABLE[code];
-	if (!res) {
+	if (!res && (code !== 'unknown')) {
 		cerror.silent('Unknown country ' + JSON.stringify(code));
 	}
 	return res || code;

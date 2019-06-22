@@ -102,13 +102,24 @@ function init() {
 	_load(window.location.pathname);
 }
 
+function render_link(container, href, text) {
+	const link = uiu.el(container, 'a', {href}, text);
+	link.addEventListener('click', e => {
+		if (e.shiftKey || e.metaKey || e.ctrlKey || e.altKey) return;
+		if (e.button != 0) return;
+		e.preventDefault();
+		navigate_to(e.target.getAttribute('href'));
+	});
+}
+
 return {
-	navigate_to,
 	init,
-	set,
-	register,
-	rerender,
+	navigate_to,
 	on_change,
+	register,
+	render_link,
+	rerender,
+	set,
 };
 
 })();
@@ -116,6 +127,7 @@ return {
 /*@DEV*/
 if ((typeof module !== 'undefined') && (typeof require !== 'undefined')) {
 	var cerror = require('./cerror');
+	var uiu = require('../bup/js/uiu');
 
     module.exports = crouting;
 }

@@ -65,12 +65,12 @@ h3 {
 	white-space: pre-wrap;
 }
 
-.vlink {
+.vlink, a:link, a:visited {
 	color: #00e;
 	cursor: pointer;
 	text-decoration: none;
 }
-.vlink:hover {
+.vlink:hover, a:hover {
 	text-decoration: underline;
 }
 
@@ -127,9 +127,9 @@ h3 {
 	margin-top:1em;
 	margin-bottom:0.5em;
 }
-.footer_links span {
+.footer_links>* {
 	display: inline-block;
 }
-.footer_links span + span{
+.footer_links>* + *{
 	margin-left: 1em;
 }
