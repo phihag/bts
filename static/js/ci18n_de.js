@@ -73,6 +73,7 @@ var ci18n_de = {
 
 'nationstats': 'Nationen-Statistiken',
 'nationstats:summary': '{player_count} Spieler aus {nation_count} verschiedenen Ländern',
+'nationstats:summary:umpires': '{umpire_count} Schiedsrichter aus {nation_count} verschiedenen Ländern',
 
 'umpires:status:heading': 'Schiedsrichter',
 'umpires:status:ready': 'Bereit',

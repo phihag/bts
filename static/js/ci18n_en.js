@@ -75,6 +75,7 @@ var ci18n_en = {
 
 'nationstats': 'Nation stats',
 'nationstats:summary': '{player_count} players from {nation_count} nations',
+'nationstats:summary:umpires': '{umpire_count} umpires from {nation_count} nations',
 
 'umpires:status:heading': 'Umpires',
 'umpires:status:ready': 'Ready',
