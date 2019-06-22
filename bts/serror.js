@@ -34,6 +34,13 @@ function silent(message) {
 	});
 }
 
+const once_messages = new Set();
+function silent_once(message) {
+	if (once_messages.has(message)) return;
+	once_messages.add(message);
+	silent(message);
+}
+
 function active(config) {
 	return (config.report_errors === undefined) ? true : config.report_errors;
 }
@@ -48,5 +55,6 @@ function setup(config) {
 module.exports = {
 	active,
 	silent,
+	silent_once,
 	setup,
 };
