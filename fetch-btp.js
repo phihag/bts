@@ -6,6 +6,7 @@ const {promisify} = require('util');
 const {DOMParser} = require('xmldom');
 const fs = require('fs');
 const path = require('path');
+const TextDecoder = require('text-encoding').TextDecoder;
 
 const btp_conn = require('./bts/btp_conn.js');
 const btp_parse = require('./bts/btp_parse.js');
@@ -20,7 +21,25 @@ async function _ensure_dir(path) {
 }
 
 async function load_file(path) {
-	return await promisify(fs.readFile)(path, {});
+	const bytes = await promisify(fs.readFile)(path, {});
+
+	if (bytes[0] === 123) { // {
+		const str = new TextDecoder('utf-8').decode(bytes);
+		const data = JSON.parse(str);
+		return btp_proto.encode(data);
+	}
+
+	const is_xml = (
+		(bytes[0] === 60) ||  // <
+		((bytes[0] === 239) && (bytes[1] === 187) && (bytes[2] === 191) && (bytes[3] === 60)) || // BOM + <
+		((bytes[0] === 239) && (bytes[1] === 187) && (bytes[2] === 191) && (bytes[3] === 10) && (bytes[4] === 60)) // BOM + LF + <
+	);			
+	if (is_xml) {
+		const str = new TextDecoder('utf-8').decode(bytes);
+		return btp_proto.encode_xml(str);
+	}
+
+	return bytes;
 }
 
 async function main() {

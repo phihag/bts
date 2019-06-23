@@ -1,5 +1,5 @@
 script to download (raw / json / ...)
-	load from XML
+	load from -x XML
 	load from JSON
 
 check that we sync umpire nationality

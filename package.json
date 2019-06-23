@@ -17,6 +17,7 @@
 		"request": "^2.88.0",
 		"rimraf": "*",
 		"serve-favicon": "*",
+		"text-encoding": "^0.7.0",
 		"uuid": "^3.3.2",
 		"ws": "*",
 		"xmldom": "*"

@@ -248,8 +248,10 @@ function req2xml(req) {
 
 function encode(req) {
 	const xml_str = req2xml(req);
-	// console.log('sending', xml_str); // TODO remove this line
+	return encode_xml(xml_str);
+}
 
+function encode_xml(xml_str) {
 	const xml_buf = Buffer.from(xml_str, 'utf8');
 	const compressed_request = zlib.gzipSync(xml_buf, {});
 
@@ -299,6 +301,7 @@ module.exports = {
 	decode,
 	decode_string,
 	encode,
+	encode_xml,
 	el2obj,
 	get_info_request,
 	login_request,
