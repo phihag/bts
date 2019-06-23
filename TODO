@@ -1,6 +1,5 @@
 script to download (raw / json / ...)
 	convert from formats
-	add --backup option
 	add --umpires
 	add --match-id
 
@@ -80,6 +79,8 @@ semi-automatic match control: show next 4 matches, flash if empty court
 prevent setting a match to 0:0 (and log in console or database!) if match is already done
 
 display next matches
+
+autosync tournament name from BTP
 
 check if switching to other tab and back works
 

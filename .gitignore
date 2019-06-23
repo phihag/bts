@@ -1,3 +1,4 @@
+backups
 data
 ticker_data
 
@@ -7,4 +8,3 @@ config.json
 ticker_config.json
 
 mail.*
-
