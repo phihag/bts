@@ -12,7 +12,7 @@ function root_dir() {
 function size(obj) {
 	var res = 0;
 	for (var key in obj) {
-		if (obj.hasOwnProperty(key)) {
+		if (Object.prototype.hasOwnProperty.call(obj, key)) {
 			res++;
 		}
 	}
@@ -22,7 +22,7 @@ function size(obj) {
 function pluck(obj, keys) {
 	var res = {};
 	keys.forEach(function(k) {
-		if (obj.hasOwnProperty(k)) {
+		if (Object.prototype.hasOwnProperty.call(obj, k)) {
 			res[k] = obj[k];
 		}
 	});

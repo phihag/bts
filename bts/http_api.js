@@ -13,7 +13,7 @@ const utils = require('./utils');
 // Returns true iff all params are met
 function _require_params(req, res, keys) {
 	for (const k of keys) {
-		if (! req.body.hasOwnProperty(k)) {
+		if (! Object.prototype.hasOwnProperty.call(req.body, k)) {
 			res.json({
 				status: 'error',
 				message: 'Missing field ' + k + ' in request',
