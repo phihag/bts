@@ -132,8 +132,27 @@ function get_btp_state(response) {
 	};
 }
 
+// Parse umpires into our standard format
+function parse_umpires(response) {
+	const btp_t = response.Result[0].Tournament[0];
+	if (!btp_t.Officials || !btp_t.Officials[0] || !btp_t.Officials[0].Official) return [];
+	return btp_t.Officials[0].Official.map(o => {
+		const res = {
+			firstname: o.FirstName[0],
+			lastname: o.Name[0],
+			btp_id: o.ID[0],
+		};
+		if (o.Country && o.Country[0]) {
+			res.nationality = o.Country[0];
+		}
+		res.name = res.firstname + ' ' + res.lastname;
+		return res;
+	});
+}
+
 module.exports = {
 	get_btp_state,
+	parse_umpires,
 	// Testing only
 	_calc_match_players,
 };

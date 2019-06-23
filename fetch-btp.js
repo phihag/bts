@@ -7,8 +7,9 @@ const {DOMParser} = require('xmldom');
 const fs = require('fs');
 const path = require('path');
 
-const btp_proto = require('./bts/btp_proto.js');
 const btp_conn = require('./bts/btp_conn.js');
+const btp_parse = require('./bts/btp_parse.js');
+const btp_proto = require('./bts/btp_proto.js');
 const utils = require('./bts/utils.js');
 const {serialize_pretty} = require('./bts/xml_utils.js');
 
@@ -18,13 +19,19 @@ async function _ensure_dir(path) {
 	await promisify(fs.mkdir)(path);
 }
 
+async function load_file(path) {
+	return await promisify(fs.readFile)(path, {});
+}
+
 async function main() {
 	const send_raw_request = promisify(btp_conn.send_raw_request);
 
 	const parser = argparse.ArgumentParser({
 		description: 'Fetch the current state of a tournament from BTP'});
-	parser.addArgument('IP', {
-		help: 'The address of the BTP server',
+	parser.addArgument(['-i', '--ip'], {
+		metavar: 'ADDRESS',
+		dest: 'ip',
+		help: 'The IP address of the BTP server',
 	});
 	parser.addArgument(['-p', '--port'], {
 		metavar: 'PORT',
@@ -37,6 +44,10 @@ async function main() {
 	parser.addArgument(['-b', '--backup'], {
 		action: 'storeTrue',
 		help: 'Create a backup file in ./backups/',
+	});
+	parser.addArgument(['-F', '--load-file'], {
+		metavar: 'FILE',
+		help: 'Instead of reading from the network, load BTP response from file',
 	});
 
 	const output_group = parser.addArgumentGroup({title: 'Output'});
@@ -82,19 +93,31 @@ async function main() {
 		defaultValue: 'json',
 		help: 'Output tournament name',
 	});
+	output_group.addArgument(['--umpires'], {
+		action: 'storeConst',
+		dest: 'output',
+		constant: 'umpires_list',
+		defaultValue: 'json',
+		help: 'Output a list of umpires',
+	});
 	const args = parser.parseArgs();
-	const ip = args.IP;
-	if (!ip) {
-		parser.error('Need target IP');
-		return;
+
+	let response_raw;
+	if (args.load_file) {
+		response_raw = await load_file(args.load_file);
+	} else {
+		const ip = args.ip;
+		if (!ip) {
+			parser.error('Need target IP (use --ip 1.2.3.4)');
+			return;
+		}
+		const port = args.port || 9901;
+		const xml_request = btp_proto.get_info_request(args.password);
+		const raw_request = btp_proto.encode(xml_request);
+
+		response_raw = await send_raw_request(ip, port, raw_request);
 	}
 
-	const port = args.port || 9901;
-
-	const xml_request = btp_proto.get_info_request(args.password);
-	const raw_request = btp_proto.encode(xml_request);
-
-	const response_raw = await send_raw_request(ip, port, raw_request);
 	if (args.output === 'raw') {
 		process.stdout.write(response_raw);
 	}
@@ -122,6 +145,14 @@ async function main() {
 		.Value[0]);
 	if (args.output === 'tournament_name') {
 		console.log(tournament_name);
+	}
+
+	const umpires = btp_parse.parse_umpires(response_obj);
+	if (args.output === 'umpires_list') {
+		const max_id_len = Math.max(umpires.map(u => ('' + u.btp_id).length));
+		console.log(umpires.map(u => {
+			return `${utils.pad(u.btp_id, max_id_len, ' ')} ${u.name} (${u.nationality || "??"})`;
+		}).join('\n'));
 	}
 
 	if (args.backup) {
