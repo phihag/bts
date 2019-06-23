@@ -7,12 +7,12 @@ check that we sync umpire nationality
 
 btp status should be "synchronized", not "eingeloggt"
 
-security vulns @GitHub
-
 docker image
 	create
 	test
 	publish
+
+In umpires view link to last match of each umpire (easy to find scoresheet)
 
 provide and document make update (as an alias to deps?)
 
