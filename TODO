@@ -2,7 +2,7 @@ script to download (raw / json / ...)
 	script to convert
 	filter by match ID
 
-check umpire nationality
+check that we sync umpire nationality
 	write test case
 
 btp status should be "synchronized", not "eingeloggt"
@@ -147,6 +147,8 @@ bup: dual-color everything
 when deleting a match reset court if it got that match
 
 active players list for finals
+
+change title
 
 logo preview should update immediately
 logo preview should incorporate bg color

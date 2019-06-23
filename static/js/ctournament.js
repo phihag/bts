@@ -212,7 +212,7 @@ function ui_show() {
 	}
 
 	if (curt.is_nation_competition) {
-		crouting.render_link(footer_links, `/t/${curt.key}/nationstats`, ci18n('nationstats'));
+		crouting.render_link(footer_links, `t/${curt.key}/nationstats`, ci18n('nationstats'));
 	}
 }
 _route_single(/t\/([a-z0-9]+)\/$/, ui_show, change.default_handler(_show_render_matches, {

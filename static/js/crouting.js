@@ -102,13 +102,16 @@ function init() {
 	_load(window.location.pathname);
 }
 
-function render_link(container, href, text) {
-	const link = uiu.el(container, 'a', {href}, text);
+function render_link(container, path, text) {
+	const link = uiu.el(container, 'a', {
+		href: _resolve_vpath(path),
+		'data-path': path,
+	}, text);
 	link.addEventListener('click', e => {
 		if (e.shiftKey || e.metaKey || e.ctrlKey || e.altKey) return;
 		if (e.button != 0) return;
 		e.preventDefault();
-		navigate_to(e.target.getAttribute('href'));
+		navigate_to(e.target.getAttribute('data-path'));
 	});
 }
 
