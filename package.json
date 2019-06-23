@@ -13,6 +13,7 @@
 		"express": "*",
 		"extract-zip": "*",
 		"nedb": "*",
+		"pretty-data": "^0.40.0",
 		"request": "^2.88.0",
 		"rimraf": "*",
 		"serve-favicon": "*",
@@ -21,6 +22,7 @@
 		"xmldom": "*"
 	},
 	"devDependencies": {
+		"acorn": "^6.1.1",
 		"eslint": "*",
 		"mocha": "*",
 		"stylelint": "*",

@@ -1,6 +1,8 @@
 script to download (raw / json / ...)
-	script to convert
-	filter by match ID
+	convert from formats
+	add --backup option
+	add --umpires
+	add --match-id
 
 check that we sync umpire nationality
 	write test case

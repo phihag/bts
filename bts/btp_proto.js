@@ -261,7 +261,7 @@ function encode(req) {
 	return whole_req;
 }
 
-function decode(buf, callback) {
+function decode_string(buf, callback) {
 	if (buf.length < 4) {
 		return callback(new Error('Got only ' + buf.length + ' bytes'));
 	}
@@ -273,26 +273,33 @@ function decode(buf, callback) {
 
 	const main_buf = buf.slice(4);
 	const response_buf = zlib.gunzipSync(main_buf, {});
-	const response_str = response_buf.toString('utf8');
-	const parser = new xmldom.DOMParser();
+	callback(null, response_buf.toString('utf8'));
+}
 
-	var response;
-	try {
-		const doc = parser.parseFromString(response_str);
-		response = el2obj(doc.documentElement);
-	} catch(err) {
-		serror.silent('Encountered an error while parsing BTP message: ' + err.message);
-		callback(err);
-		return;
-	}
+function decode(buf, callback) {
+	decode_string(buf, (err, response_str) => {
+		if (err) return callback(err);
+		const parser = new xmldom.DOMParser();
 
-	// console.log('reponse', JSON.stringify(response)); // TODO remove this line
-	callback(null, response);
+		var response;
+		try {
+			const doc = parser.parseFromString(response_str);
+			response = el2obj(doc.documentElement);
+		} catch(err) {
+			serror.silent('Encountered an error while parsing BTP message: ' + err.message);
+			callback(err);
+			return;
+		}
+
+		callback(null, response);
+	});
 }
 
 module.exports = {
 	decode,
+	decode_string,
 	encode,
+	el2obj,
 	get_info_request,
 	login_request,
 	update_request,

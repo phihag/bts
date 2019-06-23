@@ -10,29 +10,30 @@ const serror = require('./serror');
 
 const AUTOFETCH_TIMEOUT = 30000;
 const CONNECT_TIMEOUT = 5000;
-const BTP_PORT = 9901; // 9901 for true BTP, 9002 for win7 machine
+const WAIT_TIMEOUT = 10000;
+const BTP_PORT = 9901;
 const BLP_PORT = 9911;
 
-
-function send_request(ip, xml_req, is_team, callback) {
-	var encoded_req;
-	try {
-		encoded_req = btp_proto.encode(xml_req);
-	} catch(e) {
-		serror.silent('Error while encoding for BTP:' + e.message);
-		return callback(e);
+function send_raw_request(ip, port, raw_req, callback) {
+	if (!ip) {
+		return callback(new Error('No IP address specified'));
 	}
-	const port = is_team ? BLP_PORT : BTP_PORT;
 	const client = net.connect({host: ip, port, timeout: CONNECT_TIMEOUT}, () => {
-		client.write(encoded_req);
+		client.setTimeout(WAIT_TIMEOUT);
+		client.write(raw_req);
 	});
 
 	const got = [];
-	var called = false;
+	let called = false;
 	client.on('error', (err) => {
 		if (called) return;
 		called = true;
 		callback(err);
+	});
+	client.on('timeout', () => {
+		if (called) return;
+		called = true;
+		callback(new Error(`Connection to ${ip}:${port} timed out after ${WAIT_TIMEOUT}ms`));
 	});
 	client.on('data', (data) => {
 		got.push(data);
@@ -41,7 +42,21 @@ function send_request(ip, xml_req, is_team, callback) {
 		if (called) return;
 		called = true;
 
-		btp_proto.decode(Buffer.concat(got), callback);
+		callback(null, Buffer.concat(got));
+	});
+}
+
+function send_request(ip, port, xml_req, callback) {
+	let encoded_req;
+	try {
+		encoded_req = btp_proto.encode(xml_req);
+	} catch(e) {
+		serror.silent('Error while encoding for BTP:' + e.message);
+		return callback(e);
+	}
+	send_raw_request(ip, port, encoded_req, (err, raw_response) => {
+		if (err) return callback(err);
+		return callback(err, btp_proto.decode(raw_response));
 	});
 } 
 
@@ -122,7 +137,8 @@ class BTPConn {
 	send(xml_req, success_cb) {
 		if (this.terminated) return;
 
-		send_request(this.ip, xml_req, this.is_team, (err, response) => {
+		const port = this.is_team ? BLP_PORT : BTP_PORT;
+		send_request(this.ip, port, xml_req, (err, response) => {
 			if (err) {
 				this.report_status('Verbindungsfehler: ' + err.message);
 				this.schedule_reconnect();
@@ -265,4 +281,5 @@ class BTPConn {
 
 module.exports = {
 	BTPConn,
+	send_raw_request,
 };

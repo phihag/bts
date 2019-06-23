@@ -36,7 +36,7 @@ ticker-run:
 lint: eslint stylelint
 
 eslint:
-	@./node_modules/.bin/eslint bts/ ticker/ test/*.js static/js/ div/*.js
+	@./node_modules/.bin/eslint bts/ ticker/ test/*.js static/js/ div/*.js *.js
 
 stylelint:
 	@./node_modules/.bin/stylelint static/css/*.css
