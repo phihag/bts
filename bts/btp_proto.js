@@ -145,6 +145,11 @@ function el2obj(el) {
 	const res = {};
 	for (let i = 0;i < el.childNodes.length;i++) {
 		const c = el.childNodes[i];
+		if (c.nodeType === c.TEXT_NODE) {
+			// Whitespace in indented XML
+			assert(/^\s*$/.test(c.data));
+			continue;
+		}
 		let item;
 
 		if (c.tagName === 'GROUP') {

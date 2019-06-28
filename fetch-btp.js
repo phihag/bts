@@ -64,7 +64,7 @@ async function main() {
 		action: 'storeTrue',
 		help: 'Create a backup file in ./backups/',
 	});
-	parser.addArgument(['-F', '--load-file'], {
+	parser.addArgument(['-f', '--load-file'], {
 		metavar: 'FILE',
 		help: 'Instead of reading from the network, load BTP response from file',
 	});

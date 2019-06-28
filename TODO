@@ -1,4 +1,5 @@
 script to download (raw / json / ...)
+	test cases that loading works
 	load from -x XML
 	load from JSON
 
@@ -29,7 +30,7 @@ list devices
 
 scoresheet should show scheduled time
 
-script to download & compare
+rework ways to save changes to BTP
 
 export/import tournament
 
