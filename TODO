@@ -1,3 +1,5 @@
+improve all courts
+
 script to download (raw / json / ...)
 	test cases that loading works
 	load from -x XML
@@ -12,6 +14,16 @@ docker image
 	create
 	test
 	publish
+
+clients should report battery + status 
+
+upcoming matches
+
+umpire assignment
+
+umpire + court assignment
+
+
 
 In umpires view link to last match of each umpire (easy to find scoresheet)
 
