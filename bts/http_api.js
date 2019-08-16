@@ -64,6 +64,7 @@ function create_match_representation(tournament, match) {
 	const res = {
 		setup,
 		network_score: match.network_score,
+		network_team1_left: match.network_team1_left,
 		network_team1_serving: match.network_team1_serving,
 		network_teams_player1_even: match.network_teams_player1_even,
 	};
@@ -236,6 +237,7 @@ function score_handler(req, res) {
 	};
 	const update = {
 		network_score: req.body.network_score,
+		network_team1_left: req.body.network_team1_left,
 		network_team1_serving: req.body.network_team1_serving,
 		network_teams_player1_even: req.body.network_teams_player1_even,
 		team1_won: req.body.team1_won,
