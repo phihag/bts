@@ -1,4 +1,18 @@
+docker image
+	create
+	test
+	publish
+	for ticker (include nginx)
+
 improve all courts
+
+upcoming
+
+device status
+
+onlynames: background player name instead of icon
+
+device a warning for match started without umpire name
 
 script to download (raw / json / ...)
 	test cases that loading works
@@ -10,11 +24,6 @@ check that we sync umpire nationality
 
 btp status should be "synchronized", not "eingeloggt"
 
-docker image
-	create
-	test
-	publish
-
 clients should report battery + status 
 
 upcoming matches
@@ -23,7 +32,7 @@ umpire assignment
 
 umpire + court assignment
 
-
+show IP in UI
 
 In umpires view link to last match of each umpire (easy to find scoresheet)
 
