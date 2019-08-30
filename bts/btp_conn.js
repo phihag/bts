@@ -1,5 +1,6 @@
 'use strict';
 
+const assert = require('assert');
 const net = require('net');
 
 const async = require('async');
@@ -15,6 +16,7 @@ const BTP_PORT = 9901;
 const BLP_PORT = 9911;
 
 function send_raw_request(ip, port, raw_req, callback) {
+	assert(callback);
 	if (!ip) {
 		return callback(new Error('No IP address specified'));
 	}
@@ -47,6 +49,7 @@ function send_raw_request(ip, port, raw_req, callback) {
 }
 
 function send_request(ip, port, xml_req, callback) {
+	assert(callback);
 	let encoded_req;
 	try {
 		encoded_req = btp_proto.encode(xml_req);

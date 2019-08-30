@@ -284,7 +284,8 @@ function decode_string(buf, callback) {
 }
 
 function decode(buf, callback) {
-	decode_string(buf, (err, response_str) => {
+	assert(callback);
+	decode_string(buf,  (err, response_str) => {
 		if (err) return callback(err);
 		const parser = new xmldom.DOMParser();
 
