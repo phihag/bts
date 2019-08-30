@@ -59,7 +59,11 @@ function send_request(ip, port, xml_req, callback) {
 	}
 	send_raw_request(ip, port, encoded_req, (err, raw_response) => {
 		if (err) return callback(err);
-		return callback(err, btp_proto.decode(raw_response));
+		btp_proto.decode(raw_response, (err, decoded) => {
+			if (err) return callback(err);
+
+			return callback(err, decoded);
+		});
 	});
 } 
 
