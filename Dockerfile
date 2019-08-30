@@ -8,4 +8,5 @@ RUN npm i
 ADD . .
 RUN make
 
-CMD make dev
+EXPOSE 4000
+CMD make run
