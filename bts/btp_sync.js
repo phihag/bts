@@ -17,7 +17,7 @@ function _date_str(dt) {
 	return utils.pad(dt.year, 2, '0') + '-' + utils.pad(dt.month, 2, '0') + '-' + utils.pad(dt.day, 2, '0');
 }
 
-function _craft_team(par) {
+function _craft_team(par, clubs, districts, seed) {
 	if (!par) {
 		return {players: []};
 	}
@@ -30,6 +30,15 @@ function _craft_team(par) {
 		};
 		if (p.Country && p.Country[0]) {
 			pres.nationality = p.Country[0];
+		}
+		if (p.ClubID && p.ClubID[0]) {
+			const club = clubs.get(p.ClubID[0]);
+			pres.clubName = club.Name[0];
+
+			if (club.DistrictID && club.DistrictID[0]) {
+				pres.districtName = districts.get(club.DistrictID[0]).Name[0]
+				// The abbreviation from the district would be nice, but missing in btp response
+			}
 		}
 		return pres;
 	});
@@ -44,12 +53,21 @@ function _craft_team(par) {
 		tres.name = countries.lookup(players[0].nationality);
 	}
 
+	if ((players.length === 2) && (players[0].clubName != players[1].clubName)) {
+		tres.clubName = players[0].clubName + ' / ' + players[1].clubName;
+	} else if ((players.length > 0) && (players[0].clubName)) {
+		tres.clubName = players[0].clubName;
+	}
+	if (seed) {
+		tres.seed = seed;
+	}
+
 	return tres;
 }
 
-function _craft_teams(bm) {
+function _craft_teams(bm, clubs, districts) {
 	assert(bm.bts_players);
-	return bm.bts_players.map(_craft_team);
+	return bm.bts_players.map((par, index) => _craft_team(par, clubs, districts, bm.bts_seeds[index]));
 }
 
 function _parse_score(bm) {
@@ -62,7 +80,7 @@ function _parse_score(bm) {
 
 function integrate_matches(app, tkey, btp_state, court_map, callback) {
 	const admin = require('./admin'); // avoid dependency cycle
-	const {draws, events, officials} = btp_state;
+	const {draws, events, officials, clubs, districts} = btp_state;
 
 	async.each(btp_state.matches, function(bm, cb) {
 		const draw = draws.get(bm.DrawID[0]);
@@ -111,7 +129,7 @@ function integrate_matches(app, tkey, btp_state, court_map, callback) {
 			const scheduled_date = (bm.PlannedTime ? _date_str(bm.PlannedTime[0]) : undefined);
 			const match_name = bm.RoundName[0];
 			const event_name = (event.Name[0] === draw.Name[0]) ? draw.Name[0] : event.Name[0] + ' - ' + draw.Name[0];
-			const teams = _craft_teams(bm);
+			const teams = _craft_teams(bm, clubs, districts);
 
 			const btp_player_ids = [];
 			for (const team of bm.bts_players) {

@@ -31,6 +31,7 @@ function _calc_match_players(matches_by_pid, entries, players, bm) {
 			assert(p2);
 			res.push(p2);
 		}
+		bm.bts_seed = (e.Seed1 && e.Seed1[0]) ? e.Seed1[0] : '';
 		bm.bts_winners = res;
 		if (! bm.IsMatch) {
 			// Placeholder for one entry, we're done here
@@ -57,6 +58,7 @@ function _calc_match_players(matches_by_pid, entries, players, bm) {
 	_calc_match_players(matches_by_pid, entries, players, m2);
 	const p2ar = m2.bts_winners;
 
+	bm.bts_seeds = [m1.bts_seed || '', m2.bts_seed || ''];
 	bm.bts_players = [p1ar, p2ar];
 	if (p1ar && p2ar) {
 		bm.bts_complete = true;
@@ -110,6 +112,8 @@ function get_btp_state(response) {
 	const events = utils.make_index(btp_t.Events[0].Event, e => e.ID[0]);
 	const players = utils.make_index(btp_t.Players[0].Player, p => p.ID[0]);
 	const draws = utils.make_index(btp_t.Draws[0].Draw, d => d.ID[0]);
+	const clubs = utils.make_index(btp_t.Clubs[0].Club, d => d.ID[0]);
+	const districts = utils.make_index(btp_t.Districts[0].District, d => d.ID[0]);
 	let officials;
 	if (btp_t.Officials) {
 		officials = utils.make_index(btp_t.Officials[0].Official, o => o.ID[0]);
@@ -129,6 +133,8 @@ function get_btp_state(response) {
 		officials,
 		// Testing only
 		_matches_by_pid: matches_by_pid,
+		clubs,
+		districts,
 	};
 }
 
