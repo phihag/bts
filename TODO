@@ -1,8 +1,11 @@
 docker image
+	crossbuild docker for ARM
 	create
 	test
 	publish
 	for ticker (include nginx)
+
+option to delete a tournament (-> Mario)
 
 improve all courts
 
