@@ -1,0 +1,10 @@
+#!/bin/sh
+
+VERSION="$1"
+if test -z "$VERSION"; then
+	echo "Usage: $0 VERSION"
+	exit 1
+fi
+
+set -e
+docker buildx build --platform linux/arm64,linux/amd64,linux/arm/v7 -t phihag/bts:"$VERSION" -t phihag/bts:latest --push .
