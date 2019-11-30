@@ -1,8 +1,14 @@
+flickering bug
+
+
+
+
+ticker:
+	2 wide on large screens
+	seeding (-> Dario)
+
+
 docker image
-	crossbuild docker for ARM
-	create
-	test
-	publish
 	for ticker (include nginx)
 
 option to delete a tournament (-> Mario)
