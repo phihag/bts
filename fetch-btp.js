@@ -70,6 +70,10 @@ async function main() {
 		metavar: 'FILE',
 		help: 'Instead of reading from the network, load BTP response from file',
 	});
+	parser.addArgument(['-F', '--filter-date'], {
+		metavar: 'REGEXP',
+		help: 'Only show matches scheduled for the specified time (e.g. "2019-11-30 12:00" )',
+	});
 
 	const output_group = parser.addArgumentGroup({title: 'Output'});
 	output_group.addArgument(['-r', '--raw'], {
@@ -129,6 +133,11 @@ async function main() {
 		help: 'Output a list of umpires',
 	});
 	const args = parser.parseArgs();
+
+	if (args.filter_date && args.output != 'text') {
+		parser.error('Filtering only works with -t (text output)');
+		return;
+	}
 
 	let response_raw;
 	if (args.load_file) {
@@ -190,8 +199,6 @@ async function main() {
 			const match_num = bm.MatchNr[0];
 
 			const id_str = utils.pad(bm.ID[0], 4, ' ');
-			const scheduled_time_str = utils.pad(bm.PlannedTime ? btp_sync.time_str(bm.PlannedTime[0]) : '', 5, ' ');
-			const scheduled_date = utils.pad(bm.PlannedTime ? btp_sync.date_str(bm.PlannedTime[0]) : '', 10, ' ');
 
 			const draw = draws.get(bm.DrawID[0]);
 			assert(draw);
@@ -211,15 +218,22 @@ async function main() {
 				continue;
 			}
 
+			const scheduled_str = match.setup.scheduled_date + ' ' + match.setup.scheduled_time_str;
+			if (args.filter_date && !(new RegExp(args.filter_date)).test(scheduled_str)) {
+				continue;
+			}
+
 			const players_str = match.setup.teams.map(t => t.players.map(p => p.name).join(' / ')).join(' - ');
 			const match_name_str = utils.pad(`${match.setup.match_name}`, 3, ' ');
 
-			console.log(`#${id_str} ${scheduled_date} ${scheduled_time_str} ${match.setup.event_name} ${match_name_str} ${players_str}`);
+			console.log(`#${id_str} ${scheduled_str} ${match.setup.event_name} ${match_name_str} ${players_str}`);
 		}
 
-		console.log('\n\nUmpires:');
-		for (const u of umpires) {
-			console.log(u.name);
+		if (!args.filter_date) {
+			console.log('\n\nUmpires:');
+			for (const u of umpires) {
+				console.log(u.name);
+			}
 		}
 	}
 
