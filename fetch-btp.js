@@ -212,8 +212,9 @@ async function main() {
 			}
 
 			const players_str = match.setup.teams.map(t => t.players.map(p => p.name).join(' / ')).join(' - ');
+			const match_name_str = utils.pad(`${match.setup.match_name}`, 3, ' ');
 
-			console.log(`#${id_str} ${scheduled_date} ${scheduled_time_str} ${players_str}`);
+			console.log(`#${id_str} ${scheduled_date} ${scheduled_time_str} ${match.setup.event_name} ${match_name_str} ${players_str}`);
 		}
 
 		console.log('\n\nUmpires:');
