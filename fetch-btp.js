@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 /* eslint-disable no-console */
 
+const assert = require('assert');
 const argparse = require('argparse');
 const {promisify} = require('util');
 const {DOMParser} = require('xmldom');
@@ -11,6 +12,7 @@ const TextDecoder = require('text-encoding').TextDecoder;
 const btp_conn = require('./bts/btp_conn.js');
 const btp_parse = require('./bts/btp_parse.js');
 const btp_proto = require('./bts/btp_proto.js');
+const btp_sync = require('./bts/btp_sync.js');
 const utils = require('./bts/utils.js');
 const {serialize_pretty} = require('./bts/xml_utils.js');
 
@@ -98,6 +100,13 @@ async function main() {
 		defaultValue: 'json',
 		help: 'Output tournament as indented JSON (default)',
 	});
+	output_group.addArgument(['-t', '--text'], {
+		action: 'storeConst',
+		dest: 'output',
+		constant: 'text',
+		defaultValue: 'json',
+		help: 'Output tournament as text',
+	});
 	output_group.addArgument(['--no-output'], {
 		action: 'storeConst',
 		dest: 'output',
@@ -170,9 +179,49 @@ async function main() {
 	if (args.output === 'umpires_list') {
 		const max_id_len = Math.max(umpires.map(u => ('' + u.btp_id).length));
 		console.log(umpires.map(u => {
-			return `${utils.pad(u.btp_id, max_id_len, ' ')} ${u.name} (${u.nationality || "??"})`;
+			return `${utils.pad(u.btp_id, max_id_len, ' ')} ${u.name} (${u.nationality || '??'})`;
 		}).join('\n'));
 	}
+
+	const btp_state = btp_parse.get_btp_state(response_obj);
+	if (args.output === 'text') {
+		const {draws, events, officials} = btp_state;
+		for (const bm of btp_state.matches) {
+			const match_num = bm.MatchNr[0];
+
+			const id_str = utils.pad(bm.ID[0], 4, ' ');
+			const scheduled_time_str = utils.pad(bm.PlannedTime ? btp_sync.time_str(bm.PlannedTime[0]) : '', 5, ' ');
+			const scheduled_date = utils.pad(bm.PlannedTime ? btp_sync.date_str(bm.PlannedTime[0]) : '', 10, ' ');
+
+			const draw = draws.get(bm.DrawID[0]);
+			assert(draw);
+
+			const event = events.get(draw.EventID[0]);
+			assert(event);
+
+			const tkey = '<tkey>'; // Pseudo value
+			const pseudo_court_map = {
+				'get': court_id => court_id,
+			};
+			const discipline_name = (event.Name[0] === draw.Name[0]) ? draw.Name[0] : event.Name[0] + '_' + draw.Name[0];
+			const btp_id = tkey + '_' + discipline_name + '_' + match_num;
+
+			const match = btp_sync.craft_match(tkey, btp_id, pseudo_court_map, event, draw, officials, bm);
+			if (!match) {
+				continue;
+			}
+
+			const players_str = match.setup.teams.map(t => t.players.map(p => p.name).join(' / ')).join(' - ');
+
+			console.log(`#${id_str} ${scheduled_date} ${scheduled_time_str} ${players_str}`);
+		}
+
+		console.log('\n\nUmpires:');
+		for (const u of umpires) {
+			console.log(u.name);
+		}
+	}
+
 
 	if (args.backup) {
 		const BACKUPS_DIR = './backups';

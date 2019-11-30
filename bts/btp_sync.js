@@ -9,12 +9,105 @@ const countries = require('./countries');
 const utils = require('./utils');
 
 
-function _time_str(dt) {
+function time_str(dt) {
 	return utils.pad(dt.hour, 2, '0') + ':' + utils.pad(dt.minute, 2, '0');
 }
 
-function _date_str(dt) {
+function date_str(dt) {
 	return utils.pad(dt.year, 2, '0') + '-' + utils.pad(dt.month, 2, '0') + '-' + utils.pad(dt.day, 2, '0');
+}
+
+function craft_match(tkey, btp_id, court_map, event, draw, officials, bm) {
+	if (!bm.IsMatch) {
+		return;
+	}
+
+	if (!bm.bts_complete) {
+		// TODO: register them as incomplete, but continue instead of returning
+		return;
+	}
+
+	const match_num = bm.MatchNr[0];
+	const gtid = event.GameTypeID[0];
+	assert((gtid === 1) || (gtid === 2));
+
+	const scheduled_time_str = (bm.PlannedTime ? time_str(bm.PlannedTime[0]) : undefined);
+	const scheduled_date = (bm.PlannedTime ? date_str(bm.PlannedTime[0]) : undefined);
+	const match_name = bm.RoundName[0];
+	const event_name = (event.Name[0] === draw.Name[0]) ? draw.Name[0] : event.Name[0] + ' - ' + draw.Name[0];
+	const teams = _craft_teams(bm);
+
+	const btp_player_ids = [];
+	for (const team of bm.bts_players) {
+		for (const p of team) {
+			btp_player_ids.push(p.ID[0]);
+		}
+	}
+
+	const setup = {
+		incomplete: !bm.bts_complete,
+		is_doubles: (gtid === 2),
+		match_num,
+		counting: '3x21',
+		team_competition: false,
+		match_name,
+		event_name,
+		teams,
+	};
+	if (scheduled_time_str) {
+		setup.scheduled_time_str = scheduled_time_str;
+	}
+	if (scheduled_date) {
+		setup.scheduled_date = scheduled_date;
+	}
+	if (bm.CourtID) {
+		const btp_court_id = bm.CourtID[0];
+		const court_id = court_map.get(btp_court_id);
+		assert(court_id);
+		setup.court_id = court_id;
+	}
+	if (bm.Official1ID) {
+		const o = officials.get(bm.Official1ID[0]);
+		assert(o);
+		setup.umpire_name = o.FirstName + ' ' + o.Name;
+	}
+	if (bm.Official2ID) {
+		const o = officials.get(bm.Official2ID[0]);
+		assert(o);
+		setup.service_judge_name = o.FirstName + ' ' + o.Name;
+	}
+
+	const btp_match_ids = [{
+		id: bm.ID[0],
+		draw: bm.DrawID[0],
+		planning: bm.PlanningID[0],
+	}];
+
+	const match = {
+		tournament_key: tkey,
+		btp_id,
+		btp_match_ids,
+		btp_player_ids,
+		setup,
+	};
+	match.team1_won = undefined;
+	match.btp_winner = undefined;
+	if (bm.Winner) {
+		match.btp_winner = bm.Winner[0];
+		match.team1_won = (match.btp_winner === 1);
+	}
+	if (bm.Sets) {
+		match.network_score = _parse_score(bm);
+	}
+	if (bm.Shuttles) {
+		match.shuttle_count = bm.Shuttles[0];
+	}
+	if (bm.DisplayOrder) {
+		match.match_order = bm.DisplayOrder[0];
+	}
+	match._id = 'btp_' + btp_id;
+
+	return match;
 }
 
 function _craft_team(par) {
@@ -75,11 +168,6 @@ function integrate_matches(app, tkey, btp_state, court_map, callback) {
 		assert(typeof match_num === 'number');
 		const discipline_name = (event.Name[0] === draw.Name[0]) ? draw.Name[0] : event.Name[0] + '_' + draw.Name[0];
 		const btp_id = tkey + '_' + discipline_name + '_' + match_num;
-		const btp_match_ids = [{
-			id: bm.ID[0],
-			draw: bm.DrawID[0],
-			planning: bm.PlanningID[0],
-		}];
 
 		const query = {
 			btp_id,
@@ -93,92 +181,14 @@ function integrate_matches(app, tkey, btp_state, court_map, callback) {
 				return;
 			}
 
-			if (!bm.IsMatch) {
+			const match = craft_match(tkey, btp_id, court_map, event, draw, officials, bm);
+			if (!match) {
 				cb();
 				return;
 			}
-
-			if (!bm.bts_complete) {
-				// TODO: register them as incomplete, but continue instead of returning
-				cb();
-				return;
-			}
-
-			const gtid = event.GameTypeID[0];
-			assert((gtid === 1) || (gtid === 2));
-
-			const scheduled_time_str = (bm.PlannedTime ? _time_str(bm.PlannedTime[0]) : undefined);
-			const scheduled_date = (bm.PlannedTime ? _date_str(bm.PlannedTime[0]) : undefined);
-			const match_name = bm.RoundName[0];
-			const event_name = (event.Name[0] === draw.Name[0]) ? draw.Name[0] : event.Name[0] + ' - ' + draw.Name[0];
-			const teams = _craft_teams(bm);
-
-			const btp_player_ids = [];
-			for (const team of bm.bts_players) {
-				for (const p of team) {
-					btp_player_ids.push(p.ID[0]);
-				}
-			}
-
-			const setup = {
-				incomplete: !bm.bts_complete,
-				is_doubles: (gtid === 2),
-				match_num,
-				counting: '3x21',
-				team_competition: false,
-				match_name,
-				event_name,
-				teams,
-			};
-			if (scheduled_time_str) {
-				setup.scheduled_time_str = scheduled_time_str;
-			}
-			if (scheduled_date) {
-				setup.scheduled_date = scheduled_date;
-			}
-			if (bm.CourtID) {
-				const btp_court_id = bm.CourtID[0];
-				const court_id = court_map.get(btp_court_id);
-				assert(court_id);
-				setup.court_id = court_id;
-			}
-			if (bm.Official1ID) {
-				const o = officials.get(bm.Official1ID[0]);
-				assert(o);
-				setup.umpire_name = o.FirstName + ' ' + o.Name;
-			}
-			if (bm.Official2ID) {
-				const o = officials.get(bm.Official2ID[0]);
-				assert(o);
-				setup.service_judge_name = o.FirstName + ' ' + o.Name;
-			}
-
-			const match = {
-				tournament_key: tkey,
-				btp_id,
-				btp_match_ids,
-				btp_player_ids,
-				setup,
-			};
-			match.team1_won = undefined;
-			match.btp_winner = undefined;
-			if (bm.Winner) {
-				match.btp_winner = bm.Winner[0];
-				match.team1_won = (match.btp_winner === 1);
-			}
-			if (bm.Sets) {
-				match.network_score = _parse_score(bm);
-			}
-			if (bm.Shuttles) {
-				match.shuttle_count = bm.Shuttles[0];
-			}
-			if (bm.DisplayOrder) {
-				match.match_order = bm.DisplayOrder[0];
-			}
-			match._id = 'btp_' + btp_id;
 
 			if (cur_match) {
-				if (utils.plucked_deep_equal(match, cur_match, Object.keys(match))) {
+				if (utils.plucked_deep_equal(match, cur_match, Object.keys(match), true)) {
 					// No update required
 					cb();
 					return;
@@ -187,7 +197,7 @@ function integrate_matches(app, tkey, btp_state, court_map, callback) {
 				app.db.matches.update({_id: cur_match._id}, {$set: match}, {}, (err) => {
 					if (err) return cb(err);
 
-					admin.notify_change(app, match.tournament_key, 'match_edit', {match__id: match._id, setup});
+					admin.notify_change(app, match.tournament_key, 'match_edit', {match__id: match._id, setup: match.setup});
 					cb();
 				});
 				return;
@@ -339,5 +349,8 @@ function fetch(app, tkey, response, callback) {
 }
 
 module.exports = {
+	craft_match,
+	date_str,
 	fetch,
+	time_str,
 };
