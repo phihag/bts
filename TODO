@@ -1,5 +1,6 @@
+log sent results
 
-use better ID
+use better match ID
 
 filtering in UI
 
@@ -14,7 +15,6 @@ ticker:
 	seeding (-> Dario)
 
 link to button presses ("stats")
-
 
 docker image
 	for ticker (include nginx)
