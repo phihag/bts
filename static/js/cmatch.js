@@ -578,7 +578,7 @@ function render_edit(form, match) {
 		maxlength: 3,
 		size: 3,
 		name: 'team0player0nationality',
-		value: player_names.team0player0.nationality,
+		value: player_names.team0player0.nationality || '',
 	});
 	uiu.el(t0p0td, 'input', {
 		type: 'text',
@@ -601,7 +601,7 @@ function render_edit(form, match) {
 		maxlength: 3,
 		size: 3,
 		name: 'team0player1nationality',
-		value: player_names.team0player1.nationality,
+		value: player_names.team0player1.nationality || '',
 	});
 	uiu.el(t0p1td, 'input', {
 		type: 'text',
@@ -629,7 +629,7 @@ function render_edit(form, match) {
 		maxlength: 3,
 		size: 3,
 		name: 'team1player0nationality',
-		value: player_names.team1player0.nationality,
+		value: player_names.team1player0.nationality  || '',
 	});
 	uiu.el(t1p0td, 'input', {
 		type: 'text',
@@ -652,7 +652,7 @@ function render_edit(form, match) {
 		maxlength: 3,
 		size: 3,
 		name: 'team1player1nationality',
-		value: player_names.team1player1.nationality,
+		value: player_names.team1player1.nationality || '',
 	});
 	uiu.el(t1p1td, 'input', {
 		type: 'text',
