@@ -1,8 +1,14 @@
-log sent results
+log battery
+
+
+
+do not sync automatically if autosync is inactive
+filtering in UI
 
 use better match ID
 
-filtering in UI
+log sent results
+
 
 dmu19 countries not synced
 

@@ -27,7 +27,6 @@ function craft_match(tkey, btp_id, court_map, event, draw, officials, bm) {
 		return;
 	}
 
-	const match_num = bm.MatchNr[0];
 	const gtid = event.GameTypeID[0];
 	assert((gtid === 1) || (gtid === 2));
 
@@ -47,7 +46,7 @@ function craft_match(tkey, btp_id, court_map, event, draw, officials, bm) {
 	const setup = {
 		incomplete: !bm.bts_complete,
 		is_doubles: (gtid === 2),
-		match_num,
+		match_num: bm.MatchNr[0],
 		counting: '3x21',
 		team_competition: false,
 		match_name,
@@ -79,6 +78,7 @@ function craft_match(tkey, btp_id, court_map, event, draw, officials, bm) {
 
 	const btp_match_ids = [{
 		id: bm.ID[0],
+		nr: bm.MatchNr[0],
 		draw: bm.DrawID[0],
 		planning: bm.PlanningID[0],
 	}];
@@ -164,10 +164,8 @@ function integrate_matches(app, tkey, btp_state, court_map, callback) {
 		const event = events.get(draw.EventID[0]);
 		assert(event);
 
-		const match_num = bm.MatchNr[0];
-		assert(typeof match_num === 'number');
 		const discipline_name = (event.Name[0] === draw.Name[0]) ? draw.Name[0] : event.Name[0] + '_' + draw.Name[0];
-		const btp_id = tkey + '_' + discipline_name + '_' + match_num;
+		const btp_id = tkey + '_' + discipline_name + '_' + bm.ID[0];
 
 		const query = {
 			btp_id,
