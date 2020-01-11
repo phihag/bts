@@ -4,6 +4,8 @@ const serror = require('./serror');
 let COUNTRIES_TABLE;
 
 function lookup(code) {
+	if (!code) return '';
+
 	if (!COUNTRIES_TABLE) {
 		let bup_module;
 		try {
