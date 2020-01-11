@@ -1,20 +1,28 @@
-log battery
-
-
+log battery+devices
 
 do not sync automatically if autosync is inactive
 filtering in UI
 
-use better match ID
-
 log sent results
 
+ticker show time of last update, and handle problems
+
+ticker: date in local timezone
+
+BTP status: Synchronisations-Fehler: TypeError: Cannot read property '0' of undefined at Object.get_btp_state (/home/phihag/projects/bts/bts/btp_parse.js:104:39) at Object.fetch (/home/phihag/projects/bts/bts/btp_sync.js:339:25) at send.response (/home/phihag/projects/bts/bts/btp_conn.js:117:13) at send_request (/home/phihag/projects/bts/bts/btp_conn.js:155:4) at btp_proto.decode (/home/phihag/projects/bts/bts/btp_conn.js:65:11) at decode_string (/home/phihag/projects/bts/bts/btp_proto.js:302:3) at decode_string (/home/phihag/projects/bts/bts/btp_proto.js:283:2) at Object.decode (/home/phihag/projects/bts/bts/btp_proto.js:288:2) at send_raw_request (/home/phihag/projects/bts/bts/btp_conn.js:62:13) at Socket.client.on (/home/phihag/projects/bts/bts/btp_conn.js:47:3)
+btp_parse errors should be reported
+
+ticker: iphone 7
+
+watch ticker and alert if not changed since (or watch error)
 
 dmu19 countries not synced
 
 undefined appears in countries
 
 option to reindex after deleting match in BTP!!!
+
+compare clocks
 
 ticker:
 	2 wide on large screens
@@ -103,6 +111,8 @@ link to presses view
 ui should show whether 0:0 or warmup
 
 sync notes / highlights
+
+support renaming of umpires
 
 overview: very slightly color alternate lines
 
