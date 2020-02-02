@@ -28,7 +28,7 @@ function main() {
 		}
 
 		const actual_len = main_buf.length - 4;
-		console.log(
+		console.log(  // eslint-disable-line no-console
 			`BTP packet, length ${len} ` +
 			((len === actual_len) ? '(correct)' : `(INCORRECT! Actual length is ${actual_len})`) +
 			':');
