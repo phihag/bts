@@ -1,4 +1,4 @@
-log battery+devices
+log battery+devices, red warning
 
 do not sync automatically if autosync is inactive
 filtering in UI
@@ -64,6 +64,10 @@ umpire assignment
 umpire + court assignment
 
 show IP in UI
+
+show tournament tree
+
+queue of upcoming matches
 
 In umpires view link to last match of each umpire (easy to find scoresheet)
 
