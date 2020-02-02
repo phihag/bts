@@ -1,17 +1,17 @@
 #!/usr/bin/env node
 'use strict';
 
+const argparse = require('argparse');
 const zlib = require('zlib');
 
 function main() {
-	const argv = process.argv.slice(2);
-	if (argv.length !== 1) {
-		console.error('Usage: decode.js HEXDUMP'); // eslint-disable-line no-console
-		process.exit(1);
-	}
-	const hex = argv[0].trim();
+	const parser = new argparse.ArgumentParser({});
+	parser.addArgument('HEX', {help: 'input as a hex string ("raw" format in Wireshark)'});
+	const args = parser.parseArgs();
 
-	const main_buf = new Buffer(hex, 'hex');
+	const hex = args.HEX.replace(/\s/, '');
+	const main_buf = Buffer.from(hex, 'hex');
+
 	const response_buf = zlib.gunzipSync(main_buf, {});
 	const response_str = response_buf.toString('utf8');
 	console.log(response_str); // eslint-disable-line no-console

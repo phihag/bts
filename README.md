@@ -26,3 +26,8 @@ To start, type
 
 To start a display, go to http://IP:4000/d2 , where 2 is the court number (alternatively, just `/d`).
 To start an umpire panel, go to http://IP:4000/u2 , where 2 is the court number (alternatively, just `/u`).
+
+# Helper scripts
+
+- `./fetch-btp.js` - Fetch data from BTP via TPNetwork protocol
+- `div/decode.js` - Decode VisualReality hex format
