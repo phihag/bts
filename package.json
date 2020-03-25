@@ -11,7 +11,7 @@
 		"async": "*",
 		"body-parser": "*",
 		"express": "*",
-		"extract-zip": "*",
+		"extract-zip": "1.6.8",
 		"nedb": "*",
 		"pretty-data": "^0.40.0",
 		"request": "^2.88.0",
