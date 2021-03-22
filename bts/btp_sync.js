@@ -116,11 +116,21 @@ function _craft_team(par) {
 	}
 
 	const players = par.map(p => {
-		const pres = {
-			name: p.Firstname[0] + ' ' + p.Lastname[0],
-			firstname: p.Firstname[0],
-			lastname: p.Lastname[0],
-		};
+		const pres = {};
+		if (p.Firstname && p.Lastname) {
+			pres.name = p.Firstname[0] + ' ' + p.Lastname[0];
+			pres.firstname = p.Firstname[0];
+			pres.lastname = '';
+		} else if (p.Lastname) {
+			pres.name = p.Lastname[0];
+			pres.lastname = p.Lastname[0];
+			pres.firstname = '';
+		} else if (p.Firstname) {
+			pres.name = p.Firstname[0];
+			pres.lastname = p.Firstname[0];
+			pres.firstname = '';
+		}
+
 		if (p.Country && p.Country[0]) {
 			pres.nationality = p.Country[0];
 		}
