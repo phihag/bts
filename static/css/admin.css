@@ -136,3 +136,8 @@ a:hover {
 .footer_links > * + * {
 	margin-left: 1em;
 }
+
+table.striped-table {
+
+}
+

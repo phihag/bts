@@ -58,6 +58,11 @@ var ci18n_en = {
 'tournament:edit:ticker_url': 'Ticker URL:',
 'tournament:edit:ticker_password': 'Ticker password:',
 
+'to_stats:header': 'Technical Officials Statistics',
+'to_stats:name': 'Name',
+'to_stats:umpire': 'U',
+'to_stats:service_judge': 'SJ',
+'to_stats:total': 'Total',
 
 'match:rawinfo': 'Technical information',
 'match:scoresheet': 'Scoresheet',
