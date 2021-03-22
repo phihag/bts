@@ -1,4 +1,15 @@
+de_at (-> mail georg)
+
+basic to_stats
+
 log battery+devices, red warning
+
+sync from BTP + show in settings:
+	location
+	tournament days
+show location + days in TO stats
+
+umpire management
 
 do not sync automatically if autosync is inactive
 filtering in UI
@@ -11,6 +22,8 @@ ticker: date in local timezone
 
 BTP status: Synchronisations-Fehler: TypeError: Cannot read property '0' of undefined at Object.get_btp_state (/home/phihag/projects/bts/bts/btp_parse.js:104:39) at Object.fetch (/home/phihag/projects/bts/bts/btp_sync.js:339:25) at send.response (/home/phihag/projects/bts/bts/btp_conn.js:117:13) at send_request (/home/phihag/projects/bts/bts/btp_conn.js:155:4) at btp_proto.decode (/home/phihag/projects/bts/bts/btp_conn.js:65:11) at decode_string (/home/phihag/projects/bts/bts/btp_proto.js:302:3) at decode_string (/home/phihag/projects/bts/bts/btp_proto.js:283:2) at Object.decode (/home/phihag/projects/bts/bts/btp_proto.js:288:2) at send_raw_request (/home/phihag/projects/bts/bts/btp_conn.js:62:13) at Socket.client.on (/home/phihag/projects/bts/bts/btp_conn.js:47:3)
 btp_parse errors should be reported
+
+srstats
 
 ticker: iphone 7
 
@@ -29,6 +42,8 @@ ticker:
 	seeding (-> Dario)
 
 link to button presses ("stats")
+
+to_stats as PDF
 
 docker image
 	for ticker (include nginx)
