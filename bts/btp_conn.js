@@ -290,4 +290,6 @@ class BTPConn {
 module.exports = {
 	BTPConn,
 	send_raw_request,
+	BTP_PORT,
+	BLP_PORT,
 };

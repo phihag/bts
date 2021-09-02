@@ -1,6 +1,8 @@
-get new BTP version!
+unknown country esp
 
 prevent crash if BTP parsing fails!
+
+optimize docker image! no puppeteer etc.
 
 de_at (-> mail georg)
 

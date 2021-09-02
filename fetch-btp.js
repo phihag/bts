@@ -49,6 +49,12 @@ async function main() {
 
 	const parser = argparse.ArgumentParser({
 		description: 'Fetch the current state of a tournament from BTP'});
+	parser.addArgument(['-l', '--league'], {
+		metavar: 'ADDRESS',
+		dest: 'league',
+		action: 'storeTrue',
+		help: 'Use CP League Planner instead of BTP',
+	});
 	parser.addArgument(['-i', '--ip'], {
 		metavar: 'ADDRESS',
 		dest: 'ip',
@@ -56,7 +62,9 @@ async function main() {
 	});
 	parser.addArgument(['-p', '--port'], {
 		metavar: 'PORT',
-		help: 'The port of the BTP server. Defaults to automatic (9901 for BTP)',
+		help: (
+			'The port of the BTP server.' +
+			` Defaults to automatic (${btp_conn.BLP_PORT} for BTP, ${btp_conn.BLP_PORT} for CP)`),
 	});
 	parser.addArgument(['--password'], {
 		metavar: 'PASSWORD',
@@ -148,7 +156,7 @@ async function main() {
 			parser.error('Need target IP (use --ip 1.2.3.4)');
 			return;
 		}
-		const port = args.port || 9901;
+		const port = args.port || args.league ? btp_conn.BLP_PORT : btp_conn.BTP_PORT;
 		const xml_request = btp_proto.get_info_request(args.password);
 		const raw_request = btp_proto.encode(xml_request);
 
