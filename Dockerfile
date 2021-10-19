@@ -1,4 +1,4 @@
-FROM node:16-bullseye-slim
+FROM node:16-buster-slim
 
 RUN apt-get update -qq && \
 	apt-get install -qy make git && \
