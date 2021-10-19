@@ -6,7 +6,7 @@ RUN apt-get update -qq && \
 
 WORKDIR /bts
 ADD package.json package-lock.json ./
-RUN npm ci
+RUN npm ci --only=prod
 
 RUN mkdir -p static/bup/
 ADD div/bupdate.js div/
