@@ -10,8 +10,9 @@ RUN npm ci
 
 RUN mkdir -p static/bup/
 ADD div/bupdate.js div/
-RUN node div/bupdate.js static/bup/
-RUN git clone https://github.com/phihag/bup.git static/bup/dev && cd static/bup/dev && make download-libs
+ADD Makefile ./
+RUN make bupdate
+RUN make install-bup-dev
 
 ADD . .
 
