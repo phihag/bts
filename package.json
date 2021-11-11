@@ -26,8 +26,6 @@
 		"acorn": "^6.1.1",
 		"eslint": "*",
 		"mocha": "*",
-		"pintf": "^1.0.32",
-		"puppeteer": "^2.0.0",
 		"stylelint": "*",
 		"stylelint-config-standard": "*",
 		"supervisor": "*"
