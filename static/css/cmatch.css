@@ -92,6 +92,7 @@
 	background-image: url("../../bup/icons/shuttle.svg");
 	background-size: contain;
 	background-position: center;
+	background-repeat: no-repeat;
 }
 
 .match_no_umpire {
