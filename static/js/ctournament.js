@@ -583,6 +583,7 @@ _route_single(/t\/([a-z0-9]+)\/edit$/, ui_edit);
 
 
 function render_upcoming(container) {
+	cmatch.prepare_render(curt);
 	const courts_container = uiu.el(container, 'div');
 	cmatch.render_courts(courts_container, 'public');
 

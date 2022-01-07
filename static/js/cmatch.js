@@ -442,7 +442,7 @@ function render_unassigned(container) {
 }
 
 function render_upcoming_matches(container) {
-	const UPCOMING_MATCH_COUNT = 10;
+	const UPCOMING_MATCH_COUNT = 15;
 	uiu.empty(container);
 
 	uiu.el(container, 'h3', {
