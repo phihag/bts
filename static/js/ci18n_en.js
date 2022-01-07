@@ -4,6 +4,7 @@ var ci18n_en = {
 '_name': 'English',
 
 'Unassigned Matches': 'Unassigned Matches',
+'Next Matches': 'Next Matches',
 'edit tournament': 'edit tournament',
 'Court': 'Court',
 'Match': 'Match',

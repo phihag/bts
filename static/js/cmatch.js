@@ -38,7 +38,7 @@ function render_match_table_header(table, include_courts) {
 }
 
 function render_match_row(tr, match, court, style) {
-	if (!court) {
+	if (!court && match.setup.court_id) {
 		court = curt.courts_by_id[match.setup.court_id];
 	}
 
@@ -74,30 +74,45 @@ function render_match_row(tr, match, court, style) {
 		const match_str = (setup.scheduled_time_str ? (setup.scheduled_time_str + ' ') : '') + (setup.match_name ? (setup.match_name + ' ') : '') + setup.event_name;
 		uiu.el(tr, 'td', 'match_num', setup.match_num);
 		uiu.el(tr, 'td', {}, match_str);
+	} else if (style === 'upcoming') {
+		uiu.el(tr, 'td', {
+			style: 'color: #aaa;',
+		}, `#${setup.match_num}`);
+		uiu.el(tr, 'td', {
+			style: 'color: #aaa;',
+		}, setup.scheduled_time_str || '');
+		uiu.el(tr, 'td', {
+			style: 'color: #aaa;',
+		}, setup.event_name);
 	}
 	const players0 = uiu.el(tr, 'td', ((match.team1_won === true) ? 'match_team_won' : ''));
 	render_players_el(players0, setup, 0);
 	uiu.el(tr, 'td', 'match_vs', 'v');
 	const players1 = uiu.el(tr, 'td', ((match.team1_won === false) ? 'match_team_won ' : '') + 'match_team2');
 	render_players_el(players1, setup, 1);
-	uiu.el(tr, 'td', (setup.umpire_name ? ('match_umpire match_umpire_style_' + style) : 'match_no_umpire'),
-		(setup.umpire_name || ci18n('No umpire')) + (setup.service_judge_name ? '+' + setup.service_judge_name : ''));
-	const score_td = uiu.el(tr, 'td');
-	if (court && (court.match_id !== match._id) && (typeof match.team1_won !== 'boolean')) {
-		uiu.el(score_td, 'span', {}, ci18n(' Ready to start '));
+	if (style === 'default' || style === 'plain') {
+		const umpire_name = (setup.umpire_name || ci18n('No umpire')) + (setup.service_judge_name ? '+' + setup.service_judge_name : '');
+		uiu.el(tr, 'td', (setup.umpire_name ? ('match_umpire match_umpire_style_' + style) : 'match_no_umpire'), umpire_name);
 	}
-	uiu.el(score_td, 'span', {
-		'class': ('match_score' + ((court && (court.match_id === match._id)) ? ' match_score_current' : '')),
-		'data-match_id': match._id,
-	}, calc_score_str(match));
-	const shuttle_td = uiu.el(tr, 'td', 'match_shuttle_count');
-	uiu.el(shuttle_td, 'span', {
-		'class': (
-			'match_shuttle_count_display' +
-			(match.shuttle_count ? ' match_shuttle_count_display_active' : '')
-		),
-		'data-match_id': match._id,
-	}, match.shuttle_count || '');
+
+	if (style !== 'public') {
+		const score_td = uiu.el(tr, 'td');
+		if (court && (court.match_id !== match._id) && (typeof match.team1_won !== 'boolean')) {
+			uiu.el(score_td, 'span', {}, ci18n(' Ready to start '));
+		}
+		uiu.el(score_td, 'span', {
+			'class': ('match_score' + ((court && (court.match_id === match._id)) ? ' match_score_current' : '')),
+			'data-match_id': match._id,
+		}, calc_score_str(match));
+		const shuttle_td = uiu.el(tr, 'td', 'match_shuttle_count');
+		uiu.el(shuttle_td, 'span', {
+			'class': (
+				'match_shuttle_count_display' +
+				(match.shuttle_count ? ' match_shuttle_count_display_active' : '')
+			),
+			'data-match_id': match._id,
+		}, match.shuttle_count || '');
+	}
 }
 
 function update_match_score(m) {
@@ -118,7 +133,7 @@ function render_players_el(parentNode, setup, team_id) {
 
 	const nat0 = team.players[0] && team.players[0].nationality;
 	if (!curt.is_nation_competition || !nat0) {
-		uiu.el(parentNode, 'span', {}, team.players.map(p => p.name).join(' / '));
+		uiu.el(parentNode, 'span', {}, team.players.map(p => p.name.replace(' ', '\xa0')).join(' / '));
 		return;
 	}
 
@@ -136,7 +151,8 @@ function render_players_el(parentNode, setup, team_id) {
 			cflags.render_flag_el(p1_el, nat1);
 		}
 
-		uiu.el(p1_el, 'span', {}, team.players[1].name);
+		const partner_name = team.players[1].name.replace(' ', '\xa0');
+		uiu.el(p1_el, 'span', {}, partner_name);
 	}
 }
 
@@ -423,6 +439,22 @@ function render_unassigned(container) {
 
 	const unassigned_matches = curt.matches.filter(m => calc_section(m) === 'unassigned');
 	render_match_table(container, unassigned_matches, false);
+}
+
+function render_upcoming_matches(container) {
+	const UPCOMING_MATCH_COUNT = 10;
+	uiu.empty(container);
+
+	uiu.el(container, 'h3', {
+		style: 'text-align: center;',
+	}, ci18n('Next Matches'));
+
+	const upcoming_table = uiu.el(container, 'table', 'upcoming_table');
+	const unassigned_matches = curt.matches.filter(m => calc_section(m) === 'unassigned');
+	for (const match of unassigned_matches.slice(0, UPCOMING_MATCH_COUNT)) {
+		const tr = uiu.el(upcoming_table, 'tr');
+		render_match_row(tr, match, null, 'upcoming');
+	}
 }
 
 function render_finished(container) {
@@ -795,6 +827,7 @@ return {
 	render_unassigned,
 	render_courts,
 	render_umpire_options,
+	render_upcoming_matches,
 	update_match_score,
 };
 

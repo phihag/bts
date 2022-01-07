@@ -174,7 +174,10 @@ function ui_show() {
 	}, {
 		label: 'Umpire Panel',
 		href: '/bup/#btsh_e=' + encodeURIComponent(curt.key) + bup_lang,
-	}]);
+	}, {
+		label: 'Upcoming Matches',
+		href: '/admin/t/' + encodeURIComponent(curt.key) + '/upcoming',
+	},]);
 
 	const main = uiu.qs('.main');
 	uiu.empty(main);
@@ -577,6 +580,35 @@ function ui_edit() {
 	});
 }
 _route_single(/t\/([a-z0-9]+)\/edit$/, ui_edit);
+
+
+function render_upcoming(container) {
+	const courts_container = uiu.el(container, 'div');
+	cmatch.render_courts(courts_container, 'public');
+
+	const upcoming_container = uiu.el(container, 'div');
+	cmatch.render_upcoming_matches(upcoming_container);
+}
+
+function ui_upcoming() {
+	crouting.set('t/:key/upcoming', {key: curt.key});
+	toprow.hide();
+
+	const main = uiu.qs('.main');
+	uiu.empty(main);
+	main.classList.add('main_upcoming');
+
+	uiu.hide_qs('.btp_status');
+	uiu.hide_qs('.ticker_status');
+	uiu.hide_qs('.status');
+
+	render_upcoming(main);
+	main.addEventListener('click', () => {
+		fullscreen.toggle();
+	});
+}
+_route_single(/t\/([a-z0-9]+)\/upcoming/, ui_upcoming);
+
 
 function init() {
 	send({

@@ -4,6 +4,7 @@ var ci18n_de = {
 '_name': 'Deutsch (Deutschland)',
 
 'Unassigned Matches': 'Nicht zugewiesene Spiele',
+'Next Matches': 'Nächste Spiele',
 'edit tournament': 'Turnier bearbeiten',
 'Court': 'Court',
 'Match': 'Spiel',
