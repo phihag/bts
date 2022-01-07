@@ -2,5 +2,6 @@
 	"port": 4001,
 	"report_errors": true,
 	"tournament_name": "Live-Ticker",
+	"prefix_html": "<!-- HTML to show before courts -->",
 	"note_html": "Tickering with <a href=\"https://github.com/phihag/bts\">bts</a>"
 }

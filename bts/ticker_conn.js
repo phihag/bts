@@ -29,7 +29,7 @@ class TickerConn {
 	constructor(app, url, password, tournament_key) {
 		assert(tournament_key);
 		this.app = app;
-		this.last_status = 'Aktiviert';
+		this.last_status = 'Active';
 		this.url = url;
 		this.password = password;
 		this.tournament_key = tournament_key;

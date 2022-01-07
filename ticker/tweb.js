@@ -35,6 +35,7 @@ function main_handler(req, res, next) {
 			html = html.replace(/{{tournament_name_html}}/g, utils.encode_html(app.config.tournament_name));
 			html = html.replace(/{{last_update_str}}/g, utils.encode_html(app.ticker_data ? (app.ticker_data.last_update_str || '') : ''));
 			html = html.replace(/{{note_html}}/g, app.config.note_html);
+			html = html.replace(/{{prefix_html}}/g, app.config.prefix_html || '');
 			html = html.replace(/{{courts_html}}/g, courts_html);
 			html = html.replace(/{{static_path}}/g, '/static/');
 			html = html.replace(/{{root_path}}/g, '/');
