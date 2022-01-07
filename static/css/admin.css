@@ -146,7 +146,7 @@ table.striped-table {
 .main_upcoming {
 	background: #000; color: #fff;
 	position: fixed; left: 0; right: 0; top: 0; bottom: 0;
-	padding: 0.5em 0;
+	padding: 0 0;
 	font-size: 35px;
 	cursor: none;
 }

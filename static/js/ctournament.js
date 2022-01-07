@@ -175,7 +175,7 @@ function ui_show() {
 		label: 'Umpire Panel',
 		href: '/bup/#btsh_e=' + encodeURIComponent(curt.key) + bup_lang,
 	}, {
-		label: 'Upcoming Matches',
+		label: ci18n('Next Matches'),
 		href: '/admin/t/' + encodeURIComponent(curt.key) + '/upcoming',
 	},]);
 
