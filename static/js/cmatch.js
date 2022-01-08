@@ -76,6 +76,9 @@ function render_match_row(tr, match, court, style) {
 		uiu.el(tr, 'td', {}, match_str);
 	} else if (style === 'upcoming') {
 		uiu.el(tr, 'td', {
+			style: 'min-width: 0.8em;'
+		}, court ? court.num : '');
+		uiu.el(tr, 'td', {
 			style: 'color: #aaa;',
 		}, `#${setup.match_num}`);
 		uiu.el(tr, 'td', {
@@ -95,7 +98,7 @@ function render_match_row(tr, match, court, style) {
 		uiu.el(tr, 'td', (setup.umpire_name ? ('match_umpire match_umpire_style_' + style) : 'match_no_umpire'), umpire_name);
 	}
 
-	if (style !== 'public') {
+	if (style === 'default' || style === 'plain') {
 		const score_td = uiu.el(tr, 'td');
 		if (court && (court.match_id !== match._id) && (typeof match.team1_won !== 'boolean')) {
 			uiu.el(score_td, 'span', {}, ci18n(' Ready to start '));
