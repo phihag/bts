@@ -442,7 +442,7 @@ function render_unassigned(container) {
 }
 
 function render_upcoming_matches(container) {
-	const UPCOMING_MATCH_COUNT = 15;
+	const UPCOMING_MATCH_COUNT = 10;
 	uiu.empty(container);
 
 	uiu.el(container, 'h3', {
@@ -452,7 +452,9 @@ function render_upcoming_matches(container) {
 	const upcoming_table = uiu.el(container, 'table', 'upcoming_table');
 	const unassigned_matches = curt.matches.filter(m => calc_section(m) === 'unassigned');
 	for (const match of unassigned_matches.slice(0, UPCOMING_MATCH_COUNT)) {
-		const tr = uiu.el(upcoming_table, 'tr');
+		const tr = uiu.el(upcoming_table, 'tr', {
+			style: 'padding-top: 1em;',
+		});
 		render_match_row(tr, match, null, 'upcoming');
 	}
 }
@@ -478,6 +480,7 @@ function render_courts(container, style) {
 		const rowspan = Math.max(1, court_matches.length);
 		uiu.el(tr, 'th', {
 			'class': 'court_num',
+			style: ((style === 'public') ? 'padding-right: 0.5em' : ''),
 			rowspan,
 			title: c._id,
 		}, c.num);

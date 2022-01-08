@@ -150,8 +150,13 @@ table.striped-table {
 	font-size: 35px;
 	cursor: none;
 }
+.upcoming_table {
+	border-collapse: collapse;
+}
 .upcoming_table td {
+	padding-bottom: 0.3em;
 	vertical-align: top;
+
 }
 .upcoming_table td:not(:first-child) {
 	padding-left: 0.3em;
