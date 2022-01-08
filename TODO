@@ -1,3 +1,11 @@
+check bug: external edit of match in BTP should be reflected in admin view & upcoming
+
+upcoming: only show if same date
+
+get clocks from btp
+	setting 1303: pause
+	<LastTimeOnCourt> for players
+
 ticker: insert bup
 
 mario docker
