@@ -25,7 +25,7 @@ function display_handler(req, res) {
 
 		const bup_lang = ((t.language && t.language !== 'auto') ? '&lang=' + encodeURIComponent(t.language) : '');
 		const bup_dm_style = '&dm_style=' + encodeURIComponent(t.dm_style || 'international');
-		let redir_url = '/bup/#btsh_e=' + encodeURIComponent(t.key) + '&display' + bup_dm_style + bup_lang;
+		let redir_url = '/bup/#btsh_e=' + encodeURIComponent(t.key) + '&nosettings&display' + bup_dm_style + bup_lang;
 		if (/^[0-9]+$/.test(req.params.courtnum)) {
 			redir_url += '&court=' + encodeURIComponent(t.key + '_' + req.params.courtnum);
 		}
