@@ -71,7 +71,7 @@ function send_request(ip, port, xml_req, callback) {
 class BTPConn {
 	constructor(app, ip, password, tkey, enabled_autofetch, readonly, is_team) {
 		this.app = app;
-		this.last_status = 'Aktiviert';
+		this.last_status = 'Activated';
 		this.ip = ip;
 		this.password = password;
 		this.tkey = tkey;
@@ -88,21 +88,21 @@ class BTPConn {
 			return;
 		}
 
-		this.report_status('Verbindung wird hergestellt ...');
+		this.report_status('Connecting ...');
 		this.send(btp_proto.login_request(this.password), response => {
 			if (!response.Action || !response.Action[0] || !response.Action[0].ID[0] || (response.Action[0].ID[0] !== 'REPLY')) {
-				this.report_status('Ungültige Antwort auf Login-Anfrage');
+				this.report_status('Invalid reply to login request');
 				this.schedule_reconnect();
 				return;
 			}
 
 			if (response.Action[0].Result[0] !== 1) {
-				this.report_status('Falsches Passwort');
+				this.report_status('Invalid password');
 				this.schedule_reconnect();
 				return;
 			}
 
-			this.report_status('Eingeloggt.');
+			this.report_status('Logged in.');
 			this.key_unicode = response.Action[0].Unicode[0];
 
 			this.pushall();
@@ -139,7 +139,7 @@ class BTPConn {
 
 	terminate() {
 		this.terminated = true;
-		this.report_status('Beendet.');
+		this.report_status('Terminated.');
 	}
 
 	send(xml_req, success_cb) {
@@ -148,7 +148,7 @@ class BTPConn {
 		const port = this.is_team ? BLP_PORT : BTP_PORT;
 		send_request(this.ip, port, xml_req, (err, response) => {
 			if (err) {
-				this.report_status('Verbindungsfehler: ' + err.message);
+				this.report_status('Connection error: ' + err.message);
 				this.schedule_reconnect();
 				return;
 			}
