@@ -1,6 +1,15 @@
+auto-determine password!?
+
+public note for game (and show that in upcoming!)
+
+per-match colors!
+	should be changeable during the game too
+
+flag to stop receiving updates from BTP for a match
+
 check bug: external edit of match in BTP should be reflected in admin view & upcoming
 
-upcoming: only show if same date
+upcoming: only show if same date (or white block if new date)
 
 get clocks from btp
 	setting 1303: pause
@@ -11,6 +20,8 @@ ticker: insert bup
 mario docker
 
 Stijn CP!
+
+public note to a game, show in upcoming and other views
 
 /d1?dm_style=blahbah
 
