@@ -17,6 +17,7 @@ function init(callback) {
 		'matches',
 		'tournaments',
 		'umpires',
+		'logs',
 	];
 
 	const db_dir = path.join(utils.root_dir(), '/data');
@@ -44,6 +45,7 @@ function init(callback) {
 	db.tournaments.ensureIndex({fieldName: 'key', unique: true});
 	db.umpires.ensureIndex({fieldName: 'name', unique: true});
 	db.umpires.ensureIndex({fieldName: 'tournament_key', unique: false});
+	db.logs.ensureIndex({fieldName: 'tournament_key', unique: false});
 
 	setup_helpers(db);
 
