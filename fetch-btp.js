@@ -60,13 +60,13 @@ async function main() {
 		dest: 'ip',
 		help: 'The IP address of the BTP server',
 	});
-	parser.addArgument(['-p', '--port'], {
+	parser.addArgument(['--port'], {
 		metavar: 'PORT',
 		help: (
 			'The port of the BTP server.' +
 			` Defaults to automatic (${btp_conn.BLP_PORT} for BTP, ${btp_conn.BLP_PORT} for CP)`),
 	});
-	parser.addArgument(['--password'], {
+	parser.addArgument(['-p', '--password'], {
 		metavar: 'PASSWORD',
 		help: 'The TPNetwork password. Empty for no password.',
 	});
