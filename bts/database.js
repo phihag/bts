@@ -9,16 +9,27 @@ const Datastore = require('nedb');
 
 const utils = require('./utils');
 
+const TABLES = [
+	'courts',
+	'event',
+	'matches',
+	'tournaments',
+	'umpires',
+	'logs',
+];
+
+
+async function init_test() {
+	const db = {}
+	for (const key of TABLES) {
+		db[key] = new Datastore({inMemoryOnly: true});
+	}
+	await promisify(prepare)(db);
+	return db;
+}
+
 function init(callback) {
 	const db = {};
-	const TABLES = [
-		'courts',
-		'event',
-		'matches',
-		'tournaments',
-		'umpires',
-		'logs',
-	];
 
 	const db_dir = path.join(utils.root_dir(), '/data');
 	if (! fs.existsSync(db_dir)) {
@@ -38,6 +49,10 @@ function init(callback) {
 		db[key] = new Datastore({filename: path.join(db_dir, key), autoload: true});
 	});
 
+	prepare(db, callback);
+}
+
+function prepare(db, callback) {
 	db.courts.ensureIndex({fieldName: 'tournament_key', unique: false});
 	db.matches.ensureIndex({fieldName: 'court_id', unique: false});
 	db.matches.ensureIndex({fieldName: 'tournament_key', unique: false});
@@ -145,5 +160,6 @@ function setup_autonum(callback, db, collection, start) {
 
 module.exports = {
 	init,
+	init_test,
 	setup_helpers,
 };
