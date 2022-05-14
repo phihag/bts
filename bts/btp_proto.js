@@ -192,7 +192,7 @@ function el2obj(el) {
 	return res;
 }
 
-function _req2xml_add(doc, parent, obj) {
+function _req2xml_add(doc, parent, obj, timeZone) {
 	for (const k in obj) {
 		const v = obj[k];
 
@@ -200,24 +200,33 @@ function _req2xml_add(doc, parent, obj) {
 		if (Array.isArray(v)) {
 			node = doc.createElement('GROUP');
 			for (const el of v) {
-				_req2xml_add(doc, node, el);
+				_req2xml_add(doc, node, el, timeZone);
 			}
 		} else if (v instanceof Date) {
 			node = doc.createElement('ITEM');
 			node.setAttribute('TYPE', 'DateTime');
 
+			// Convert to specific timezone
+			let date = v;
+			if (timeZone) {
+				date = new Date(new Intl.DateTimeFormat('sv', {
+					timeZone, dateStyle: 'short', timeStyle: 'medium'
+				}).format(v));
+				date.setMilliseconds(v.getMilliseconds());
+			}
+
 			const dt = doc.createElement('DATETIME');
-			dt.setAttribute('Y', v.getFullYear());
-			dt.setAttribute('MM', v.getMonth() + 1);
-			dt.setAttribute('D', v.getDate());
-			dt.setAttribute('H', v.getHours());
-			dt.setAttribute('M', v.getMinutes());
-			dt.setAttribute('S', v.getSeconds());
-			dt.setAttribute('MS', v.getMilliseconds());
+			dt.setAttribute('Y', date.getFullYear());
+			dt.setAttribute('MM', date.getMonth() + 1);
+			dt.setAttribute('D', date.getDate());
+			dt.setAttribute('H', date.getHours());
+			dt.setAttribute('M', date.getMinutes());
+			dt.setAttribute('S', date.getSeconds());
+			dt.setAttribute('MS', date.getMilliseconds());
 			node.appendChild(dt);
 		} else if (typeof v === 'object') {
 			node = doc.createElement('GROUP');
-			_req2xml_add(doc, node, v);
+			_req2xml_add(doc, node, v, timeZone);
 		} else if (typeof v === 'string') {
 			node = doc.createElement('ITEM');
 			node.setAttribute('TYPE', 'String');
@@ -238,21 +247,21 @@ function _req2xml_add(doc, parent, obj) {
 	}
 }
 
-function req2xml(req) {
+function req2xml(req, timeZone) {
 	const doci = new xmldom.DOMImplementation();
 	const doc = doci.createDocument(null, 'VISUALXML');
 	const root_node = doc.documentElement;
 	root_node.setAttribute('VERSION', '1.0');
 
-	_req2xml_add(doc, root_node, req);
+	_req2xml_add(doc, root_node, req, timeZone);
 
 	const serializer = new xmldom.XMLSerializer();
 	const xml_str = '<?xml version="1.0" encoding="UTF-8"?>' + serializer.serializeToString(doc);
 	return xml_str;
 }
 
-function encode(req) {
-	const xml_str = req2xml(req);
+function encode(req, timeZone) {
+	const xml_str = req2xml(req, timeZone);
 	return encode_xml(xml_str);
 }
 
@@ -312,4 +321,6 @@ module.exports = {
 	get_info_request,
 	login_request,
 	update_request,
+	// Tests only
+	_req2xml: req2xml,
 };
