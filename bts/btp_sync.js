@@ -361,4 +361,6 @@ module.exports = {
 	date_str,
 	fetch,
 	time_str,
+	// test only
+	_integrate_umpires: integrate_umpires,
 };
