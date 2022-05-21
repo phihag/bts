@@ -1,9 +1,21 @@
-sync clocks
+
+match duration broken?
+	setting for timezone!
+	// list all timezones
+
+	// current timezone
+	Intl.DateTimeFormat().resolvedOptions().timeZone
+
+
+docker container should restart!
+
+docker document -v
+
+warning if clock out of sync, fix completely one day?
 
 shortcut /s12 for streaming
 
 why not court= change changed?
-
 
 test for changed umpire name
 
