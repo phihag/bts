@@ -53,7 +53,9 @@ function _ui_render_table(container, umpires, status) {
 			const flag_td = uiu.el(tr, 'td');
 			cflags.render_flag_el(flag_td, u.nationality);
 		}
-		uiu.el(tr, 'td', {}, u.name);
+		uiu.el(tr, 'td', {
+			title: ci18n('umpires:btp_id', {btp_id: u.btp_id}),
+		}, u.name);
 		if (status === 'paused') {
 			uiu.el(tr, 'td', 'umpires_since',
 				(u.paused_since_ts ? ci18n('umpires:paused_since', {time: utils.time_str(u.paused_since_ts)}) : ''));
