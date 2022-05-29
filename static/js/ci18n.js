@@ -94,12 +94,18 @@ simple_translate.init = init;
 simple_translate.get_lang = get_lang;
 simple_translate.switch_language = switch_language;
 simple_translate.get_all_languages = get_all_languages;
+
+/*@DEV*/
+// test only
+simple_translate._translate = translate;
+/*/@DEV*/
+
 return simple_translate;
 })();
 
 /*@DEV*/
 if ((typeof module !== 'undefined') && (typeof require !== 'undefined')) {
-	var utils = require('../bup/js/utils');
+	var utils = require('../bup/dev/js/utils');
 	var ci18n_de = require('./ci18n_de');
 	var ci18n_en = require('./ci18n_en');
 	ci18n.register_all();
