@@ -1,11 +1,26 @@
+fix BTP parsing error
+
+right-align left player in matches
+
+log
+
+devices
+
+ticker should resume automatically
 
 match duration broken?
 	setting for timezone!
-	// list all timezones
+	pass timezones
 
+	// list all timezones
 	// current timezone
 	Intl.DateTimeFormat().resolvedOptions().timeZone
 
+click umpire in match list to edit (on hover mouse cursor)
+
+support note per match
+
+correctly set retired/disqualified when transmitting to BTP
 
 docker container should restart!
 
