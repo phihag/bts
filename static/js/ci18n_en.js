@@ -54,6 +54,8 @@ var ci18n_en = {
 'tournament:edit:btp:readonly': 'Read only',
 'tournament:edit:btp:ip': 'IP address:',
 'tournament:edit:btp:password': 'BTP password:',
+'tournament:edit:btp:timezone': 'BTP timezone:',
+'tournament:edit:btp:system timezone': 'System default ({tz})',
 
 'tournament:edit:ticker_enabled': 'Activate online ticker',
 'tournament:edit:ticker_url': 'Ticker URL:',

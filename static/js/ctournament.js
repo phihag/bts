@@ -399,6 +399,29 @@ function ui_edit() {
 		value: (curt.btp_password || ''),
 	});
 
+	// BTP timezone
+	const btp_timezone_label = uiu.el(btp_fieldset, 'label');
+	uiu.el(btp_timezone_label, 'span', {}, ci18n('tournament:edit:btp:timezone'));
+	const btp_timezone_select = uiu.el(btp_timezone_label, 'select', {
+		name: 'btp_timezone',
+	});
+	uiu.el(
+		btp_timezone_select, 'option', {},
+		ci18n('tournament:edit:btp:system timezone', {tz: curt.system_timezone}));
+	let marked = false;
+	for (const tz of timezones.ALL_TIMEZONES) {
+		const attrs = {
+			value: tz,
+		}
+
+		if ((tz === curt.btp_timezone) && !marked) {
+			marked = true;
+			attrs.selected = 'selected';
+		}
+
+		uiu.el(btp_timezone_select, 'option', attrs, tz);
+	}
+
 	// Ticker
 	const ticker_fieldset = uiu.el(form, 'fieldset');
 	const ticker_enabled_label = uiu.el(ticker_fieldset, 'label');
@@ -442,6 +465,7 @@ function ui_edit() {
 			btp_readonly: (!!data.btp_readonly),
 			btp_ip: data.btp_ip,
 			btp_password: data.btp_password,
+			btp_timezone: data.btp_timezone,
 			dm_style: data.dm_style,
 			ticker_enabled: (!! data.ticker_enabled),
 			ticker_url: data.ticker_url,
@@ -813,6 +837,7 @@ if ((typeof module !== 'undefined') && (typeof require !== 'undefined')) {
 	var uiu = require('../bup/js/uiu');
 	var utils = require('../bup/bup/js/utils.js');
 	var save_file = require('../bup/bup/js/save_file.js');
+	var timezones = require('./timezones.js');
 
 	var JSZip = null; // External library
 

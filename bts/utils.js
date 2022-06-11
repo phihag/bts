@@ -209,6 +209,15 @@ function has_key(obj, testfunc) {
 	return false;
 }
 
+
+let _cached_timezone;
+function get_system_timezone() {
+	if (!_cached_timezone) {
+		_cached_timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+	}
+	return _cached_timezone;
+}
+
 module.exports = {
 	cmp,
 	cmp_key,
@@ -218,6 +227,7 @@ module.exports = {
 	format_ts,
 	encode_html,
 	gen_token,
+	get_system_timezone,
 	has_key,
 	make_index,
 	natcmp,

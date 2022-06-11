@@ -28,6 +28,10 @@ function _require_msg(ws, msg, fields) {
 
 function handle_tournament_list(app, ws, msg) {
 	app.db.tournaments.find({}, function(err, tournaments) {
+		const tz = utils.get_system_timezone();
+		for (const t of tournaments) {
+			t.system_timezone = tz;
+		}
 		ws.respond(msg, err, {tournaments});
 	});
 }
@@ -44,7 +48,7 @@ function handle_tournament_edit_props(app, ws, msg) {
 	const props = utils.pluck(msg.props, [
 		'name',
 		'btp_enabled', 'btp_autofetch_enabled', 'btp_readonly',
-		'btp_ip', 'btp_password',
+		'btp_ip', 'btp_password', 'btp_timezone',
 		'is_team', 'is_nation_competition',
 		'ticker_enabled', 'ticker_url', 'ticker_password',
 		'language', 'dm_style',
