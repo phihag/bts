@@ -165,11 +165,13 @@ function _extract_setup(msg_setup) {
 		'scheduled_time_str',
 		'scheduled_date',
 		'teams',
+		'override_colors',
 	]);
 	if (!setup.match_name && setup.match_num) {
 		setup.match_name = '# ' + setup.match_num;
 	}
 	setup.counting = '3x21';
+
 	return setup;
 }
 

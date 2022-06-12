@@ -2,6 +2,8 @@
 
 var cmatch = (function() {
 
+const OVERRIDE_COLORS_KEYS = ['', 'bg'];
+
 function calc_score_str(match) {
 	const netscore = match.network_score;
 	if (!netscore) {
@@ -222,6 +224,18 @@ function _make_setup(d) {
 	}
 	const player_count = is_doubles ? 2 : 1;
 	const incomplete = !teams.every(team => (team.players.length === player_count));
+
+	let override_colors = undefined;
+	if (d.override_colors_checkbox) {
+		override_colors = {};
+		for (let team_id = 0;team_id < 2;team_id++) {
+			const team_override_colors = {};
+			for (const key of OVERRIDE_COLORS_KEYS) {
+				override_colors[key + team_id] = d[`override_colors_${team_id}_${key}`];
+			}
+		}
+	}
+
 	return {
 		court_id: d.court_id,
 		match_num: parseInt(d.match_num),
@@ -230,6 +244,7 @@ function _make_setup(d) {
 		event_name: d.event_name,
 		umpire_name: d.umpire_name,
 		service_judge_name: d.service_judge_name,
+		override_colors,
 		teams,
 		is_doubles,
 		incomplete,
@@ -289,7 +304,7 @@ function ui_edit(match_id) {
 	render_edit(form, match);
 
 	const buttons = uiu.el(form, 'div', {
-		style: 'margin-top: 0.5em;',
+		style: 'margin-top: 2em;',
 	});
 	if (curt.btp_enabled) {
 		const sendbtp_label = uiu.el(buttons, 'label', {
@@ -326,13 +341,12 @@ function ui_edit(match_id) {
 		});
 	});
 
-	const more_buttons = uiu.el(dialog, 'div');
-	const delete_btn = uiu.el(more_buttons, 'button', {
-		style: 'margin-right: 1em;',
+	const delete_btn = uiu.el(buttons, 'button', {
+		style: 'margin-left: 3em; margin-right: 1em;',
 		'data-match_id': match_id,
 	}, ci18n('match:edit:delete'));
 	delete_btn.addEventListener('click', _delete_match_btn_click);
-	const cancel_btn = uiu.el(more_buttons, 'span', 'match_cancel_link vlink', ci18n('Cancel'));
+	const cancel_btn = uiu.el(buttons, 'span', 'match_cancel_link vlink', ci18n('Cancel'));
 	cancel_btn.addEventListener('click', _cancel_ui_edit);
 }
 crouting.register(/t\/([a-z0-9]+)\/m\/([-a-zA-Z0-9_ ]+)\/edit$/, function(m) {
@@ -776,6 +790,68 @@ function render_edit(form, match) {
 		size: 1,
 	});
 	render_umpire_options(service_judge_select, setup.service_judge_name, true);
+
+	render_override_colors(edit_match_container, setup);
+}
+
+function render_override_colors(outer_container, setup) {
+	let colors = setup.override_colors;
+	const container = uiu.el(outer_container, 'div', {
+		style: 'margin-top: 1em; margin-bottom: 1em;',
+	});
+
+	const checkbox_label = uiu.el(container, 'label');
+	const cb_attrs = {
+		type: 'checkbox',
+		name: 'override_colors_checkbox',
+	};
+	if (colors) {
+		cb_attrs.checked = 'checked';
+	}
+	const checkbox = uiu.el(checkbox_label, 'input', cb_attrs);
+	checkbox.addEventListener('change', update_override_color_checkbox);
+	uiu.el(checkbox_label, 'span', {
+		'class': 'match_label',
+		'style': 'user-select: none;',
+	}, ci18n('match:override_colors'));
+
+	if (! colors) {
+		const {default_settings} = settings;
+		colors = {
+			'0': default_settings.d_c0,
+			'bg0': default_settings.c_bg0,
+			'1': default_settings.d_c1,
+			'bg1': default_settings.c_bg1,
+		};
+	}
+
+	const color_container = uiu.el(container, 'div', {style: 'display: inline-block; padding-left: 1em;'});
+	for (let team_id = 0; team_id < 2;team_id++) {
+		if (team_id === 1) {
+			uiu.el(color_container, 'div', {style: 'display: inline-block; width: 1.5em'});
+		}
+
+		for (const key of OVERRIDE_COLORS_KEYS) {
+			const options = {
+				type: 'color',
+				value: colors[key + team_id],
+				name: `override_colors_${team_id}_${key}`,
+				title: `${key}${team_id}`,
+			};
+			if (!setup.override_colors) {
+				options.disabled = 'disabled';
+			}
+
+			uiu.el(color_container, 'input', options);
+		}
+	}
+}
+
+function update_override_color_checkbox(e) {
+	const checkbox = e.target;
+	for (const el of checkbox.parentNode.parentNode.querySelectorAll('input[type="color"]')) {
+		el.disabled = !checkbox.checked;
+	}
 }
 
 function render_umpire_options(select, curval, is_service_judge) {
@@ -859,6 +935,7 @@ if ((typeof module !== 'undefined') && (typeof require !== 'undefined')) {
 	var i18n_de = require('../bup/js/i18n_de');
 	var i18n_en = require('../bup/js/i18n_en');
 	var printing = require('../bup/js/printing');
+	var settings = require('../bup/js/settings');
 
     module.exports = cmatch;
 }

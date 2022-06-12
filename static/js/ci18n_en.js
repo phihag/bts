@@ -70,7 +70,7 @@ var ci18n_en = {
 'match:rawinfo': 'Technical information',
 'match:scoresheet': 'Scoresheet',
 'match:edit': 'Edit',
-
+'match:override_colors': 'Override colors',
 'match:incomplete': '[incomplete!] ',
 'match:edit:scheduled_date': 'Date:',
 'match:edit:delete': 'Delete match',
