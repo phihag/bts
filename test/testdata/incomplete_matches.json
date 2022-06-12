@@ -1,0 +1,618 @@
+{
+  "Header": [
+    {
+      "Version": [
+        {
+          "Hi": [
+            1
+          ],
+          "Lo": [
+            1
+          ]
+        }
+      ]
+    }
+  ],
+  "Action": [
+    {
+      "ID": [
+        "REPLY"
+      ],
+      "Unicode": [
+        "202204181839574906"
+      ],
+      "Action": [
+        "SENDTOURNAMENTINFO"
+      ],
+      "Result": [
+        1
+      ]
+    }
+  ],
+  "Client": [
+    {
+      "IP": [
+        "10.0.2.15"
+      ]
+    }
+  ],
+  "Result": [
+    {
+      "Tournament": [
+        {
+          "Settings": [
+            {
+              "Setting": [
+                {
+                  "ID": [
+                    1000
+                  ],
+                  "Value": [
+                    "202204181839574906"
+                  ]
+                },
+                {
+                  "ID": [
+                    1004
+                  ],
+                  "Value": [
+                    2
+                  ]
+                },
+                {
+                  "ID": [
+                    1001
+                  ],
+                  "Value": [
+                    "test"
+                  ]
+                },
+                {
+                  "ID": [
+                    1007
+                  ],
+                  "Value": [
+                    "phihag"
+                  ]
+                },
+                {
+                  "ID": [
+                    1008
+                  ],
+                  "Value": [
+                    "www.turnier.de"
+                  ]
+                },
+                {
+                  "ID": [
+                    1005
+                  ],
+                  "Value": [
+                    2022
+                  ]
+                },
+                {
+                  "ID": [
+                    1006
+                  ],
+                  "Value": [
+                    1
+                  ]
+                },
+                {
+                  "ID": [
+                    1009
+                  ],
+                  "Value": [
+                    16
+                  ]
+                },
+                {
+                  "ID": [
+                    1111
+                  ],
+                  "Value": [
+                    0
+                  ]
+                },
+                {
+                  "ID": [
+                    1112
+                  ],
+                  "Value": [
+                    0
+                  ]
+                },
+                {
+                  "ID": [
+                    1113
+                  ],
+                  "Value": [
+                    1
+                  ]
+                },
+                {
+                  "ID": [
+                    1103
+                  ],
+                  "Value": [
+                    false
+                  ]
+                },
+                {
+                  "ID": [
+                    1121
+                  ],
+                  "Value": [
+                    3
+                  ]
+                },
+                {
+                  "ID": [
+                    1122
+                  ],
+                  "Value": [
+                    2
+                  ]
+                },
+                {
+                  "ID": [
+                    1123
+                  ],
+                  "Value": [
+                    2
+                  ]
+                },
+                {
+                  "ID": [
+                    1131
+                  ],
+                  "Value": [
+                    1
+                  ]
+                },
+                {
+                  "ID": [
+                    1132
+                  ],
+                  "Value": [
+                    0
+                  ]
+                },
+                {
+                  "ID": [
+                    1133
+                  ],
+                  "Value": [
+                    0
+                  ]
+                },
+                {
+                  "ID": [
+                    1141
+                  ],
+                  "Value": [
+                    1
+                  ]
+                },
+                {
+                  "ID": [
+                    1101
+                  ],
+                  "Value": [
+                    100
+                  ]
+                },
+                {
+                  "ID": [
+                    1102
+                  ],
+                  "Value": [
+                    "1,5,6,7,10"
+                  ]
+                },
+                {
+                  "ID": [
+                    1301
+                  ],
+                  "Value": [
+                    2
+                  ]
+                },
+                {
+                  "ID": [
+                    1201
+                  ],
+                  "Value": [
+                    0
+                  ]
+                },
+                {
+                  "ID": [
+                    1202
+                  ],
+                  "Value": [
+                    0
+                  ]
+                },
+                {
+                  "ID": [
+                    1211
+                  ],
+                  "Value": [
+                    0
+                  ]
+                },
+                {
+                  "ID": [
+                    1212
+                  ],
+                  "Value": [
+                    0
+                  ]
+                },
+                {
+                  "ID": [
+                    1213
+                  ],
+                  "Value": [
+                    0
+                  ]
+                },
+                {
+                  "ID": [
+                    1091
+                  ],
+                  "Value": [
+                    ""
+                  ]
+                },
+                {
+                  "ID": [
+                    1092
+                  ],
+                  "Value": [
+                    ""
+                  ]
+                },
+                {
+                  "ID": [
+                    1093
+                  ],
+                  "Value": [
+                    ""
+                  ]
+                },
+                {
+                  "ID": [
+                    1094
+                  ],
+                  "Value": [
+                    44723.569899375
+                  ]
+                },
+                {
+                  "ID": [
+                    1002
+                  ],
+                  "Value": [
+                    0
+                  ]
+                },
+                {
+                  "ID": [
+                    1003
+                  ],
+                  "Value": [
+                    0
+                  ]
+                },
+                {
+                  "ID": [
+                    1010
+                  ],
+                  "Value": [
+                    false
+                  ]
+                },
+                {
+                  "ID": [
+                    1011
+                  ],
+                  "Value": [
+                    false
+                  ]
+                },
+                {
+                  "ID": [
+                    1302
+                  ],
+                  "Value": [
+                    false
+                  ]
+                },
+                {
+                  "ID": [
+                    1303
+                  ],
+                  "Value": [
+                    30
+                  ]
+                },
+                {
+                  "ID": [
+                    1304
+                  ],
+                  "Value": [
+                    0
+                  ]
+                },
+                {
+                  "ID": [
+                    1901
+                  ],
+                  "Value": [
+                    1
+                  ]
+                },
+                {
+                  "ID": [
+                    1902
+                  ],
+                  "Value": [
+                    true
+                  ]
+                },
+                {
+                  "ID": [
+                    1903
+                  ],
+                  "Value": [
+                    true
+                  ]
+                }
+              ]
+            }
+          ],
+          "TournamentDays": [
+            {
+              "TournamentDay": [
+                {
+                  "ID": [
+                    1
+                  ],
+                  "Date": [
+                    {
+                      "_type": "datetime",
+                      "year": 2022,
+                      "month": 4,
+                      "day": 18,
+                      "hour": 0,
+                      "minute": 0,
+                      "second": 0,
+                      "ms": 0
+                    }
+                  ]
+                },
+                {
+                  "ID": [
+                    2
+                  ],
+                  "Date": [
+                    {
+                      "_type": "datetime",
+                      "year": 2022,
+                      "month": 4,
+                      "day": 19,
+                      "hour": 0,
+                      "minute": 0,
+                      "second": 0,
+                      "ms": 0
+                    }
+                  ]
+                }
+              ]
+            }
+          ],
+          "ScoringFormats": [
+            {
+              "ScoringFormat": [
+                {
+                  "ID": [
+                    1
+                  ],
+                  "Name": [
+                    "Standard"
+                  ],
+                  "NumSets": [
+                    3
+                  ],
+                  "SetType": [
+                    0
+                  ],
+                  "LastSetType": [
+                    0
+                  ],
+                  "Score": [
+                    21
+                  ],
+                  "IsDefault": [
+                    true
+                  ]
+                },
+                {
+                  "ID": [
+                    2
+                  ],
+                  "Name": [
+                    "5x11"
+                  ],
+                  "NumSets": [
+                    5
+                  ],
+                  "SetType": [
+                    301
+                  ],
+                  "LastSetType": [
+                    301
+                  ],
+                  "Score": [
+                    21
+                  ],
+                  "IsDefault": [
+                    false
+                  ]
+                },
+                {
+                  "ID": [
+                    3
+                  ],
+                  "Name": [
+                    "5x11 (15)"
+                  ],
+                  "NumSets": [
+                    5
+                  ],
+                  "SetType": [
+                    304
+                  ],
+                  "LastSetType": [
+                    304
+                  ],
+                  "Score": [
+                    21
+                  ],
+                  "IsDefault": [
+                    false
+                  ]
+                },
+                {
+                  "ID": [
+                    4
+                  ],
+                  "Name": [
+                    "5x11 (13)"
+                  ],
+                  "NumSets": [
+                    5
+                  ],
+                  "SetType": [
+                    305
+                  ],
+                  "LastSetType": [
+                    305
+                  ],
+                  "Score": [
+                    21
+                  ],
+                  "IsDefault": [
+                    false
+                  ]
+                },
+                {
+                  "ID": [
+                    5
+                  ],
+                  "Name": [
+                    "3x15 (21)"
+                  ],
+                  "NumSets": [
+                    3
+                  ],
+                  "SetType": [
+                    306
+                  ],
+                  "LastSetType": [
+                    306
+                  ],
+                  "Score": [
+                    21
+                  ],
+                  "IsDefault": [
+                    false
+                  ]
+                }
+              ]
+            }
+          ],
+          "Locations": [
+            {
+              "Location": [
+                {
+                  "ID": [
+                    2
+                  ],
+                  "Name": [
+                    "Spielort 2"
+                  ]
+                }
+              ]
+            }
+          ],
+          "Courts": [
+            {
+              "Court": [
+                {
+                  "ID": [
+                    5
+                  ],
+                  "Name": [
+                    "1"
+                  ],
+                  "LocationID": [
+                    2
+                  ],
+                  "SortOrder": [
+                    1
+                  ]
+                },
+                {
+                  "ID": [
+                    6
+                  ],
+                  "Name": [
+                    "2"
+                  ],
+                  "LocationID": [
+                    2
+                  ],
+                  "SortOrder": [
+                    2
+                  ]
+                },
+                {
+                  "ID": [
+                    7
+                  ],
+                  "Name": [
+                    "3"
+                  ],
+                  "LocationID": [
+                    2
+                  ],
+                  "SortOrder": [
+                    3
+                  ]
+                },
+                {
+                  "ID": [
+                    8
+                  ],
+                  "Name": [
+                    "4"
+                  ],
+                  "LocationID": [
+                    2
+                  ],
+                  "SortOrder": [
+                    4
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

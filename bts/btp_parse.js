@@ -101,22 +101,25 @@ function _team_calc_player_matches(matches_by_pid, entries, players, bm) {
 // TODO move this into a separate process
 function get_btp_state(response) {
 	const btp_t = response.Result[0].Tournament[0];
-	const all_btp_matches = btp_t.Matches[0].Match;
+
+	// When a list is empty the whole entry is missing :(
+	const all_btp_matches = btp_t.Matches ? btp_t.Matches[0].Match : [];
+	const all_btp_entries = btp_t.Entries ? btp_t.Entries[0].Entry : [];
+	const all_btp_events = btp_t.Events ? btp_t.Events[0].Event : [];
+	const all_btp_players = btp_t.Players ? btp_t.Players[0].Player : [];
+	const all_btp_draws = btp_t.Draws ? btp_t.Draws[0].Draw : [];
+	const all_btp_officials = btp_t.Officials ? btp_t.Officials[0].Official : [];
+	const all_btp_courts = btp_t.Courts ? btp_t.Courts[0].Court : [];
 
 	const matches = filter_matches(all_btp_matches);
 	const matches_by_pid = utils.make_index(
 		all_btp_matches, bm => bm.DrawID[0] + '_' + bm.PlanningID[0]);
-	const entries = utils.make_index(btp_t.Entries[0].Entry, e => e.ID[0]);
-	const events = utils.make_index(btp_t.Events[0].Event, e => e.ID[0]);
-	const players = utils.make_index(btp_t.Players[0].Player, p => p.ID[0]);
-	const draws = utils.make_index(btp_t.Draws[0].Draw, d => d.ID[0]);
-	let officials;
-	if (btp_t.Officials) {
-		officials = utils.make_index(btp_t.Officials[0].Official, o => o.ID[0]);
-	} else {
-		officials = new Map();
-	}
-	const courts = utils.make_index(btp_t.Courts[0].Court, c => c.ID[0]);
+	const entries = utils.make_index(all_btp_entries, e => e.ID[0]);
+	const events = utils.make_index(all_btp_events, e => e.ID[0]);
+	const players = utils.make_index(all_btp_players, p => p.ID[0]);
+	const draws = utils.make_index(all_btp_draws, d => d.ID[0]);
+	const officials = utils.make_index(all_btp_officials, o => o.ID[0]);
+	const courts = utils.make_index(all_btp_courts, c => c.ID[0]);
 
 	for (const bm of matches) {
 		_calc_match_players(matches_by_pid, entries, players, bm);

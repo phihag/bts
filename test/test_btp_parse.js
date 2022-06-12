@@ -4,11 +4,10 @@ const assert = require('assert');
 const fs = require('fs');
 const path = require('path');
 
-const tutils = require('./tutils.js');
-const _describe = tutils._describe;
-const _it = tutils._it;
+const {_it, _describe, assert_snapshot} = require('./tutils.js');
 
 const btp_parse = require('../bts/btp_parse');
+
 
 
 _describe('btp_parse', () => {
@@ -115,5 +114,16 @@ _describe('btp_parse', () => {
 		assert.deepStrictEqual(heidi_herself_winners[0].Lastname[0], 'Bender');
 
 		// TODO distinguish walkovers
+	});
+
+	_it('incomplete_matches', async() => {
+		const test_file = path.join(__dirname, 'testdata', 'incomplete_matches.json');
+		const contents = await fs.promises.readFile(test_file, 'utf-8');
+
+		const response = JSON.parse(contents);
+		const bs = btp_parse.get_btp_state(response);
+
+		const matches = bs.matches;
+		assert.deepStrictEqual(matches, []);
 	});
 });
