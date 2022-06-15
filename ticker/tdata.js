@@ -89,21 +89,21 @@ function set(app, event, cb) {
 			}, (err) => cb(err));
 		},
 		(cb) => {
+			db.tcourts.remove({}, {multi: true}, err => cb(err));
+		},
+		(cb) => {
 			async.each(event.courts, (court, cb) => {
 				if (!court.match_id) {
 					court.match_id = false;
 				}
-				db.tcourts.update({
-					_id: court._id,
-				}, court, {
-					upsert: true,
-				}, (err) => cb(err));
+				db.tcourts.insert(court, (err) => cb(err));
 			}, (err) => cb(err));
 		},
 		(cb) => {
 			db.ttournaments.update({_id: '__main__'}, {
 				_id: '__main__',
 				last_update: now,
+				nation_competition: event.nation_competition,
 			}, {upsert: true}, (err) => cb(err));
 		},
 		(cb) => {
