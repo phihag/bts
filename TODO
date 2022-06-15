@@ -1,12 +1,17 @@
-tablet language from BTS settings
+test for changed umpire name
 
 right-align left player in matches
+
+check red marker
+
+tablet language from BTS settings
 
 log
 
 devices
 
 ticker should resume automatically
+
 
 match duration broken?
 	setting for timezone!
@@ -15,6 +20,8 @@ match duration broken?
 	// list all timezones
 	// current timezone
 	Intl.DateTimeFormat().resolvedOptions().timeZone
+
+tournament list (and other parts): use real likns please
 
 click umpire in match list to edit (on hover mouse cursor)
 
@@ -31,8 +38,6 @@ warning if clock out of sync, fix completely one day?
 shortcut /s12 for streaming
 
 why not court= change changed?
-
-test for changed umpire name
 
 ALWAYS STORE THE GAME, DO NOT OVERWRITE UNDER ANY CIRCUMSTANCES
 	include #presses in stored matches
@@ -107,6 +112,8 @@ optimize docker image! no puppeteer etc.
 de_at (-> mail georg)
 
 basic to_stats
+
+promotion in BTP
 
 log battery+devices, red warning
 
