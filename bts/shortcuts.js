@@ -52,7 +52,9 @@ function umpire_handler(req, res) {
 		if (err) return _error(res, err);
 		if (!t) return serve_404(res);
 
-		const bup_params = {};
+		const bup_params = {
+			btsh_e: t.key,
+		};
 		if (t.language && t.language !== 'auto') {
 			bup_params.lang = t.language;
 		}
