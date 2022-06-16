@@ -53,7 +53,7 @@ class TickerConn {
 		const tc = this;
 		tc.ws = ws;
 		ws.on('open', function() {
-			tc.report_status('Verbunden.');
+			tc.report_status('Connected.');
 			tc.pushall();
 		});
 		ws.on('message', function(data) {
@@ -65,7 +65,7 @@ class TickerConn {
 				return;
 			}
 			if ((msg.type === 'error') || ((msg.type === 'dmsg') && (msg.dtype === 'error'))) {
-				tc.report_status('Fehler: ' + msg.message);
+				tc.report_status('Error: ' + msg.message);
 			}
 		});
 		ws.on('error', function() {
@@ -91,7 +91,7 @@ class TickerConn {
 			ws.close();
 		}
 		this.terminated = true;
-		this.report_status('Beendet.');
+		this.report_status('Ended.');
 	}
 
 	schedule_reconnect() {
@@ -105,7 +105,7 @@ class TickerConn {
 		this._craft_event((err, event) => {
 			if (err) {
 				serror.silent('Failed to craft event: ' + err.message + ' ' + err.stack);
-				this.report_status('Konnte nicht Daten vorbereiten');
+				this.report_status('Failed to craft data');
 				return;
 			}
 
