@@ -19,7 +19,6 @@ function serve_404(res) {
 }
 
 function encode_params(obj) {
-	console.log(obj)
 	return Object.entries(obj).map(([k, v]) => `${k}=${encodeURIComponent(v)}`).join('&');
 }
 
