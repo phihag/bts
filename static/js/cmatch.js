@@ -100,15 +100,18 @@ function render_match_row(tr, match, court, style) {
 		uiu.el(tr, 'td', (setup.umpire_name ? ('match_umpire match_umpire_style_' + style) : 'match_no_umpire'), umpire_name);
 	}
 
-	if (style === 'default' || style === 'plain') {
+	if (style === 'default' || style === 'plain' || style === 'public') {
 		const score_td = uiu.el(tr, 'td');
 		if (court && (court.match_id !== match._id) && (typeof match.team1_won !== 'boolean')) {
-			uiu.el(score_td, 'span', {}, ci18n(' Ready to start '));
+			const ready_text = (style === 'public') ? ci18n('Ready') : ci18n(' Ready to start ');
+			uiu.el(score_td, 'span', {}, ready_text);
 		}
 		uiu.el(score_td, 'span', {
 			'class': ('match_score' + ((court && (court.match_id === match._id)) ? ' match_score_current' : '')),
 			'data-match_id': match._id,
 		}, calc_score_str(match));
+	}
+	if (style === 'default' || style === 'plain') {
 		const shuttle_td = uiu.el(tr, 'td', 'match_shuttle_count');
 		uiu.el(shuttle_td, 'span', {
 			'class': (

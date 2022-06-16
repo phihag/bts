@@ -29,6 +29,7 @@ var ci18n_de = {
 'Print': 'Drucken',
 'Add Match': 'Spiel hinzufügen',
 ' Ready to start ': ' Spielbereit ',
+'Ready': 'Bereit',
 'Not assigned': 'Nicht zugewiesen',
 'team competition': 'Mannschafts-Wettbewerb',
 'nation competition': 'Internationales Turnier',
