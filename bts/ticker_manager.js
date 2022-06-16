@@ -36,7 +36,11 @@ function pushall(app, tkey) {
 function reset(app, tkey) {
 	assert(tkey);
 
-	reconfigure(app, tkey);
+	app.db.tournaments.findOne({key: tkey}, (err, tournament) => {
+		if (err) return; // silent error? tournament already deleted
+
+		reconfigure(app, tournament);
+	});
 }
 
 function update_score(app, match) {
