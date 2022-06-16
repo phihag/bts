@@ -1,19 +1,9 @@
 ticker should resume automatically when network connection is broken
 
-any_oci
-
-tablet language from BTS settings by default
-
-thickline between days, thin line between times
-
-test for changed umpire name
-
-right-align left player in matches
-
-log
-	configurable
+any_oci / current_oci
 
 devices
+	ping, show if offline
 
 match duration broken?
 	setting for timezone!
@@ -23,7 +13,24 @@ match duration broken?
 	// current timezone
 	Intl.DateTimeFormat().resolvedOptions().timeZone
 
+check manual editing with asian names
+
+tablet language from BTS settings by default
+
+thick line between days, thin line between times
+
+test for changed umpire name
+
+right-align left player in matches
+
+log
+	configurable
+
+link to nationstats
+
 red marker OCI
+
+do not show console errors
 
 
 
