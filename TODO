@@ -1,17 +1,21 @@
+ticker should resume automatically when network connection is broken
+
+any_oci
+
+refresh ticker button should kill ticker
+
+tablet language from BTS settings by default
+
+thickline between days, thin line between times
+
 test for changed umpire name
 
 right-align left player in matches
 
-check red marker
-
-tablet language from BTS settings
-
 log
+	configurable
 
 devices
-
-ticker should resume automatically
-
 
 match duration broken?
 	setting for timezone!
@@ -20,6 +24,10 @@ match duration broken?
 	// list all timezones
 	// current timezone
 	Intl.DateTimeFormat().resolvedOptions().timeZone
+
+red marker OCI
+
+
 
 tournament list (and other parts): use real likns please
 
