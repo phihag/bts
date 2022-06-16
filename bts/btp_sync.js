@@ -116,9 +116,15 @@ function _craft_team(par) {
 	}
 
 	const players = par.map(p => {
-		const pres = {};
+		const asian_name = !! (p.Asianname && p.Asianname[0]);
+		const pres = {asian_name};
 		if (p.Firstname && p.Lastname) {
-			pres.name = p.Firstname[0] + ' ' + p.Lastname[0];
+			if (asian_name) {
+				pres.name = p.Lastname[0].toUpperCase() + ' ' + p.Firstname[0];
+			} else {
+				pres.name = p.Firstname[0] + ' ' + p.Lastname[0];
+			}
+
 			pres.firstname = p.Firstname[0];
 			pres.lastname = '';
 		} else if (p.Lastname) {
