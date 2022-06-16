@@ -7,6 +7,7 @@ const async = require('async');
 const btp_parse = require('./btp_parse');
 const countries = require('./countries');
 const utils = require('./utils');
+const { fix_player } = require('./name_fixup');
 
 
 function time_str(dt) {
@@ -140,6 +141,7 @@ function _craft_team(par) {
 		if (p.Country && p.Country[0]) {
 			pres.nationality = p.Country[0];
 		}
+		fix_player(pres);
 		return pres;
 	});
 
