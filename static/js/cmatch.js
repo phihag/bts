@@ -100,7 +100,7 @@ function render_match_row(tr, match, court, style) {
 		uiu.el(tr, 'td', (setup.umpire_name ? ('match_umpire match_umpire_style_' + style) : 'match_no_umpire'), umpire_name);
 	}
 
-	if (style === 'default' || style === 'plain' || style === 'public') {
+	if (style === 'default' || style === 'plain'/* || style === 'public' WIP */) {
 		const score_td = uiu.el(tr, 'td');
 		if (court && (court.match_id !== match._id) && (typeof match.team1_won !== 'boolean')) {
 			const ready_text = (style === 'public') ? ci18n('Ready') : ci18n(' Ready to start ');
