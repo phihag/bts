@@ -8,6 +8,7 @@ const {DOMParser} = require('xmldom');
 const fs = require('fs');
 const path = require('path');
 const TextDecoder = require('text-encoding').TextDecoder;
+const zlib = require('zlib');
 
 const btp_conn = require('./bts/btp_conn.js');
 const btp_parse = require('./bts/btp_parse.js');
@@ -25,7 +26,27 @@ async function main() {
         metavar: 'HEX',
         description: 'The exchange as hexadecimal Wireshark dump.',
     });
+    parser.addArgument(['--tpbackup-file'], {
+        metavar: 'FILENAME',
+        description: (
+            'Instead of an exchange, unpack a TPBackup file to JET4 format.' +
+            ' (Some tools will read JET4 immediately, but if asked for a password' +
+            ' give d4R2GY76w2qzZ )'),
+    });
     const args = parser.parseArgs();
+
+    if (args.file) {
+        const contents = await fs.promises.readFile(args.file);
+
+        const decoded = zlib.inflateRawSync(contents.slice(78));
+        
+        const mdb_file = args.file + '.mdb';
+        await fs.promises.writeFile(mdb_file, decoded);
+        console.log(`Wrote ${mdb_file}`);
+
+        return;
+    }
+
 
     let hex = args.exchange;
     if (!hex) {
