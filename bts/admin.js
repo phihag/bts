@@ -271,6 +271,15 @@ function handle_ticker_pushall(app, ws, msg) {
 	ws.respond(msg);
 }
 
+function handle_ticker_reset(app, ws, msg) {
+	if (!_require_msg(ws, msg, ['tournament_key'])) {
+		return;
+	}
+
+	ticker_manager.reset(app, msg.tournament_key);
+	ws.respond(msg);
+}
+
 const all_admins = [];
 function notify_change(app, tournament_key, ctype, val) {
 	for (const admin_ws of all_admins) {
@@ -371,6 +380,7 @@ module.exports = {
 	handle_match_add,
 	handle_match_edit,
 	handle_ticker_pushall,
+	handle_ticker_reset,
 	handle_tournament_get,
 	handle_tournament_list,
 	handle_tournament_edit_props,

@@ -148,7 +148,7 @@ function ui_btp_fetch() {
 
 function ui_ticker_push() {
 	send({
-		type: 'ticker_pushall',
+		type: 'ticker_reset',
 		tournament_key: curt.key,
 	}, err => {
 		if (err) {

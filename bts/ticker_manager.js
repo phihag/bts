@@ -33,6 +33,12 @@ function pushall(app, tkey) {
 	conn.pushall();
 }
 
+function reset(app, tkey) {
+	assert(tkey);
+
+	reconfigure(app, tkey);
+}
+
 function update_score(app, match) {
 	assert(match);
 	const tkey = match.tournament_key;
@@ -73,4 +79,5 @@ module.exports = {
 	reconfigure,
 	pushall,
 	update_score,
+	reset,
 };
