@@ -18,17 +18,30 @@ function serve_404(res) {
 	});
 }
 
+function encode_params(obj) {
+	console.log(obj)
+	return Object.entries(obj).map(([k, v]) => `${k}=${encodeURIComponent(v)}`).join('&');
+}
+
 function display_handler(req, res) {
 	req.app.db.tournaments.findOne({}, (err, t) => {
 		if (err) return _error(res, err);
 		if (!t) return serve_404(res);
 
-		const bup_lang = ((t.language && t.language !== 'auto') ? '&lang=' + encodeURIComponent(t.language) : '');
-		const bup_dm_style = '&dm_style=' + encodeURIComponent(t.dm_style || 'international');
-		let redir_url = '/bup/#btsh_e=' + encodeURIComponent(t.key) + '&nosettings&display' + bup_dm_style + bup_lang;
-		if (/^[0-9]+$/.test(req.params.courtnum)) {
-			redir_url += '&court=' + encodeURIComponent(t.key + '_' + req.params.courtnum);
+		const bup_params = {
+			dm_style: (t.dm_style || 'international'),
+			btsh_e: t.key,
+			'nosettings': '1',
+			'display': '1',
+		};
+		if (t.language && t.language !== 'auto') {
+			bup_params.lang = t.language;
 		}
+		if (/^[0-9]+$/.test(req.params.courtnum)) {
+			bup_params.court = t.key + '_' + req.params.courtnum;
+		}
+
+		const redir_url = '/bup/#' + encode_params({...bup_params, ...req.query});
 
 		res.redirect(redir_url);
 	});
@@ -39,12 +52,15 @@ function umpire_handler(req, res) {
 		if (err) return _error(res, err);
 		if (!t) return serve_404(res);
 
-		const bup_lang = ((t.language && t.language !== 'auto') ? '&lang=' + encodeURIComponent(t.language) : '');
-		let redir_url = '/bup/#btsh_e=' + encodeURIComponent(t.key) + bup_lang;
+		const bup_params = {};
+		if (t.language && t.language !== 'auto') {
+			bup_params.lang = t.language;
+		}
 		if (/^[0-9]+$/.test(req.params.courtnum)) {
-			redir_url += '&court=' + encodeURIComponent(t.key + '_' + req.params.courtnum);
+			bup_params.court = t.key + '_' + req.params.courtnum;
 		}
 
+		const redir_url = '/bup/#' + encode_params({...bup_params, ...req.query});
 		res.redirect(redir_url);
 	});
 }
