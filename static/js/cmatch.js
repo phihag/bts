@@ -166,14 +166,25 @@ function render_players_el(parentNode, setup, team_id) {
 
 function prepare_render(t) {
 	t.matches.sort(function(m1, m2) {
-		if (m1.setup.scheduled_time_str && !m2.setup.scheduled_time_str) {
+		const time_str1 = m1.setup.scheduled_time_str;
+		const time_str2 = m2.setup.scheduled_time_str;
+
+		if (time_str1 && !time_str2) {
 			return -1;
-		} else if (m2.setup.scheduled_time_str && !m1.setup.scheduled_time_str) {
+		} else if (time_str2 && !time_str1) {
 			return 1;
 		}
+
 		const cmp1 = cbts_utils.cmp(m1.setup.scheduled_date, m2.setup.scheduled_date);
 		if (cmp1 != 0) return cmp1;
-		const cmp2 = cbts_utils.cmp(m1.setup.scheduled_time_str, m2.setup.scheduled_time_str);
+
+		if (time_str1 === '00:00' && time_str2 !== '00:00') {
+			return 1;
+		} else if (time_str2 === '00:00' && time_str1 !== '00:00') {
+			return -1;
+		}
+
+		const cmp2 = cbts_utils.cmp(time_str1, time_str2);
 		if (cmp2 != 0) return cmp2;
 
 		if ((m1.match_order !== undefined) && (m2.match_order !== undefined)) {
