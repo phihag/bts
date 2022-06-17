@@ -42,7 +42,7 @@ function default_handler_func(rerender, special_funcs, c) {
 		curt.name = c.val.name;
 		curt.is_team = c.val.is_team;
 		curt.is_nation_competition = c.val.is_nation_competition;
-		curt.dragged_on_court = c.val.dragged_on_court;
+		curt.only_now_on_court = c.val.only_now_on_court;
 		curt.btp_timezone = c.val.btp_timezone;
 		curt.btp_enabled = c.val.btp_enabled;
 		curt.btp_autofetch_enabled = c.val.btp_autofetch_enabled;
@@ -61,7 +61,7 @@ function default_handler_func(rerender, special_funcs, c) {
 			}
 		});
 		const CHECKBOXES = [
-			'is_team', 'is_nation_competition', 'dragged_on_court',
+			'is_team', 'is_nation_competition', 'only_now_on_court',
 			'btp_enabled', 'btp_autofetch_enabled', 'btp_readonly',
 			'ticker_enabled'];
 		for (const cb_name of CHECKBOXES) {
