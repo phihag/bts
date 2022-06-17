@@ -24,7 +24,7 @@
 		"xmldom": "*"
 	},
 	"devDependencies": {
-		"acorn": "^6.1.1",
+		"acorn": "^6.4.1",
 		"eslint": "*",
 		"mocha": "*",
 		"stylelint": "*",
