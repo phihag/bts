@@ -98,8 +98,20 @@ function render_match_row(tr, match, court, style) {
 	const players1 = uiu.el(tr, 'td', ((match.team1_won === false) ? 'match_team_won ' : '') + 'match_team2');
 	render_players_el(players1, setup, 1);
 	if (style === 'default' || style === 'plain') {
-		const umpire_name = (setup.umpire_name || ci18n('No umpire')) + (setup.service_judge_name ? '+' + setup.service_judge_name : '');
-		uiu.el(tr, 'td', (setup.umpire_name ? ('match_umpire match_umpire_style_' + style) : 'match_no_umpire'), umpire_name);
+		const to_td = uiu.el(tr, 'td');
+		if (setup.umpire_name) {
+			uiu.el(to_td, 'span', {}, setup.umpire_name);
+			if (setup.service_judge_name) {
+				uiu.el(to_td, 'span', {}, '\u200B+');
+				uiu.el(to_td, 'span', {}, setup.service_judge_name);
+			}
+		} else {
+			uiu.el(
+				to_td, 'span',
+				(setup.umpire_name ? ('match_umpire match_umpire_style_' + style) : 'match_no_umpire'),
+				ci18n('No umpire')
+			);
+		}
 	}
 
 	if (style === 'default' || style === 'plain'/* || style === 'public' WIP */) {
