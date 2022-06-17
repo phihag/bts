@@ -472,7 +472,7 @@ function render_unassigned(container) {
 	uiu.el(container, 'h3', {}, ci18n('Unassigned Matches'));
 
 	const unassigned_matches = curt.matches.filter(m => calc_section(m) === 'unassigned');
-	render_match_table(container, unassigned_matches, false);
+	render_match_table(container, unassigned_matches, curt.only_now_on_court);
 }
 
 function render_upcoming_matches(container) {
