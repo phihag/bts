@@ -111,6 +111,15 @@ function get_btp_state(response) {
 	const all_btp_officials = btp_t.Officials ? btp_t.Officials[0].Official : [];
 	const all_btp_courts = btp_t.Courts ? btp_t.Courts[0].Court : [];
 
+	const on_court_match_ids = new Set();
+	for (const c of all_btp_courts) {
+		if (c.MatchID) {
+			for (const match_id of c.MatchID) {
+				on_court_match_ids.add(match_id);
+			}
+		}
+	}
+
 	const matches = filter_matches(all_btp_matches);
 	const matches_by_pid = utils.make_index(
 		all_btp_matches, bm => bm.DrawID[0] + '_' + bm.PlanningID[0]);

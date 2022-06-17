@@ -201,6 +201,8 @@ async function main() {
 	}
 
 	const btp_state = btp_parse.get_btp_state(response_obj);
+	const match_ids_on_court = btp_sync.calculate_match_ids_on_court(btp_state);
+
 	if (args.output === 'text') {
 		const {draws, events, officials} = btp_state;
 		for (const bm of btp_state.matches) {
@@ -221,7 +223,7 @@ async function main() {
 			const discipline_name = (event.Name[0] === draw.Name[0]) ? draw.Name[0] : event.Name[0] + '_' + draw.Name[0];
 			const btp_id = tkey + '_' + discipline_name + '_' + match_num;
 
-			const match = btp_sync.craft_match(tkey, btp_id, pseudo_court_map, event, draw, officials, bm);
+			const match = btp_sync.craft_match(tkey, btp_id, pseudo_court_map, event, draw, officials, bm, match_ids_on_court);
 			if (!match) {
 				continue;
 			}
@@ -233,8 +235,7 @@ async function main() {
 
 			const players_str = match.setup.teams.map(t => t.players.map(p => p.name).join(' / ')).join(' - ');
 			const match_name_str = utils.pad(`${match.setup.match_name}`, 3, ' ');
-
-			console.log(`#${id_str} ${scheduled_str} ${match.setup.event_name} ${match_name_str} ${players_str}`);
+			console.log(`#${id_str} ${scheduled_str} ${match.setup.event_name} ${match_name_str} ${players_str}${match.setup.now_on_court ? ' (on court)' : ''}`);
 		}
 
 		if (!args.filter_date) {

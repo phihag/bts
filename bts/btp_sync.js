@@ -18,7 +18,7 @@ function date_str(dt) {
 	return utils.pad(dt.year, 2, '0') + '-' + utils.pad(dt.month, 2, '0') + '-' + utils.pad(dt.day, 2, '0');
 }
 
-function craft_match(tkey, btp_id, court_map, event, draw, officials, bm) {
+function craft_match(tkey, btp_id, court_map, event, draw, officials, bm, match_ids_on_court) {
 	if (!bm.IsMatch) {
 		return;
 	}
@@ -65,6 +65,7 @@ function craft_match(tkey, btp_id, court_map, event, draw, officials, bm) {
 		const court_id = court_map.get(btp_court_id);
 		assert(court_id);
 		setup.court_id = court_id;
+		setup.now_on_court = match_ids_on_court.has(bm.ID[0]);
 	}
 	if (bm.Official1ID) {
 		const o = officials.get(bm.Official1ID[0]);
@@ -175,6 +176,8 @@ function integrate_matches(app, tkey, btp_state, court_map, callback) {
 	const admin = require('./admin'); // avoid dependency cycle
 	const {draws, events, officials} = btp_state;
 
+	const match_ids_on_court = calculate_match_ids_on_court(btp_state);
+
 	async.each(btp_state.matches, function(bm, cb) {
 		const draw = draws.get(bm.DrawID[0]);
 		assert(draw);
@@ -197,7 +200,7 @@ function integrate_matches(app, tkey, btp_state, court_map, callback) {
 				return;
 			}
 
-			const match = craft_match(tkey, btp_id, court_map, event, draw, officials, bm);
+			const match = craft_match(tkey, btp_id, court_map, event, draw, officials, bm, match_ids_on_court);
 			if (!match) {
 				cb();
 				return;
@@ -349,6 +352,18 @@ function integrate_umpires(app, tournament_key, btp_state, callback) {
 	});
 }
 
+function calculate_match_ids_on_court(btp_state) {
+	const res = new Set();
+	for (const c of btp_state.courts.values()) {
+		if (c.MatchID) {
+			for (const match_id of c.MatchID) {
+				res.add(match_id);
+			}
+		}
+	}
+	return res;
+}
+
 function fetch(app, tkey, response, callback) {
 	let btp_state;
 	try {
@@ -365,6 +380,7 @@ function fetch(app, tkey, response, callback) {
 }
 
 module.exports = {
+	calculate_match_ids_on_court,
 	craft_match,
 	date_str,
 	fetch,
