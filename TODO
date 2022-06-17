@@ -1,3 +1,10 @@
+asian name flag in edit mode
+
+export view of raw data
+
+firstname / lastname should be stored (maybe even editable?), even for asian names
+	is guessed right now
+
 ticker should resume automatically when network connection is broken
 
 any_oci / current_oci
