@@ -348,6 +348,18 @@ function ui_edit() {
 		uiu.el(dm_style_select, 'option', s_attrs, s);
 	}
 
+	// Placed on court required?
+	const dragged_on_court_label = uiu.el(form, 'label');
+	const attrs = {
+		type: 'checkbox',
+		name: 'dragged_on_court',
+	};
+	if (curt.dragged_on_court) {
+		attrs.checked = 'checked';
+	}
+	uiu.el(dragged_on_court_label, 'input', attrs);
+	uiu.el(dragged_on_court_label, 'span', {}, ci18n('tournament:edit:dragged_on_court'));
+
 	// BTP
 	const btp_fieldset = uiu.el(form, 'fieldset');
 	const btp_enabled_label = uiu.el(btp_fieldset, 'label');
@@ -460,6 +472,7 @@ function ui_edit() {
 			language: data.language,
 			is_team: (!!data.is_team),
 			is_nation_competition: (!!data.is_nation_competition),
+			dragged_on_court: (!!data.dragged_on_court),
 			btp_enabled: (!!data.btp_enabled),
 			btp_autofetch_enabled: (!!data.btp_autofetch_enabled),
 			btp_readonly: (!!data.btp_readonly),
