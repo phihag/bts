@@ -50,6 +50,13 @@ function create_match_representation(tournament, match) {
 		for (const p of t.players) {
 			if (p.lastname) continue;
 
+			const asian_m = /^([A-Z]+)\s+(.*)$/.exec(p.name);
+			if (asian_m) {
+				p.firstname = asian_m[1];
+				p.lastname = asian_m[2];
+				continue;
+			}
+
 			const m = /^(.*)\s+(\S+)$/.exec(p.name);
 			if (m) {
 				p.firstname = m[1];
