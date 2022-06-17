@@ -76,6 +76,7 @@ var ci18n_en = {
 'match:incomplete': '[incomplete!] ',
 'match:edit:scheduled_date': 'Date:',
 'match:edit:delete': 'Delete match',
+'match:edit:now_on_court': 'Now on court',
 'match:delete:really': 'Really delete match {match_id}?',
 'tournament:edit:logo': 'Logo',
 'tournament:edit:logo:nologo': 'No logo',

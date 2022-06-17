@@ -162,6 +162,7 @@ function _extract_setup(msg_setup) {
 		'event_name',
 		'match_name',
 		'match_num',
+		'now_on_court',
 		'umpire_name',
 		'service_judge_name',
 		'is_doubles',

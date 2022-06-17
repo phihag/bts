@@ -241,6 +241,7 @@ function _make_setup(d) {
 
 	return {
 		court_id: d.court_id,
+		now_on_court: !! d.now_on_court,
 		match_num: parseInt(d.match_num),
 		match_name: d.match_name,
 		scheduled_time_str: d.scheduled_time_str,
@@ -775,20 +776,37 @@ function render_edit(form, match) {
 		}
 	}
 
+	// Now on court
+	const now_on_court_label = uiu.el(assigned, 'label');
+	const now_on_court_attrs = {
+		type: 'checkbox',
+		name: 'now_on_court',
+	};
+	if (setup.now_on_court) {
+		now_on_court_attrs.checked = 'checked';
+	}
+	uiu.el(now_on_court_label, 'input', now_on_court_attrs);
+	uiu.el(now_on_court_label, 'span', 'match_label', ci18n('match:edit:now_on_court'));
+
+	// TO stuff
+	const tos_container = uiu.el(edit_match_container, 'div', {
+		style: 'margin-top: 0.5em',
+	});
+
 	// Umpire
-	uiu.el(assigned, 'span', 'match_label', ci18n('Umpire:'));
-	const umpire_select = uiu.el(assigned, 'select', {
+	uiu.el(tos_container, 'span', 'match_label', ci18n('Umpire:'));
+	const umpire_select = uiu.el(tos_container, 'select', {
 		name: 'umpire_name',
 		size: 1,
 	});
 	render_umpire_options(umpire_select, setup.umpire_name);
 
 	// Service judge
-	uiu.el(assigned, 'span', {
+	uiu.el(tos_container, 'span', {
 		'class': 'match_label',
 		'style': 'margin-left: 1em;',
 	}, ci18n('Service judge:'));
-	const service_judge_select = uiu.el(assigned, 'select', {
+	const service_judge_select = uiu.el(tos_container, 'select', {
 		name: 'service_judge_name',
 		size: 1,
 	});

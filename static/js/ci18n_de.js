@@ -76,6 +76,7 @@ var ci18n_de = {
 'match:override_colors': 'Spezielle Farben',
 'match:edit:scheduled_date': 'Datum:',
 'match:edit:delete': 'Löschen',
+'match:edit:now_on_court': 'Jetzt auf dem Feld',
 'match:delete:really': 'Wirklich Spiel {match_id} löschen?',
 'tournament:edit:logo': 'Logo',
 'tournament:edit:logo:nologo': 'Kein Logo',
