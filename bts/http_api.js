@@ -54,6 +54,7 @@ function create_match_representation(tournament, match) {
 			if (asian_m) {
 				p.lastname = asian_m[1];
 				p.firstname = asian_m[2];
+				p._guess_info = 'bts_asian';
 				continue;
 			}
 
@@ -61,9 +62,11 @@ function create_match_representation(tournament, match) {
 			if (m) {
 				p.firstname = m[1];
 				p.lastname = m[2];
+				p._guess_info = 'bts_western';
 			} else {
 				p.firstname = '';
 				p.lastname = p.name;
+				p._guess_info = 'bts_single';
 			}
 		}
 	}
