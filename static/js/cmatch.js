@@ -17,7 +17,9 @@ function calc_section(m) {
 		return 'finished';
 	}
 	if (m.setup.court_id) {
-		return 'court_' + m.setup.court_id;
+		if (!curt.only_now_on_court || m.setup.now_on_court) {
+			return 'court_' + m.setup.court_id;
+		}
 	}
 	return 'unassigned';
 }
