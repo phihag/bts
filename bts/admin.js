@@ -48,11 +48,15 @@ function handle_tournament_edit_props(app, ws, msg) {
 	const props = utils.pluck(msg.props, [
 		'name',
 		'btp_enabled', 'btp_autofetch_enabled', 'btp_readonly',
-		'btp_ip', 'btp_password', 'btp_timezone',
+		'btp_ip', 'btp_password',
 		'is_team', 'is_nation_competition',
 		'ticker_enabled', 'ticker_url', 'ticker_password',
 		'language', 'dm_style',
 		'logo_background_color', 'logo_foreground_color']);
+
+	if (msg.btp_timezone) {
+		props.btp_timezone = msg.btp_timezone === 'system' ? undefined : msg.btp_timezone;
+	}
 
 	app.db.tournaments.update({key}, {$set: props}, {returnUpdatedDocs: true}, function(err, num, t) {
 		if (err) {

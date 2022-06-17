@@ -208,7 +208,7 @@ function _req2xml_add(doc, parent, obj, timeZone) {
 
 			// Convert to specific timezone
 			let date = v;
-			if (timeZone) {
+			if (timeZone && timeZone !== 'system') {
 				date = new Date(new Intl.DateTimeFormat('sv', {
 					timeZone, dateStyle: 'short', timeStyle: 'medium'
 				}).format(v));

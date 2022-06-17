@@ -406,7 +406,7 @@ function ui_edit() {
 		name: 'btp_timezone',
 	});
 	uiu.el(
-		btp_timezone_select, 'option', {},
+		btp_timezone_select, 'option', {value: 'system'},
 		ci18n('tournament:edit:btp:system timezone', {tz: curt.system_timezone}));
 	let marked = false;
 	for (const tz of timezones.ALL_TIMEZONES) {
