@@ -1,4 +1,12 @@
+add country KOS (Kosovo)
+
+btp sync must not override colors!
+
+switch order of finished matches
+
 asian name flag in edit mode
+
+redesign now_on_court
 
 export view of raw data
 
@@ -37,9 +45,9 @@ link to nationstats
 
 red marker OCI
 
-do not show console errors
+do not show/report console errors
 
-
+rm now_on_court, sync court-> match ID from BTP
 
 tournament list (and other parts): use real likns please
 
