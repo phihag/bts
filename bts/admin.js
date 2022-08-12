@@ -26,11 +26,16 @@ function _require_msg(ws, msg, fields) {
 	return true;
 }
 
+function _annotate_tournament(tournament) {
+	const tz = utils.get_system_timezone();
+	tournament.system_timezone = tz;
+}
+
+
 function handle_tournament_list(app, ws, msg) {
 	app.db.tournaments.find({}, function(err, tournaments) {
-		const tz = utils.get_system_timezone();
 		for (const t of tournaments) {
-			t.system_timezone = tz;
+			_annotate_tournament(t);
 		}
 		ws.respond(msg, err, {tournaments});
 	});
@@ -137,6 +142,7 @@ function handle_tournament_get(app, ws, msg) {
 		}], function(err) {
 			tournament.btp_status = btp_manager.get_status(tournament.key);
 			tournament.ticker_status = ticker_manager.get_status(tournament.key);
+			_annotate_tournament(tournament);
 			ws.respond(msg, err, {tournament});
 		});
 	});

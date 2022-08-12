@@ -1,10 +1,4 @@
-match duration broken?
-	setting for timezone!
-	pass timezones
-
-	// list all timezones
-	// current timezone
-	Intl.DateTimeFormat().resolvedOptions().timeZone
+show version
 
 button to delete all matches
 
