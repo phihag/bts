@@ -267,9 +267,13 @@ class BTPConn {
 				return;
 			}
 
+			if (! this.key_unicode) {
+				serror.silent('Trying to send match data, but never logged in. Must retry later');
+				return;
+			}
+
 			const req = btp_proto.update_request(
 				match, this.key_unicode, this.password, umpire_btp_id, service_judge_btp_id, court_btp_id);
-
 			this.send(req, response => {
 				const results = response.Action[0].Result;
 				const rescode = results ? results[0] : 'no-result';

@@ -51,6 +51,7 @@ function login_request(password) {
 }
 
 function update_request(match, key_unicode, password, umpire_btp_id, service_judge_btp_id, court_btp_id) {
+	assert(key_unicode);
 	const matches = [];
 	const res = {
 		Header: {
