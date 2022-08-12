@@ -54,8 +54,8 @@ function handle_tournament_edit_props(app, ws, msg) {
 		'language', 'dm_style',
 		'logo_background_color', 'logo_foreground_color']);
 
-	if (msg.btp_timezone) {
-		props.btp_timezone = msg.btp_timezone === 'system' ? undefined : msg.btp_timezone;
+	if (msg.props.btp_timezone) {
+		props.btp_timezone = msg.props.btp_timezone === 'system' ? undefined : msg.props.btp_timezone;
 	}
 
 	app.db.tournaments.update({key}, {$set: props}, {returnUpdatedDocs: true}, function(err, num, t) {
