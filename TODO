@@ -1,3 +1,15 @@
+match duration broken?
+	setting for timezone!
+	pass timezones
+
+	// list all timezones
+	// current timezone
+	Intl.DateTimeFormat().resolvedOptions().timeZone
+
+button to delete all matches
+
+don't multi-report the same message twice 
+
 add country KOS (Kosovo)
 
 btp sync must not override colors!
@@ -19,14 +31,6 @@ any_oci / current_oci
 
 devices
 	ping, show if offline
-
-match duration broken?
-	setting for timezone!
-	pass timezones
-
-	// list all timezones
-	// current timezone
-	Intl.DateTimeFormat().resolvedOptions().timeZone
 
 check manual editing with asian names
 
