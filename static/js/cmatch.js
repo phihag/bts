@@ -92,7 +92,10 @@ function render_match_row(tr, match, court, style) {
 			style: 'color: #aaa;',
 		}, setup.event_name);
 	}
-	const players0 = uiu.el(tr, 'td', ((match.team1_won === true) ? 'match_team_won' : ''));
+	const players0 = uiu.el(tr, 'td', {
+		'class': ((match.team1_won === true) ? 'match_team_won' : ''),
+		style: 'text-align: right;',
+	});
 	render_players_el(players0, setup, 0);
 	uiu.el(tr, 'td', 'match_vs', 'v');
 	const players1 = uiu.el(tr, 'td', ((match.team1_won === false) ? 'match_team_won ' : '') + 'match_team2');
