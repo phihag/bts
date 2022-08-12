@@ -22,7 +22,7 @@ function reconfigure(app, t) {
 		app,
 		t.btp_ip, t.btp_password, t.key,
 		t.btp_autofetch_enabled, t.btp_readonly,
-		t.is_team);
+		t.is_team, t.btp_timezone);
 	conns_by_tkey.set(t.key, conn);
 }
 

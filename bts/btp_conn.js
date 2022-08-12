@@ -48,11 +48,11 @@ function send_raw_request(ip, port, raw_req, callback) {
 	});
 }
 
-function send_request(ip, port, xml_req, callback) {
+function send_request(ip, port, xml_req, timeZone, callback) {
 	assert(callback);
 	let encoded_req;
 	try {
-		encoded_req = btp_proto.encode(xml_req);
+		encoded_req = btp_proto.encode(xml_req, timeZone);
 	} catch(e) {
 		serror.silent('Error while encoding for BTP:' + e.message);
 		return callback(e);
@@ -69,12 +69,13 @@ function send_request(ip, port, xml_req, callback) {
 
 
 class BTPConn {
-	constructor(app, ip, password, tkey, enabled_autofetch, readonly, is_team) {
+	constructor(app, ip, password, tkey, enabled_autofetch, readonly, is_team, timeZone) {
 		this.app = app;
 		this.last_status = 'Activated';
 		this.ip = ip;
 		this.password = password;
 		this.tkey = tkey;
+		this.timeZone = timeZone;
 		this.terminated = false;
 		this.enabled_autofetch = enabled_autofetch;
 		this.autofetch_timeout = null;
@@ -146,7 +147,7 @@ class BTPConn {
 		if (this.terminated) return;
 
 		const port = this.is_team ? BLP_PORT : BTP_PORT;
-		send_request(this.ip, port, xml_req, (err, response) => {
+		send_request(this.ip, port, xml_req, this.timeZone, (err, response) => {
 			if (err) {
 				this.report_status('Connection error: ' + err.message);
 				this.schedule_reconnect();
