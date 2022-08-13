@@ -1,4 +1,4 @@
 static/bup/*
 data
 node_modules
-
+.git/
