@@ -44,6 +44,18 @@ async function load_file(path) {
 	return bytes;
 }
 
+function bwf_name(p) {
+	if (!p.lastname || !p.firstname) {
+		return p.name + ' ' + JSON.stringify(p);
+	}
+
+	if (p.asian_name) {
+		return p.lastname.toUpperCase() + ' ' + p.firstname;
+	} else {
+		return p.firstname + ' ' + p.lastname.toUpperCase();
+	}
+}
+
 async function main() {
 	const send_raw_request = promisify(btp_conn.send_raw_request);
 
@@ -118,6 +130,13 @@ async function main() {
 		constant: 'text',
 		defaultValue: 'json',
 		help: 'Output tournament as text',
+	});
+	output_group.addArgument(['--text-bwf'], {
+		action: 'storeConst',
+		dest: 'output',
+		constant: 'text-bwf',
+		defaultValue: 'json',
+		help: 'Output tournament as text, but format names in BWF format',
 	});
 	output_group.addArgument(['--no-output'], {
 		action: 'storeConst',
@@ -203,7 +222,7 @@ async function main() {
 	const btp_state = btp_parse.get_btp_state(response_obj);
 	const match_ids_on_court = btp_sync.calculate_match_ids_on_court(btp_state);
 
-	if (args.output === 'text') {
+	if (args.output === 'text' || args.output === 'text-bwf') {
 		const {draws, events, officials} = btp_state;
 		for (const bm of btp_state.matches) {
 			const match_num = bm.MatchNr[0];
@@ -233,7 +252,8 @@ async function main() {
 				continue;
 			}
 
-			const players_str = match.setup.teams.map(t => t.players.map(p => p.name).join(' / ')).join(' - ');
+			let player_name_func = args.output === 'text-bwf' ? bwf_name : p => p.name;
+			const players_str = match.setup.teams.map(t => t.players.map(player_name_func).join(' / ')).join(' - ');
 			const match_name_str = utils.pad(`${match.setup.match_name}`, 3, ' ');
 			console.log(`#${id_str} ${scheduled_str} ${match.setup.event_name} ${match_name_str} ${players_str}${match.setup.now_on_court ? ' (on court)' : ''}`);
 		}
