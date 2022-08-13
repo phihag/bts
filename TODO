@@ -1,3 +1,8 @@
+log
+	configurable
+
+update function (w/ git?)
+
 show version
 
 button to delete all matches
@@ -35,9 +40,6 @@ thick line between days, thin line between times
 test for changed umpire name
 
 right-align left player in matches
-
-log
-	configurable
 
 link to nationstats
 
