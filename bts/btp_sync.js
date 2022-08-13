@@ -128,7 +128,7 @@ function _craft_team(par) {
 			}
 
 			pres.firstname = p.Firstname[0];
-			pres.lastname = '';
+			pres.lastname = p.Lastname[0];
 		} else if (p.Lastname) {
 			pres.name = p.Lastname[0];
 			pres.lastname = p.Lastname[0];
