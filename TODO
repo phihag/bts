@@ -7,6 +7,10 @@ show version
 
 button to delete all matches
 
+show clock times in --text output
+
+import/export JSON
+
 don't multi-report the same message twice 
 
 add country KOS (Kosovo)
