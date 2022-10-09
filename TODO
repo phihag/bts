@@ -1,7 +1,5 @@
 switch to async top-down
 
-don't auto-query on startup unless auto on
-
 log
 	configurable
 

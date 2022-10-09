@@ -107,7 +107,9 @@ class BTPConn {
 			this.key_unicode = response.Action[0].Unicode[0];
 
 			this.pushall();
-			this.fetch();
+			if (this.enabled_autofetch) {
+				this.fetch();
+			}
 			this.schedule_fetch();
 		});
 	}
