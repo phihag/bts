@@ -1,9 +1,22 @@
+keep last result longer on screen with now_on_court
+
+
+correct transmission for injury / walkover!
+
+change of Now on Court in settings should change court properties!
+
+should be displayed bold when currently running, even when propagated from BTP
+
+clamp times to server time when sending, log
+
+GRI Maeare Van Dalm
+
+add country KOS (Kosovo)
+
 switch to async top-down
 
 log
 	configurable
-
-add country KOS (Kosovo)
 
 show version
 
@@ -17,13 +30,15 @@ import/export JSON
 
 don't multi-report the same message twice 
 
+share courts with another tournament (or two BTPs?)
+
+multiple TPs for copy
 
 btp sync must not override colors!
 
 switch order of finished matches
 
 asian name flag in edit mode
-
 
 export view of raw data
 
