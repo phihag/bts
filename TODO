@@ -1,5 +1,17 @@
+write JSON once match finished
+
+fix umpire names not being correctly transmitted! on editing
+
+allow editing of umpire names
+
+view of BTP, redesign status so we only update diffs
+
+
 keep last result longer on screen with now_on_court
 
+overview highlight games with cards
+
+proxy mode so that all HTTP requests & other stuff gets proxied to the real server
 
 correct transmission for injury / walkover!
 
@@ -14,6 +26,8 @@ GRI Maeare Van Dalm
 add country KOS (Kosovo)
 
 switch to async top-down
+
+support districts?
 
 log
 	configurable
