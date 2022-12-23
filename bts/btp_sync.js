@@ -128,7 +128,7 @@ function _craft_team(par) {
 			}
 
 			pres.firstname = p.Firstname[0];
-			pres.lastname = '';
+			pres.lastname = p.Lastname[0];
 		} else if (p.Lastname) {
 			pres.name = p.Lastname[0];
 			pres.lastname = p.Lastname[0];
@@ -192,6 +192,7 @@ function integrate_matches(app, tkey, btp_state, court_map, callback) {
 			btp_id,
 			tournament_key: tkey,
 		};
+		// TODO get all matches upfront here
 		app.db.matches.findOne(query, (err, cur_match) => {
 			if (err) return cb(err);
 
@@ -222,7 +223,6 @@ function integrate_matches(app, tkey, btp_state, court_map, callback) {
 				return;
 			}
 
-			// New match
 			app.db.matches.insert(match, function(err) {
 				if (err) return cb(err);
 
@@ -364,6 +364,39 @@ function calculate_match_ids_on_court(btp_state) {
 	return res;
 }
 
+function integrate_now_on_court(app, tkey, callback) {
+	// TODO after switching to async, this should happen during court&match construction
+	app.db.tournaments.findOne({key: tkey}, (err, tournament) => {
+		if (err) {
+			return callback(err);
+		}
+		assert(tournament);
+		if (!tournament.only_now_on_court) {
+			return; // Nothing to do here
+		}
+
+		app.db.matches.find({'setup.now_on_court': true}, (err, now_on_court_matches) => {
+			if (err) return callback(err);
+
+			async.each(now_on_court_matches, (match, cb) => {
+				const court_id = match.setup.court_id;
+				const match_id = match._id;
+				if (!court_id || !match_id) return cb(); // TODO in async we would assert both to be true
+
+				const court_q = {_id: court_id};
+				app.db.courts.find(court_q, (err, courts) => {
+					if (err) return cb(err);
+					if (courts.length !== 1) return cb();
+					const [court] = courts;
+
+					app.db.courts.update(court_q, {$set: {match_id}}, {}, (err) => cb(err));
+				});
+			}, callback);
+		});
+	});
+	// TODO clear courts (better in async)
+}
+
 function fetch(app, tkey, response, callback) {
 	let btp_state;
 	try {
@@ -376,6 +409,7 @@ function fetch(app, tkey, response, callback) {
 		cb => integrate_umpires(app, tkey, btp_state, cb),
 		cb => integrate_courts(app, tkey, btp_state, cb),
 		(court_map, cb) => integrate_matches(app, tkey, btp_state, court_map, cb),
+		cb => integrate_now_on_court(app, tkey, cb),
 	], callback);
 }
 

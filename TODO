@@ -1,10 +1,22 @@
+switch to async top-down
+
+log
+	configurable
+
+add country KOS (Kosovo)
+
 show version
+
+update function (w/ git?)
 
 button to delete all matches
 
+show clock times in --text output
+
+import/export JSON
+
 don't multi-report the same message twice 
 
-add country KOS (Kosovo)
 
 btp sync must not override colors!
 
@@ -12,7 +24,6 @@ switch order of finished matches
 
 asian name flag in edit mode
 
-redesign now_on_court
 
 export view of raw data
 
@@ -35,9 +46,6 @@ thick line between days, thin line between times
 test for changed umpire name
 
 right-align left player in matches
-
-log
-	configurable
 
 link to nationstats
 
