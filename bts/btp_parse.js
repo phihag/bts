@@ -73,37 +73,22 @@ function _calc_match_players(matches_by_pid, entries, players, bm) {
 	return;
 }
 
-/*
-// TODO: team version
-function _team_calc_player_matches(matches_by_pid, entries, players, bm) {
-	if (bm.bts_winners) {
-		return;
-	}
-
-	if (!bm.Team1Player1ID) return;
-	const p1ar = [players.get(bm.Team1Player1ID[0])];
-	const p2ar = [players.get(bm.Team2Player1ID[0])];
-	if (bm.Team1Player2ID) {
-	        p1ar.push(players.get(bm.Team1Player2ID[0]));
-	}
-	if (bm.Team2Player2ID) {
-	        p2ar.push(players.get(bm.Team2Player2ID[0]));
-	}
--
-	bm.bts_players = [p1ar, p2ar];
-	if (p1ar && p2ar) {
-	        bm.bts_complete = true;
-	}
-
-}
-*/
-
 // TODO move this into a separate process
 function get_btp_state(response) {
 	const btp_t = response.Result[0].Tournament[0];
+	const is_league = !!btp_t.PlayerMatches;
 
 	// When a list is empty the whole entry is missing :(
-	const all_btp_matches = btp_t.Matches ? btp_t.Matches[0].Match : [];
+	let all_btp_matches;
+	let matches_by_pid;
+	if (is_league) { // LeaguePlanner format
+		all_btp_matches = btp_t.PlayerMatches[0].PlayerMatch;
+		assert(all_btp_matches);
+		matches_by_pid = utils.make_index(all_btp_matches, bm => `cp_${bm.TeamMatchID[0]}_${bm.ID[0]}`);
+	} else {
+		all_btp_matches = btp_t.Matches ? btp_t.Matches[0].Match : [];
+		matches_by_pid = utils.make_index(all_btp_matches, bm => bm.DrawID[0] + '_' + bm.PlanningID[0]);
+	}
 	const all_btp_entries = btp_t.Entries ? btp_t.Entries[0].Entry : [];
 	const all_btp_events = btp_t.Events ? btp_t.Events[0].Event : [];
 	const all_btp_players = btp_t.Players ? btp_t.Players[0].Player : [];
@@ -121,8 +106,6 @@ function get_btp_state(response) {
 	}
 
 	const matches = filter_matches(all_btp_matches);
-	const matches_by_pid = utils.make_index(
-		all_btp_matches, bm => bm.DrawID[0] + '_' + bm.PlanningID[0]);
 	const entries = utils.make_index(all_btp_entries, e => e.ID[0]);
 	const events = utils.make_index(all_btp_events, e => e.ID[0]);
 	const players = utils.make_index(all_btp_players, p => p.ID[0]);
