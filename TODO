@@ -1,3 +1,16 @@
+CP
+	read support
+		get individual matches
+		test?
+
+	write individual results
+	Check SetRation / GameRatio etc. when writing
+
+Oliver match order
+
+
+check upcoming -> Matthias Decker
+
 write JSON once match finished
 
 fix umpire names not being correctly transmitted! on editing
