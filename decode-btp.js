@@ -35,12 +35,12 @@ async function main() {
     });
     const args = parser.parseArgs();
 
-    if (args.file) {
-        const contents = await fs.promises.readFile(args.file);
+    if (args.tpbackup_file) {
+        const contents = await fs.promises.readFile(args.tpbackup_file);
 
         const decoded = zlib.inflateRawSync(contents.slice(78));
         
-        const mdb_file = args.file + '.mdb';
+        const mdb_file = args.tpbackup_file + '.mdb';
         await fs.promises.writeFile(mdb_file, decoded);
         console.log(`Wrote ${mdb_file}`);
 

@@ -143,6 +143,13 @@ async function main() {
 		defaultValue: 'json',
 		help: 'Output tournament as text, but format names in BWF format',
 	});
+	output_group.addArgument(['--text-team-matches'], {
+		action: 'storeConst',
+		dest: 'output',
+		constant: 'text-team-matches',
+		defaultValue: 'json',
+		help: 'Output tournament as text, only team matches',
+	});
 	output_group.addArgument(['--no-output'], {
 		action: 'storeConst',
 		dest: 'output',
@@ -227,28 +234,59 @@ async function main() {
 	const btp_state = btp_parse.get_btp_state(response_obj);
 	const match_ids_on_court = btp_sync.calculate_match_ids_on_court(btp_state);
 
-	if (args.output === 'text' || args.output === 'text-bwf') {
-		const {draws, events, officials} = btp_state;
+	if (args.output === 'text-team-matches') {
+		const {team_matches, is_league} = btp_state;
+		assert(is_league);
+
+		for (const btp_tm of team_matches.values()) {
+			if (!btp_tm.btp_teams) continue;
+
+			const line = (
+				('' + btp_tm.ID[0]).padStart(2) + ' ' +
+				btp_tm.bts_event_name + ' ' +
+				btp_tm.RoundName[0] + ' ' +
+				btp_tm.btp_teams[0].Name[0] + ' vs ' + btp_tm.btp_teams[1].Name[0] +
+				(btp_tm.Note ? '   ' + btp_tm.Note[0] : ''));
+			console.log(line);
+		}
+	} else if (args.output === 'text' || args.output === 'text-bwf') {
+		const {draws, events, match_types, officials, team_matches, is_league} = btp_state;
 		const player_name_func = args.output === 'text-bwf' ? bwf_player_repr : p => p.name;
 		for (const bm of btp_state.matches) {
-			const match_num = bm.MatchNr[0];
+			const match_num = is_league ? bm.ID[0] : bm.MatchNr[0];
 
 			const id_str = utils.pad(bm.ID[0], 4, ' ');
 
-			const draw = draws.get(bm.DrawID[0]);
-			assert(draw);
+			let discipline_name;
+			let event;
+			let draw;
+			if (is_league) {
+				discipline_name = match_types.get(bm.MatchTypeID[0]);
+				if (bm.MatchTypeNo[0] != 0) {
+					discipline_name += bm.MatchTypeNo[0];
+				}
+				
+				const btp_team_match = team_matches.get(bm.TeamMatchID[0]);
+				assert(btp_team_match);
 
-			const event = events.get(draw.EventID[0]);
-			assert(event);
+				draw = draws.get(btp_team_match.DrawID[0]);
+				event = draws.get(draw.EventID[0]);
+			} else {
+				draw = draws.get(bm.DrawID[0]);
+				assert(draw);
+				event = events.get(draw.EventID[0]);
+				assert(event);
+				discipline_name = (event.Name[0] === draw.Name[0]) ? draw.Name[0] : event.Name[0] + '_' + draw.Name[0];
+			}
 
 			const tkey = '<tkey>'; // Pseudo value
 			const pseudo_court_map = {
 				'get': court_id => court_id,
 			};
-			const discipline_name = (event.Name[0] === draw.Name[0]) ? draw.Name[0] : event.Name[0] + '_' + draw.Name[0];
 			const btp_id = tkey + '_' + discipline_name + '_' + match_num;
 
-			const match = btp_sync.craft_match(tkey, btp_id, pseudo_court_map, event, draw, officials, bm, match_ids_on_court);
+			const match = btp_sync.craft_match(
+				tkey, btp_id, pseudo_court_map, event, draw, officials, bm, match_ids_on_court);
 			if (!match) {
 				continue;
 			}

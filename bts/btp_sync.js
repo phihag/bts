@@ -18,7 +18,7 @@ function date_str(dt) {
 	return utils.pad(dt.year, 2, '0') + '-' + utils.pad(dt.month, 2, '0') + '-' + utils.pad(dt.day, 2, '0');
 }
 
-function craft_match(tkey, btp_id, court_map, event, draw, officials, bm, match_ids_on_court) {
+function craft_match(tkey, btp_id, court_map, event, draw, officials, bm, match_ids_on_court, match_types, is_league) {
 	if (!bm.IsMatch) {
 		return;
 	}
