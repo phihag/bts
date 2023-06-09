@@ -3,5 +3,5 @@
 	"report_errors": true,
 	"tournament_name": "Live-Ticker",
 	"prefix_html": "<!-- HTML to show before courts -->",
-	"note_html": "Tickering with <a href=\"https://github.com/phihag/bts\">bts</a>"
+	"note_html": "Tickering with <a href=\"https://github.com/lule75/bts\">bts</a>"
 }
