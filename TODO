@@ -1,3 +1,5 @@
+bts: do not use umpire name
+
 CP
 	read support
 		get individual matches
@@ -6,8 +8,16 @@ CP
 	write individual results
 	Check SetRation / GameRatio etc. when writing
 
-Oliver match order
+fix handling of umpire name if no first name set
 
+correct injury handling
+	include test
+
+bts/cp: match order
+
+log every single change
+
+optional audio alarm once game done?
 
 check upcoming -> Matthias Decker
 
