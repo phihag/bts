@@ -27,9 +27,10 @@ function _calc_match_id(bm, is_league) {
 }
 
 function filter_matches(all_btp_matches, is_league) {
-	// TODO for group matches, note the opposite match as well
 	if (is_league) {
-		return all_btp_matches.filter(bm => bm.Team1Player1ID && bm.Team2Player1ID);
+		return all_btp_matches.filter(bm => {
+			return bm.Team1Player1ID && bm.Team2Player1ID;
+		});
 	}
 
 	return all_btp_matches.filter(bm => (bm.IsMatch && bm.IsPlayable && bm.MatchNr && bm.MatchNr[0] && bm.From1));
