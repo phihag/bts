@@ -37,8 +37,8 @@ function main_handler(req, res, next) {
 			html = html.replace(/{{note_html}}/g, app.config.note_html);
 			html = html.replace(/{{prefix_html}}/g, app.config.prefix_html || '');
 			html = html.replace(/{{courts_html}}/g, courts_html);
-			html = html.replace(/{{static_path}}/g, '/static/');
-			html = html.replace(/{{root_path}}/g, '/');
+			html = html.replace(/{{static_path}}/g, 'static/');
+			html = html.replace(/{{root_path}}/g, '');
 			res.send(html);
 		});
 	});
