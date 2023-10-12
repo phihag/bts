@@ -17,7 +17,7 @@ function uiu_text(node, str) {
 
 function update() {
 	var r = new XMLHttpRequest();
-	r.open('GET', '/qjson', true);
+	r.open('GET', 'qjson', true);
 	r.onreadystatechange = function () {
 		if (r.readyState != 4) {
 			return;

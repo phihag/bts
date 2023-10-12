@@ -1,5 +1,7 @@
 make bupdate in docker
 
+make a backup of what we pulled every hour and save it for debugging
+
 bts: do not use umpire name
 
 CP
