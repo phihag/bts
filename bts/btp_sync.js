@@ -447,6 +447,7 @@ async function integrate_now_on_court(app, tkey, callback) {
 								}
 
 								admin.notify_change(app, match.tournament_key, 'match_edit', {match__id: match._id, setup: match.setup});
+								admin.notify_change(app, tkey, 'match_called_on_court', match);
 							});
 						});
 					});

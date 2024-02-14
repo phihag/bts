@@ -113,6 +113,12 @@ function default_handler_func(rerender, special_funcs, c) {
 		curt.courts = c.val.all_courts;
 		rerender();
 		break;
+	case 'match_preparation_call':
+		announcePreparationMatch(c.val.setup);
+		break;
+	case 'match_called_on_court':
+		announceNewMatch(c.val.setup);
+		break;
 	case 'umpires_changed':
 		curt.umpires = c.val.all_umpires;
 		uiu.qsEach('select[name="umpire_name"]', function(select) {
