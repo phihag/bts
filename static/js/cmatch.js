@@ -105,15 +105,19 @@ function render_match_row(tr, match, court, style) {
 		if (setup.umpire_name) {
 			uiu.el(to_td, 'span', {}, setup.umpire_name);
 			if (setup.service_judge_name) {
-				uiu.el(to_td, 'span', {}, '\u200B+');
+				uiu.el(to_td, 'span', {}, ' \u200B+ ');
 				uiu.el(to_td, 'span', {}, setup.service_judge_name);
 			}
+		} else if (setup.tabletoperators && setup.tabletoperators.length > 0){
+			uiu.el(to_td, 'spann', 'match_no_umpire', '(');
+			uiu.el(to_td, 'spann', 'match_no_umpire', setup.tabletoperators[0].name );
+			if (setup.tabletoperators.length > 1) {
+				uiu.el(to_td, 'spann', 'match_no_umpire', ' \u200B/ ');
+				uiu.el(to_td, 'spann', 'match_no_umpire', setup.tabletoperators[1].name );
+			}
+			uiu.el(to_td, 'spann', 'match_no_umpire', ')');
 		} else {
-			uiu.el(
-				to_td, 'span',
-				(setup.umpire_name ? ('match_umpire match_umpire_style_' + style) : 'match_no_umpire'),
-				ci18n('No umpire')
-			);
+			uiu.el(to_td, 'span', 'match_no_umpire', ci18n('No umpire'));
 		}
 	}
 

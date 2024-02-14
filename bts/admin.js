@@ -178,6 +178,7 @@ function _extract_setup(msg_setup) {
 		'scheduled_date',
 		'called_timestamp',
 		'teams',
+		'tabletoperators',
 		'override_colors',
 	]);
 	if (!setup.match_name && setup.match_num) {
