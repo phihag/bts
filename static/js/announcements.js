@@ -26,8 +26,9 @@ function createTabletOperator(matchSetup) {
     var tabletOperator = "Tabletbedienung: ";
     if (matchSetup.teams[1].players[0].state) {
         tabletOperator = tabletOperator + matchSetup.teams[1].players[0].state;
-    } else
-    {
+    } else if (matchSetup.tabletoperators) {
+        tabletOperator = tabletOperator + createSingleTeam(matchSetup.tabletoperators);
+    } else {
         tabletOperator = tabletOperator + "Verlierer des vorhergehenden Spiels";
     }
     
@@ -127,13 +128,20 @@ function createPreparationAnnouncement() {
 }
 function announce(callArray) {
     const voices = window.speechSynthesis.getVoices();
+    var voice = null;
+    for (var i = 0; i < voices.length; i++) {
+        if (voices[i].voiceURI == "Google Deutsch") {
+            voice = voices[i];
+            break;
+        }
+    }
     callArray.forEach(function (part) {
         var words = new SpeechSynthesisUtterance(part);
         words.lang = "de-DE";
         words.rate = 1.05;
         words.pitch = 0.9;
         words.volume = 2.0;
-        words.voice = voices[6];
+        words.voice = voice;
         window.speechSynthesis.speak(words);
     });
     
