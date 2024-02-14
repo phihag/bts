@@ -159,6 +159,38 @@ function _craft_team(par) {
 		if (p.Country && p.Country[0]) {
 			pres.nationality = p.Country[0];
 		}
+
+		if (p.State) {
+			switch (p.State[0]) {
+				case 'NIS': {
+					pres.state = "Niedersachsen";
+					break;
+				} case 'SLH': {
+					pres.state = "Schleswig-Holstein";
+					break;
+				} case 'BRE': {
+					pres.state = "Bremen";
+					break;
+				} case 'BBB': {
+					pres.state = "Berlin Brandenburg";
+					break;
+				} case 'SAH': {
+					pres.state = "Sachsen Anhalt";
+					break;
+				} case 'HAM': {
+					pres.state = "Hamburg";
+					break;
+				} case 'MVP': {
+					pres.state = "Mecklenburg Vorpommern";
+					break;
+				} case 'NRW': {
+					pres.state = "Nordrhein Westfalen";
+					break;
+				}
+				default:
+					pres.state = p.State[0]
+			}
+		}
 		fix_player(pres);
 		return pres;
 	});
