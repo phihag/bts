@@ -19,9 +19,10 @@ function announcePreparationMatch(matchSetup) {
 }
 
 function createTeamAnnouncement(matchSetup){
-     var teams = createSingleTeam(matchSetup.teams[0])+", gegen "+createSingleTeam(matchSetup.teams[1]);
+     var teams = createSingleTeam(matchSetup.teams[0].players)+", gegen "+createSingleTeam(matchSetup.teams[1].players);
      return teams;
 }
+
 function createTabletOperator(matchSetup) {
     var tabletOperator = "Tabletbedienung: ";
     if (matchSetup.teams[1].players[0].state) {
@@ -35,13 +36,14 @@ function createTabletOperator(matchSetup) {
     return tabletOperator;
 }
 
-function createSingleTeam(teamSetup){
-    var team = teamSetup.players[0].name;
-    if (teamSetup.players.length == 2){
-        team = team+" und "+teamSetup.players[1].name
+function createSingleTeam(playersSetup){
+    var team = playersSetup[0].name;
+    if (playersSetup.length == 2){
+        team = team+" und "+playersSetup[1].name
     }
     return team;
 }
+
 function createRoundAnnouncement(matchSetup){
     var round = matchSetup.match_name;
     if (round == "R16") {
@@ -115,34 +117,53 @@ function createEventAnnouncement(matchSetup){
     }
     return eventName;
 }
+
 function createMatchNumberAnnouncement(matchSetup){
     var number = matchSetup.match_num;
     return "Spiel Nummer " + number + "!";
 }
+
 function createFieldAnnouncement(matchSetup){
     var court = matchSetup.court_id.split("_")[1];
     return "Auf Spielfeld " + court + "!";
 }
+
 function createPreparationAnnouncement() {
     return "In Vorbereitung:";
 }
+
 function announce(callArray) {
-    const voices = window.speechSynthesis.getVoices();
-    var voice = null;
-    for (var i = 0; i < voices.length; i++) {
-        if (voices[i].voiceURI == "Google Deutsch") {
-            voice = voices[i];
-            break;
+    // Seems like the getVoices() is an asynchronous function where it is not always guaranteed that you get a 
+    // result immediately. The wait for the result must therefore be handled:
+    // https://stackoverflow.com/questions/21513706/getting-the-list-of-voices-in-speechsynthesis-web-speech-api
+    const allVoicesObtained = new Promise(function(resolve, reject) {
+        let voices = window.speechSynthesis.getVoices();
+        if (voices.length !== 0) {
+            resolve(voices);
+        } else {
+            window.speechSynthesis.addEventListener("voiceschanged", function() {
+                voices = window.speechSynthesis.getVoices();
+                resolve(voices);
+            });
         }
-    }
-    callArray.forEach(function (part) {
-        var words = new SpeechSynthesisUtterance(part);
-        words.lang = "de-DE";
-        words.rate = 1.05;
-        words.pitch = 0.9;
-        words.volume = 2.0;
-        words.voice = voice;
-        window.speechSynthesis.speak(words);
     });
-    
+      
+    allVoicesObtained.then(voices => {
+        var voice = null;
+        for (var i = 0; i < voices.length; i++) {
+            if (voices[i].voiceURI == "Google Deutsch") {
+                voice = voices[i];
+                break;
+            }
+        }
+        callArray.forEach(function (part) {
+            var words = new SpeechSynthesisUtterance(part);
+            words.lang = "de-DE";
+            words.rate = 1.05;
+            words.pitch = 0.9;
+            words.volume = 2.0;
+            words.voice = voice;
+            window.speechSynthesis.speak(words);
+        });
+    });    
 }
