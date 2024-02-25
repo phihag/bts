@@ -69,6 +69,17 @@ function craft_match(app, tkey, btp_id, court_map, event, draw, officials, bm, m
 		if (tournament.warmup_start) {
 			setup.warmup_start = tournament.warmup_start;
 		}
+		if (tournament.btp_settings.check_in_per_match && teams.length > 1) {
+			teams[0].players[0].checked_in = (bm.Status & 0b0001) > 0;
+			if(teams[0].players.length > 1) {
+				teams[0].players[1].checked_in = (bm.Status & 0b0010) > 0;
+			}
+			teams[1].players[0].checked_in = (bm.Status & 0b0100) > 0;
+			if(teams[1].players.length > 1) {
+				teams[1].players[1].checked_in = (bm.Status & 0b1000) > 0;
+			}
+		}
+
 	});
 
 	if (scheduled_time_str) {
@@ -419,6 +430,21 @@ function integrate_courts(app, tournament_key, btp_state, callback) {
 	});
 }
 
+function integrate_btp_settings(app, tkey, btp_state, callback) {
+	let btp_settings = {};
+
+	btp_settings.check_in_per_match = btp_state.btp_settings.get(1003).Value[0] ? false : true;
+	btp_settings.pause_duration_ms = btp_state.btp_settings.get(1303).Value[0] * 60 * 1000;
+
+	app.db.tournaments.update({key: tkey}, {$set: {btp_settings}}, {}, (err) => {
+		if (err) {
+			return callback(err);
+		}
+
+		return callback(null);
+	});
+}
+
 function integrate_umpires(app, tournament_key, btp_state, callback) {
 	const admin = require('./admin'); // avoid dependency cycle
 	const stournament = require('./stournament'); // avoid dependency cycle
@@ -713,6 +739,7 @@ function fetch(app, tkey, response, callback) {
 	}
 
 	async.waterfall([
+		cb => integrate_btp_settings(app, tkey, btp_state, cb),
 		cb => integrate_umpires(app, tkey, btp_state, cb),
 		cb => integrate_courts(app, tkey, btp_state, cb),
 		(court_map, cb) => integrate_matches(app, tkey, btp_state, court_map, cb),
