@@ -41,7 +41,7 @@ function render_match_table_header(table, include_courts) {
 	uiu.el(title_tr, 'th', {}, '');
 }
 
-function render_match_row(tr, match, court, style) {
+function render_match_row(tr, match, court, style, show_player_status) {
 	if (!court && match.setup.court_id) {
 		court = curt.courts_by_id[match.setup.court_id];
 	}
@@ -71,7 +71,7 @@ function render_match_row(tr, match, court, style) {
 	}
 
 	if (style === 'default') {
-		uiu.el(tr, 'td', {}, court ? court.num : '');
+		uiu.el(tr, 'td', court ? 'court_history' : '', court ? court.num : '');
 	}
 
 	if (style === 'default' || style === 'plain') {
@@ -96,27 +96,28 @@ function render_match_row(tr, match, court, style) {
 		'class': ((match.team1_won === true) ? 'match_team_won' : ''),
 		style: 'text-align: right;',
 	});
-	render_players_el(players0, setup, 0);
+	render_players_el(players0, setup, 0, show_player_status);
 	uiu.el(tr, 'td', 'match_vs', 'v');
 	const players1 = uiu.el(tr, 'td', ((match.team1_won === false) ? 'match_team_won ' : '') + 'match_team2');
-	render_players_el(players1, setup, 1);
+	render_players_el(players1, setup, 1, show_player_status);
 	if (style === 'default' || style === 'plain') {
 		const to_td = uiu.el(tr, 'td');
 		if (setup.umpire_name) {
+			uiu.el(to_td, 'div', 'umpire', '');
 			uiu.el(to_td, 'span', {}, setup.umpire_name);
 			if (setup.service_judge_name) {
 				uiu.el(to_td, 'span', {}, ' \u200B+ ');
 				uiu.el(to_td, 'span', {}, setup.service_judge_name);
 			}
 		} else if (setup.tabletoperators && setup.tabletoperators.length > 0){
-			uiu.el(to_td, 'spann', 'match_no_umpire', '(');
-			uiu.el(to_td, 'spann', 'match_no_umpire', setup.tabletoperators[0].name );
+			uiu.el(to_td, 'div', 'tablet', '');
+			uiu.el(to_td, 'span', 'match_no_umpire', setup.tabletoperators[0].name );
 			if (setup.tabletoperators.length > 1) {
-				uiu.el(to_td, 'spann', 'match_no_umpire', ' \u200B/ ');
-				uiu.el(to_td, 'spann', 'match_no_umpire', setup.tabletoperators[1].name );
+				uiu.el(to_td, 'span', 'match_no_umpire', ' \u200B/ ');
+				uiu.el(to_td, 'span', 'match_no_umpire', setup.tabletoperators[1].name );
 			}
-			uiu.el(to_td, 'spann', 'match_no_umpire', ')');
 		} else {
+			uiu.el(to_td, 'div', 'no_umpire', '');
 			uiu.el(to_td, 'span', 'match_no_umpire', ci18n('No umpire'));
 		}
 	}
@@ -154,20 +155,40 @@ function update_match_score(m) {
 	});
 }
 
-function render_players_el(parentNode, setup, team_id) {
+function render_players_el(parentNode, setup, team_id, show_player_status) {
 	const team = setup.teams[team_id];
 	if (setup.incomplete) {
 		uiu.el(parentNode, 'span', {}, ci18n('match:incomplete'));
 	}
 
 	const nat0 = team.players[0] && team.players[0].nationality;
-	if (!curt.is_nation_competition || !nat0) {
-		uiu.el(parentNode, 'span', {}, team.players.map(p => p.name.replace(' ', '\xa0')).join(' / '));
-		return;
+	if (curt.is_nation_competition && nat0) {
+		cflags.render_flag_el(parentNode, nat0);
 	}
 
-	cflags.render_flag_el(parentNode, nat0);
-	uiu.el(parentNode, 'span', {}, team.players[0].name);
+	let player0_status = "";
+	if (!show_player_status || setup.now_on_court) {
+		player0_status = "now_on_court";
+	} else if (team.players[0].now_playing_on_court || team.players[0].now_tablet_on_court) {
+		player0_status = "now_playing";
+	} else if (team.players[0].checked_in) {
+		player0_status = "checked_in";
+	} else {
+		player0_status = "not_checked_in";
+	}
+
+	let player_element = uiu.el(parentNode, 'span', player0_status, team.players[0].name.replace(' ', '\xa0'));
+	if (team.players[0].now_playing_on_court && player0_status != "now_on_court") {
+		let parts = team.players[0].now_playing_on_court.split("_");
+		let court_number = parts[parts.length - 1];
+		uiu.el(player_element, 'div', 'court', court_number);
+	}
+
+	if(team.players[0].now_tablet_on_court) {
+		let parts = team.players[0].now_tablet_on_court.split("_");
+		let court_number = parts[parts.length - 1];
+		uiu.el(player_element, 'div', 'tablet_inline', court_number);
+	}
 
 	if (team.players.length > 1) {
 		uiu.el(parentNode, 'span', {}, ' / ');
@@ -176,12 +197,33 @@ function render_players_el(parentNode, setup, team_id) {
 		const p1_el = uiu.el(parentNode, 'span', {
 			'style': 'white-space: pre',
 		});
-		if (nat1 && (nat1 !== nat0)) {
+		if (curt.is_nation_competition && nat1 && (nat1 !== nat0)) {
 			cflags.render_flag_el(p1_el, nat1);
 		}
 
-		const partner_name = team.players[1].name.replace(' ', '\xa0');
-		uiu.el(p1_el, 'span', {}, partner_name);
+		let player1_status = "";
+		if (!show_player_status || setup.now_on_court) {
+			player1_status = "now_on_court";
+		} else if (team.players[1].now_playing_on_court || team.players[1].now_tablet_on_court) {
+			player1_status = "now_playing";
+		} else if (team.players[1].checked_in) {
+			player1_status = "checked_in";
+		} else {
+			player1_status = "not_checked_in";
+		}
+
+		let player_element = uiu.el(p1_el, 'span', player1_status, team.players[1].name.replace(' ', '\xa0'));
+		if (team.players[1].now_playing_on_court && player1_status != "now_on_court") {
+			let parts = team.players[1].now_playing_on_court.split("_");
+			let court_number = parts[parts.length - 1];
+			uiu.el(player_element, 'div', 'court', court_number);
+		}
+
+		if(team.players[1].now_tablet_on_court) {
+			let parts = team.players[1].now_tablet_on_court.split("_");
+			let court_number = parts[parts.length - 1];
+			uiu.el(player_element, 'div', 'tablet_inline', court_number);
+		}
 	}
 }
 
@@ -475,14 +517,19 @@ crouting.register(/t\/([a-z0-9]+)\/m\/([-a-zA-Z0-9_ ]+)\/scoresheet$/, function(
 	ui_scoresheet(match_id);
 }));
 
-function render_match_table(container, matches, include_courts) {
+function render_match_table(container, matches, include_courts, show_player_status) {
+	if(!show_player_status)
+	{
+		show_player_status = false;
+	}
+	
 	const table = uiu.el(container, 'table', 'match_table');
 	render_match_table_header(table, include_courts);
 	const tbody = uiu.el(table, 'tbody');
 
 	for (const m of matches) {
 		const tr = uiu.el(tbody, 'tr');
-		render_match_row(tr, m, null, include_courts ? 'default' : 'plain');
+		render_match_row(tr, m, null, include_courts ? 'default' : 'plain', show_player_status);
 	}
 }
 
@@ -491,7 +538,7 @@ function render_unassigned(container) {
 	uiu.el(container, 'h3', {}, ci18n('Unassigned Matches'));
 
 	const unassigned_matches = curt.matches.filter(m => calc_section(m) === 'unassigned');
-	render_match_table(container, unassigned_matches, curt.only_now_on_court);
+	render_match_table(container, unassigned_matches, curt.only_now_on_court, true);
 }
 
 function render_upcoming_matches(container) {

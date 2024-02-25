@@ -265,6 +265,22 @@ function score_handler(req, res) {
 		update.btp_winner = (update.team1_won === true) ? 1 : 2;
 		update.btp_needsync = true;
 	}
+
+	if(update.team1_won != undefined && update.team1_won != null) {
+		async.waterfall([
+			cb => remove_player_on_court(req.app, tournament_key, match_id, cb),
+			cb => remove_tablet_on_court(req.app, tournament_key, match_id, cb)
+		], function(err) {
+			if (err) {
+				res.json({
+					status: 'error',
+					message: err.message,
+				});
+				return;
+			}
+		});
+	}
+
 	if (req.body.shuttle_count) {
 		update.shuttle_count = req.body.shuttle_count;
 	}
@@ -335,6 +351,130 @@ function score_handler(req, res) {
 		res.json({status: 'ok'});
 	});
 }
+
+function remove_player_on_court (app, tkey, cur_match_id, callback) {	
+	const admin = require('./admin'); // avoid dependency cycle
+	app.db.matches.findOne({'tournament_key': tkey, '_id': cur_match_id}, (err, cur_match) => {
+		if (err) return callback(err);
+
+		app.db.matches.find({'tournament_key': tkey}, async (err, matches) => {
+			if (err) {
+				return callback(err);
+			}
+
+			async.each(matches, async (match, cb) => {
+				if(match.setup.now_on_court == false) {
+					return;
+				}
+				
+				const match_id = match._id;
+				let remove_btp_ids = [	cur_match.setup.teams[0].players[0].btp_id, 
+										cur_match.setup.teams[1].players[0].btp_id];
+
+				if(cur_match.setup.teams[0].players.length > 1) {
+					remove_btp_ids.push(cur_match.setup.teams[0].players[1].btp_id);
+				}
+				
+				if(cur_match.setup.teams[1].players.length > 1) {
+					remove_btp_ids.push(cur_match.setup.teams[1].players[1].btp_id);
+				}
+
+				let change = false;
+				
+				if (remove_btp_ids.includes(match.setup.teams[0].players[0].btp_id)) {
+					match.setup.teams[0].players[0].now_playing_on_court = false;
+					change = true;
+				}
+
+				if (match.setup.teams[0].players.length > 1 && remove_btp_ids.includes(match.setup.teams[0].players[1].btp_id)) {
+					match.setup.teams[0].players[1].now_playing_on_court = false;
+					change = true;
+				}
+
+				if (remove_btp_ids.includes(match.setup.teams[1].players[0].btp_id)) {
+					match.setup.teams[1].players[0].now_playing_on_court = false;
+					change = true;
+				}
+
+				if (match.setup.teams[1].players.length > 1 && remove_btp_ids.includes(match.setup.teams[1].players[1].btp_id)) {
+					match.setup.teams[1].players[1].now_playing_on_court = false;
+					change = true;
+				}
+
+				if (change) {
+					const setup = match.setup;
+					const match_q = {_id: match_id};
+					app.db.matches.update(match_q, {$set: {setup}}, {}, (err) => {
+						if (err) return cb(err);
+
+						admin.notify_change(app, match.tournament_key, 'match_edit', {match__id: match._id, setup: match.setup});
+					});
+				}
+			});
+		});
+	});		
+}
+
+
+function remove_tablet_on_court (app, tkey, cur_match_id, callback) {	
+	const admin = require('./admin'); // avoid dependency cycle
+	app.db.matches.findOne({'tournament_key': tkey, '_id': cur_match_id}, (err, cur_match) => {
+		if (err) return callback(err);
+
+		app.db.matches.find({'tournament_key': tkey}, async (err, matches) => {
+			if (err) {
+				return callback(err);
+			}
+
+			async.each(matches, async (match, cb) => {
+				if(match.setup.now_on_court == false) {
+					return;
+				}
+				
+				const match_id = match._id;
+				let remove_btp_ids = [	cur_match.setup.tabletoperators[0].btp_id];
+
+				if(cur_match.setup.tabletoperators.length > 1) {
+					remove_btp_ids.push(cur_match.setup.tabletoperators[1].btp_id);
+				}
+
+
+				let change = false;
+				
+				if (remove_btp_ids.includes(match.setup.teams[0].players[0].btp_id)) {
+					match.setup.teams[0].players[0].now_tablet_on_court = false;
+					change = true;
+				}
+
+				if (match.setup.teams[0].players.length > 1 && remove_btp_ids.includes(match.setup.teams[0].players[1].btp_id)) {
+					match.setup.teams[0].players[1].now_tablet_on_court = false;
+					change = true;
+				}
+
+				if (remove_btp_ids.includes(match.setup.teams[1].players[0].btp_id)) {
+					match.setup.teams[1].players[0].now_tablet_on_court = false;
+					change = true;
+				}
+
+				if (match.setup.teams[1].players.length > 1 && remove_btp_ids.includes(match.setup.teams[1].players[1].btp_id)) {
+					match.setup.teams[1].players[1].now_tablet_on_court = false;
+					change = true;
+				}
+
+				if (change) {
+					const setup = match.setup;
+					const match_q = {_id: match_id};
+					app.db.matches.update(match_q, {$set: {setup}}, {}, (err) => {
+						if (err) return cb(err);
+
+						admin.notify_change(app, match.tournament_key, 'match_edit', {match__id: match._id, setup: match.setup});
+					});
+				}
+			});
+		});
+	});		
+}
+
 
 function logo_handler(req, res) {
 	const {tournament_key, logo_id} = req.params;

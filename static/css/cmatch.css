@@ -5,6 +5,7 @@
 
 .match_num {
 	text-align: right;
+	padding: 0 0.3em 0 0.3em;
 }
 
 .match_edit_button,
@@ -53,7 +54,7 @@
 	text-align: left;
 }
 .match_table > tbody > tr:hover > td {
-	background: #ddd;
+	background-color: #ddd;
 }
 
 .match_cancel_link {
@@ -135,6 +136,99 @@
 .match_umpire_style_umpires {
 	font-weight: bold;
 }
+
+.checked_in {
+	background-color: #adffcb;
+}
+
+.not_checked_in {
+	background-color: #ffabab;
+}
+
+.now_playing {
+	background-color: #fbe44d;
+}
+
+.now_on_court {
+	background-color: inherit;
+}
+
+.tablet,
+.tablet_inline,
+.umpire,
+.no_umpire,
+.court,
+.court_history {
+	margin: 0 0.2em -0.2em 0.2em;
+	display: inline-block;
+	width: 1.73em;
+	min-width: 1.73em;
+	height: 1.2em;
+	min-height: 1.2em;
+	background-size: cover;
+	opacity: 1;
+	color: #fff;
+	text-align: center;
+	-webkit-text-stroke-width: 1px;
+	-webkit-text-stroke-color: black;
+	text-shadow:
+	3px 3px 3px #000,
+   -1px -1px 3px #000,  
+   	1px -1px 3px #000,
+   -1px 1px 3px #000,
+	1px 1px 3px #000;
+}
+
+.tablet,
+.tablet_inline {
+	background-image: url(../icons/tablet.svg);
+}
+
+.tablet_inline {
+	height: 1em;
+	min-height: 1em;
+	width: 1.4em;
+	min-width: 1.4em;
+	font-weight: 900;
+	font-size: 1.1em;
+	margin: -0.1em 0.1em 0.1em 0.1em;
+	line-height: 100%;
+}
+
+.umpire {
+	background-image: url(../icons/umpire.svg);
+}
+
+.no_umpire {
+	background-image: url(../icons/no_umpire.svg);
+}
+
+.court{
+	background-image: url(../icons/court.svg);
+	height: 1em;
+	min-height: 1em;
+	width: 1.5em;
+	min-width: 1.5em;
+	font-weight: 900;
+	font-size: 1.1em;
+	margin: -0.1em 0.1em 0.1em 0.1em;
+	line-height: 100%;
+}
+
+
+.court_history {
+	background-image: url(../icons/court_history.svg);
+	height: 1em;
+	min-height: 1em;
+	width: 1.5em;
+	min-width: 1.5em;
+	font-weight: 900;
+	font-size: 1.3em;
+	margin: -0.1em 0.3em 0.1em 0.3em;
+	line-height: 100%;
+}
+
+
 
 
 @media print {
