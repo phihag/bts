@@ -45,24 +45,20 @@ function render_match_row(tr, match, court, style, show_player_status) {
 	if (!court && match.setup.court_id) {
 		court = curt.courts_by_id[match.setup.court_id];
 	}
-
+	const activeMatch = court && !match.btp_winner;
 	const setup = match.setup;
 	if (style === 'default' || style === 'plain') {
 		const actions_td = uiu.el(tr, 'td');
-		const edit_btn = uiu.el(actions_td, 'div', {
-			'class': 'vlink match_edit_button',
-			'data-match__id': match._id,
-			'title': ci18n('match:edit'),
-		});
-		edit_btn.addEventListener('click', on_edit_button_click);
+		create_match_button(actions_td, 'vlink match_edit_button', 'match:edit', on_edit_button_click, match._id);
+		create_match_button(actions_td, 'vlink match_scoresheet_button', 'match:scoresheet', on_scoresheet_button_click, match._id);
+		if (!court) {
+			create_match_button(actions_td, 'vlink match_preparation_call_button', 'match:preparationcall', on_announce_preparation_matchbutton_click, match._id);
 
-		const scoresheet_btn = uiu.el(actions_td, 'div', {
-			'class': 'vlink match_scoresheet_button',
-			'title': ci18n('match:scoresheet'),
-			'data-match__id': match._id,
-		});
-		scoresheet_btn.addEventListener('click', on_scoresheet_button_click);
-
+		} else {
+			if (activeMatch) {
+				create_match_button(actions_td, 'vlink match_begin_to_play_button', 'match:begintoplay', on_begin_to_play_button_click, match._id);
+			}
+		}
 		uiu.el(actions_td, 'a', {
 			'class': 'match_rawinfo',
 			'title': ci18n('match:rawinfo'),
@@ -96,10 +92,16 @@ function render_match_row(tr, match, court, style, show_player_status) {
 		'class': ((match.team1_won === true) ? 'match_team_won' : ''),
 		style: 'text-align: right;',
 	});
+	if (activeMatch) {
+		create_match_button(players0, 'vlink match_second_call_button', 'match:secondcallteamone', on_second_call_team_one_button_click, match._id);
+	}
 	render_players_el(players0, setup, 0, show_player_status);
 	uiu.el(tr, 'td', 'match_vs', 'v');
 	const players1 = uiu.el(tr, 'td', ((match.team1_won === false) ? 'match_team_won ' : '') + 'match_team2');
 	render_players_el(players1, setup, 1, show_player_status);
+	if (activeMatch) {
+		create_match_button(players1, 'vlink match_second_call_button', 'match:secondcallteamtwo', on_second_call_team_two_button_click, match._id);
+	}
 	if (style === 'default' || style === 'plain') {
 		const to_td = uiu.el(tr, 'td');
 		if (setup.umpire_name) {
@@ -119,6 +121,9 @@ function render_match_row(tr, match, court, style, show_player_status) {
 		} else {
 			uiu.el(to_td, 'div', 'no_umpire', '');
 			uiu.el(to_td, 'span', 'match_no_umpire', ci18n('No umpire'));
+		}
+		if (activeMatch) {
+			create_match_button(to_td, 'vlink match_second_call_button', 'match:secondcaltabletoperator', on_second_call_tabletoperator_button_click, match._id);
 		}
 	}
 
@@ -144,7 +149,14 @@ function render_match_row(tr, match, court, style, show_player_status) {
 		}, match.shuttle_count || '');
 	}
 }
-
+function create_match_button(targetEl, cssClass, title, listener, matchId,) {
+	const btn = uiu.el(targetEl, 'div', {
+		'class': cssClass,
+		'title': ci18n(title),
+		'data-match__id': matchId,
+	});
+	btn.addEventListener('click', listener);
+}
 function update_match_score(m) {
 	uiu.qsEach('.match_score[data-match_id=' + JSON.stringify(m._id) + ']', function(score_el) {
 		uiu.text(score_el, calc_score_str(m));
@@ -275,7 +287,48 @@ function on_scoresheet_button_click(e) {
 	const match_id = btn.getAttribute('data-match__id');
 	ui_scoresheet(match_id);
 }
+function on_announce_preparation_matchbutton_click(e) {
+	const match = fetchMatchFromEvent(e);
+	if (match != null) {
+		announcePreparationMatch(match.setup);
+	}
+}
+function on_second_call_team_one_button_click(e) {
+	const match = fetchMatchFromEvent(e);
+	if (match != null) {
+		announceSecondCallTeamOne(match.setup);
+	}
+}
+function on_second_call_team_two_button_click(e) {
+	const match = fetchMatchFromEvent(e);
+	if (match != null) {
+		announceSecondCallTeamTwo(match.setup);
+	}
+}
+function on_second_call_tabletoperator_button_click(e) {
+	const match = fetchMatchFromEvent(e);
+	if (match != null) {
+		announceSecondCallTabletoperator(match.setup);
+	}
+}
 
+function on_begin_to_play_button_click(e) {
+	const match = fetchMatchFromEvent(e);
+	if (match != null) {
+		announceBeginnToPlay(match.setup);
+	}
+}
+function fetchMatchFromEvent(e) {
+	const btn = e.target;
+	const match_id = btn.getAttribute('data-match__id');
+	const match = utils.find(curt.matches, m => m._id === match_id);
+	if (!match) {
+		cerror.silent('Match ' + match_id + ' konnte nicht gefunden werden');
+		return null;
+	} else {
+		return match;
+	}
+}
 function _nation_team_name(nat0, nat1) {
 	if (nat1 && nat0 && (nat0 != nat1)) {
 		return countries.lookup(nat0) + ' / ' + countries.lookup(nat1);

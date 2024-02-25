@@ -79,6 +79,11 @@ var ci18n_de = {
 'to_stats:total': 'Total',
 
 'match:rawinfo': 'Technische Informationen',
+'match:preparationcall': 'Aufruf: Spiel in Vorbereitung',
+'match:begintoplay': 'Aufruf: Mit dem Spielen beginnen',
+'match:secondcallteamone': 'Aufruf: Zweiter Aufruf Team 1',
+'match:secondcallteamtwo': 'Aufruf: Zweiter Aufruf Team 2',
+'match:secondcaltabletoperator': 'Aufruf: Zweiter Aufruf Tabletbediener',
 'match:scoresheet': 'Schiedsrichterzettel',
 'match:edit': 'Bearbeiten',
 'match:incomplete': '[Unvollständig!] ',
