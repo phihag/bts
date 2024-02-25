@@ -8,3 +8,4 @@ config.json
 ticker_config.json
 
 mail.*
+/.vs
