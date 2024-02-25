@@ -79,11 +79,6 @@ var ci18n_en = {
 'to_stats:total': 'Total',
 
 'match:rawinfo': 'Technical information',
-'match:preparationcall': 'Announcement: Match in preparation',
-'match:begintoplay': 'Announcement: Beginn to play',
-'match:secondcallteamone': 'Announcement: Second call Team 1',
-'match:secondcallteamtwo': 'Announcement: Second call Team 2',
-'match:secondcaltabletoperator': 'Announcement: Second call Tabletoperator',
 'match:scoresheet': 'Scoresheet',
 'match:edit': 'Edit',
 'match:override_colors': 'Override colors',

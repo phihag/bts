@@ -10,16 +10,14 @@
 
 .match_edit_button,
 .match_scoresheet_button,
-.match_preparation_call_button,
-.match_begin_to_play_button,
-.match_second_call_button,
 .match_rawinfo {
 	display: inline-block;
+	width: 1em;
 	min-width: 1em;
+	height: 1em;
 	min-height: 1em;
 	background-size: 100%;
-	background-repeat: no-repeat;
-	background-position: center center;
+	opacity: 0.5;
 }
 .match_edit_button {
 	background-image: url(../icons/edit.svg);
@@ -27,21 +25,6 @@
 .match_scoresheet_button {
 	margin: 0 0 0 0.3em;
 	background-image: url(../icons/scoresheet.svg);
-}
-
-.match_preparation_call_button {
-	margin: 0 0 0 0.3em;
-	background-image: url(../icons/preperation.svg);
-}
-
-.match_begin_to_play_button {
-	margin: 0 0 0 0.3em;
-	background-image: url(../icons/start.svg);
-}
-
-.match_second_call_button {
-	margin: 0 0 0 0.3em;
-	background-image: url(../icons/second_call.svg);
 }
 .match_rawinfo {
 	margin: 0 0.3em 0 0.3em;
@@ -60,11 +43,8 @@
 }
 
 .match_edit_button:hover,
-.match_second_call_button:hover,
-.match_preparation_call_button:hover,
-.match_begin_to_play_button:hover,
 .match_scoresheet_button:hover {
-	opacity: 0.5;
+	opacity: 1;
 }
 
 .match_table {
@@ -131,9 +111,7 @@
 	max-height: 100vh;
 }
 
-match_preparation_call_button,
-match_begin_to_play_button,
-match_second_call_button,
+
 .match_scoresheet_buttons {
 	position: fixed;
 	left: 0;
@@ -149,16 +127,6 @@ match_second_call_button,
 	display: block;
 }
 .match_scoresheet_buttons > button {
-	margin: 0 0 0 2vmin;
-	font-size: 5vmin;
-	padding: 0.1em 0.1em;
-	min-width: 5em;
-}
-
-.match_second_call_button > * {
-	display: block;
-}
-.match_second_call_button > button {
 	margin: 0 0 0 2vmin;
 	font-size: 5vmin;
 	padding: 0.1em 0.1em;
@@ -259,6 +227,8 @@ match_second_call_button,
 	margin: -0.1em 0.3em 0.1em 0.3em;
 	line-height: 100%;
 }
+
+
 
 
 @media print {
