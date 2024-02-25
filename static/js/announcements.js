@@ -1,5 +1,5 @@
-               
-function announceNewMatch(matchSetup){
+
+function announceNewMatch(matchSetup) {
     var field = createFieldAnnouncement(matchSetup);
     var matchNumber = createMatchNumberAnnouncement(matchSetup);
     var eventName = createEventAnnouncement(matchSetup);
@@ -17,10 +17,35 @@ function announcePreparationMatch(matchSetup) {
     var teams = createTeamAnnouncement(matchSetup);
     announce([preparation, matchNumber, eventName, round, teams]);
 }
+function announceSecondCallTeamOne(matchSetup) {
+    announceSecondCall(matchSetup, matchSetup.teams[0]);
+}
 
-function createTeamAnnouncement(matchSetup){
-     var teams = createSingleTeam(matchSetup.teams[0].players)+", gegen "+createSingleTeam(matchSetup.teams[1].players);
-     return teams;
+function announceSecondCallTeamTwo(matchSetup) {
+    announceSecondCall(matchSetup, matchSetup.teams[1]);
+}
+
+function announceSecondCallTabletoperator(matchSetup) {
+    const call = createFieldAnnouncement(matchSetup) + createSecondCallAnnouncement() + createTabletOperator(matchSetup);
+    announce([call]);
+}
+
+function announceSecondCall(matchSetup, team) {
+    var secondCall = createSecondCallAnnouncement() + createSingleTeam(team.players);
+    var field = createFieldAnnouncement(matchSetup);
+    announce([secondCall, field]);
+}
+function announceBeginnToPlay(matchSetup, team) {
+    announce([createFieldAnnouncement(matchSetup) + "Bitte mit dem Spielen beginnen!"]);
+}
+
+function createSecondCallAnnouncement() {
+    return "Zweiter Aufruf fuer:";
+}
+
+function createTeamAnnouncement(matchSetup) {
+    var teams = createSingleTeam(matchSetup.teams[0].players) + ", gegen " + createSingleTeam(matchSetup.teams[1].players);
+    return teams;
 }
 
 function createTabletOperator(matchSetup) {
@@ -32,19 +57,19 @@ function createTabletOperator(matchSetup) {
     } else {
         tabletOperator = tabletOperator + "Verlierer des vorhergehenden Spiels";
     }
-    
+
     return tabletOperator;
 }
 
-function createSingleTeam(playersSetup){
+function createSingleTeam(playersSetup) {
     var team = playersSetup[0].name;
-    if (playersSetup.length == 2){
-        team = team+" und "+playersSetup[1].name
+    if (playersSetup.length == 2) {
+        team = team + " und " + playersSetup[1].name
     }
     return team;
 }
 
-function createRoundAnnouncement(matchSetup){
+function createRoundAnnouncement(matchSetup) {
     var round = matchSetup.match_name;
     if (round == "R16") {
         round = "Achtelfinale";
@@ -69,26 +94,26 @@ function createRoundAnnouncement(matchSetup){
     }
     return round;
 }
-function createEventAnnouncement(matchSetup){
+function createEventAnnouncement(matchSetup) {
     var eventParts = matchSetup.event_name.split(" ");
     var eventName = "";
-    if (eventParts[0] == 'JE'){
+    if (eventParts[0] == 'JE') {
         eventName = "Jungeneinzel"
-    }else if (eventParts[0] == 'JD') {
+    } else if (eventParts[0] == 'JD') {
         eventName = "Jungendoppel"
-    }else if (eventParts[0] == 'ME') {
-        eventName = "Mädcheneinzel"
-    }else if (eventParts[0] == 'MD') {
-        eventName = "Mädchendoppel"
+    } else if (eventParts[0] == 'ME') {
+        eventName = "Maedcheneinzel"
+    } else if (eventParts[0] == 'MD') {
+        eventName = "Maedchendoppel"
     } else if (eventParts[0] == 'GD' || eventParts[0] == 'MX') {
         eventName = "Gemischtesdoppel"
-    }else if (eventParts[0] == 'HE'){
+    } else if (eventParts[0] == 'HE') {
         eventName = "Herreneinzel"
-    }else if (eventParts[0] == 'HD') {
+    } else if (eventParts[0] == 'HD') {
         eventName = "Herrendoppel"
-    }else if (eventParts[0] == 'DE') {
+    } else if (eventParts[0] == 'DE') {
         eventName = "Dameneinzel"
-    }else if (eventParts[0] == 'DD') {
+    } else if (eventParts[0] == 'DD') {
         eventName = "Damendoppel"
     }
     if (eventName == "") {
@@ -97,9 +122,9 @@ function createEventAnnouncement(matchSetup){
         } else if (eventParts[1] == 'JD') {
             eventName = "Jungendoppel"
         } else if (eventParts[1] == 'ME') {
-            eventName = "Mädcheneinzel"
+            eventName = "Maedcheneinzel"
         } else if (eventParts[1] == 'MD') {
-            eventName = "Mädchendoppel"
+            eventName = "Maedchendoppel"
         } else if (eventParts[1] == 'GD' || eventParts[1] == 'MX') {
             eventName = "Gemischtesdoppel"
         } else if (eventParts[1] == 'HE') {
@@ -111,21 +136,30 @@ function createEventAnnouncement(matchSetup){
         } else if (eventParts[1] == 'DD') {
             eventName = "Damendoppel"
         }
-        eventName = eventName + " " + eventParts[0];
+        if (eventParts[0]) {
+            eventName = eventName + " " + eventParts[0];
+        }
     } else {
-        eventName = eventName + " " + eventParts[1];
+        if (eventParts[1]) {
+            eventName = eventName + " " + eventParts[1];
+        }
     }
     return eventName;
 }
 
-function createMatchNumberAnnouncement(matchSetup){
+function createMatchNumberAnnouncement(matchSetup) {
     var number = matchSetup.match_num;
     return "Spiel Nummer " + number + "!";
 }
 
-function createFieldAnnouncement(matchSetup){
-    var court = matchSetup.court_id.split("_")[1];
-    return "Auf Spielfeld " + court + "!";
+function createFieldAnnouncement(matchSetup) {
+    if (matchSetup.court_id) {
+        var court = matchSetup.court_id.split("_")[1];
+        return "Auf Spielfeld " + court + "!";
+    } else {
+        return "";
+    }
+
 }
 
 function createPreparationAnnouncement() {
@@ -136,18 +170,18 @@ function announce(callArray) {
     // Seems like the getVoices() is an asynchronous function where it is not always guaranteed that you get a 
     // result immediately. The wait for the result must therefore be handled:
     // https://stackoverflow.com/questions/21513706/getting-the-list-of-voices-in-speechsynthesis-web-speech-api
-    const allVoicesObtained = new Promise(function(resolve, reject) {
+    const allVoicesObtained = new Promise(function (resolve, reject) {
         let voices = window.speechSynthesis.getVoices();
         if (voices.length !== 0) {
             resolve(voices);
         } else {
-            window.speechSynthesis.addEventListener("voiceschanged", function() {
+            window.speechSynthesis.addEventListener("voiceschanged", function () {
                 voices = window.speechSynthesis.getVoices();
                 resolve(voices);
             });
         }
     });
-      
+
     allVoicesObtained.then(voices => {
         var voice = null;
         for (var i = 0; i < voices.length; i++) {
@@ -165,5 +199,5 @@ function announce(callArray) {
             words.voice = voice;
             window.speechSynthesis.speak(words);
         });
-    });    
+    });
 }
