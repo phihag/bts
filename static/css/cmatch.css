@@ -30,17 +30,27 @@
 }
 
 .match_preparation_call_button {
-	margin: 0 0 0 0.3em;
+	height: 1.2em;
+    min-height: 1em;
+    width: 1.4em;
+    margin: 0 0 -0.1em 0.3em;
 	background-image: url(../icons/preperation.svg);
 }
 
 .match_begin_to_play_button {
-	margin: 0 0 0 0.3em;
+	height: 1.2em;
+    min-height: 1em;
+    width: 1.4em;
+    margin: 0 0 -0.1em 0.3em;
 	background-image: url(../icons/start.svg);
 }
 
 .match_second_call_button {
-	margin: 0 0 0 0.3em;
+	height: 1.2em;
+    min-height: 1em;
+    background-size: cover;
+    width: 1.9em;
+    margin: 0 0.2em -0.2em 0.2em;
 	background-image: url(../icons/second_call.svg);
 }
 .match_rawinfo {
