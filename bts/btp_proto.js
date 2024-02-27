@@ -143,11 +143,65 @@ function update_request(match, key_unicode, password, umpire_btp_id, service_jud
 			const pupdate = {
 				ID: pid,
 				LastTimeOnCourt: end_date,
+				CheckedIn: true,
 			};
 			players.push({Player: pupdate});
 		}
+
+		if(match.setup.tabletoperators && match.setup.tabletoperators.length > 0) {
+			for (const operator of match.setup.tabletoperators) {
+				const pupdate = {
+					ID: operator.btp_id,
+					CheckedIn: true,
+				};
+				
+				players.push({Player: pupdate});
+			}
+		}
+	}
+	return res;
+}
+
+function update_players_request(key_unicode, password, players) {
+	assert(key_unicode);
+	const res = {
+		Header: {
+			Version: {
+				Hi: 1,
+				Lo: 1,
+			},
+		},
+		Action: {
+			ID: 'SENDUPDATE',
+			Unicode: key_unicode,
+		},
+		Client: {
+			IP: 'bts',
+		},
+		Update: {
+			Tournament: {
+			},
+		},
+	};
+	if (password) {
+		res.Action.Password = password;
 	}
 
+	const btp_players = [];
+	res.Update.Tournament.Players = btp_players;
+
+	players.forEach((player) => {
+		if (player.btp_id && player.last_time_on_court_ts && (player.last_time_on_court_ts + 300000 > Date.now())) {
+			const end_date = new Date(player.last_time_on_court_ts);
+
+			const pupdate = {
+				ID: player.btp_id,
+				LastTimeOnCourt: end_date,
+				CheckedIn: player.checked_in,
+			};
+			btp_players.push({Player: pupdate});
+		}
+	});
 	return res;
 }
 
@@ -332,6 +386,7 @@ module.exports = {
 	get_info_request,
 	login_request,
 	update_request,
+	update_players_request,
 	// Tests only
 	_req2xml: req2xml,
 };

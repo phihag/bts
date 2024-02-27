@@ -292,6 +292,34 @@ class BTPConn {
 
 		});
 	}
+
+
+	update_players(players) {
+		if (this.readonly) {
+			return;
+		}
+
+		if (!players || players.length < 1) {
+			return;
+		}
+
+		if (! this.key_unicode) {
+			serror.silent('Trying to send match data, but never logged in. Must retry later');
+			return;
+		}
+
+		const req = btp_proto.update_players_request(
+			this.key_unicode, this.password, players);
+		this.send(req, response => {
+			const results = response.Action[0].Result;
+			const rescode = results ? results[0] : 'no-result';
+			if (rescode === 1) {
+
+			} else {
+				serror.silent('Update Player failed with error code ' + rescode);
+			}
+		});
+	}
 }
 
 module.exports = {

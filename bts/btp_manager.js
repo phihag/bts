@@ -58,6 +58,22 @@ function update_score(app, match) {
 	conn.update_score(match);
 }
 
+function update_players(app, tkey, players) {
+	assert(tkey);
+
+	if (!players || players.length < 1) {
+		return;
+	}
+
+	const conn = conns_by_tkey.get(tkey);
+	if (!conn) {
+		// Do not output an error; this happens if BTP support gets disabled
+		return;
+	}
+
+	conn.update_players(players);
+}
+
 function init(app, cb) {
 	app.db.tournaments.find({}, (err, tournaments) => {
 		if (err) return cb(err);
@@ -84,4 +100,5 @@ module.exports = {
 	init,
 	reconfigure,
 	update_score,
+	update_players,
 };

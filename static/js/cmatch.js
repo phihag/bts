@@ -181,7 +181,7 @@ function render_players_el(parentNode, setup, team_id, show_player_status) {
 	let player0_status = "";
 	if (!show_player_status || setup.now_on_court) {
 		player0_status = "now_on_court";
-	} else if (team.players[0].now_playing_on_court || team.players[0].now_tablet_on_court) {
+	} else if (team.players[0].now_playing_on_court) {
 		player0_status = "now_playing";
 	} else if (team.players[0].checked_in) {
 		player0_status = "checked_in";
@@ -216,7 +216,7 @@ function render_players_el(parentNode, setup, team_id, show_player_status) {
 		let player1_status = "";
 		if (!show_player_status || setup.now_on_court) {
 			player1_status = "now_on_court";
-		} else if (team.players[1].now_playing_on_court || team.players[1].now_tablet_on_court) {
+		} else if (team.players[1].now_playing_on_court) {
 			player1_status = "now_playing";
 		} else if (team.players[1].checked_in) {
 			player1_status = "checked_in";
