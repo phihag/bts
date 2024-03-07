@@ -124,6 +124,22 @@ function update_score(c) {
 	}
 }
 
+function update_player_status(c){
+	const cval = c.val;
+	const match_id = cval.match__id;
+
+	// Find the match
+	const m = utils.find(curt.matches, m => m._id === match_id);
+	if (!m) {
+		cerror.silent('Cannot find match to update player status, ID: ' + JSON.stringify(match_id));
+		return;
+	}
+	m.btp_winner = cval.btp_winner;
+	m.setup = cval.setup;
+
+	cmatch.update_players(m);
+}
+
 function update_current_match(c) {
 	change.change_current_match(c.val);
 	_show_render_matches();
@@ -203,6 +219,7 @@ function ui_show() {
 	const match_create_container = uiu.el(main, 'div');
 	cmatch.render_create(match_create_container);
 	uiu.el(main, 'div', 'finished_container');
+
 	_show_render_matches();
 
 	const footer_links = uiu.el(main, 'div', 'footer_links');
@@ -221,6 +238,7 @@ function ui_show() {
 _route_single(/t\/([a-z0-9]+)\/$/, ui_show, change.default_handler(_show_render_matches, {
 	score: update_score,
 	court_current_match: update_current_match,
+	update_player_status: update_player_status,
 }));
 
 function _upload_logo(e) {
@@ -429,9 +447,7 @@ function ui_edit() {
 	}
 
 	warmup_timer_select.onchange = function() {
-		console.log(last_selected_warmup);
 		if (!last_selected_warmup[3]) {
-			console.log("Sichern!");
 			for (const wo of warmup_options) {
 				if (!wo[3])
 				{

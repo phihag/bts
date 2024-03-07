@@ -236,7 +236,7 @@ function handle_match_edit(app, ws, msg) {
 			return;
 		}
 
-		notify_change(app, tournament_key, 'match_edit', {match__id: msg.id, setup});
+		notify_change(app, tournament_key, 'match_edit', {match__id: msg.id, setup, from: "admin.js:239"});
 		if (msg.btp_update) {
 			btp_manager.update_score(app, changed_match);
 		}

@@ -38,9 +38,9 @@
 }
 
 .match_begin_to_play_button {
-	height: 1.2em;
+	height: 1.5em;
     min-height: 1em;
-    width: 1.4em;
+    width: 2.3em;
     margin: 0 0 -0.1em 0.3em;
 	background-image: url(../icons/start.svg);
 }
@@ -96,7 +96,7 @@
 	color: #666;
 }
 .match_team2 {
-	padding-right: 1em;
+	padding-right: 0.3em;
 }
 .match_vs {
 	color: #999;
@@ -105,13 +105,30 @@
 .match_team_won {
 	font-weight: bold;
 }
+.match_score{
+	font-weight: bold;
+	padding-left: 0.2em;
+}
 .match_score_current {
 	font-weight: bold;
+	font-size: 1.5em;
+	padding-left: 0.3em;
 }
+
+.match_timer > div {
+	font-size: 1.2em;
+	font-weight: 900;
+    background-color: #111111;
+    min-width: 2.3em;
+    text-align: right;
+    padding: 0.1em 0.3em 0.1em 0.3em;
+	border-radius: 7px;
+}
+
 .match_shuttle_count {
 	white-space: pre;
 	text-align: right;
-	padding-left: 1em;
+	padding-left: 0.4em;
 }
 .match_shuttle_count span::after {
 	content: '';
