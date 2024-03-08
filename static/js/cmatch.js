@@ -130,8 +130,8 @@ function render_match_row(tr, match, court, style) {
 	}
 	if (style === 'default' || style === 'plain') {
 		const duration_mins = match.duration_ms ? Math.floor(match.duration_ms / 60000) : 0;
-		const shuttle_td = uiu.el(tr, 'td', 'match_duration_mins');
-		uiu.el(shuttle_td, 'span', {
+		const duration_td = uiu.el(tr, 'td', 'match_duration_mins');
+		uiu.el(duration_td, 'span', {
 			'class': (
 				'match_duration_mins_display' +
 				(duration_mins ? ' match_duration_mins_display_active' : '')
@@ -149,7 +149,6 @@ function render_match_row(tr, match, court, style) {
 			'data-match_id': match._id,
 		}, match.shuttle_count || '');
 	}
-	console.log(style);
 }
 
 function update_match_score(m) {
