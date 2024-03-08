@@ -95,6 +95,22 @@
 	background-repeat: no-repeat;
 }
 
+.match_duration_mins {
+	white-space: pre;
+	text-align: right;
+	padding-left: 1em;
+}
+.match_duration_mins span::after {
+	content: '';
+	display: inline-block;
+	width: 1em;
+	height: 1em;
+}
+.match_duration_mins span.match_duration_mins_display_active::after {
+	content: "min"; /* Unicode value for a heart */
+	/* font-size: 2rem; set font size */
+}
+
 .match_no_umpire {
 	font-style: italic;
 }
