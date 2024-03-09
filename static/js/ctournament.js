@@ -173,6 +173,25 @@ function ui_ticker_push() {
 	});
 }
 
+function render_announcement_formular(target) {
+	const announcements = uiu.el(target, 'div', 'announcements_container');
+	const form = uiu.el(announcements, 'form');
+	uiu.el(form, 'textarea', {
+		type: 'textarea',
+		id: 'custom_announcement',
+		name: 'custom_announcement',
+		cols: '50',
+		rows: '4',
+	});
+	const btp_fetch_btn = uiu.el(form, 'button', {
+		'class': 'match_save_button',
+		role: 'submit',
+	}, 'Ansage abspielen');
+	form_utils.onsubmit(form, function (d) {
+		announce([d.custom_announcement]);
+	});
+
+}
 function ui_show() {
 	crouting.set('t/:key/', {key: curt.key});
 	const bup_lang = ((curt.language && curt.language !== 'auto') ? '&lang=' + encodeURIComponent(curt.language) : '');
@@ -218,6 +237,7 @@ function ui_show() {
 	uiu.el(main, 'div', 'unassigned_container');
 	const match_create_container = uiu.el(main, 'div');
 	cmatch.render_create(match_create_container);
+	render_announcement_formular(main);
 	uiu.el(main, 'div', 'finished_container');
 
 	_show_render_matches();
