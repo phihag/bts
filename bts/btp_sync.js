@@ -632,16 +632,21 @@ function get_last_looser_on_court(app, tkey, court_id, umpire_name) {
 		const match_querry = {	'tournament_key': tkey, 
 								'setup.court_id': court_id,
 								'end_ts':{$exists: true}};
-		
 		let tabletoperators = undefined;
-
 		app.db.matches.find(match_querry).sort({'end_ts': -1}).limit(1).exec((err, last_match_on_court) => {
 			if (err) {
 				return reject(err);
 			}
-			
 			if (last_match_on_court.length === 1 && !umpire_name) {
-				const team = last_match_on_court[0].setup.teams[last_match_on_court[0].btp_winner % 2];
+				const match = last_match_on_court[0];
+				const round = match.setup.match_name;
+				var team = null;
+				if (round == 'VF' || round == 'QF') {
+					team = match.setup.teams[match.btp_winner-1];
+				} else {
+					const index = match.btp_winner % 2;
+					team = match.setup.teams[index];
+				}
 				if(team && typeof team.players !== 'undefined') {
 					tabletoperators = [];
 					
@@ -650,7 +655,6 @@ function get_last_looser_on_court(app, tkey, court_id, umpire_name) {
 					});
 				}
 			}
-
 			resolve(tabletoperators);
 		});
 	});
