@@ -54,6 +54,8 @@ function createTabletOperator(matchSetup) {
         tabletOperator = tabletOperator + matchSetup.teams[1].players[0].state;
     } else if (matchSetup.tabletoperators) {
         tabletOperator = tabletOperator + createSingleTeam(matchSetup.tabletoperators);
+    } else if (matchSetup.umpire_name) {
+        tabletOperator = tabletOperator + matchSetup.umpire_name;
     } else {
         tabletOperator = tabletOperator + "Verlierer des vorhergehenden Spiels";
     }
