@@ -386,7 +386,8 @@ function remove_player_on_court (app, tkey, cur_match_id, callback) {
 
 				let change = false;
 				
-				if (remove_btp_ids.includes(match.setup.teams[0].players[0].btp_id) &&
+				if (match.setup.teams[0].players.length > 0 &&
+					remove_btp_ids.includes(match.setup.teams[0].players[0].btp_id) &&
 					match.setup.teams[0].players[0].now_playing_on_court) {
 						match.setup.teams[0].players[0].now_playing_on_court = false;
 						change = true;
@@ -399,7 +400,8 @@ function remove_player_on_court (app, tkey, cur_match_id, callback) {
 						change = true;
 				}
 
-				if (remove_btp_ids.includes(match.setup.teams[1].players[0].btp_id) &&
+				if (match.setup.teams[1].players.length > 0 &&
+					remove_btp_ids.includes(match.setup.teams[1].players[0].btp_id) &&
 					match.setup.teams[1].players[0].now_playing_on_court) {
 						match.setup.teams[1].players[0].now_playing_on_court = false;
 						change = true;
@@ -463,7 +465,8 @@ function remove_tablet_on_court (app, tkey, cur_match_id, callback) {
 
 				let change = false;
 				
-				if (remove_btp_ids.includes(match.setup.teams[0].players[0].btp_id) && 
+				if (match.setup.teams[0].players.length > 0 &&
+					remove_btp_ids.includes(match.setup.teams[0].players[0].btp_id) && 
 					(	match.setup.teams[0].players[0].now_tablet_on_court == true ||
 						match.setup.teams[0].players[0].checked_in == false)) {
 					match.setup.teams[0].players[0].now_tablet_on_court = false;
@@ -480,7 +483,8 @@ function remove_tablet_on_court (app, tkey, cur_match_id, callback) {
 					change = true;
 				}
 
-				if (remove_btp_ids.includes(match.setup.teams[1].players[0].btp_id) && 
+				if (match.setup.teams[1].players.length > 0 &&
+					remove_btp_ids.includes(match.setup.teams[1].players[0].btp_id) && 
 					(	match.setup.teams[1].players[0].now_tablet_on_court == true ||
 						match.setup.teams[1].players[0].checked_in == false)) {
 					match.setup.teams[1].players[0].now_tablet_on_court = false;

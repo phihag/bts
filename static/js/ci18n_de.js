@@ -43,6 +43,8 @@ var ci18n_de = {
 'Create tournament': 'Turnier erstellen',
 'create:id:label': 'Turnier-ID (Kleinbuchstaben, keine Leerzeichen):',
 'experimental': '(experimentell)',
+'Winner': 'Gewinner',
+'Loser': 'Verlierer',
 
 'tournament:edit:id': 'Turnier-ID:',
 'tournament:edit:language': 'Sprache:',

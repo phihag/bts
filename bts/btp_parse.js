@@ -33,7 +33,7 @@ function filter_matches(all_btp_matches, is_league) {
 		});
 	}
 
-	return all_btp_matches.filter(bm => (bm.IsMatch && bm.IsPlayable && bm.MatchNr && bm.MatchNr[0] && bm.From1));
+	return all_btp_matches.filter(bm => (bm.IsPlayable && bm.MatchNr && bm.MatchNr[0] && bm.From1));
 }
 
 // bts_players: Array of array of players participating.
@@ -166,6 +166,12 @@ function get_btp_state(response) {
 	} else {
 		all_btp_matches = btp_t.Matches ? btp_t.Matches[0].Match : [];
 	}
+
+	// Found Links
+	const all_btp_links = all_btp_matches.filter(m => {
+		return (m.Link != undefined); 
+	});
+
 	const matches_by_pid = utils.make_index(all_btp_matches, bm => _calc_match_id(bm, is_league));
 	const all_btp_entries = btp_t.Entries ? btp_t.Entries[0].Entry : [];
 	const all_btp_events = btp_t.Events ? btp_t.Events[0].Event : [];
@@ -202,6 +208,7 @@ function get_btp_state(response) {
 	}
 
 	const matches = filter_matches(all_btp_matches, is_league);
+	const links = all_btp_links;
 	const players = utils.make_index(all_btp_players, p => p.ID[0]);
 	const officials = utils.make_index(all_btp_officials, o => o.ID[0]);
 	const courts = utils.make_index(all_btp_courts, c => c.ID[0]);
@@ -215,6 +222,7 @@ function get_btp_state(response) {
 		draws,
 		events,
 		matches,
+		links,
 		officials,
 		is_league,
 		match_types: new Map(Object.entries(MATCH_TYPES)),

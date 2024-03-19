@@ -18,126 +18,173 @@ function date_str(dt) {
 	return utils.pad(dt.year, 2, '0') + '-' + utils.pad(dt.month, 2, '0') + '-' + utils.pad(dt.day, 2, '0');
 }
 
-function craft_match(app, tkey, btp_id, court_map, event, draw, officials, bm, match_ids_on_court, match_types, is_league) {
-	if (!bm.IsMatch) {
-		return;
-	}
+async function craft_match(app, tkey, btp_id, court_map, event, draw, btp_links, officials, bm, match_ids_on_court, match_types, is_league) {
+	return new Promise((resolve, reject) => {
+	
+		const gtid = event.GameTypeID[0];
+		assert((gtid === 1) || (gtid === 2));
 
-	if (!bm.bts_complete) {
-		// TODO: register them as incomplete, but continue instead of returning
-		return;
-	}
+		const scheduled_time_str = (bm.PlannedTime ? time_str(bm.PlannedTime[0]) : undefined);
+		const scheduled_date = (bm.PlannedTime ? date_str(bm.PlannedTime[0]) : undefined);
+		const match_name = (bm.RoundName && bm.RoundName[0] ? bm.RoundName[0] : undefined);
+		const event_name = (event.Name[0] === draw.Name[0]) ? draw.Name[0] : event.Name[0] + ' - ' + draw.Name[0];
+		const teams = _craft_teams(bm);
 
-	const gtid = event.GameTypeID[0];
-	assert((gtid === 1) || (gtid === 2));
+		const btp_player_ids = [];
 
-	const scheduled_time_str = (bm.PlannedTime ? time_str(bm.PlannedTime[0]) : undefined);
-	const scheduled_date = (bm.PlannedTime ? date_str(bm.PlannedTime[0]) : undefined);
-	const match_name = bm.RoundName[0];
-	const event_name = (event.Name[0] === draw.Name[0]) ? draw.Name[0] : event.Name[0] + ' - ' + draw.Name[0];
-	const teams = _craft_teams(bm);
-
-	const btp_player_ids = [];
-	for (const team of bm.bts_players) {
-		for (const p of team) {
-			btp_player_ids.push(p.ID[0]);
-		}
-	}
-
-	const setup = {
-		incomplete: !bm.bts_complete,
-		is_doubles: (gtid === 2),
-		match_num: bm.MatchNr[0],
-		counting: '3x21',
-		team_competition: false,
-		match_name,
-		event_name,
-		teams,
-		warmup: 'none',
-	};
-
-	app.db.tournaments.findOne({key: tkey}, (err, tournament) => {
-		if (err) {
-			return callback(err);
-		}
-		if (tournament.warmup) {
-			setup.warmup = tournament.warmup;
-		}
-		if (tournament.warmup_ready) {
-			setup.warmup_ready = tournament.warmup_ready;
-		}
-		if (tournament.warmup_start) {
-			setup.warmup_start = tournament.warmup_start;
-		}
-		if (tournament.btp_settings.check_in_per_match && teams.length > 1) {
-			teams[0].players[0].checked_in = (bm.Status & 0b0001) > 0;
-			if(teams[0].players.length > 1) {
-				teams[0].players[1].checked_in = (bm.Status & 0b0010) > 0;
-			}
-			teams[1].players[0].checked_in = (bm.Status & 0b0100) > 0;
-			if(teams[1].players.length > 1) {
-				teams[1].players[1].checked_in = (bm.Status & 0b1000) > 0;
+		if(bm.bts_players && bm.bts_players.length > 0) {
+			for (const team of bm.bts_players) {
+				if (team && team.length > 0){
+					for (const p of team) {
+						btp_player_ids.push(p.ID[0]);
+					}
+				}
 			}
 		}
 
-	});
+		const links = {};
+		try{
+			links.from1 = bm.From1[0];
+			links.from2 = bm.From2[0];
 
-	if (scheduled_time_str) {
-		setup.scheduled_time_str = scheduled_time_str;
-	}
-	if (scheduled_date) {
-		setup.scheduled_date = scheduled_date;
-	}
-	if (bm.CourtID) {
-		const btp_court_id = bm.CourtID[0];
-		const court_id = court_map.get(btp_court_id);
-		assert(court_id);
-		setup.court_id = court_id;
-		setup.now_on_court = match_ids_on_court.has(bm.ID[0]);
-	}
-	if (bm.Official1ID) {
-		const o = officials.get(bm.Official1ID[0]);
-		assert(o);
-		setup.umpire_name = o.FirstName + ' ' + o.Name;
-	}
-	if (bm.Official2ID) {
-		const o = officials.get(bm.Official2ID[0]);
-		assert(o);
-		setup.service_judge_name = o.FirstName + ' ' + o.Name;
-	}
+			if(bm.WinnerTo) {
+				links.winner_to = bm.WinnerTo[0];
+			}
+			if(bm.LoserTo) {
+				links.loser_to = bm.LoserTo[0];
+			}
+			if(bm.Link) {
+				links.from_link = bm.Link;
+			}
+		} catch (err) {
+			console.log(err);
+		}
 
-	const btp_match_ids = [{
-		id: bm.ID[0],
-		nr: bm.MatchNr[0],
-		draw: bm.DrawID[0],
-		planning: bm.PlanningID[0],
-	}];
+		if(teams[0].players.length < 1) {
+			const link1 = btp_links.find(l => {
+				return (l.DrawID[0] === bm.DrawID[0] && l.PlanningID[0] === links.from1);
+			});
 
-	const match = {
-		tournament_key: tkey,
-		btp_id,
-		btp_match_ids,
-		btp_player_ids,
-		setup,
-	};
-	match.team1_won = undefined;
-	match.btp_winner = undefined;
-	if (bm.Winner) {
-		match.btp_winner = bm.Winner[0];
-		match.team1_won = (match.btp_winner === 1);
-	}
-	if (bm.Sets) {
-		match.network_score = _parse_score(bm);
-	}
-	if (bm.Shuttles) {
-		match.shuttle_count = bm.Shuttles[0];
-	}
-	if (bm.DisplayOrder) {
-		match.match_order = bm.DisplayOrder[0];
-	}
-	match._id = 'btp_' + btp_id;
+			if(link1){
+				links.from1_link = link1.Link[0];
+			}
+		}
 
-	return match;
+		if(teams[1].players.length < 1) {
+			const link2 = btp_links.find(l => {
+				return (l.DrawID[0] === bm.DrawID[0] && l.PlanningID[0] === links.from2);
+			});
+
+			if(link2){
+				links.from2_link = link2.Link[0];
+			}
+		}
+
+		const setup = {
+			is_match: (bm.IsMatch && bm.IsMatch[0] ? true : false),
+			incomplete: !bm.bts_complete,
+			is_doubles: (gtid === 2),
+			match_num: bm.MatchNr[0],
+			counting: '3x21',
+			team_competition: false,
+			match_name,
+			event_name,
+			teams,
+			warmup: 'none',
+			links: links
+		};
+
+		app.db.tournaments.findOne({key: tkey}, (err, tournament) => {
+			if(err) {
+				console.log("reject");
+				reject(err);
+			}
+			
+			if (tournament.warmup) {
+				setup.warmup = tournament.warmup;
+			}
+
+			if (tournament.warmup) {
+				setup.warmup = tournament.warmup;
+			}
+			if (tournament.warmup_ready) {
+				setup.warmup_ready = tournament.warmup_ready;
+			}
+			if (tournament.warmup_start) {
+				setup.warmup_start = tournament.warmup_start;
+			}
+			if (tournament.btp_settings.check_in_per_match && teams.length > 1 && teams[0].players.length > 0) {
+				teams[0].players[0].checked_in = (bm.Status & 0b0001) > 0;
+				if(teams[0].players.length > 1) {
+					teams[0].players[1].checked_in = (bm.Status & 0b0010) > 0;
+				}
+
+				if (teams[1].players.length > 0) {
+					teams[1].players[0].checked_in = (bm.Status & 0b0100) > 0;
+					if(teams[1].players.length > 1) {
+						teams[1].players[1].checked_in = (bm.Status & 0b1000) > 0;
+					}
+				}
+			}
+		
+			if (scheduled_time_str) {
+				setup.scheduled_time_str = scheduled_time_str;
+			}
+			if (scheduled_date) {
+				setup.scheduled_date = scheduled_date;
+			}
+			if (bm.CourtID) {
+				const btp_court_id = bm.CourtID[0];
+				const court_id = court_map.get(btp_court_id);
+				assert(court_id);
+				setup.court_id = court_id;
+				setup.now_on_court = match_ids_on_court.has(bm.ID[0]);
+			}
+			if (bm.Official1ID) {
+				const o = officials.get(bm.Official1ID[0]);
+				assert(o);
+				setup.umpire_name = o.FirstName + ' ' + o.Name;
+			}
+			if (bm.Official2ID) {
+				const o = officials.get(bm.Official2ID[0]);
+				assert(o);
+				setup.service_judge_name = o.FirstName + ' ' + o.Name;
+			}
+		
+			const btp_match_ids = [{
+				id: bm.ID[0],
+				nr: bm.MatchNr[0],
+				draw: bm.DrawID[0],
+				planning: bm.PlanningID[0],
+			}];
+		
+			const match = {
+				tournament_key: tkey,
+				btp_id,
+				btp_match_ids,
+				btp_player_ids,
+				setup,
+			};
+			match.team1_won = undefined;
+			match.btp_winner = undefined;
+			if (bm.Winner) {
+				match.btp_winner = bm.Winner[0];
+				match.team1_won = (match.btp_winner === 1);
+			}
+			if (bm.Sets) {
+				match.network_score = _parse_score(bm);
+			}
+			if (bm.Shuttles) {
+				match.shuttle_count = bm.Shuttles[0];
+			}
+			if (bm.DisplayOrder) {
+				match.match_order = bm.DisplayOrder[0];
+			}
+			match._id = 'btp_' + btp_id;
+		
+			resolve(match);
+		});
+	});	
 }
 
 function _craft_team(par) {
@@ -252,7 +299,7 @@ function _parse_score(bm) {
 	return bm.Sets[0].Set.map(s => [s.T1[0], s.T2[0]]);
 }
 
-function integrate_matches(app, tkey, btp_state, court_map, callback) {
+async function integrate_matches(app, tkey, btp_state, court_map, callback) {
 	const admin = require('./admin'); // avoid dependency cycle
 	const {draws, events, officials} = btp_state;
 
@@ -274,118 +321,134 @@ function integrate_matches(app, tkey, btp_state, court_map, callback) {
 		};
 		// TODO get all matches upfront here
 		app.db.matches.findOne(query, (err, cur_match) => {
-			if (err) return cb(err);
-
+			if (err) {
+				console.log(err);
+				cb(null);
+				return;
+			};
 			if (cur_match && cur_match.btp_needsync) {
-				cb();
+				cb(null);
 				return;
 			}
+			
+			craft_match(app, tkey, btp_id, court_map, event, draw, btp_state.links, officials, bm, match_ids_on_court).then(match => {
+				
+				if (cur_match) {
+					if(cur_match.setup.called_timestamp) {
+						// The called_timestamp is not from btp so we have to coppy it to the match generated by btp.
+						match.setup.called_timestamp = cur_match.setup.called_timestamp;
+					}
+   
+					if (cur_match.setup.tabletoperators) {
+						// tabletoperators is not from btp so we have to coppy it to the match generated by btp.
+						match.setup.tabletoperators = cur_match.setup.tabletoperators;
+					}
+   
+				   	for(let team_index = 0; team_index < cur_match.setup.teams.length; team_index++) {
+					   	for (let player_index = 0; player_index < cur_match.setup.teams[team_index].players.length; player_index++){
+					   
+						   	if (cur_match.setup.teams[team_index].players[player_index].now_playing_on_court != undefined) {
+							   	match.setup.teams[team_index].players[player_index].now_playing_on_court = cur_match.setup.teams[team_index].players[player_index].now_playing_on_court;
+						   	}
+   
+						   	if (cur_match.setup.teams[team_index].players[player_index].now_tablet_on_court != undefined) {
+							   	match.setup.teams[team_index].players[player_index].now_tablet_on_court = cur_match.setup.teams[team_index].players[player_index].now_tablet_on_court;
+						   	}
+   
+						   	if(cur_match.setup.teams[team_index].players[player_index].last_time_on_court_ts || match.setup.teams[team_index].players[player_index].last_time_on_court_ts) {
+							   	if(!cur_match.setup.teams[team_index].players[player_index].last_time_on_court_ts) {
+								   	cur_match.setup.teams[team_index].players[player_index].last_time_on_court_ts = 0;
+							   	}
+   
+							   	if(!match.setup.teams[team_index].players[player_index].last_time_on_court_ts) {
+								   	match.setup.teams[team_index].players[player_index].last_time_on_court_ts = 0;
+							   	}
+   
+							   	let max_ts = Math.max(	cur_match.setup.teams[team_index].players[player_index].last_time_on_court_ts, 
+													   	match.setup.teams[team_index].players[player_index].last_time_on_court_ts);
+   
+							   	cur_match.setup.teams[team_index].players[player_index].last_time_on_court_ts = max_ts;
+							   	match.setup.teams[team_index].players[player_index].last_time_on_court_ts = max_ts;
+						   	}
+					   	}
+				   	}
 
-			let match = craft_match(app, tkey, btp_id, court_map, event, draw, officials, bm, match_ids_on_court);
+					if(match.setup.now_on_court === false) {
+						if(cur_match.setup.warmup) {
+							match.setup.warmup = cur_match.setup.warmup;
+						}
 
-			if (!match) {
-				cb();
-				return;
-			}
-
-			if (cur_match) {
-				if(cur_match.setup.called_timestamp) {
-					// The called_timestamp is not from btp so we have to coppy it to the match generated by btp.
-					match.setup.called_timestamp = cur_match.setup.called_timestamp;
-				}
-
-				if (cur_match.setup.tabletoperators) {
-					// tabletoperators is not from btp so we have to coppy it to the match generated by btp.
-					match.setup.tabletoperators = cur_match.setup.tabletoperators;
-				}
-
-				for(let team_index = 0; team_index < cur_match.setup.teams.length; team_index++) {
-					for (let player_index = 0; player_index < cur_match.setup.teams[team_index].players.length; player_index++){
+				   		if (cur_match.setup.warmup_ready) {
+						   	match.setup.warmup_ready = cur_match.setup.warmup_ready;
+				   		}
 					
-						if (cur_match.setup.teams[team_index].players[player_index].now_playing_on_court != undefined) {
-							match.setup.teams[team_index].players[player_index].now_playing_on_court = cur_match.setup.teams[team_index].players[player_index].now_playing_on_court;
-						}
-
-						if (cur_match.setup.teams[team_index].players[player_index].now_tablet_on_court != undefined) {
-							match.setup.teams[team_index].players[player_index].now_tablet_on_court = cur_match.setup.teams[team_index].players[player_index].now_tablet_on_court;
-						}
-
-						if(cur_match.setup.teams[team_index].players[player_index].last_time_on_court_ts || match.setup.teams[team_index].players[player_index].last_time_on_court_ts) {
-							if(!cur_match.setup.teams[team_index].players[player_index].last_time_on_court_ts) {
-								cur_match.setup.teams[team_index].players[player_index].last_time_on_court_ts = 0;
-							}
-
-							if(!match.setup.teams[team_index].players[player_index].last_time_on_court_ts) {
-								match.setup.teams[team_index].players[player_index].last_time_on_court_ts = 0;
-							}
-
-							let max_ts = Math.max(	cur_match.setup.teams[team_index].players[player_index].last_time_on_court_ts, 
-													match.setup.teams[team_index].players[player_index].last_time_on_court_ts);
-
-							cur_match.setup.teams[team_index].players[player_index].last_time_on_court_ts = max_ts;
-							match.setup.teams[team_index].players[player_index].last_time_on_court_ts = max_ts;
-						}
+				   		if(cur_match.setup.warmup_start) {
+						   	match.setup.warmup_start = cur_match.setup.warmup_start;
+				   		}
 					}
-				}
+   
+				   	if (utils.plucked_deep_equal(match, cur_match, Object.keys(match), true)) {
+					   	// No update required
+						cb(null);
+					   	return;
+				   	}
 
-				if (cur_match.setup.warmup) {
-					match.setup.warmup = cur_match.setup.warmup;
+   
+				   	// equals checked_in changed and check if it was the only change
+				   	let only_change_check_in = false;
+   
+				   	for(let team_index = 0; team_index < cur_match.setup.teams.length; team_index++) {
+					   	for (let player_index = 0; player_index < cur_match.setup.teams[team_index].players.length; player_index++){
+						   	cur_match.setup.teams[team_index].players[player_index].checked_in = match.setup.teams[team_index].players[player_index].checked_in;
+					   	}
+				   	}
+   
+				   	if (utils.plucked_deep_equal(match, cur_match, Object.keys(match), true)) {
+					   	only_change_check_in = true;
+				   	}
+   
+				   	app.db.matches.update({_id: cur_match._id}, {$set: match}, {}, (err) => {
+					   	if (err) {
+							return;
+						};
+   
+					   	if(!only_change_check_in) {
+						   	admin.notify_change(app, match.tournament_key, 'match_edit', {	match__id: match._id,
+																						   	btp_winner: match.btp_winner, 
+																						   	setup: match.setup,
+																						   	from: "btp_sync.js:423"});
+					   	} else {
+						   	admin.notify_change(app, match.tournament_key, 'update_player_status', {match__id: match._id,
+																								   	btp_winner: match.btp_winner, 
+																								   	setup: match.setup,
+																								   	from: "btp_sync.js:429"});
+					   	}
+				   	});
+					cb(null);
+				   	return;
 				}
-
-				if (cur_match.setup.warmup_ready) {
-					match.setup.warmup_ready = cur_match.setup.warmup_ready;
-				}
-
-				if(cur_match.setup.warmup_start) {
-					match.setup.warmup_start = cur_match.setup.warmup_start;
-				}
-
-				if (utils.plucked_deep_equal(match, cur_match, Object.keys(match), true)) {
-					// No update required
-					cb();
+				app.db.matches.insert(match, function(err) {
+					if (err) {
+						cb(null);
+						return;
+					}
+	
+					admin.notify_change(app, tkey, 'match_add', {match});
+					cb(null)
 					return;
-				}
-
-				// equals checked_in changed and check if it was the only change
-				let only_change_check_in = false;
-
-				for(let team_index = 0; team_index < cur_match.setup.teams.length; team_index++) {
-					for (let player_index = 0; player_index < cur_match.setup.teams[team_index].players.length; player_index++){
-						cur_match.setup.teams[team_index].players[player_index].checked_in = match.setup.teams[team_index].players[player_index].checked_in;
-					}
-				}
-
-				if (utils.plucked_deep_equal(match, cur_match, Object.keys(match), true)) {
-					only_change_check_in = true;
-				}
-
-				app.db.matches.update({_id: cur_match._id}, {$set: match}, {}, (err) => {
-					if (err) return cb(err);
-
-					if(!only_change_check_in) {
-						admin.notify_change(app, match.tournament_key, 'match_edit', {	match__id: match._id,
-																						btp_winner: match.btp_winner, 
-																						setup: match.setup,
-																						from: "btp_sync.js:423"});
-					} else {
-						admin.notify_change(app, match.tournament_key, 'update_player_status', {match__id: match._id,
-																								btp_winner: match.btp_winner, 
-																								setup: match.setup,
-																								from: "btp_sync.js:429"});
-					}
-					cb();
 				});
+			}, error =>
+			{
+				cb(null);
 				return;
-			}
-
-			app.db.matches.insert(match, function(err) {
-				if (err) return cb(err);
-
-				admin.notify_change(app, tkey, 'match_add', {match});
-				cb();
 			});
 		});
-	}, callback);
+	}, (error) => {
+		if (error){
+			console.log(error);
+		}
+		callback(null);
+	});		
 }
 
 // Returns a map btp_court_id => court._id
@@ -538,7 +601,7 @@ async function integrate_now_on_court(app, tkey, callback) {
 	const admin = require('./admin'); // avoid dependency cycle
 	const stournament = require('./stournament'); // avoid dependency cycle
 	const btp_manager = require('./btp_manager');
-
+	
 	// TODO after switching to async, this should happen during court&match construction
 	app.db.tournaments.findOne({key: tkey}, async (err, tournament) => {
 		if (err) {
@@ -686,7 +749,7 @@ function set_player_on_tablet (app, tkey, match_on_court_setup, callback) {
 
 			let change = false;
 			
-			if (tablet_operatorns_btp_ids.includes(match.setup.teams[0].players[0].btp_id)) {
+			if (match.setup.teams[0].players.length > 0 && tablet_operatorns_btp_ids.includes(match.setup.teams[0].players[0].btp_id)) {
 				match.setup.teams[0].players[0].now_tablet_on_court = match_on_court_setup.court_id;
 				match.setup.teams[0].players[0].checked_in = false;
 				change = true;
@@ -698,7 +761,7 @@ function set_player_on_tablet (app, tkey, match_on_court_setup, callback) {
 				change = true;
 			}
 
-			if (tablet_operatorns_btp_ids.includes(match.setup.teams[1].players[0].btp_id)) {
+			if (match.setup.teams[1].players.length > 0 && tablet_operatorns_btp_ids.includes(match.setup.teams[1].players[0].btp_id)) {
 				match.setup.teams[1].players[0].now_tablet_on_court = match_on_court_setup.court_id;
 				match.setup.teams[1].players[0].checked_in = false;
 				change = true;
@@ -753,7 +816,7 @@ function set_player_on_court (app, tkey, match_on_court_setup, callback) {
 
 			let change = false;
 			
-			if (on_court_btp_ids.includes(match.setup.teams[0].players[0].btp_id)) {
+			if (match.setup.teams[0].players.length > 0 && on_court_btp_ids.includes(match.setup.teams[0].players[0].btp_id)) {
 				match.setup.teams[0].players[0].now_playing_on_court = match_on_court_setup.court_id;
 				change = true;
 			}
@@ -763,7 +826,7 @@ function set_player_on_court (app, tkey, match_on_court_setup, callback) {
 				change = true;
 			}
 
-			if (on_court_btp_ids.includes(match.setup.teams[1].players[0].btp_id)) {
+			if (match.setup.teams[1].players.length > 0 && on_court_btp_ids.includes(match.setup.teams[1].players[0].btp_id)) {
 				match.setup.teams[1].players[0].now_playing_on_court = match_on_court_setup.court_id;
 				change = true;
 			}

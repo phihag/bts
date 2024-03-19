@@ -43,6 +43,8 @@ var ci18n_en = {
 'Create tournament': 'Create tournament',
 'create:id:label': 'tournament ID (all lowercase, no spaces):',
 'experimental': '(experimental)',
+'Winner': 'Winner',
+'Loser': 'Loser',
 
 'tournament:edit:id': 'Tournament id:',
 'tournament:edit:language': 'Language:',

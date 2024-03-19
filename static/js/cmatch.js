@@ -42,6 +42,10 @@ function render_match_table_header(table, include_courts) {
 }
 
 function render_match_row(tr, match, court, style, show_player_status) {
+	if(!match.setup.is_match) {
+		return;
+	}
+	
 	if (!court && match.setup.court_id) {
 		court = curt.courts_by_id[match.setup.court_id];
 	}
@@ -93,10 +97,10 @@ function render_match_row(tr, match, court, style, show_player_status) {
 	});
 	
 	create_match_button(players0, 'vlink match_second_call_button', 'match:secondcallteamone', on_second_call_team_one_button_click, match._id);
-	render_players_el(players0, setup, 0, match._id ,show_player_status);
+	render_players_el(players0, setup, 0, match ,show_player_status);
 	uiu.el(tr, 'td', 'match_vs', 'v');
 	const players1 = uiu.el(tr, 'td', ((match.team1_won === false) ? 'match_team_won ' : '') + 'match_team2');
-	render_players_el(players1, setup, 1, match._id, show_player_status);
+	render_players_el(players1, setup, 1, match, show_player_status);
 	create_match_button(players1, 'vlink match_second_call_button', 'match:secondcallteamtwo', on_second_call_team_two_button_click, match._id);
 	if (style === 'default' || style === 'plain') {
 		const to_td = uiu.el(tr, 'td');
@@ -234,18 +238,70 @@ function update_match_score(m) {
 	});
 }
 
-function render_players_el(parentNode, setup, team_id, match_id, show_player_status) {
+function render_players_el(parentNode, setup, team_id, match, show_player_status) {
 	const team = setup.teams[team_id];
-	if (setup.incomplete) {
-		uiu.el(parentNode, 'span', {}, ci18n('match:incomplete'));
-	}
 
 	const nat0 = team.players[0] && team.players[0].nationality;
 	if (curt.is_nation_competition && nat0) {
 		cflags.render_flag_el(parentNode, nat0);
 	}
 
-	render_player_el(parentNode, team.players[0], match_id, setup.now_on_court, show_player_status);
+	if (team.players.length > 0) {
+		render_player_el(parentNode, team.players[0], match._id, setup.now_on_court, show_player_status);
+	} else {
+
+		let dependency = '???';
+		if(team_id == 0 && match.setup.links.from1_link) {
+			dependency = match.setup.links.from1_link;
+		}
+		else if(team_id == 1 && match.setup.links.from2_link) {
+			dependency = match.setup.links.from2_link;
+		}
+		else {
+			let match_before = curt.matches.filter(m => {
+
+				return (m.setup.event_name === match.setup.event_name &&
+						(	
+							m.btp_match_ids[0].planning == match.setup.links.from1 ||
+							m.btp_match_ids[0].planning == match.setup.links.from2
+						));
+			});
+
+			let resolved_match = [];
+
+			match_before.forEach(t => {
+				if(t.setup.is_match){
+					resolved_match.push(t);
+				}
+				else {
+					const result = curt.matches.find(m => {
+						return (m.setup.event_name === t.setup.event_name &&
+								m.setup.is_match &&
+								(	
+									m.setup.links.from1 == t.setup.links.from1 ||
+									m.setup.links.from2 == t.setup.links.from2 
+								));
+					});
+					resolved_match.push(result);
+				}
+			});
+
+			const index = Math.min(resolved_match.length - 1, team_id);
+			
+			if(resolved_match.length > 0) {
+				
+				if(resolved_match[index].setup.links.winner_to && resolved_match[index].setup.links.winner_to == match.btp_match_ids[0].planning) {
+					dependency = ci18n('Winner') + " #" + resolved_match[index].setup.match_num + " - " + resolved_match[index].setup.scheduled_date + " " + resolved_match[index].setup.scheduled_time_str;
+				}
+				else {
+					dependency = ci18n('Loser') + " #" + resolved_match[index].setup.match_num + " - " + resolved_match[index].setup.scheduled_date + " " + resolved_match[index].setup.scheduled_time_str;
+				}
+			}
+		}
+		
+		uiu.el(parentNode, 'span', {}, dependency);
+
+	}
 
 	if (team.players.length > 1) {
 		uiu.el(parentNode, 'span', {}, ' / ');
@@ -258,7 +314,7 @@ function render_players_el(parentNode, setup, team_id, match_id, show_player_sta
 			cflags.render_flag_el(p1_el, nat1);
 		}
 
-		render_player_el(parentNode, team.players[1], match_id, setup.now_on_court, show_player_status);	
+		render_player_el(parentNode, team.players[1], match._id, setup.now_on_court, show_player_status);	
 	}
 }
 
