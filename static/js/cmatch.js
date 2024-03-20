@@ -224,10 +224,10 @@ function update_match_score(m) {
 		});
 	} else {
 		uiu.qsEach('.match_second_call_button[data-match_id=' + JSON.stringify(m._id) + ']', (button_el) => {
-			button_el.style.visibility = 'hidden';
+			button_el.style.visibility = 'visible';
 		});
 		uiu.qsEach('.match_begin_to_play_button[data-match_id=' + JSON.stringify(m._id) + ']', (button_el) => {
-			button_el.style.visibility = 'hidden';
+			button_el.style.visibility = 'visible';
 		});
 	}
 	
