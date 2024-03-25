@@ -95,13 +95,25 @@ function render_match_row(tr, match, court, style, show_player_status) {
 		'class': ((match.team1_won === true) ? 'match_team_won' : ''),
 		style: 'text-align: right;',
 	});
+	if (!court) {
+		if (setup.teams[0].players.length > 0) {
+			create_match_button(players0, 'vlink tabletoperator_add_button', 'tabletoperator:add', on_add_to_tabletoperators_team_one_button_click, match._id);
+		}
+	} else {
+		create_match_button(players0, 'vlink match_second_call_button', 'match:secondcallteamone', on_second_call_team_one_button_click, match._id);
+	}
 	
-	create_match_button(players0, 'vlink match_second_call_button', 'match:secondcallteamone', on_second_call_team_one_button_click, match._id);
-	render_players_el(players0, setup, 0, match ,show_player_status);
+	render_players_el(players0, setup, 0, match, show_player_status);
 	uiu.el(tr, 'td', 'match_vs', 'v');
 	const players1 = uiu.el(tr, 'td', ((match.team1_won === false) ? 'match_team_won ' : '') + 'match_team2');
 	render_players_el(players1, setup, 1, match, show_player_status);
-	create_match_button(players1, 'vlink match_second_call_button', 'match:secondcallteamtwo', on_second_call_team_two_button_click, match._id);
+	if (!court) {
+		if (setup.teams[1].players.length > 0) { 
+			create_match_button(players1, 'vlink tabletoperator_add_button', 'tabletoperator:add', on_add_to_tabletoperators_team_two_button_click, match._id);
+		}
+	} else { 
+		create_match_button(players1, 'vlink match_second_call_button', 'match:secondcallteamtwo', on_second_call_team_two_button_click, match._id);
+	}
 	if (style === 'default' || style === 'plain') {
 		const to_td = uiu.el(tr, 'td');
 		if (setup.umpire_name) {
@@ -501,6 +513,30 @@ function on_second_call_team_one_button_click(e) {
 	const match = fetchMatchFromEvent(e);
 	if (match != null) {
 		announceSecondCallTeamOne(match.setup);
+	}
+}
+
+function on_add_to_tabletoperators_team_one_button_click(e) {
+	const match = fetchMatchFromEvent(e);
+	add_to_tabletoperator(match, 0)
+}
+function on_add_to_tabletoperators_team_two_button_click(e) {
+	const match = fetchMatchFromEvent(e);
+	add_to_tabletoperator(match,1)
+}
+
+function add_to_tabletoperator(match,team_num) {
+	if (match != null) {
+		send({
+			type: 'tabletoperator_add',
+			tournament_key: curt.key,
+			team_id: team_num,
+			match: match,
+		}, err => {
+			if (err) {
+				return cerror.net(err);
+			}
+		});
 	}
 }
 function on_second_call_team_two_button_click(e) {

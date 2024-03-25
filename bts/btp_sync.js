@@ -629,8 +629,11 @@ async function integrate_now_on_court(app, tkey, callback) {
 				if(!setup.called_timestamp) {
 					setup.called_timestamp = called_timestamp;
 					try{
-						const tabletoperators = await get_last_looser_on_court(app, tkey, court_id, setup.umpire_name);
-						setup.tabletoperators = tabletoperators;
+						const promise = serializedAsyncTask(admin, app, tkey, court_id, setup.umpire_name);
+						promise.then((value) => {
+							setup.tabletoperators = value;
+						});
+						
 					} catch (err) {
 						callback(err)
 					}
@@ -690,35 +693,35 @@ async function integrate_now_on_court(app, tkey, callback) {
 	// TODO clear courts (better in async)
 }
 
-function get_last_looser_on_court(app, tkey, court_id, umpire_name) {
+function serialized(fn) {
+	let queue = Promise.resolve();
+	return (...args) => {
+		const res = queue.then(() => fn(...args));
+		queue = res.catch(() => { });
+		return res;
+	}
+}
+const serializedAsyncTask = serialized(get_last_looser_on_court);
+function get_last_looser_on_court(admin, app, tkey, court_id, umpire_name) {
 	return new Promise((resolve, reject) => {
-		const match_querry = {	'tournament_key': tkey, 
-								'setup.court_id': court_id,
-								'end_ts':{$exists: true}};
+		const tabletoperator_querry = { 'tournament_key': tkey, court: null };
 		let tabletoperators = undefined;
-		app.db.matches.find(match_querry).sort({'end_ts': -1}).limit(1).exec((err, last_match_on_court) => {
+		app.db.tabletoperators.find(tabletoperator_querry).sort({ 'start_ts': 1 }).limit(1).exec((err, tabletoperator) => {
 			if (err) {
 				return reject(err);
 			}
-			if (last_match_on_court.length === 1 && !umpire_name) {
-				const match = last_match_on_court[0];
-				const round = match.setup.match_name;
-				var team = null;
-				if (round == 'VF' || round == 'QF') {
-					team = match.setup.teams[match.btp_winner-1];
-				} else {
-					const index = match.btp_winner % 2;
-					team = match.setup.teams[index];
-				}
-				if(team && typeof team.players !== 'undefined') {
-					tabletoperators = [];
-					
-					team.players.forEach((player) => {
-						tabletoperators.push(player);
-					});
-				}
+			var returnvalue = undefined;
+			if (tabletoperator.length == 1) {
+				returnvalue = tabletoperator[0].tabletoperator
+				app.db.tabletoperators.update({ _id: tabletoperator[0]._id, tournament_key: tkey }, { $set: { court: court_id } }, { returnUpdatedDocs: true }, function (err, numAffected, changed_tabletoperator) {
+					if (err) {
+						ws.respond(msg, err);
+						return;
+					}
+					admin.notify_change(app, tkey, 'tabletoperator_removed', { tabletoperator: changed_tabletoperator });
+					resolve(returnvalue);
+				});
 			}
-			resolve(tabletoperators);
 		});
 	});
 }

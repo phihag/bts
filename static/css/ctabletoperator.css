@@ -1,0 +1,42 @@
+.tabletoperator_add_button {
+	display: inline-block;
+	min-width: 1em;
+	min-height: 1em;
+	background-size: 100%;
+	background-repeat: no-repeat;
+	background-position: center center;
+	height: 1.2em;
+	background-size: cover;
+	width: 1.9em;
+	margin: 0 0.2em -0.2em 0.2em;
+	background-image: url(../icons/tabletoperator_add.svg);
+}
+.tabletoperator_remove_button {
+	display: inline-block;
+	min-width: 1em;
+	min-height: 1em;
+	background-size: 100%;
+	background-repeat: no-repeat;
+	background-position: center center;
+	height: 1.2em;
+	background-size: cover;
+	width: 1.9em;
+	margin: 0 0.2em -0.2em 0.2em;
+	background-image: url(../icons/tabletoperator_remove.svg);
+}
+
+.tabletoperator_remove_button:hover,
+.tabletoperator_add_button:hover {
+		opacity: 0.5;
+	}
+.tabletoperator_remove_button > *,
+.tabletoperator_add_button > * {
+		display: block;
+	}
+.tabletoperator_remove_button > button,
+.tabletoperator_add_button > button {
+		margin: 0 0 0 2vmin;
+		font-size: 5vmin;
+		padding: 0.1em 0.1em;
+		min-width: 5em;
+	}

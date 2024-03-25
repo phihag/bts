@@ -135,6 +135,11 @@ function handle_tournament_get(app, ws, msg) {
 				tournament.umpires = umpires;
 				cb(err);
 			});
+		}, function (cb) {
+			stournament.get_tabletoperators(app.db, tournament.key, function (err, tabletoperators) {
+				tournament.tabletoperators = tabletoperators;
+				cb(err);
+			});
 		}, function(cb) {
 			stournament.get_matches(app.db, tournament.key, function(err, matches) {
 				tournament.matches = matches;
@@ -210,6 +215,57 @@ function handle_match_add(app, ws, msg) {
 		}
 		notify_change(app, tournament_key, 'match_add', {match: inserted_m});
 		ws.respond(msg, err);
+	});
+}
+
+function handle_tabletoperator_remove(app, ws, msg) {
+	if (!msg.tournament_key) {
+		return ws.respond(msg, { message: 'Missing tournament_key' });
+	}
+	if (!msg.tabletoperator) {
+		return ws.respond(msg, { message: 'Missing tabletoperator' });
+	}
+	const tournament_key = msg.tournament_key;
+	const tabletoperator = msg.tabletoperator
+	app.db.tabletoperators.update({ _id: tabletoperator._id, tournament_key: tournament_key }, { $set: { court: -1 } }, { returnUpdatedDocs: true}, function (err, numAffected, changed_tabletoperator) {
+		if (err) {
+			ws.respond(msg, err);
+			return;
+		}
+		notify_change(app, tournament_key, 'tabletoperator_removed', { tabletoperator: changed_tabletoperator });
+	});
+}
+
+function handle_tabletoperator_add(app, ws, msg) {
+	if (!msg.tournament_key) {
+		return ws.respond(msg, { message: 'Missing tournament_key' });
+	}
+	if (!msg.match) {
+		return ws.respond(msg, { message: 'Missing match' });
+	}
+	const tournament_key = msg.tournament_key;
+	const team_id = msg.team_id;
+	const match = msg.match
+	const team = match.setup.teams[team_id];
+	var tabletoperator = [];
+
+	team.players.forEach((player) => {
+		tabletoperator.push(player);
+	});
+	const new_tabletoperator = {
+		tournament_key,
+		tabletoperator,
+		'match_id': 'manually_added',
+		'start_ts': Date.now(),
+		'end_ts': null,
+		'court': null
+	};
+	app.db.tabletoperators.insert(new_tabletoperator, function (err, inserted_tabletoperator) {
+		if (err) {
+			ws.respond(msg, err);
+			return;
+		}
+		notify_change(app, tournament_key, 'tabletoperator_add', { tabletoperator: inserted_tabletoperator });
 	});
 }
 
@@ -388,6 +444,8 @@ module.exports = {
 	async_handle_match_delete,
 	async_handle_tournament_upload_logo,
 	handle_btp_fetch,
+	handle_tabletoperator_add,
+	handle_tabletoperator_remove,
 	handle_fetch_allscoresheets_data,
 	handle_create_tournament,
 	handle_courts_add,

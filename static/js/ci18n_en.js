@@ -111,6 +111,10 @@ var ci18n_en = {
 'umpires:btp_id': 'BTP ID {btp_id}',
 'umpires:last_on_court': 'previous match ended at {time}',
 
+'tabletoperator:unassigned': 'Next Tabletoperators',
+'tabletoperator:name': 'Name',
+'tabletoperator:add': 'Schedule as Tabletoperator',
+'tabletoperator:remove': 'Remove from list',
 'csvexport:winners': 'CSV export (winner\'s certificates)',
 };
 

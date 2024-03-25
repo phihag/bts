@@ -53,6 +53,7 @@
     margin: 0 0.2em -0.2em 0.2em;
 	background-image: url(../icons/second_call.svg);
 }
+
 .match_rawinfo {
 	margin: 0 0.3em 0 0.3em;
 	background-image: url(../icons/rawinfo.svg);
@@ -189,6 +190,7 @@ match_second_call_button,
 .match_second_call_button > * {
 	display: block;
 }
+
 .match_second_call_button > button {
 	margin: 0 0 0 2vmin;
 	font-size: 5vmin;

@@ -31,9 +31,17 @@ function get_matches(db, tournament_key, callback) {
 	});
 }
 
+function get_tabletoperators(db, tournament_key, callback) {
+	db.tabletoperators.find({ tournament_key }, function (err, tabletoperators) {
+		if (err) return callback(err);
+		return callback(err, tabletoperators);
+	});
+}
+
 
 module.exports = {
 	get_courts,
 	get_matches,
 	get_umpires,
+	get_tabletoperators,
 };

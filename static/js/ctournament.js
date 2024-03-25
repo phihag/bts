@@ -145,10 +145,18 @@ function update_current_match(c) {
 	_show_render_matches();
 }
 
+function _update_all_ui_elements() {
+	_show_render_matches();
+	_show_render_tabletoperators();
+
+}
 function _show_render_matches() {
 	cmatch.render_courts(uiu.qs('.courts_container'));
 	cmatch.render_unassigned(uiu.qs('.unassigned_container'));
 	cmatch.render_finished(uiu.qs('.finished_container'));
+}
+function _show_render_tabletoperators() {
+	ctabletoperator.render_unassigned(uiu.qs('.unassigned_tableoperators_container'));
 }
 
 function ui_btp_fetch() {
@@ -234,6 +242,7 @@ function ui_show() {
 	cmatch.prepare_render(curt);
 
 	uiu.el(main, 'div', 'courts_container');
+	uiu.el(main, 'div', 'unassigned_tableoperators_container');
 	uiu.el(main, 'div', 'unassigned_container');
 	const match_create_container = uiu.el(main, 'div');
 	cmatch.render_create(match_create_container);
@@ -254,8 +263,10 @@ function ui_show() {
 	if (curt.is_nation_competition) {
 		crouting.render_link(footer_links, `t/${curt.key}/nationstats`, ci18n('nationstats'));
 	}
+	
+	_show_render_tabletoperators();
 }
-_route_single(/t\/([a-z0-9]+)\/$/, ui_show, change.default_handler(_show_render_matches, {
+_route_single(/t\/([a-z0-9]+)\/$/, ui_show, change.default_handler(_update_all_ui_elements, {
 	score: update_score,
 	court_current_match: update_current_match,
 	update_player_status: update_player_status,
@@ -969,6 +980,7 @@ if ((typeof module !== 'undefined') && (typeof require !== 'undefined')) {
 	var cmatch = require('./cmatch');
 	var crouting = require('./crouting');
 	var cumpires = require('./cumpires');
+	var ctabletoperator = require('./ctabletoperator');
 	var debug = require('./debug');
 	var form_utils = require('./form_utils');
 	var i18n = require('../bup/js/i18n');

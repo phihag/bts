@@ -16,6 +16,7 @@ const TABLES = [
 	'tournaments',
 	'umpires',
 	'logs',
+	'tabletoperators',
 ];
 
 

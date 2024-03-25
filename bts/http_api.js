@@ -152,7 +152,7 @@ function matches_handler(req, res) {
 
 		let matches = db_matches.map(dbm => create_match_representation(tournament, dbm));
 		if (tournament.only_now_on_court) {
-			matches = matches.filter(m => m?.setup.now_on_court);
+			matches = matches.filter(m => m.setup.now_on_court);
 		}
 
 		db_courts.sort(utils.cmp_key('num'));
@@ -269,7 +269,8 @@ function score_handler(req, res) {
 	if(update.team1_won != undefined && update.team1_won != null) {
 		async.waterfall([
 			cb => remove_player_on_court(req.app, tournament_key, match_id, cb),
-			cb => remove_tablet_on_court(req.app, tournament_key, match_id, cb)
+			cb => remove_tablet_on_court(req.app, tournament_key, match_id, cb),
+			cb => add_player_to_tabletoperator_list(req.app, tournament_key, match_id, update.end_ts, cb)
 		], function(err) {
 			if (err) {
 				res.json({
@@ -357,6 +358,53 @@ function score_handler(req, res) {
 	});
 }
 
+function add_player_to_tabletoperator_list(app, tournament_key, cur_match_id, end_ts, callback) {
+	const admin = require('./admin'); // avoid dependency cycle
+	app.db.matches.findOne({ 'tournament_key': tournament_key, '_id': cur_match_id }, (err, cur_match) => {
+		if (err) {
+			return reject(err);
+		}	
+		app.db.tabletoperators.findOne({ 'tournament_key': tournament_key, 'match_id': cur_match_id }, (err, no_tabletoperator) => {
+			if (err) {
+				return reject(err);
+			}
+			if (no_tabletoperator == null) {
+				const round = cur_match.setup.match_name;
+				var team = null;
+				if (round == 'VF' || round == 'QF') {
+					team = cur_match.setup.teams[cur_match.btp_winner - 1];
+				} else {
+					const index = cur_match.btp_winner % 2;
+					team = cur_match.setup.teams[index];
+				}
+				if (team && typeof team.players !== 'undefined') {
+					var tabletoperator = [];
+
+					team.players.forEach((player) => {
+						tabletoperator.push(player);
+					});
+
+					const new_tabletoperator = {
+						tournament_key,
+						tabletoperator,
+						'match_id': cur_match_id,
+						'start_ts': end_ts,
+						'end_ts': null,
+						'court': null
+					};
+					app.db.tabletoperators.insert(new_tabletoperator, function (err, inserted_t) {
+						if (err) {
+							ws.respond(msg, err);
+							return;
+						}
+						admin.notify_change(app, tournament_key, 'tabletoperator_add', { tabletoperator: inserted_t });
+					});
+
+				}
+			}
+		});
+	});
+}
 function remove_player_on_court (app, tkey, cur_match_id, callback) {	
 	const admin = require('./admin'); // avoid dependency cycle
 	app.db.matches.findOne({'tournament_key': tkey, '_id': cur_match_id}, (err, cur_match) => {

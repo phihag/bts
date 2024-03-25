@@ -84,6 +84,17 @@ function default_handler_func(rerender, special_funcs, c) {
 		});
 
 		break;}
+	case 'tabletoperator_add':
+		curt.tabletoperators.push(c.val.tabletoperator);
+		rerender();
+		break;
+	case 'tabletoperator_removed':
+		const changed_t = utils.find(curt.tabletoperators, m => m._id === c.val.tabletoperator._id);
+		if (changed_t) {
+			changed_t.court = c.val.tabletoperator.court;
+		}
+		rerender();
+		break;
 	case 'match_add':
 		curt.matches.push(c.val.match);
 		rerender();

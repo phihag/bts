@@ -111,6 +111,10 @@ var ci18n_de = {
 'umpires:btp_id': 'BTP-ID {btp_id}',
 'umpires:last_on_court': 'letztes Spiel endete {time}',
 
+'tabletoperator:unassigned': 'Nächste TabletbedienerInnen',
+'tabletoperator:name': 'Name',
+'tabletoperator:add': 'Als Tabletoperator planen',
+'tabletoperator:remove': 'Von Liste nehmen',
 'csvexport:winners': 'CSV-Export für Siegerurkunden',
 };
 
