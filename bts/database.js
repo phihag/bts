@@ -17,6 +17,8 @@ const TABLES = [
 	'umpires',
 	'logs',
 	'tabletoperators',
+	'displaysettings',
+	'display_court_displaysettings',
 ];
 
 

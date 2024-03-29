@@ -1,5 +1,6 @@
-'use strict';
+﻿'use strict';
 
+const { forEach } = require('async');
 const serror = require('./serror');
 const utils = require('./utils');
 
@@ -44,7 +45,7 @@ function all_matches_delivery() {
 	}
 }
 
-function handle_init(app, ws, msg) {
+async function handle_init(app, ws, msg) {
 	const tournament_key = msg.tournament_key;
 	var court_id = msg.panel_settings.court_id;
 	if (court_id) {
@@ -53,7 +54,58 @@ function handle_init(app, ws, msg) {
 		ws.court_id = undefined;
 		court_id = undefined;
 	}
+	if (msg.initialize_display) {
+		const remote_adress_seqments = ws._socket.remoteAddress.split('.');
+		const client_id = remote_adress_seqments[remote_adress_seqments.length - 1];
+		if (client_id) {
+			let display_setting = await get_display_setting(app, tournament_key, client_id, court_id)
+			if (display_setting != null) {
+				ws.court_id = display_setting.court_id;
+				court_id = display_setting.court_id;
+				notify_change_ws(ws, tournament_key, court_id, "settings-update", display_setting);
+			}
+		}
+	}
 	matches_handler(app, ws, tournament_key, court_id);
+}
+
+function get_display_setting(app, tkey, client_id, court_id) {
+	return new Promise((resolve, reject) => {
+		const display_court_query = { 'client_id': client_id };
+		app.db.display_court_displaysettings.find(display_court_query).limit(1).exec((err, display_court_displaysetting) => {
+			if (err) {
+				return reject(err);
+			}
+			var returnvalue = null;
+			if (display_court_displaysetting.length == 1) {
+				const display_query = { 'id': display_court_displaysetting[0].displaysetting_id };
+				app.db.displaysettings.find(display_query).limit(1).exec((err, display_setting) => {
+					if (err) {
+						return reject(err);
+					}
+					if (display_setting.length == 1) {
+						returnvalue = display_setting[0];
+						returnvalue.court_id = display_court_displaysetting[0].court_id;
+						returnvalue.displaymode_court_id = display_court_displaysetting[0].court_id;
+					}
+					resolve(returnvalue);
+				});
+			} else {
+				const display_query_default = { 'id': 'default' };
+				app.db.displaysettings.find(display_query_default).limit(1).exec((err, display_setting_default) => {
+					if (err) {
+						return reject(err);
+					}
+					if (display_setting_default.length == 1) {
+						returnvalue = display_setting_default[0];
+						returnvalue.court_id = court_id;
+						returnvalue.displaymode_court_id = court_id;
+					} 
+					resolve(returnvalue);
+				});
+			}
+		});
+	});
 }
 
 function handle_score_change(app, tournament_key, court_id) {
@@ -112,7 +164,7 @@ function matches_handler(app, ws, tournament_key, court_id) {
 				status: 'error',
 				message: err.message,
 			};
-			notify_change_ws(app, tournament_key, "score-update,", msg);
+			notify_change_ws(app, tournament_key, "score-update", msg);
 		}
 
 		let matches = db_matches.map(dbm => create_match_representation(tournament, dbm));
