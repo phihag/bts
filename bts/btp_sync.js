@@ -601,6 +601,7 @@ async function integrate_now_on_court(app, tkey, callback) {
 	const admin = require('./admin'); // avoid dependency cycle
 	const stournament = require('./stournament'); // avoid dependency cycle
 	const btp_manager = require('./btp_manager');
+	const bupws = require('./bupws');
 	
 	// TODO after switching to async, this should happen during court&match construction
 	app.db.tournaments.findOne({key: tkey}, async (err, tournament) => {
@@ -673,7 +674,7 @@ async function integrate_now_on_court(app, tkey, callback) {
 																								setup: match.setup,
 																								from: "btp_sync.js:664"});
 			 					admin.notify_change(app, tkey, 'match_called_on_court', match);
-							
+								bupws.handle_score_change(app, tkey, court_id);
 			 					async.waterfall([	wcb => set_player_on_court(app, tkey, match.setup, wcb),
 			 										wcb => set_player_on_tablet(app, tkey, match.setup, wcb)], 
 												(err) => {

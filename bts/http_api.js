@@ -5,6 +5,7 @@ const async = require('async');
 const path = require('path');
 
 const admin = require('./admin');
+const bupws = require('./bupws');
 const btp_manager = require('./btp_manager');
 const stournament = require('./stournament');
 const ticker_manager = require('./ticker_manager');
@@ -97,6 +98,7 @@ function create_event_representation(tournament) {
 	return res;
 }
 
+// TODO might be removed due to refactoring work in bupws.js
 function matches_handler(req, res) {
 	const tournament_key = req.params.tournament_key;
 	const now = Date.now();
@@ -266,7 +268,7 @@ function score_handler(req, res) {
 		update.btp_needsync = true;
 	}
 
-	if(update.team1_won != undefined && update.team1_won != null) {
+	if (update.team1_won != undefined && update.team1_won != null) {
 		async.waterfall([
 			cb => remove_player_on_court(req.app, tournament_key, match_id, cb),
 			cb => remove_tablet_on_court(req.app, tournament_key, match_id, cb),
@@ -343,6 +345,7 @@ function score_handler(req, res) {
 				presses: match.presses,
 			});
 
+			bupws.handle_score_change(req.app, tournament_key, match.setup.court_id);
 			cb();
 		},
 	], function(err) {
