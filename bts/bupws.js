@@ -45,6 +45,50 @@ function all_matches_delivery() {
 	}
 }
 
+async function handle_reset_display_settings(app, ws, msg) {
+	const tournament_key = msg.tournament_key;
+	const court_id = msg.panel_settings.court_id;
+	var setting = msg.panel_settings;
+
+	const client_id = determine_client_id(ws);
+	var client_court_displaysetting = await get_display_court_displaysettings(app, tournament_key, client_id);
+	if (client_court_displaysetting != null) {
+		const updatevalues = {
+			client_id: 'deleted'
+		}
+		client_court_displaysetting = await update_client_court_displaysetting(app, client_court_displaysetting, updatevalues);
+
+	}
+}
+
+async function handle_persist_display_settings(app, ws, msg) {
+	const tournament_key = msg.tournament_key;
+	const court_id = msg.panel_settings.court_id;
+	var setting = msg.panel_settings;
+
+	const client_id = determine_client_id(ws);
+	var client_court_displaysetting = await get_display_court_displaysettings(app, tournament_key, client_id);
+	if (client_court_displaysetting == null) {
+		setting.id = tournament_key + "_" + court_id + " _" + Date.now();
+		setting = await persist_displaysetting(app, setting);
+
+		client_court_displaysetting = {
+			client_id: client_id,
+			court_id: court_id,
+			displaysetting_id: setting.id,
+		}
+		client_court_displaysetting = await persist_client_court_displaysetting(app, client_court_displaysetting);
+	} else {
+		setting.id = tournament_key + "_" + court_id + " _" + Date.now();
+		setting = await persist_displaysetting(app, setting);
+		const updatevalues = {
+			court_id: court_id,
+			displaysetting_id: setting.id,
+		}
+		client_court_displaysetting = await update_client_court_displaysetting(app, client_court_displaysetting, updatevalues);
+	}
+}
+
 async function handle_init(app, ws, msg) {
 	const tournament_key = msg.tournament_key;
 	var court_id = msg.panel_settings.court_id;
@@ -55,8 +99,7 @@ async function handle_init(app, ws, msg) {
 		court_id = undefined;
 	}
 	if (msg.initialize_display) {
-		const remote_adress_seqments = ws._socket.remoteAddress.split('.');
-		const client_id = remote_adress_seqments[remote_adress_seqments.length - 1];
+		const client_id = determine_client_id(ws);
 		if (client_id) {
 			let display_setting = await get_display_setting(app, tournament_key, client_id, court_id)
 			if (display_setting != null) {
@@ -67,6 +110,65 @@ async function handle_init(app, ws, msg) {
 		}
 	}
 	matches_handler(app, ws, tournament_key, court_id);
+}
+
+function determine_client_id(ws) {
+	const remote_adress_seqments = ws._socket.remoteAddress.split('.');
+	return remote_adress_seqments[remote_adress_seqments.length - 1];
+}
+
+
+function persist_client_court_displaysetting(app, client_court_displaysetting) {
+	return new Promise((resolve, reject) => {
+		app.db.display_court_displaysettings.insert(client_court_displaysetting, function (err, inserted_t) {
+			if (err) {
+				reject(err);
+			}
+			resolve(inserted_t);
+		});
+	});
+}
+
+function update_client_court_displaysetting(app, client_court_displaysetting, updatevalues) {
+	return new Promise((resolve, reject) => {
+		app.db.display_court_displaysettings.update({ _id: client_court_displaysetting._id }, { $set: updatevalues }, { returnUpdatedDocs: true }, function (err, numAffected, changed_objects) {
+			if (err) {
+				reject(err)
+			}
+			resolve(changed_objects)
+
+		});
+	});
+}
+
+
+function persist_displaysetting(app, setting) {
+	setting._id = undefined;
+	return new Promise((resolve, reject) => {
+		app.db.displaysettings.insert(setting, function (err, inserted_t) {
+			if (err) {
+				reject(err);
+			}
+			resolve(inserted_t);
+		});
+	});
+}
+
+
+function get_display_court_displaysettings(app, tkey, client_id) {
+	return new Promise((resolve, reject) => {
+		const display_court_query = { 'client_id': client_id };
+		app.db.display_court_displaysettings.find(display_court_query).limit(1).exec((err, display_court_displaysetting) => {
+			if (err) {
+				return reject(err);
+			}
+			var returnvalue = null;
+			if (display_court_displaysetting.length == 1) {
+				returnvalue = display_court_displaysetting[0];
+			}
+			resolve(returnvalue);
+		});
+	});
 }
 
 function get_display_setting(app, tkey, client_id, court_id) {
@@ -264,4 +366,6 @@ module.exports = {
 	notify_change,
 	handle_init,
 	handle_score_change,
+	handle_persist_display_settings,
+	handle_reset_display_settings,
 };
