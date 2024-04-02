@@ -85,7 +85,15 @@
 	text-align: left;
 }
 .match_table > tbody > tr:hover > td {
-	background-color: #ddd;
+	background-color: #00000030;
+}
+
+.match_table > tbody > tr:nth-of-type(even) > td {
+	background-color: #00000010;
+}
+
+.match_table > tbody > tr:nth-of-type(even):hover > td {
+	background-color: #00000030;
 }
 
 .match_cancel_link {
@@ -218,6 +226,25 @@ match_second_call_button,
 	background-color: inherit;
 }
 
+@font-face { 
+	font-family: "SEGMENT"; 
+	src: url("./seg7.ttf");
+	}
+
+.player > .timer {
+	display: inline-block;
+	background-color: #cc0000;
+	vertical-align: middle;
+	font-size: 0.7em;
+	padding: 0.2em 0.3em 0.0em 0.3em;
+	margin: -0.3em 0.2em 0em 0.2em;
+	border-radius: 0.4em;
+	font-weight: normal;
+	text-align: right;
+	min-width: 2.9em;
+	font-family: "SEGMENT"; 
+}
+
 .tablet,
 .tablet_inline,
 .umpire,
@@ -292,6 +319,35 @@ match_second_call_button,
 	margin: -0.1em 0.3em 0.1em 0.3em;
 	line-height: 100%;
 }
+
+.highlight_0 {
+	background-color: #ffffff;
+}
+
+.highlight_1 {
+	background-color: #ffd838;
+}
+
+.highlight_2 {
+	background-color: #ff79ab;
+}
+
+.highlight_3 {
+	background-color: #fbad4b;
+}
+
+.highlight_4 {
+	background-color: #1dace6;
+}
+
+.highlight_5 {
+	background-color: #5ce1b8;
+}
+
+.highlight_6 {
+	background-color: #c56bff;
+}
+
 
 
 @media print {

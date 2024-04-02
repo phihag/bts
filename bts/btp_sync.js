@@ -91,7 +91,8 @@ async function craft_match(app, tkey, btp_id, court_map, event, draw, btp_links,
 			event_name,
 			teams,
 			warmup: 'none',
-			links: links
+			links: links,
+			highlight: bm.Highlight[0],
 		};
 
 		app.db.tournaments.findOne({key: tkey}, (err, tournament) => {
@@ -415,13 +416,11 @@ async function integrate_matches(app, tkey, btp_state, court_map, callback) {
 					   	if(!only_change_check_in) {
 						   	admin.notify_change(app, match.tournament_key, 'match_edit', {	match__id: match._id,
 																						   	btp_winner: match.btp_winner, 
-																						   	setup: match.setup,
-																						   	from: "btp_sync.js:423"});
+																						   	setup: match.setup});
 					   	} else {
 						   	admin.notify_change(app, match.tournament_key, 'update_player_status', {match__id: match._id,
 																								   	btp_winner: match.btp_winner, 
-																								   	setup: match.setup,
-																								   	from: "btp_sync.js:429"});
+																								   	setup: match.setup});
 					   	}
 				   	});
 					cb(null);
@@ -536,6 +535,127 @@ function integrate_btp_settings(app, tkey, btp_state, callback) {
 	});
 }
 
+async function integrate_player_state(app, tkey, btp_state, callback) {
+	const btp_manager = require('./btp_manager');
+
+	app.db.tournaments.findOne({key: tkey}, (err, tournament) => {
+		if(err) return callback(err);
+		
+		if(!tournament.btp_settings.check_in_per_match) {
+			let ids_to_change = [];
+			let players_to_change = [];
+			async.eachOfSeries(btp_state.matches, async (match, key) => {
+				let cur_match = undefined;
+
+				try {
+					const match_from_db = await get_match_form_db (app, tkey, btp_state, match);
+					cur_match = match_from_db;
+				} catch (err) {
+					return;
+				} 
+
+				for (let team_nr = 0; team_nr < 2; team_nr++) {
+					for (let player_nr = 0; player_nr < 2; player_nr++) {
+						let id  = pause_is_done(match, team_nr, player_nr, tournament.btp_settings);
+
+						if (id != undefined && id != null) {
+						
+							if (!cur_match.setup.teams[team_nr].players[player_nr].now_tablet_on_court && 
+								!cur_match.setup.teams[team_nr].players[player_nr].now_playing_on_court &&
+								!cur_match.setup.called_timestamp &&
+								!cur_match.network_score) {
+
+								btp_state.matches[key].bts_players[team_nr][player_nr].CheckedIn[0] = true;
+								
+
+								const player = cur_match.setup.teams[team_nr].players[player_nr];
+								if(ids_to_change.indexOf(id) == -1) {
+									player.checked_in = true;
+									ids_to_change.push(id);
+									players_to_change.push(player);
+								}
+							}
+						}
+					}
+				}
+			}, (err) => {
+				if(err) return callback(err);
+				btp_manager.update_players(app, tkey, players_to_change);
+				return callback(null);
+			});
+		}
+		
+	});
+}
+
+async function get_match_form_db (app, tkey, btp_state, match) {
+	return new Promise((resolve, reject) => {
+		const {draws, events, officials} = btp_state;
+		const draw = draws.get(match.DrawID[0]);
+		if(!draw) {
+			return reject("Draw is unset!");
+		}
+
+		const event = events.get(draw.EventID[0]);
+		if (!event) {
+			return reject("Event is unset");
+		}
+
+		const discipline_name = (event.Name[0] === draw.Name[0]) ? draw.Name[0] : event.Name[0] + '_' + draw.Name[0];
+		const btp_id = tkey + '_' + discipline_name + '_' + match.ID[0];
+
+		const query = {
+			btp_id: btp_id,
+			tournament_key: tkey,
+		};
+
+		app.db.matches.findOne(query, (err, cur_match) => {
+			if (err) {
+				console.log(err);
+				return reject(err);
+			};
+
+			if(cur_match) {
+				return resolve(cur_match);
+			};
+
+			reject("no match found");
+		});
+	});
+}
+
+function pause_is_done(match, team_nr, player_nr, btp_settings) {
+	if(match.bts_players &&  match.bts_players.length > team_nr) {
+		if(match.bts_players[team_nr] && match.bts_players[team_nr].length > player_nr) {
+			const player = match.bts_players[team_nr][player_nr];
+
+			if (player.CheckedIn[0]) {
+				return;
+			}
+
+			if (player.LastTimeOnCourt && player.LastTimeOnCourt[0]) {
+				const date = new Date(player.LastTimeOnCourt[0].year,
+									player.LastTimeOnCourt[0].month - 1,
+									player.LastTimeOnCourt[0].day,
+									player.LastTimeOnCourt[0].hour,
+									player.LastTimeOnCourt[0].minute,
+									player.LastTimeOnCourt[0].second,
+									player.LastTimeOnCourt[0].ms);
+				const last_time_on_court_ts = date.getTime();
+				const now = new Date();
+
+				if ((now - last_time_on_court_ts) > btp_settings.pause_duration_ms) {
+					return player.ID[0];
+				}
+				return;
+			} else {
+				return player.ID[0];
+			}
+		}
+	}
+	return;
+}
+
 function integrate_umpires(app, tournament_key, btp_state, callback) {
 	const admin = require('./admin'); // avoid dependency cycle
 	const stournament = require('./stournament'); // avoid dependency cycle
@@ -642,11 +762,14 @@ async function integrate_now_on_court(app, tkey, callback) {
 					if (setup.tabletoperators) {
 						for (let operator of setup.tabletoperators) {
 							operator.checked_in = false;
-							operator.last_time_on_court_ts = called_timestamp;
 						}
 					}
 					
 					btp_manager.update_players(app, tkey, setup.tabletoperators);
+
+					if (setup.highlight == 6) {
+						setup.highlight = 0;
+					}
 
 					const match_q = {_id: match_id};
 					app.db.matches.update(match_q, {$set: {setup}}, {}, (err) => {
@@ -654,6 +777,8 @@ async function integrate_now_on_court(app, tkey, callback) {
 							console.error(err);
 							return;
 						}
+
+						btp_manager.update_highlight(app, match);
 
 						const court_q = {_id: court_id};
 						app.db.courts.find(court_q, (err, courts) => {
@@ -671,8 +796,7 @@ async function integrate_now_on_court(app, tkey, callback) {
 
 								admin.notify_change(app, match.tournament_key, 'match_edit', {	match__id: match._id,
 																								btp_winner: match.btp_winner, 
-																								setup: match.setup,
-																								from: "btp_sync.js:664"});
+																								setup: match.setup});
 			 					admin.notify_change(app, tkey, 'match_called_on_court', match);
 								bupws.handle_score_change(app, tkey, court_id);
 			 					async.waterfall([	wcb => set_player_on_court(app, tkey, match.setup, wcb),
@@ -867,6 +991,7 @@ function fetch(app, tkey, response, callback) {
 
 	async.waterfall([
 		cb => integrate_btp_settings(app, tkey, btp_state, cb),
+		cb => integrate_player_state(app, tkey, btp_state, cb),
 		cb => integrate_umpires(app, tkey, btp_state, cb),
 		cb => integrate_courts(app, tkey, btp_state, cb),
 		(court_map, cb) => integrate_matches(app, tkey, btp_state, court_map, cb),

@@ -289,6 +289,8 @@ function render_players_el(parentNode, setup, team_id, match, show_player_status
 					const result = curt.matches.find(m => {
 						return (m.setup.event_name === t.setup.event_name &&
 								m.setup.is_match &&
+								m.setup.links &&
+								t.setup.links &&
 								(	
 									m.setup.links.from1 == t.setup.links.from1 ||
 									m.setup.links.from2 == t.setup.links.from2 
@@ -300,7 +302,7 @@ function render_players_el(parentNode, setup, team_id, match, show_player_status
 
 			const index = Math.min(resolved_match.length - 1, team_id);
 			
-			if(resolved_match.length > 0) {
+			if(resolved_match.length >= index && resolved_match[index] && resolved_match[index].setup && resolved_match[index].setup.links) {
 				
 				if(resolved_match[index].setup.links.winner_to && resolved_match[index].setup.links.winner_to == match.btp_match_ids[0].planning) {
 					dependency = ci18n('Winner') + " #" + resolved_match[index].setup.match_num + " - " + resolved_match[index].setup.scheduled_date + " " + resolved_match[index].setup.scheduled_time_str;
@@ -347,6 +349,11 @@ function render_player_el(parentNode, player, match_id, now_on_court, show_playe
 		let parts = player.now_tablet_on_court.split("_");
 		let court_number = parts[parts.length - 1];
 		uiu.el(player_element, 'div', 'tablet_inline', court_number);
+	}
+
+	if(show_player_status) {
+		var timer_state = _extract_player_timer_state(player);
+		var timer = create_timer(timer_state, player_element, "#ffffff", "#ffffff");
 	}
 }
 
@@ -401,6 +408,12 @@ function update_player(match_id, player, now_on_court, show_player_status) {
 			let court_number = parts[parts.length - 1];
 			uiu.el(player_el, 'div', 'tablet_inline', court_number);
 		}
+
+		if(show_player_status) {
+			var timer_state = _extract_player_timer_state(player);
+			var timer = create_timer(timer_state, player_el, "#ffffff", "#ffffff");
+		}
+
 	});
 }
 
@@ -418,7 +431,7 @@ function create_timer(timer_state, parent, default_color, exigent_color) {
 		return;
 	}
 
-	let el = uiu.el(parent, 'div', {style: ('color:' + default_color +';')}, tv.str);
+	let el = uiu.el(parent, 'div', {class: 'timer', style: ('color:' + default_color +';')}, tv.str);
 	
 	var tobj = {}
 
@@ -433,14 +446,30 @@ function create_timer(timer_state, parent, default_color, exigent_color) {
 
 		if (visible && tv.next) {
 			tobj.timeout = setTimeout(update, tv.next);
+			el.style.display = "inline-block";
 		} else {
 			tobj.timeout = null;
+			el.style.display = "none";
 		}
 	};
 
 	update();
 
 	return tobj;
+}
+
+function _extract_player_timer_state(player) {
+	let s = {};
+	s.settings = {};
+	s.settings.negative_timers = false;
+	s.lang = "de";
+	s.timer = {};
+	s.timer.duration = curt.btp_settings.pause_duration_ms;
+	s.timer.start = (player.last_time_on_court_ts ? player.last_time_on_court_ts : false);
+	s.timer.upwards = false;
+	s.timer.exigent = false;
+	
+	return s;
 }
 
 function _extract_match_timer_state(match) {
@@ -506,7 +535,18 @@ function on_scoresheet_button_click(e) {
 function on_announce_preparation_matchbutton_click(e) {
 	const match = fetchMatchFromEvent(e);
 	if (match != null) {
-		announcePreparationMatch(match.setup);
+		match.setup.highlight = 6; //its magenta
+
+		send({
+			type: 'match_preparation_call',
+			id: match._id,
+			tournament_key: match.tournament_key,
+			setup: match.setup,
+		}, function (err) {
+			if (err) {
+				return cerror.net(err);
+			}
+		});
 	}
 }
 function on_second_call_team_one_button_click(e) {
@@ -821,7 +861,7 @@ function render_match_table(container, matches, include_courts, show_player_stat
 	const tbody = uiu.el(table, 'tbody');
 
 	for (const m of matches) {
-		const tr = uiu.el(tbody, 'tr');
+		const tr = uiu.el(tbody, 'tr', {'class' : 'highlight_' + m.setup.highlight , 'data-btp_id': m.btp_id});
 		render_match_row(tr, m, null, include_courts ? 'default' : 'plain', show_player_status);
 	}
 }
@@ -1265,6 +1305,7 @@ function render_umpire_options(select, curval, is_service_judge) {
 }
 
 function render_create(container) {
+	/*
 	uiu.empty(container);
 	const form = uiu.el(container, 'form');
 
@@ -1292,6 +1333,7 @@ function render_create(container) {
 			render_create(container);
 		});
 	});
+	*/
 }
 
 return {

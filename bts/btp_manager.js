@@ -51,10 +51,6 @@ function update_score(app, match) {
 		return;
 	}
 
-	if (typeof match.team1_won !== 'boolean') {
-		return; // Match not finished yet
-	}
-
 	conn.update_score(match);
 }
 
@@ -73,6 +69,25 @@ function update_players(app, tkey, players) {
 
 	conn.update_players(players);
 }
+
+function update_highlight(app, match) {	
+	assert(match);
+	const tkey = match.tournament_key;
+	assert(tkey);
+
+	if (!match) {
+		return;
+	}
+
+	const conn = conns_by_tkey.get(tkey);
+	if (!conn) {
+		// Do not output an error; this happens if BTP support gets disabled
+		return;
+	}
+
+	conn.update_highlight(match);
+}
+
 
 function init(app, cb) {
 	app.db.tournaments.find({}, (err, tournaments) => {
@@ -101,4 +116,5 @@ module.exports = {
 	reconfigure,
 	update_score,
 	update_players,
+	update_highlight,
 };

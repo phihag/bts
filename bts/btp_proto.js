@@ -77,47 +77,57 @@ function update_request(match, key_unicode, password, umpire_btp_id, service_jud
 		res.Action.Password = password;
 	}
 
-	assert(typeof match.team1_won === 'boolean');
-	const winner = match.team1_won ? 1 : 2;
 	assert(match.btp_match_ids);
 	assert(match.btp_match_ids.length > 0);
-	assert(match.network_score);
-	const duration_mins = match.duration_ms ? Math.floor(match.duration_ms / 60000) : 0;
 	const shuttle_count = match.shuttle_count;
 
 	for (const btp_m_id of match.btp_match_ids) {
 		assert(btp_m_id);
 
-		const sets = match.network_score.map(ns => {
-			return {
-				Set: {
-					T1: ns[0],
-					T2: ns[1],
-				},
-			};
-		});
-
-		let scoreStatus = 0; //Won normally
-		if(	(match.presses.length > 0 && match.presses[match.presses.length - 1].type == "retired") || 
-			(match.presses.length > 1 && match.presses[match.presses.length - 2].type == "retired")) {
-			scoreStatus = 2; //retired
-		}
-		if(	(match.presses.length > 0 && match.presses[match.presses.length - 1].type == "disqualified") || 
-			(match.presses.length > 1 && match.presses[match.presses.length - 2].type == "disqualified")) {
-			scoreStatus = 3; //disqualified
-		}
+		//TODO: calc Status;
 
 		const m = {
 			ID: btp_m_id.id,
 			DrawID: btp_m_id.draw,
 			PlanningID: btp_m_id.planning,
-			Sets: sets,
-			Winner: winner,
-			ScoreStatus: scoreStatus, 
-			Duration: duration_mins,
 			Status: 0,
+			Highlight: (match.setup.highlight ? match.setup.highlight : 0),
+			DisplayOrder: match.match_order,
 			// BTP also sends a boolean ScoreSheetPrinted here
 		};
+
+		if(typeof match.team1_won === 'boolean') {
+			m.Winner = match.team1_won ? 1 : 2;
+		
+			const duration_mins = match.duration_ms ? Math.floor(match.duration_ms / 60000) : 0;
+			m.Duration = duration_mins;
+
+			if(match.network_score) {
+				const sets = match.network_score.map(ns => {
+					return {
+						Set: {
+							T1: ns[0],
+							T2: ns[1],
+						},
+					};
+				});
+
+				m.Sets = sets;
+			}
+
+			let scoreStatus = 0; //Won normally
+			if(	(match.presses.length > 0 && match.presses[match.presses.length - 1].type == "retired") || 
+				(match.presses.length > 1 && match.presses[match.presses.length - 2].type == "retired")) {
+				scoreStatus = 2; //retired
+			}
+			if(	(match.presses.length > 0 && match.presses[match.presses.length - 1].type == "disqualified") || 
+				(match.presses.length > 1 && match.presses[match.presses.length - 2].type == "disqualified")) {
+				scoreStatus = 3; //disqualified
+			}
+
+			m.ScoreStatus = scoreStatus;
+		}
+
 		if (umpire_btp_id) {
 			m.Official1ID = umpire_btp_id;
 		}
@@ -143,7 +153,7 @@ function update_request(match, key_unicode, password, umpire_btp_id, service_jud
 			const pupdate = {
 				ID: pid,
 				LastTimeOnCourt: end_date,
-				CheckedIn: true,
+				CheckedIn: false,
 			};
 			players.push({Player: pupdate});
 		}
@@ -152,7 +162,8 @@ function update_request(match, key_unicode, password, umpire_btp_id, service_jud
 			for (const operator of match.setup.tabletoperators) {
 				const pupdate = {
 					ID: operator.btp_id,
-					CheckedIn: true,
+					LastTimeOnCourt: end_date,
+					CheckedIn: false,
 				};
 				
 				players.push({Player: pupdate});
@@ -162,7 +173,7 @@ function update_request(match, key_unicode, password, umpire_btp_id, service_jud
 	return res;
 }
 
-function update_players_request(key_unicode, password, players) {
+function update_players_request(players, key_unicode, password) {
 	assert(key_unicode);
 	const res = {
 		Header: {
@@ -191,14 +202,17 @@ function update_players_request(key_unicode, password, players) {
 	res.Update.Tournament.Players = btp_players;
 
 	players.forEach((player) => {
-		if (player.btp_id && player.last_time_on_court_ts && (player.last_time_on_court_ts + 300000 > Date.now())) {
-			const end_date = new Date(player.last_time_on_court_ts);
-
+		if (player.btp_id) {
 			const pupdate = {
 				ID: player.btp_id,
-				LastTimeOnCourt: end_date,
 				CheckedIn: player.checked_in,
 			};
+			
+			if (player.last_time_on_court_ts) {
+				const end_date = new Date(player.last_time_on_court_ts);
+
+				pupdate.LastTimeOnCourt = end_date;
+			}
 			btp_players.push({Player: pupdate});
 		}
 	});

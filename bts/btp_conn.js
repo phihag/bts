@@ -293,6 +293,9 @@ class BTPConn {
 		});
 	}
 
+	update_highlight(match) {
+		this.update_score(match);
+	}
 
 	update_players(players) {
 		if (this.readonly) {
@@ -304,12 +307,11 @@ class BTPConn {
 		}
 
 		if (! this.key_unicode) {
-			serror.silent('Trying to send match data, but never logged in. Must retry later');
+			serror.silent('Trying to update player data, but never logged in. Must retry later');
 			return;
 		}
 
-		const req = btp_proto.update_players_request(
-			this.key_unicode, this.password, players);
+		const req = btp_proto.update_players_request(players, this.key_unicode, this.password);
 		this.send(req, response => {
 			const results = response.Action[0].Result;
 			const rescode = results ? results[0] : 'no-result';

@@ -126,6 +126,7 @@ function default_handler_func(rerender, special_funcs, c) {
 		break;
 	case 'match_preparation_call':
 		announcePreparationMatch(c.val.setup);
+		rerender();
 		break;
 	case 'match_called_on_court':
 		announceNewMatch(c.val.setup);
