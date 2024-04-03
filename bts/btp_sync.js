@@ -761,10 +761,9 @@ async function integrate_now_on_court(app, tkey, callback) {
 						for (let operator of setup.tabletoperators) {
 							operator.checked_in = false;
 						}
+						btp_manager.update_players(app, tkey, setup.tabletoperators);
 					}
 					
-					btp_manager.update_players(app, tkey, setup.tabletoperators);
-
 					if (setup.highlight == 6) {
 						setup.highlight = 0;
 					}
@@ -838,13 +837,13 @@ function get_last_looser_on_court(admin, app, tkey, court_id, umpire_name) {
 				returnvalue = tabletoperator[0].tabletoperator
 				app.db.tabletoperators.update({ _id: tabletoperator[0]._id, tournament_key: tkey }, { $set: { court: court_id } }, { returnUpdatedDocs: true }, function (err, numAffected, changed_tabletoperator) {
 					if (err) {
-						ws.respond(msg, err);
 						return reject(err);
 					}
 					admin.notify_change(app, tkey, 'tabletoperator_removed', { tabletoperator: changed_tabletoperator });
 					return resolve(returnvalue);
 				});
 			}
+			return resolve(returnvalue);
 		});
 	});
 }
