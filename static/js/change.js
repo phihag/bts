@@ -131,6 +131,18 @@ function default_handler_func(rerender, special_funcs, c) {
 	case 'match_called_on_court':
 		announceNewMatch(c.val.setup);
 		break;
+	case 'begin_to_play_call':
+		announceBeginnToPlay(c.val.setup);
+		break;
+	case 'second_call_tabletoperator':
+		announceSecondCallTabletoperator(c.val.setup);
+		break;
+	case 'second_call_team_one':
+		announceSecondCallTeamOne(c.val.setup);
+		break;
+	case 'second_call_team_two':
+		announceSecondCallTeamTwo(c.val.setup);
+		break;
 	case 'umpires_changed':
 		curt.umpires = c.val.all_umpires;
 		uiu.qsEach('select[name="umpire_name"]', function(select) {

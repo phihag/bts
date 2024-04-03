@@ -549,13 +549,6 @@ function on_announce_preparation_matchbutton_click(e) {
 		});
 	}
 }
-function on_second_call_team_one_button_click(e) {
-	const match = fetchMatchFromEvent(e);
-	if (match != null) {
-		announceSecondCallTeamOne(match.setup);
-	}
-}
-
 function on_add_to_tabletoperators_team_one_button_click(e) {
 	const match = fetchMatchFromEvent(e);
 	add_to_tabletoperator(match, 0)
@@ -579,23 +572,61 @@ function add_to_tabletoperator(match,team_num) {
 		});
 	}
 }
+function on_second_call_team_one_button_click(e) {
+	const match = fetchMatchFromEvent(e);
+	if (match != null) {
+		send({
+			type: 'second_call_team_one',
+			tournament_key: curt.key,
+			setup: match.setup,
+		}, err => {
+			if (err) {
+				return cerror.net(err);
+			}
+		});
+	}
+}
 function on_second_call_team_two_button_click(e) {
 	const match = fetchMatchFromEvent(e);
 	if (match != null) {
-		announceSecondCallTeamTwo(match.setup);
+		send({
+			type: 'second_call_team_two',
+			tournament_key: curt.key,
+			setup: match.setup,
+		}, err => {
+			if (err) {
+				return cerror.net(err);
+			}
+		});
 	}
 }
 function on_second_call_tabletoperator_button_click(e) {
 	const match = fetchMatchFromEvent(e);
 	if (match != null) {
-		announceSecondCallTabletoperator(match.setup);
+		send({
+			type: 'second_call_tabletoperator',
+			tournament_key: curt.key,
+			setup: match.setup,
+		}, err => {
+			if (err) {
+				return cerror.net(err);
+			}
+		});
 	}
 }
 
 function on_begin_to_play_button_click(e) {
 	const match = fetchMatchFromEvent(e);
 	if (match != null) {
-		announceBeginnToPlay(match.setup);
+		send({
+			type: 'begin_to_play_call',
+			tournament_key: curt.key,
+			setup: match.setup,
+		}, err => {
+			if (err) {
+				return cerror.net(err);
+			}
+		});
 	}
 }
 function fetchMatchFromEvent(e) {

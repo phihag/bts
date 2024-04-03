@@ -340,6 +340,58 @@ function handle_match_preparation_call(app, ws, msg) {
 		ws.respond(msg, err);
 	});
 }
+function handle_begin_to_play_call(app, ws, msg) {
+	if (!_require_msg(ws, msg, ['tournament_key', 'setup'])) {
+		return;
+	}
+
+	const tournament_key = msg.tournament_key;
+	const setup = _extract_setup(msg.setup);
+
+	notify_change(app, tournament_key, 'begin_to_play_call', {setup});
+	
+	ws.respond(msg);
+}
+
+function handle_second_call_tabletoperator(app, ws, msg) {
+	if (!_require_msg(ws, msg, ['tournament_key', 'setup'])) {
+		return;
+	}
+
+	const tournament_key = msg.tournament_key;
+	const setup = _extract_setup(msg.setup);
+
+	notify_change(app, tournament_key, 'second_call_tabletoperator', {setup});
+	
+	ws.respond(msg);
+}
+
+function handle_second_call_team_one(app, ws, msg) {
+	if (!_require_msg(ws, msg, ['tournament_key', 'setup'])) {
+		return;
+	}
+
+	const tournament_key = msg.tournament_key;
+	const setup = _extract_setup(msg.setup);
+
+	notify_change(app, tournament_key, 'second_call_team_one', {setup});
+	
+	ws.respond(msg);
+}
+
+function handle_second_call_team_two(app, ws, msg) {
+	if (!_require_msg(ws, msg, ['tournament_key', 'setup'])) {
+		return;
+	}
+
+	const tournament_key = msg.tournament_key;
+	const setup = _extract_setup(msg.setup);
+
+	notify_change(app, tournament_key, 'second_call_team_two', {setup});
+	
+	ws.respond(msg);
+}
+
 
 async function async_handle_match_delete(app, ws, msg) {
 	if (!_require_msg(ws, msg, ['tournament_key', 'id'])) {
@@ -484,6 +536,7 @@ async function async_handle_tournament_upload_logo(app, ws, msg) {
 module.exports = {
 	async_handle_match_delete,
 	async_handle_tournament_upload_logo,
+	handle_begin_to_play_call,
 	handle_btp_fetch,
 	handle_tabletoperator_add,
 	handle_tabletoperator_remove,
@@ -495,6 +548,9 @@ module.exports = {
 	handle_match_preparation_call,
 	handle_ticker_pushall,
 	handle_ticker_reset,
+	handle_second_call_tabletoperator,
+	handle_second_call_team_one,
+	handle_second_call_team_two,
 	handle_tournament_get,
 	handle_tournament_list,
 	handle_tournament_edit_props,
