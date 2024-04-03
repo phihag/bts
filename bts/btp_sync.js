@@ -750,10 +750,8 @@ async function integrate_now_on_court(app, tkey, callback) {
 				if(!setup.called_timestamp) {
 					setup.called_timestamp = called_timestamp;
 					try{
-						const promise = serializedAsyncTask(admin, app, tkey, court_id, setup.umpire_name);
-						promise.then((value) => {
-							setup.tabletoperators = value;
-						});
+						const value = await serializedAsyncTask(admin, app, tkey, court_id, setup.umpire_name);
+						setup.tabletoperators = value;
 						
 					} catch (err) {
 						callback(err)
@@ -841,10 +839,10 @@ function get_last_looser_on_court(admin, app, tkey, court_id, umpire_name) {
 				app.db.tabletoperators.update({ _id: tabletoperator[0]._id, tournament_key: tkey }, { $set: { court: court_id } }, { returnUpdatedDocs: true }, function (err, numAffected, changed_tabletoperator) {
 					if (err) {
 						ws.respond(msg, err);
-						return;
+						return reject(err);
 					}
 					admin.notify_change(app, tkey, 'tabletoperator_removed', { tabletoperator: changed_tabletoperator });
-					resolve(returnvalue);
+					return resolve(returnvalue);
 				});
 			}
 		});
