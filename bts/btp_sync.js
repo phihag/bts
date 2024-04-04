@@ -554,8 +554,8 @@ async function integrate_player_state(app, tkey, btp_state, callback) {
 					return;
 				} 
 
-				for (let team_nr = 0; team_nr < 2; team_nr++) {
-					for (let player_nr = 0; player_nr < 2; player_nr++) {
+				for (let team_nr = 0; team_nr < cur_match.setup.teams.length; team_nr++) {
+					for (let player_nr = 0; player_nr < cur_match.setup.teams[team_nr].players.length; player_nr++) {
 						let id  = pause_is_done(match, team_nr, player_nr, tournament.btp_settings);
 
 						if (id != undefined && id != null) {
