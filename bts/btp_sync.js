@@ -833,7 +833,7 @@ function get_last_looser_on_court(admin, app, tkey, court_id, umpire_name) {
 				return reject(err);
 			}
 			var returnvalue = undefined;
-			if (tabletoperator.length == 1) {
+			if (tabletoperator && tabletoperator.length == 1) {
 				returnvalue = tabletoperator[0].tabletoperator
 				app.db.tabletoperators.update({ _id: tabletoperator[0]._id, tournament_key: tkey }, { $set: { court: court_id } }, { returnUpdatedDocs: true }, function (err, numAffected, changed_tabletoperator) {
 					if (err) {
@@ -842,8 +842,9 @@ function get_last_looser_on_court(admin, app, tkey, court_id, umpire_name) {
 					admin.notify_change(app, tkey, 'tabletoperator_removed', { tabletoperator: changed_tabletoperator });
 					return resolve(returnvalue);
 				});
+			} else { 
+				return resolve(returnvalue);
 			}
-			return resolve(returnvalue);
 		});
 	});
 }
