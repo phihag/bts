@@ -892,8 +892,10 @@ function render_match_table(container, matches, include_courts, show_player_stat
 	const tbody = uiu.el(table, 'tbody');
 
 	for (const m of matches) {
-		const tr = uiu.el(tbody, 'tr', {'class' : 'highlight_' + m.setup.highlight , 'data-btp_id': m.btp_id});
-		render_match_row(tr, m, null, include_courts ? 'default' : 'plain', show_player_status);
+		if(m.setup.is_match) {
+			const tr = uiu.el(tbody, 'tr', {'class' : 'highlight_' + m.setup.highlight , 'data-btp_id': m.btp_id});
+			render_match_row(tr, m, null, include_courts ? 'default' : 'plain', show_player_status);
+		}
 	}
 }
 
