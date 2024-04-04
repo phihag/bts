@@ -546,34 +546,28 @@ async function integrate_player_state(app, tkey, btp_state, callback) {
 			let ids_to_change = [];
 			let players_to_change = [];
 			async.eachOfSeries(btp_state.matches, async (match, key) => {
-				let cur_match = undefined;
+				let cur_match = await get_match_form_db (app, tkey, btp_state, match);
+				if (cur_match && cur_match != null) {
+					for (let team_nr = 0; team_nr < cur_match.setup.teams.length; team_nr++) {
+						for (let player_nr = 0; player_nr < cur_match.setup.teams[team_nr].players.length; player_nr++) {
+							let id  = pause_is_done(match, team_nr, player_nr, tournament.btp_settings);
 
-				try {
-					const match_from_db = await get_match_form_db (app, tkey, btp_state, match);
-					cur_match = match_from_db;
-				} catch (err) {
-					return callback(null); // if db is empty yet its possible next time
-				} 
-
-				for (let team_nr = 0; team_nr < cur_match.setup.teams.length; team_nr++) {
-					for (let player_nr = 0; player_nr < cur_match.setup.teams[team_nr].players.length; player_nr++) {
-						let id  = pause_is_done(match, team_nr, player_nr, tournament.btp_settings);
-
-						if (id != undefined && id != null) {
+							if (id != undefined && id != null) {
 						
-							if (!cur_match.setup.teams[team_nr].players[player_nr].now_tablet_on_court && 
-								!cur_match.setup.teams[team_nr].players[player_nr].now_playing_on_court &&
-								!cur_match.setup.called_timestamp &&
-								!cur_match.network_score) {
+								if (!cur_match.setup.teams[team_nr].players[player_nr].now_tablet_on_court && 
+									!cur_match.setup.teams[team_nr].players[player_nr].now_playing_on_court &&
+									!cur_match.setup.called_timestamp &&
+									!cur_match.network_score) {
 
-								btp_state.matches[key].bts_players[team_nr][player_nr].CheckedIn[0] = true;
+									btp_state.matches[key].bts_players[team_nr][player_nr].CheckedIn[0] = true;
 								
 
-								const player = cur_match.setup.teams[team_nr].players[player_nr];
-								if(ids_to_change.indexOf(id) == -1) {
-									player.checked_in = true;
-									ids_to_change.push(id);
-									players_to_change.push(player);
+									const player = cur_match.setup.teams[team_nr].players[player_nr];
+									if(ids_to_change.indexOf(id) == -1) {
+										player.checked_in = true;
+										ids_to_change.push(id);
+										players_to_change.push(player);
+									}
 								}
 							}
 						}
@@ -616,11 +610,11 @@ async function get_match_form_db (app, tkey, btp_state, match) {
 				return reject(err);
 			};
 
-			if(cur_match) {
+			if (cur_match) {
 				return resolve(cur_match);
-			};
-
-			reject("no match found");
+			} else {
+				return resolve(null);
+			}
 		});
 	});
 }
