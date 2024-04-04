@@ -410,6 +410,7 @@ async function integrate_matches(app, tkey, btp_state, court_map, callback) {
    
 				   	app.db.matches.update({_id: cur_match._id}, {$set: match}, {}, (err) => {
 					   	if (err) {
+							cb(err);
 							return;
 						};
    
@@ -551,7 +552,7 @@ async function integrate_player_state(app, tkey, btp_state, callback) {
 					const match_from_db = await get_match_form_db (app, tkey, btp_state, match);
 					cur_match = match_from_db;
 				} catch (err) {
-					return;
+					return callback(null); // if db is empty yet its possible next time
 				} 
 
 				for (let team_nr = 0; team_nr < cur_match.setup.teams.length; team_nr++) {
@@ -730,7 +731,7 @@ async function integrate_now_on_court(app, tkey, callback) {
 		}
 		assert(tournament);
 		if (!tournament.only_now_on_court) {
-			return; // Nothing to do here
+			return callback(null); // Nothing to do here
 		}
 
 		app.db.matches.find({'setup.now_on_court': true}, async (err, now_on_court_matches) => {
