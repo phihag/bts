@@ -42,6 +42,7 @@ function render_match_table_header(table, include_courts) {
 }
 
 function render_match_row(tr, match, court, style, show_player_status) {
+	console.warn("rerender_row");
 	if(!match.setup.is_match) {
 		return;
 	}
@@ -414,6 +415,28 @@ function update_player(match_id, player, now_on_court, show_player_status) {
 			var timer = create_timer(timer_state, player_el, "#ffffff", "#ffffff");
 		}
 
+	});
+}
+
+function update_match(m) {
+	uiu.qsEach('.match[data-match_id=' + JSON.stringify(m._id) + ']', (match_row_el) => {
+		match_row_el.innerHTML = '';
+		console.log("render single row: match_num = " + m.setup.match_num);
+		console.log(match_row_el.parentNode);
+		console.log(match_row_el.parentNode.parentNode);
+		console.log(match_row_el.parentNode.parentNode.parentNode);
+		switch (match_row_el.parentNode.parentNode.parentNode.className) {
+			case 'courts_container':
+				render_match_row(match_row_el, m, null, 'default', false);
+				break;
+			case 'finished_container':
+				render_match_row(match_row_el, m, null, 'default', false);
+				break;
+			case 'unassigned_container':
+			default:
+				render_match_row(match_row_el, m, null, 'default', true);
+				break
+		}
 	});
 }
 
@@ -893,7 +916,7 @@ function render_match_table(container, matches, include_courts, show_player_stat
 
 	for (const m of matches) {
 		if(m.setup.is_match) {
-			const tr = uiu.el(tbody, 'tr', {'class' : 'highlight_' + m.setup.highlight , 'data-btp_id': m.btp_id});
+			const tr = uiu.el(tbody, 'tr', {'class' : 'match highlight_' + m.setup.highlight , 'data-match_id': m._id});
 			render_match_row(tr, m, null, include_courts ? 'default' : 'plain', show_player_status);
 		}
 	}
@@ -1379,6 +1402,7 @@ return {
 	render_umpire_options,
 	render_upcoming_matches,
 	update_match_score,
+	update_match,
 	update_players,
 };
 

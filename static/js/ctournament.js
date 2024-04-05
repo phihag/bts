@@ -140,6 +140,22 @@ function update_player_status(c){
 	cmatch.update_players(m);
 }
 
+function update_match(c){
+	const cval = c.val;
+	const match_id = cval.match__id;
+
+	// Find the match
+	const m = utils.find(curt.matches, m => m._id === match_id);
+	if (!m) {
+		cerror.silent('Cannot find match to update player status, ID: ' + JSON.stringify(match_id));
+		return;
+	}
+	m.btp_winner = cval.btp_winner;
+	m.setup = cval.setup;
+
+	cmatch.update_match(m);
+}
+
 function update_current_match(c) {
 	change.change_current_match(c.val);
 	_show_render_matches();
@@ -270,6 +286,7 @@ _route_single(/t\/([a-z0-9]+)\/$/, ui_show, change.default_handler(_update_all_u
 	score: update_score,
 	court_current_match: update_current_match,
 	update_player_status: update_player_status,
+	match_edit: update_match,
 }));
 
 function _upload_logo(e) {

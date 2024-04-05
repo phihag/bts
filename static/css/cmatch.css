@@ -223,7 +223,7 @@ match_second_call_button,
 }
 
 .now_on_court {
-	background-color: inherit;
+	background-color: unset;
 }
 
 @font-face { 

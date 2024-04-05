@@ -263,7 +263,8 @@ function score_handler(req, res) {
 		duration_ms: req.body.duration_ms,
 		end_ts: req.body.end_ts,
 	};
-	if (update.team1_won !== undefined) {
+
+	if (update.team1_won !== undefined && update.team1_won != null) {
 		update.btp_winner = (update.team1_won === true) ? 1 : 2;
 		update.btp_needsync = true;
 	}

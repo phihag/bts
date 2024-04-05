@@ -99,17 +99,6 @@ function default_handler_func(rerender, special_funcs, c) {
 		curt.matches.push(c.val.match);
 		rerender();
 		break;
-	case 'match_edit':
-		{
-		const changed_m = utils.find(curt.matches, m => m._id === c.val.match__id);
-		if (changed_m) {
-			changed_m.setup = c.val.setup;
-		} else {
-			cerror.silent('Cannot find edited match ' + c.val.match__id);
-		}
-		rerender();
-		}
-		break;
 	case 'match_delete':
 		{
 		const match_id = c.val.match__id;
