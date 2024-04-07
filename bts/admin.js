@@ -254,25 +254,24 @@ function handle_tabletoperator_add(app, ws, msg) {
 	const team_id = msg.team_id;
 	const match = msg.match
 	const team = match.setup.teams[team_id];
-	var tabletoperator = [];
-
 	team.players.forEach((player) => {
+		var tabletoperator = [];
 		tabletoperator.push(player);
-	});
-	const new_tabletoperator = {
-		tournament_key,
-		tabletoperator,
-		'match_id': 'manually_added',
-		'start_ts': Date.now(),
-		'end_ts': null,
-		'court': null
-	};
-	app.db.tabletoperators.insert(new_tabletoperator, function (err, inserted_tabletoperator) {
-		if (err) {
-			ws.respond(msg, err);
-			return;
-		}
-		notify_change(app, tournament_key, 'tabletoperator_add', { tabletoperator: inserted_tabletoperator });
+		const new_tabletoperator = {
+			tournament_key,
+			tabletoperator,
+			'match_id': 'manually_added',
+			'start_ts': Date.now(),
+			'end_ts': null,
+			'court': null
+		};
+		app.db.tabletoperators.insert(new_tabletoperator, function (err, inserted_tabletoperator) {
+			if (err) {
+				ws.respond(msg, err);
+				return;
+			}
+			notify_change(app, tournament_key, 'tabletoperator_add', { tabletoperator: inserted_tabletoperator });
+		});
 	});
 }
 
