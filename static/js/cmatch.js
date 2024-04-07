@@ -41,7 +41,7 @@ function render_match_table_header(table, include_courts) {
 	uiu.el(title_tr, 'th', {}, '');
 }
 
-function render_match_row(tr, match, court, style, show_player_status) {
+function render_match_row(tr, match, court, style, show_player_status, show_add_tabletoperator) {
 	console.warn("rerender_row");
 	if(!match.setup.is_match) {
 		return;
@@ -96,7 +96,7 @@ function render_match_row(tr, match, court, style, show_player_status) {
 		'class': ((match.team1_won === true) ? 'match_team_won' : ''),
 		style: 'text-align: right;',
 	});
-	if (!court) {
+	if (show_add_tabletoperator) {
 		if (setup.teams[0].players.length > 0) {
 			create_match_button(players0, 'vlink tabletoperator_add_button', 'tabletoperator:add', on_add_to_tabletoperators_team_one_button_click, match._id);
 		}
@@ -108,7 +108,7 @@ function render_match_row(tr, match, court, style, show_player_status) {
 	uiu.el(tr, 'td', 'match_vs', 'v');
 	const players1 = uiu.el(tr, 'td', ((match.team1_won === false) ? 'match_team_won ' : '') + 'match_team2');
 	render_players_el(players1, setup, 1, match, show_player_status);
-	if (!court) {
+	if (show_add_tabletoperator) {
 		if (setup.teams[1].players.length > 0) { 
 			create_match_button(players1, 'vlink tabletoperator_add_button', 'tabletoperator:add', on_add_to_tabletoperators_team_two_button_click, match._id);
 		}
@@ -427,14 +427,14 @@ function update_match(m) {
 		console.log(match_row_el.parentNode.parentNode.parentNode);
 		switch (match_row_el.parentNode.parentNode.parentNode.className) {
 			case 'courts_container':
-				render_match_row(match_row_el, m, null, 'default', false);
+				render_match_row(match_row_el, m, null, 'default', false, false);
 				break;
 			case 'finished_container':
-				render_match_row(match_row_el, m, null, 'default', false);
+				render_match_row(match_row_el, m, null, 'default', false,true);
 				break;
 			case 'unassigned_container':
 			default:
-				render_match_row(match_row_el, m, null, 'default', true);
+				render_match_row(match_row_el, m, null, 'default', true,true);
 				break
 		}
 	});
@@ -904,7 +904,7 @@ crouting.register(/t\/([a-z0-9]+)\/m\/([-a-zA-Z0-9_ ]+)\/scoresheet$/, function(
 	ui_scoresheet(match_id);
 }));
 
-function render_match_table(container, matches, include_courts, show_player_status) {
+function render_match_table(container, matches, include_courts, show_player_status, show_add_tabletoperator) {
 	if(!show_player_status)
 	{
 		show_player_status = false;
@@ -917,7 +917,7 @@ function render_match_table(container, matches, include_courts, show_player_stat
 	for (const m of matches) {
 		if(m.setup.is_match) {
 			const tr = uiu.el(tbody, 'tr', {'class' : 'match highlight_' + m.setup.highlight , 'data-match_id': m._id});
-			render_match_row(tr, m, null, include_courts ? 'default' : 'plain', show_player_status);
+			render_match_row(tr, m, null, include_courts ? 'default' : 'plain', show_player_status, show_add_tabletoperator);
 		}
 	}
 }
@@ -927,7 +927,7 @@ function render_unassigned(container) {
 	uiu.el(container, 'h3', {}, ci18n('Unassigned Matches'));
 
 	const unassigned_matches = curt.matches.filter(m => calc_section(m) === 'unassigned');
-	render_match_table(container, unassigned_matches, curt.only_now_on_court, true);
+	render_match_table(container, unassigned_matches, curt.only_now_on_court, true,true);
 }
 
 function render_upcoming_matches(container) {
@@ -952,8 +952,8 @@ function render_finished(container) {
 	uiu.empty(container);
 	uiu.el(container, 'h3', {}, ci18n('Finished Matches'));
 
-	const matches = curt.matches.filter(m => calc_section(m) === 'finished');
-	render_match_table(container, matches, true);
+	const matches = curt.matches.filter(m => calc_section(m) === 'finished').sort((a, b) => {return b.end_ts - a.end_ts});
+	render_match_table(container, matches, true, false, true);
 }
 
 function render_courts(container, style) {
