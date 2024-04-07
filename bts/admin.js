@@ -247,32 +247,50 @@ function handle_tabletoperator_add(app, ws, msg) {
 	if (!msg.tournament_key) {
 		return ws.respond(msg, { message: 'Missing tournament_key' });
 	}
-	if (!msg.match) {
-		return ws.respond(msg, { message: 'Missing match' });
-	}
 	const tournament_key = msg.tournament_key;
-	const team_id = msg.team_id;
-	const match = msg.match
-	const team = match.setup.teams[team_id];
-	team.players.forEach((player) => {
-		var tabletoperator = [];
-		tabletoperator.push(player);
-		const new_tabletoperator = {
-			tournament_key,
-			tabletoperator,
-			'match_id': 'manually_added',
-			'start_ts': Date.now(),
-			'end_ts': null,
-			'court': null
+	var team = null;
+	if (msg.match) {
+		const team_id = msg.team_id;
+		const match = msg.match
+		const team = match.setup.teams[team_id];
+	} else if (msg.tabletoperator_name) {
+		team = {
+			"players": [
+				{
+					"asian_name": false,
+					"name": msg.tabletoperator_name,
+					"firstname": "",
+					"lastname": "",
+					"btp_id": -1
+				}
+			],
+			"name": "N/N"
 		};
-		app.db.tabletoperators.insert(new_tabletoperator, function (err, inserted_tabletoperator) {
-			if (err) {
-				ws.respond(msg, err);
-				return;
-			}
-			notify_change(app, tournament_key, 'tabletoperator_add', { tabletoperator: inserted_tabletoperator });
+			
+	}
+	if (team != null) {
+		team.players.forEach((player) => {
+			var tabletoperator = [];
+			tabletoperator.push(player);
+			const new_tabletoperator = {
+				tournament_key,
+				tabletoperator,
+				'match_id': 'manually_added',
+				'start_ts': Date.now(),
+				'end_ts': null,
+				'court': null
+			};
+			app.db.tabletoperators.insert(new_tabletoperator, function (err, inserted_tabletoperator) {
+				if (err) {
+					ws.respond(msg, err);
+					return;
+				}
+				notify_change(app, tournament_key, 'tabletoperator_add', { tabletoperator: inserted_tabletoperator });
+			});
 		});
-	});
+	} else {
+		return ws.respond(msg, { message: 'Not enough Information to add a tabletoperator to list' });
+	}
 }
 
 function handle_match_edit(app, ws, msg) {

@@ -574,27 +574,14 @@ function on_announce_preparation_matchbutton_click(e) {
 }
 function on_add_to_tabletoperators_team_one_button_click(e) {
 	const match = fetchMatchFromEvent(e);
-	add_to_tabletoperator(match, 0)
+	ctabletoperator.add_to_tabletoperator(match, 0)
 }
 function on_add_to_tabletoperators_team_two_button_click(e) {
 	const match = fetchMatchFromEvent(e);
-	add_to_tabletoperator(match,1)
+	ctabletoperator.add_to_tabletoperator(match,1)
 }
 
-function add_to_tabletoperator(match,team_num) {
-	if (match != null) {
-		send({
-			type: 'tabletoperator_add',
-			tournament_key: curt.key,
-			team_id: team_num,
-			match: match,
-		}, err => {
-			if (err) {
-				return cerror.net(err);
-			}
-		});
-	}
-}
+
 function on_second_call_team_one_button_click(e) {
 	const match = fetchMatchFromEvent(e);
 	if (match != null) {
@@ -1419,6 +1406,7 @@ if ((typeof module !== 'undefined') && (typeof require !== 'undefined')) {
 	var countries = require('./countries');
 	var crouting = require('./crouting');
 	var ctournament = require('./ctournament');
+	var ctabletoperator = require('./ctabletoperator');
 	var form_utils = require('../bup/js/form_utils');
 	var uiu = require('../bup/js/uiu');
 	var utils = require('../bup/js/utils');

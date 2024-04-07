@@ -5,10 +5,10 @@ var ctabletoperator = (function() {
 function render_unassigned(container) {
 	uiu.empty(container);
 	uiu.el(container, 'h3', {}, ci18n('tabletoperator:unassigned'));
-
 	const unassigned_tabletoperators = curt.tabletoperators.filter(m => m.court == null);
 	render_tabletoperator_table(container, unassigned_tabletoperators);
-	}
+	render_tabletoperator_formular(container);
+}
 
 function render_tabletoperator_table(container, tabletoperators) {
 	
@@ -75,15 +75,44 @@ function create_tabletoperator_button(targetEl, cssClass, title, listener, table
 	});
 	btn.addEventListener('click', listener);
 }
-//crouting.register(/t\/([a-z0-9]+)\/umpires$/, function(m) {
-//	ctournament.switch_tournament(m[1], function() {
-//		render_unassigned();
-//	});
-//}, change.default_handler(render_unassigned));
 
+function render_tabletoperator_formular(target) {
+		const announcements = uiu.el(target, 'div', '_tabletoperator_container');
+		const form = uiu.el(announcements, 'form');
+		uiu.el(form, 'input', {
+			type: 'input',
+			id: 'tabletoperator_name',
+			name: 'tabletoperator_name'
+		});
+		const btp_fetch_btn = uiu.el(form, 'button', {
+			'class': 'vlink tabletoperator_add_custom_button',
+			height: 50,
+			role: 'submit',
+		});
+		form_utils.onsubmit(form, function (d) {
+			add_to_tabletoperator(null, null, d.tabletoperator_name)
+		});
+}
+
+function add_to_tabletoperator(match, team_num, tabletoperator_name) {
+	if ((match != null && team_num) || tabletoperator_name) {
+		send({
+			type: 'tabletoperator_add',
+			tournament_key: curt.key,
+			team_id: team_num,
+			tabletoperator_name: tabletoperator_name,
+			match: match,
+		}, err => {
+			if (err) {
+				return cerror.net(err);
+			}
+		});
+	}
+}
 
 return {
 	render_unassigned,
+	add_to_tabletoperator
 };
 
 })();
