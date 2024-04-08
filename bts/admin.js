@@ -252,7 +252,7 @@ function handle_tabletoperator_add(app, ws, msg) {
 	if (msg.match) {
 		const team_id = msg.team_id;
 		const match = msg.match
-		const team = match.setup.teams[team_id];
+		team = match.setup.teams[team_id];
 	} else if (msg.tabletoperator_name) {
 		team = {
 			"players": [
