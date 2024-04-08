@@ -95,7 +95,7 @@ function render_tabletoperator_formular(target) {
 }
 
 function add_to_tabletoperator(match, team_num, tabletoperator_name) {
-	if ((match != null && team_num) || tabletoperator_name) {
+	if (match != null || tabletoperator_name) {
 		send({
 			type: 'tabletoperator_add',
 			tournament_key: curt.key,
