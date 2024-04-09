@@ -415,6 +415,7 @@ async function integrate_matches(app, tkey, btp_state, court_map, callback) {
 					if (!cur_match.team1_won && cur_match.team1_won != match.team1_won) {
 						if (!match.end_ts) { 
 							result_enterd_in_btp = true;
+							match.setup.warmup = 'none';
 							match.end_ts = Date.now();
 							const http_api = require('./http_api');
 							http_api.add_player_to_tabletoperator_list_by_match(app, tkey, match, match.end_ts);
