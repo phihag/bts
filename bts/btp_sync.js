@@ -404,13 +404,23 @@ async function integrate_matches(app, tkey, btp_state, court_map, callback) {
    
 				   	// equals checked_in changed and check if it was the only change
 				   	let only_change_check_in = false;
-   
+					let result_enterd_in_btp = false;
+
 				   	for(let team_index = 0; team_index < cur_match.setup.teams.length; team_index++) {
 					   	for (let player_index = 0; player_index < cur_match.setup.teams[team_index].players.length; player_index++){
 						   	cur_match.setup.teams[team_index].players[player_index].checked_in = match.setup.teams[team_index].players[player_index].checked_in;
 					   	}
 				   	}
-   
+
+					if (!cur_match.team1_won && cur_match.team1_won != match.team1_won) {
+						if (!match.end_ts) { 
+							result_enterd_in_btp = true;
+							match.end_ts = Date.now();
+							const http_api = require('./http_api');
+							http_api.add_player_to_tabletoperator_list_by_match(app, tkey, match, match.end_ts);
+						}
+					}
+
 				   	if (utils.plucked_deep_equal(match, cur_match, Object.keys(match), true)) {
 					   	only_change_check_in = true;
 				   	}
@@ -423,10 +433,13 @@ async function integrate_matches(app, tkey, btp_state, court_map, callback) {
    
 						// render onli if is_match flag is set. else it's nessasary to have the game (it's a link) in the db, but not to rerender
 						if (match.setup.is_match) {
-					   		if(!only_change_check_in) {
+							if (!only_change_check_in || result_enterd_in_btp) {
 							   	admin.notify_change(app, match.tournament_key, 'match_edit', {	match__id: match._id,
-																							   	btp_winner: match.btp_winner, 
-																							   	setup: match.setup});
+																								btp_winner: match.btp_winner,
+																								network_score: result_enterd_in_btp == true ? match.network_score : null,
+																								end_ts: result_enterd_in_btp == true ? match.end_ts : null,
+																							    setup: match.setup
+									  });
 					   		} else {
 							   	admin.notify_change(app, match.tournament_key, 'update_player_status', {match__id: match._id,
 																									   	btp_winner: match.btp_winner, 

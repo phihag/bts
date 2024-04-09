@@ -150,10 +150,25 @@ function update_match(c){
 		cerror.silent('Cannot find match to update player status, ID: ' + JSON.stringify(match_id));
 		return;
 	}
+	const old_section = cmatch.calc_section(m);
 	m.btp_winner = cval.btp_winner;
+	if (m.btp_winner && !m.team1_won) {
+		m.team1_won = (m.btp_winner === 1);
+		if (cval.network_score) {
+			m.network_score = cval.network_score;
+		}
+		if (cval.end_ts) {
+			m.end_ts = cval.end_ts;
+		}
+	}
 	m.setup = cval.setup;
-
-	cmatch.update_match(m);
+	const new_section = cmatch.calc_section(m);
+	
+	if (old_section === new_section) {
+		cmatch.update_match(m);
+	} else {
+		_show_render_matches();
+	}
 }
 
 function update_current_match(c) {
