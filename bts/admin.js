@@ -294,7 +294,7 @@ function handle_tabletoperator_add(app, ws, msg) {
 }
 
 function handle_match_edit(app, ws, msg) {
-	if (!_require_msg(ws, msg, ['tournament_key', 'id', 'setup'])) {
+	if (!_require_msg(ws, msg, ['tournament_key', 'id', 'match'])) {
 		return;
 	}
 	const tournament_key = msg.tournament_key;
@@ -316,7 +316,7 @@ function handle_match_edit(app, ws, msg) {
 			return;
 		}
 
-		notify_change(app, tournament_key, 'match_edit', {match__id: msg.id, setup});
+		notify_change(app, tournament_key, 'match_edit', {match__id: msg.id, match});
 		if (msg.btp_update) {
 			btp_manager.update_score(app, changed_match);
 		}
@@ -350,7 +350,7 @@ function handle_match_preparation_call(app, ws, msg) {
 		}
 
 		//notify_change(app, tournament_key, 'match_edit', {match__id: msg.id, setup});
-		notify_change(app, tournament_key, 'match_preparation_call', {match__id: msg.id, setup});
+		notify_change(app, tournament_key, 'match_preparation_call', {match__id: msg.id, match: changed_match});
 
 		btp_manager.update_highlight(app, changed_match);
 		

@@ -21,15 +21,15 @@ function change_score(cval) {
 	m.team1_won = cval.team1_won;
 }
 
-function change_current_match(cval) {
-	// Do not use courts_by_id since that may not be initialized in all views
-	const court = utils.find(curt.courts, c => c._id === cval.court_id);
-	if (court) {
-		court.match_id = cval.match_id;
-	} else {
-		cerror.silent('Cannot find court ' + JSON.stringify(cval.court_id));
-	}
-}
+//function change_current_match(cval) {
+//	// Do not use courts_by_id since that may not be initialized in all views
+//	const court = utils.find(curt.courts, c => c._id === cval.court_id);
+//	if (court) {
+//		court.match_id = cval.match_id;
+//	} else {
+//		cerror.silent('Cannot find court ' + JSON.stringify(cval.court_id));
+//	}
+//}
 
 function default_handler_func(rerender, special_funcs, c) {
 	if (special_funcs && special_funcs[c.ctype]) {
@@ -84,17 +84,19 @@ function default_handler_func(rerender, special_funcs, c) {
 		});
 
 		break;}
-	case 'tabletoperator_add':
-		curt.tabletoperators.push(c.val.tabletoperator);
-		rerender();
-		break;
-	case 'tabletoperator_removed':
-		const changed_t = utils.find(curt.tabletoperators, m => m._id === c.val.tabletoperator._id);
-		if (changed_t) {
-			changed_t.court = c.val.tabletoperator.court;
-		}
-		rerender();
-		break;
+	//case 'tabletoperator_add':
+	//	curt.tabletoperators.push(c.val.tabletoperator);
+	//	console.log("Need to rerender Tabletoperators");
+	//	//rerender();
+	//	break;
+	//case 'tabletoperator_removed':
+	//	const changed_t = utils.find(curt.tabletoperators, m => m._id === c.val.tabletoperator._id);
+	//	if (changed_t) {
+	//		changed_t.court = c.val.tabletoperator.court;
+	//	}
+	//	console.log("Need to rerender Tabletoperators");
+	//	//rerender();
+	//	break;
 	case 'match_add':
 		curt.matches.push(c.val.match);
 		rerender();
@@ -114,8 +116,8 @@ function default_handler_func(rerender, special_funcs, c) {
 		rerender();
 		break;
 	case 'match_preparation_call':
-		announcePreparationMatch(c.val.setup);
-		rerender();
+		announcePreparationMatch(c.val.match.setup);
+		ctournament.update_match(c);
 		break;
 	case 'match_called_on_court':
 		announceNewMatch(c.val.setup);
@@ -159,7 +161,7 @@ function default_handler_func(rerender, special_funcs, c) {
 
 return {
 	default_handler,
-	change_current_match,
+	//change_current_match,
 };
 
 })();
@@ -168,6 +170,7 @@ return {
 if ((typeof module !== 'undefined') && (typeof require !== 'undefined')) {
 	var cerror = require('./cerror');
 	var cmatch = require('./cmatch');
+	var ctournament = require('./ctournament');
 	var uiu = require('../bup/js/uiu');
 	var utils = require('./utils');
 

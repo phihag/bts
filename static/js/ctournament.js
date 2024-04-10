@@ -120,7 +120,13 @@ function update_score(c) {
 	if (old_section === new_section) {
 		cmatch.update_match_score(m);
 	} else {
-		_show_render_matches();
+		if(new_section == 'finished' || new_section == 'unassigned'){
+			m.setup.now_on_court = false;
+		}
+		else{
+			m.setup.now_on_court = true;
+		}
+		cmatch.update_match(m, old_section, new_section);
 	}
 }
 
@@ -147,33 +153,38 @@ function update_match(c){
 	// Find the match
 	const m = utils.find(curt.matches, m => m._id === match_id);
 	if (!m) {
-		cerror.silent('Cannot find match to update player status, ID: ' + JSON.stringify(match_id));
+		cerror.silent('Cannot find match to update, ID: ' + JSON.stringify(match_id));
 		return;
 	}
 	const old_section = cmatch.calc_section(m);
-	m.btp_winner = cval.btp_winner;
-	if (m.btp_winner && !m.team1_won) {
-		m.team1_won = (m.btp_winner === 1);
-		if (cval.network_score) {
-			m.network_score = cval.network_score;
-		}
-		if (cval.end_ts) {
-			m.end_ts = cval.end_ts;
-		}
-	}
-	m.setup = cval.setup;
+	m.network_score = cval.match.network_score;
+	m.presses = cval.match.presses;
+	m.team1_won = cval.match.team1_won;
+	m.shuttle_count = cval.match.shuttle_count;
+	m.setup = cval.match.setup;
+	m.btp_winner = cval.match.btp_winner;
 	const new_section = cmatch.calc_section(m);
-	
-	if (old_section === new_section) {
-		cmatch.update_match(m);
-	} else {
-		_show_render_matches();
+	cmatch.update_match(m, old_section, new_section);
+}
+
+function tabletoperator_add(c) {
+	curt.tabletoperators.push(c.val.tabletoperator);
+
+	_show_render_tabletoperators();
+}
+
+function tabletoperator_removed(c) {
+	const changed_t = utils.find(curt.tabletoperators, m => m._id === c.val.tabletoperator._id);
+	if (changed_t) {
+		changed_t.court = c.val.tabletoperator.court;
 	}
+
+	_show_render_tabletoperators();
 }
 
 function update_current_match(c) {
-	change.change_current_match(c.val);
-	_show_render_matches();
+	//change.change_current_match(c.val);
+	update_match(c);
 }
 
 function _update_all_ui_elements() {
@@ -189,6 +200,7 @@ function _show_render_matches() {
 function _show_render_tabletoperators() {
 	ctabletoperator.render_unassigned(uiu.qs('.unassigned_tableoperators_container'));
 }
+
 
 function ui_btp_fetch() {
 	send({
@@ -302,6 +314,8 @@ _route_single(/t\/([a-z0-9]+)\/$/, ui_show, change.default_handler(_update_all_u
 	court_current_match: update_current_match,
 	update_player_status: update_player_status,
 	match_edit: update_match,
+	tabletoperator_add: tabletoperator_add,
+	tabletoperator_removed: tabletoperator_removed,
 }));
 
 function _upload_logo(e) {
@@ -996,6 +1010,7 @@ return {
 	switch_tournament,
 	ui_show,
 	ui_list,
+	update_match,
 };
 
 })();

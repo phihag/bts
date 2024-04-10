@@ -253,6 +253,7 @@ function score_handler(req, res) {
 		_id: match_id,
 		tournament_key,
 	};
+
 	const update = {
 		network_score: req.body.network_score,
 		network_team1_left: req.body.network_team1_left,
@@ -262,11 +263,13 @@ function score_handler(req, res) {
 		presses: req.body.presses,
 		duration_ms: req.body.duration_ms,
 		end_ts: req.body.end_ts,
+		'setup.now_on_court': true,
 	};
 
 	if (update.team1_won !== undefined && update.team1_won != null) {
 		update.btp_winner = (update.team1_won === true) ? 1 : 2;
 		update.btp_needsync = true;
+		update['setup.now_on_court'] = false;
 	}
 
 	if (update.team1_won != undefined && update.team1_won != null) {
@@ -318,8 +321,8 @@ function score_handler(req, res) {
 		(match, court, changed_court, cb) => {
 			if (changed_court) {
 				admin.notify_change(req.app, tournament_key, 'court_current_match', {
-					match_id,
-					court_id: court._id,
+					match__id: match_id,
+					match: match,
 				});
 			}
 			cb(null, match, changed_court);

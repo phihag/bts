@@ -418,26 +418,92 @@ function update_player(match_id, player, now_on_court, show_player_status) {
 	});
 }
 
-function update_match(m) {
-	uiu.qsEach('.match[data-match_id=' + JSON.stringify(m._id) + ']', (match_row_el) => {
-		match_row_el.innerHTML = '';
-		console.log("render single row: match_num = " + m.setup.match_num);
-		console.log(match_row_el.parentNode);
-		console.log(match_row_el.parentNode.parentNode);
-		console.log(match_row_el.parentNode.parentNode.parentNode);
-		switch (match_row_el.parentNode.parentNode.parentNode.className) {
-			case 'courts_container':
-				render_match_row(match_row_el, m, null, 'default', false, false);
+function update_match(m, old_section, new_section) {	
+	if(old_section != new_section) {
+		switch (old_section) {
+			case 'finished':
+			case 'unassigned':
+				uiu.qsEach('.match[data-match_id=' + JSON.stringify(m._id) + ']', (match_row_el) => {
+					match_row_el.remove();
+				});
 				break;
-			case 'finished_container':
-				render_match_row(match_row_el, m, null, 'default', false,true);
-				break;
-			case 'unassigned_container':
 			default:
-				render_match_row(match_row_el, m, null, 'default', true,true);
-				break
+				uiu.qsEach('.court_row[data-court_id=' + JSON.stringify(m.setup.court_id) + ']', (match_row_el) => {
+					while(match_row_el.childElementCount > 1){
+						match_row_el.removeChild(match_row_el.lastChild);
+					}
+				});
+				break;
 		}
-	});
+
+		switch (new_section) {
+			case 'finished':
+				uiu.qsEach('.finished_container', (finished_container) => {
+					let tbody = finished_container.querySelector('.match_table > tbody');
+					uiu.el(tbody, 'tr', {'class' : 'match highlight_' + m.setup.highlight , 'data-match_id': m._id});
+				});
+			case 'unassigned':
+				uiu.qsEach('.unassigned_container', (unassigned_container) => {
+					let tbody = unassigned_container.querySelector('.match_table > tbody');
+					uiu.el(tbody, 'tr', {'class' : 'match highlight_' + m.setup.highlight , 'data-match_id': m._id});
+				});
+				break;
+			default:
+				break;
+		}
+	} else {
+		switch (old_section) {
+			case 'finished':
+			case 'unassigned':
+				uiu.qsEach('.match[data-match_id=' + JSON.stringify(m._id) + ']', (match_row_el) => {
+					match_row_el.innerHTML = '';
+				});
+				break;
+			default:
+				uiu.qsEach('.court_row[data-court_id=' + JSON.stringify(m.setup.court_id) + ']', (match_row_el) => {
+					while(match_row_el.childElementCount > 1){
+						match_row_el.removeChild(match_row_el.lastChild);
+					}
+				});
+				break;
+		}
+	}
+
+	switch (new_section) {
+		case 'finished':
+			uiu.qsEach('.finished_container > table > tbody > .match[data-match_id=' + JSON.stringify(m._id) + ']', (match_row_el) => {	
+				render_match_row(match_row_el, m, null, 'default', false, true);
+			});
+			break;
+		case 'unassigned':
+			uiu.qsEach( '.unassigned_container > table > tbody > .match[data-match_id=' + JSON.stringify(m._id) + ']', (match_row_el) => {	
+				match_row_el.setAttribute('class', 'match highlight_' + (m.setup.highlight ? m.setup.highlight : 0));
+				render_match_row(match_row_el, m, null, 'default', true, true);
+			});
+			break;
+		default:
+			uiu.qsEach('.court_row[data-court_id=' + JSON.stringify(m.setup.court_id) + ']', (match_row_el) => {
+				render_match_row(match_row_el, m, null, 'plain', false, false);
+			});
+			break;
+	}
+
+	
+	//uiu.qsEach('.match[data-match_id=' + JSON.stringify(m._id) + ']', (match_row_el) => {
+	//	console.log("render single row: match_num = " + m.setup.match_num);
+	//	switch (new_section) {
+	//		case 'finished':
+	//			render_match_row(match_row_el, m, null, 'default', false, true);
+	//			break;
+	//		case 'unassigned':
+	//			render_match_row(match_row_el, m, null, 'default', true, true);
+	//			break;
+	//		default:
+	//			uiu.qsEach('.court_row[data-court_id=' + JSON.stringify(m.setup.court_id) + ']', (match_row_el) => {
+	//			render_match_row(match_row_el, m, null, 'plain', false, false);
+	//			break;
+	//	}
+	//});
 }
 
 var active_timers = {'matches': {}, 'players' : {}};
@@ -952,7 +1018,7 @@ function render_courts(container, style) {
 		const expected_section = 'court_' + c._id;
 		const court_matches = curt.matches.filter(m => calc_section(m) === expected_section);
 
-		const tr = uiu.el(tbody, 'tr');
+		const tr = uiu.el(tbody, 'tr', {class:"court_row", "data-court_id":c._id} );
 		const rowspan = Math.max(1, court_matches.length);
 		uiu.el(tr, 'th', {
 			'class': 'court_num',
