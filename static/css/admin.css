@@ -162,3 +162,18 @@ table.striped-table {
 	padding-left: 0.3em;
 	white-space: pre-wrap;
 }
+
+.metadata_container{
+	background-color: #aaaa;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-around;
+    margin: 20px 20px 20px 0px;
+    padding: 10px;
+}
+
+.announcements_container > form{
+	display: flex;
+    flex-direction: column;
+    justify-content: space-evenly;
+}

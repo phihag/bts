@@ -1,6 +1,7 @@
 .match_save_button {
 	font-size: 120%;
 	padding: 9px 20px;
+	margin: 10px 0px 10px 0px; 
 }
 
 .match_num {

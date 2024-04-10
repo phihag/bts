@@ -38,6 +38,9 @@ function default_handler_func(rerender, special_funcs, c) {
 	}
 
 	switch (c.ctype) {
+	case 'free_announce':
+		announce([c.val.text]);
+		break;
 	case 'props': {
 		curt.name = c.val.name;
 		curt.is_team = c.val.is_team;

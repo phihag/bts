@@ -370,6 +370,18 @@ function handle_begin_to_play_call(app, ws, msg) {
 	ws.respond(msg);
 }
 
+function handle_free_announce(app, ws, msg) {
+	if (!_require_msg(ws, msg, ['text'])) {
+		return;
+	}
+	const tournament_key = msg.tournament_key;
+	const text = msg.text;
+
+	notify_change(app, tournament_key, 'free_announce', {text});
+
+	ws.respond(msg);
+}
+
 function handle_second_call_tabletoperator(app, ws, msg) {
 	if (!_require_msg(ws, msg, ['tournament_key', 'setup'])) {
 		return;
@@ -565,6 +577,7 @@ module.exports = {
 	handle_match_preparation_call,
 	handle_ticker_pushall,
 	handle_ticker_reset,
+	handle_free_announce,
 	handle_second_call_tabletoperator,
 	handle_second_call_team_one,
 	handle_second_call_team_two,

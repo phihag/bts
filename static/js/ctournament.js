@@ -226,6 +226,7 @@ function ui_ticker_push() {
 
 function render_announcement_formular(target) {
 	const announcements = uiu.el(target, 'div', 'announcements_container');
+	const heading = uiu.el(announcements, 'h3', {}, 'Freie Ansage');
 	const form = uiu.el(announcements, 'form');
 	uiu.el(form, 'textarea', {
 		type: 'textarea',
@@ -239,10 +240,41 @@ function render_announcement_formular(target) {
 		role: 'submit',
 	}, 'Ansage abspielen');
 	form_utils.onsubmit(form, function (d) {
-		announce([d.custom_announcement]);
+		//announce([d.custom_announcement]);
+		send({
+			type: 'free_announce',
+			tournament_key: curt.key,
+			text: d.custom_announcement,
+		}, function (err) {
+			if (err) {
+				return cerror.net(err);
+			}
+		});
+	});
+}
+
+function render_enable_announcement(target) {
+	const announcements = uiu.el(target, 'div', 'enable_announcements_container');
+	const heading = uiu.el(announcements, 'h3', {}, 'Ansagen auf diesem Gerät');
+	const form = uiu.el(announcements, 'form');
+	const enable_announcements =uiu.el(form, 'input', {
+		type: 'checkbox',
+		id: 'enable_announcements',
+		name: 'enable_announcements'
 	});
 
+	enable_announcements.checked = (window.localStorage.getItem('enable_announcements') === 'true');
+	uiu.el(form, 'label', {for: 'enable_announcements'}, 'Ansagen auf diesem Gerät aktivieren');
+	enable_announcements.addEventListener('change', change_announcements);
 }
+
+function change_announcements(e) {
+	let enable_announcements = document.getElementById('enable_announcements');
+	console.log(enable_announcements.checked);
+	window.localStorage.setItem('enable_announcements', enable_announcements.checked);
+
+}
+
 function ui_show() {
 	crouting.set('t/:key/', {key: curt.key});
 	const bup_lang = ((curt.language && curt.language !== 'auto') ? '&lang=' + encodeURIComponent(curt.language) : '');
@@ -284,12 +316,16 @@ function ui_show() {
 
 	cmatch.prepare_render(curt);
 
+	const meta_div = uiu.el(main, 'div', 'metadata_container');
+
+	uiu.el(meta_div, 'div', 'unassigned_tableoperators_container');
+	render_announcement_formular(meta_div);
+	render_enable_announcement(meta_div);
+
 	uiu.el(main, 'div', 'courts_container');
-	uiu.el(main, 'div', 'unassigned_tableoperators_container');
 	uiu.el(main, 'div', 'unassigned_container');
 	const match_create_container = uiu.el(main, 'div');
 	cmatch.render_create(match_create_container);
-	render_announcement_formular(main);
 	uiu.el(main, 'div', 'finished_container');
 
 	_show_render_matches();

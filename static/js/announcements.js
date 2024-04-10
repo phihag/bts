@@ -1,5 +1,9 @@
 
+
 function announceNewMatch(matchSetup) {
+    if(!(window.localStorage.getItem('enable_announcements') === 'true')) {
+        return;
+    }
     var field = createFieldAnnouncement(matchSetup);
     var matchNumber = createMatchNumberAnnouncement(matchSetup);
     var eventName = createEventAnnouncement(matchSetup);
@@ -10,6 +14,9 @@ function announceNewMatch(matchSetup) {
 }
 
 function announcePreparationMatch(matchSetup) {
+    if(!(window.localStorage.getItem('enable_announcements') === 'true')) {
+        return;
+    }
     var preparation = createPreparationAnnouncement();
     var matchNumber = createMatchNumberAnnouncement(matchSetup);
     var eventName = createEventAnnouncement(matchSetup);
@@ -18,24 +25,39 @@ function announcePreparationMatch(matchSetup) {
     announce([preparation, matchNumber, eventName, round, teams]);
 }
 function announceSecondCallTeamOne(matchSetup) {
+    if(!(window.localStorage.getItem('enable_announcements') === 'true')) {
+        return;
+    }
     announceSecondCall(matchSetup, matchSetup.teams[0]);
 }
 
 function announceSecondCallTeamTwo(matchSetup) {
+    if(!(window.localStorage.getItem('enable_announcements') === 'true')) {
+        return;
+    }
     announceSecondCall(matchSetup, matchSetup.teams[1]);
 }
 
 function announceSecondCallTabletoperator(matchSetup) {
+    if(!(window.localStorage.getItem('enable_announcements') === 'true')) {
+        return;
+    }
     const call = createFieldAnnouncement(matchSetup) + createSecondCallAnnouncement() + createTabletOperator(matchSetup);
     announce([call]);
 }
 
 function announceSecondCall(matchSetup, team) {
+    if(!(window.localStorage.getItem('enable_announcements') === 'true')) {
+        return;
+    }
     var secondCall = createSecondCallAnnouncement() + createSingleTeam(team.players);
     var field = createFieldAnnouncement(matchSetup);
     announce([secondCall, field]);
 }
 function announceBeginnToPlay(matchSetup, team) {
+    if(!(window.localStorage.getItem('enable_announcements') === 'true')) {
+        return;
+    }
     announce([createFieldAnnouncement(matchSetup) + "Bitte mit dem Spielen beginnen!"]);
 }
 
@@ -170,6 +192,10 @@ function createPreparationAnnouncement() {
 }
 
 function announce(callArray) {
+    if(!(window.localStorage.getItem('enable_announcements') === 'true')) {
+        return;
+    }
+    
     // Seems like the getVoices() is an asynchronous function where it is not always guaranteed that you get a 
     // result immediately. The wait for the result must therefore be handled:
     // https://stackoverflow.com/questions/21513706/getting-the-list-of-voices-in-speechsynthesis-web-speech-api
