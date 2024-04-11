@@ -85,21 +85,16 @@ function default_handler_func(rerender, special_funcs, c) {
 		uiu.qsEach('input[name="ticker_password"]', function(el) {
 			el.value = curt.ticker_password;
 		});
-
 		break;}
-	//case 'tabletoperator_add':
-	//	curt.tabletoperators.push(c.val.tabletoperator);
-	//	console.log("Need to rerender Tabletoperators");
-	//	//rerender();
-	//	break;
-	//case 'tabletoperator_removed':
-	//	const changed_t = utils.find(curt.tabletoperators, m => m._id === c.val.tabletoperator._id);
-	//	if (changed_t) {
-	//		changed_t.court = c.val.tabletoperator.court;
-	//	}
-	//	console.log("Need to rerender Tabletoperators");
-	//	//rerender();
-	//	break;
+	case 'tabletoperator_add':
+		//nothing to do here
+		break;
+	case 'tabletoperator_removed':
+		//nothing todo here
+		break;
+	case 'match_edit':
+		ctournament.update_match(c);
+		break;
 	case 'match_add':
 		curt.matches.push(c.val.match);
 		rerender();
@@ -121,6 +116,7 @@ function default_handler_func(rerender, special_funcs, c) {
 	case 'match_preparation_call':
 		announcePreparationMatch(c.val.match.setup);
 		ctournament.update_match(c);
+		ctournament.update_upcoming_match(c);
 		break;
 	case 'match_called_on_court':
 		announceNewMatch(c.val.setup);
@@ -156,6 +152,9 @@ function default_handler_func(rerender, special_funcs, c) {
 		break;
 	case 'ticker_status':
 		uiu.text_qs('.ticker_status', 'Ticker status: ' + c.val);
+		break;
+	case 'update_player_status':
+		//nothing todo here
 		break;
 	default:
 		cerror.silent('Unsupported change type ' + c.ctype);

@@ -22,3 +22,28 @@
 	margin: -0.1em 0.3em 0.1em 0.3em;
 	line-height: 100%;
 }
+.main_upcoming > div > .match_table > tbody > .court_row > .court_num {
+	display: inline-block;
+	background-size: cover;
+	opacity: 1;
+	color: #fff;
+	text-align: center;
+	background-image: url(../icons/court.svg);
+	height: 1.0em;
+	min-height: 1.0em;
+	width: 1.3em;
+	min-width: 1.3em;
+	font-weight: 900;
+	font-size: 1.8em;
+	-webkit-text-stroke-width: 1px;
+	-webkit-text-stroke-color: black;
+	text-shadow:
+	3px 3px 3px #000,
+   -1px -1px 3px #000,  
+   	1px -1px 3px #000,
+   -1px 1px 3px #000,
+	1px 1px 3px #000;
+	margin: -0.05em 0.3em 0.05em 0.3em;
+	line-height: 100%;
+	padding: 0.1em 0.2em 0em 0.2em;
+}

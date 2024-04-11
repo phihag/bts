@@ -398,12 +398,13 @@ function add_player_to_tabletoperator_list_by_match(app, tournament_key, cur_mat
 			if (no_tabletoperator == null) {
 				const round = cur_match.setup.match_name;
 				var team = null;
-				if (round == 'VF' || round == 'QF') {
-					team = cur_match.setup.teams[cur_match.btp_winner - 1];
-				} else {
+				// Not nessasaary if not TR 15/5
+				//if (round == 'VF' || round == 'QF') {
+				//	team = cur_match.setup.teams[cur_match.btp_winner - 1];
+				//} else {
 					const index = cur_match.btp_winner % 2;
 					team = cur_match.setup.teams[index];
-				}
+				//}
 				if (team && typeof team.players !== 'undefined') {
 					var tabletoperator = [];
 

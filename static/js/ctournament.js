@@ -167,6 +167,34 @@ function update_match(c){
 	cmatch.update_match(m, old_section, new_section);
 }
 
+function update_upcoming_match(c){
+	const cval = c.val;
+	const match_id = cval.match__id;
+
+	// Find the match
+	const m = utils.find(curt.matches, m => m._id === match_id);
+	if (!m) {
+		cerror.silent('Cannot find match to update, ID: ' + JSON.stringify(match_id));
+		return;
+	}
+	const old_section = cmatch.calc_section(m);
+	m.network_score = cval.match.network_score;
+	m.presses = cval.match.presses;
+	m.team1_won = cval.match.team1_won;
+	m.shuttle_count = cval.match.shuttle_count;
+	m.setup = cval.match.setup;
+	m.btp_winner = cval.match.btp_winner;
+	const new_section = cmatch.calc_section(m);
+	cmatch.update_match(m, old_section, new_section);
+
+	console.log(new_section);
+
+	if(old_section != new_section || new_section == 'unassigned') {
+		const upcoming_container = uiu.qs('.upcoming_container');
+		cmatch.render_upcoming_matches(upcoming_container);
+	}
+}
+
 function tabletoperator_add(c) {
 	curt.tabletoperators.push(c.val.tabletoperator);
 
@@ -185,6 +213,11 @@ function tabletoperator_removed(c) {
 function update_current_match(c) {
 	//change.change_current_match(c.val);
 	update_match(c);
+}
+
+function update_upcoming_current_match(c) {
+	//change.change_current_match(c.val);
+	update_upcoming_match(c);
 }
 
 function _update_all_ui_elements() {
@@ -300,27 +333,24 @@ function ui_show() {
 	const main = uiu.qs('.main');
 	uiu.empty(main);
 
-	const settings_btn = uiu.el(main, 'div', 'tournament_settings_link vlink', ci18n('edit tournament'));
-	settings_btn.addEventListener('click', ui_edit);
+	const meta_div = uiu.el(main, 'div', 'metadata_container');
 
-	if (curt.btp_enabled) {
-		const btp_fetch_btn = uiu.el(main, 'button', 'tournament_btp_fetch', ci18n('update from BTP'));
-		btp_fetch_btn.addEventListener('click', ui_btp_fetch);
-	}
-	if (curt.ticker_enabled) {
-		const ticker_push_btn = uiu.el(main, 'button', 'tournament_ticker_push', ci18n('update ticker'));
-		ticker_push_btn.addEventListener('click', ui_ticker_push);
-	}
+	uiu.el(meta_div, 'div', 'unassigned_tableoperators_container');
+	render_announcement_formular(meta_div);
+
+	const meta_right_div = uiu.el(meta_div, 'div', 'metadata_right_container');
+
+	render_enable_announcement(meta_right_div);
+
+	render_settings(meta_right_div);
 
 	uiu.el(main, 'h1', 'tournament_name ct_name', curt.name || curt.key);
 
 	cmatch.prepare_render(curt);
 
-	const meta_div = uiu.el(main, 'div', 'metadata_container');
+	
 
-	uiu.el(meta_div, 'div', 'unassigned_tableoperators_container');
-	render_announcement_formular(meta_div);
-	render_enable_announcement(meta_div);
+
 
 	uiu.el(main, 'div', 'courts_container');
 	uiu.el(main, 'div', 'unassigned_container');
@@ -353,6 +383,22 @@ _route_single(/t\/([a-z0-9]+)\/$/, ui_show, change.default_handler(_update_all_u
 	tabletoperator_add: tabletoperator_add,
 	tabletoperator_removed: tabletoperator_removed,
 }));
+
+function render_settings(target) {
+	const settings_div = uiu.el(target, 'div', 'metadata_right_container');
+	uiu.el(settings_div, 'h3', {}, 'Turnier-Einstellungen');
+	const settings_btn = uiu.el(settings_div, 'div', 'tournament_settings_link vlink', ci18n('edit tournament'));
+	settings_btn.addEventListener('click', ui_edit);
+
+	if (curt.btp_enabled) {
+		const btp_fetch_btn = uiu.el(settings_div, 'button', 'tournament_btp_fetch', ci18n('update from BTP'));
+		btp_fetch_btn.addEventListener('click', ui_btp_fetch);
+	}
+	if (curt.ticker_enabled) {
+		const ticker_push_btn = uiu.el(settings_div, 'button', 'tournament_ticker_push', ci18n('update ticker'));
+		ticker_push_btn.addEventListener('click', ui_ticker_push);
+	}
+}
 
 function _upload_logo(e) {
 	const input = e.target;
@@ -849,7 +895,7 @@ function render_upcoming(container) {
 	const courts_container = uiu.el(container, 'div');
 	cmatch.render_courts(courts_container, 'public');
 
-	const upcoming_container = uiu.el(container, 'div');
+	const upcoming_container = uiu.el(container, 'div', 'upcoming_container');
 	cmatch.render_upcoming_matches(upcoming_container);
 }
 
@@ -870,7 +916,14 @@ function ui_upcoming() {
 		fullscreen.toggle();
 	});
 }
-_route_single(/t\/([a-z0-9]+)\/upcoming/, ui_upcoming);
+_route_single(/t\/([a-z0-9]+)\/upcoming/, ui_upcoming, change.default_handler(_update_all_ui_elements, {
+	score: update_score,
+	court_current_match: update_upcoming_current_match,
+	//update_player_status: update_player_status,
+	match_edit: update_upcoming_match,
+	//tabletoperator_add: tabletoperator_add,
+	//tabletoperator_removed: tabletoperator_removed,
+}));
 
 
 function init() {
@@ -1047,6 +1100,7 @@ return {
 	ui_show,
 	ui_list,
 	update_match,
+	update_upcoming_match,
 };
 
 })();
