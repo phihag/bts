@@ -269,25 +269,27 @@ function matches_handler(app, ws, tournament_key, court_id) {
 			notify_change_ws(app, tournament_key, "score-update", msg);
 		}
 
-		let matches = db_matches.map(dbm => create_match_representation(tournament, dbm));
-		if (tournament.only_now_on_court) {
-			matches = matches.filter(m => m.setup.now_on_court);
-		}
+		if(db_matches){
+		    let matches = db_matches.map(dbm => create_match_representation(tournament, dbm));
+		    if (tournament.only_now_on_court) {
+		        	matches = matches.filter(m => m.setup.now_on_court);
+		    }
 
-		db_courts.sort(utils.cmp_key('num'));
-		const courts = db_courts.map(function (dc) {
-			var res = {
-				court_id: dc._id,
-				label: dc.num,
-			};
-			if (dc.match_id) {
-				res.match_id = 'bts_' + dc.match_id;
-			}
-			if (dc.called_timestamp) {
-				res.called_timestamp = dc.called_timestamp;
-			}
-			return res;
-		});
+		    db_courts.sort(utils.cmp_key('num'));
+		    const courts = db_courts.map(function (dc) {
+				var res = {
+					court_id: dc._id,
+					label: dc.num,
+				};
+				if (dc.match_id) {
+					res.match_id = 'bts_' + dc.match_id;
+				}
+				if (dc.called_timestamp) {
+					res.called_timestamp = dc.called_timestamp;
+				}
+				return res;
+			});
+		}
 
 		const event = create_event_representation(tournament);
 		event.matches = matches;

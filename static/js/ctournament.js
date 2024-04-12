@@ -225,6 +225,11 @@ function _update_all_ui_elements() {
 	_show_render_tabletoperators();
 
 }
+function _update_all_ui_elements_upcoming() {
+	cmatch.render_courts(uiu.qs('.courts_container'), 'public');
+	cmatch.render_upcoming_matches(uiu.qs('.upcoming_container'));
+}
+
 function _show_render_matches() {
 	cmatch.render_courts(uiu.qs('.courts_container'));
 	cmatch.render_unassigned(uiu.qs('.unassigned_container'));
@@ -892,7 +897,7 @@ _route_single(/t\/([a-z0-9]+)\/edit$/, ui_edit);
 
 function render_upcoming(container) {
 	cmatch.prepare_render(curt);
-	const courts_container = uiu.el(container, 'div');
+	const courts_container = uiu.el(container, 'div', 'courts_container');
 	cmatch.render_courts(courts_container, 'public');
 
 	const upcoming_container = uiu.el(container, 'div', 'upcoming_container');
@@ -916,7 +921,7 @@ function ui_upcoming() {
 		fullscreen.toggle();
 	});
 }
-_route_single(/t\/([a-z0-9]+)\/upcoming/, ui_upcoming, change.default_handler(_update_all_ui_elements, {
+_route_single(/t\/([a-z0-9]+)\/upcoming/, ui_upcoming, change.default_handler(_update_all_ui_elements_upcoming, {
 	score: update_score,
 	court_current_match: update_upcoming_current_match,
 	//update_player_status: update_player_status,
