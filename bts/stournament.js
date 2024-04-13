@@ -38,10 +38,21 @@ function get_tabletoperators(db, tournament_key, callback) {
 	});
 }
 
+function get_displays(db, tournament_key, callback) {
+	db.display_court_displaysettings.find({}, function (err, display_court_displaysettings) {
+		if (err) return callback(err);
+
+		// TODO: Append not registered Displays and set status online/offline of registered displays by using ite registered ws in bubws
+
+		return callback(err, display_court_displaysettings);
+	});
+}
+
 
 module.exports = {
 	get_courts,
 	get_matches,
 	get_umpires,
 	get_tabletoperators,
+	get_displays,
 };

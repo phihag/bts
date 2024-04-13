@@ -82,7 +82,7 @@ function createTeamAnnouncement(matchSetup) {
 
 function createTabletOperator(matchSetup) {
     if (matchSetup.tabletoperators && matchSetup.tabletoperators != null) {
-        return "Tabletbedienung: " + createSingleTeam(matchSetup.tabletoperators);
+        return (curt.tabletoperator_use_manual_counting_boards_enabled ? "Klapptafelbedienung:" : "Tabletbedienung: ") + createSingleTeam(matchSetup.tabletoperators);
     } 
     return null;
 }

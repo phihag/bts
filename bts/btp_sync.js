@@ -427,8 +427,16 @@ async function integrate_matches(app, tkey, btp_state, court_map, callback) {
 							result_enterd_in_btp = true;
 							match.setup.warmup = 'none';
 							match.end_ts = Date.now();
-							const http_api = require('./http_api');
-							http_api.add_player_to_tabletoperator_list_by_match(app, tkey, match, match.end_ts);
+
+							app.db.tournaments.findOne({ key: tkey }, async (err, tournament) => {
+								if (err) {
+									return callback(err);
+								}
+								if ((tournament.tabletoperator_enabled && tournament.tabletoperator_enabled == true)) {
+									const http_api = require('./http_api');
+									http_api.add_player_to_tabletoperator_list_by_match(app, tournament, tkey, match, match.end_ts);
+								}
+							});
 						}
 					}
 

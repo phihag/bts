@@ -388,13 +388,13 @@ function add_player_to_tabletoperator_list(app, tournament_key, cur_match_id, en
 				if (err) {
 					return reject(err);
 				}
-				add_player_to_tabletoperator_list_by_match(app, tournament_key, cur_match, end_ts)
+				add_player_to_tabletoperator_list_by_match(app, tournament, tournament_key, cur_match, end_ts)
 			});
 		}
 	});
 }
 
-function add_player_to_tabletoperator_list_by_match(app, tournament_key, cur_match, end_ts) {
+function add_player_to_tabletoperator_list_by_match(app, tournament, tournament_key, cur_match, end_ts) {
 	if (cur_match.network_score) {
 		// walkovers and retirements will not be recorgnized.
 		app.db.tabletoperators.findOne({ 'tournament_key': tournament_key, 'match_id': cur_match._id }, (err, no_tabletoperator) => {
@@ -404,13 +404,13 @@ function add_player_to_tabletoperator_list_by_match(app, tournament_key, cur_mat
 			if (no_tabletoperator == null) {
 				const round = cur_match.setup.match_name;
 				var team = null;
-				// Not nessasaary if not TR 15/5
-				//if (round == 'VF' || round == 'QF') {
-				//	team = cur_match.setup.teams[cur_match.btp_winner - 1];
-				//} else {
+
+				if (tournament.tabletoperator_winner_of_quaterfinals_enabled && (round == 'VF' || round == 'QF')) { 
+					team = cur_match.setup.teams[cur_match.btp_winner - 1];
+				} else {
 					const index = cur_match.btp_winner % 2;
 					team = cur_match.setup.teams[index];
-				//}
+				}
 				if (team && typeof team.players !== 'undefined') {
 					var tabletoperator = [];
 

@@ -57,7 +57,8 @@ function handle_tournament_edit_props(app, ws, msg) {
 		'is_team', 'is_nation_competition', 'only_now_on_court',
 		'warmup', 'warmup_ready', 'warmup_start',
 		'ticker_enabled', 'ticker_url', 'ticker_password',
-		'language', 'dm_style', 'tabletoperator_enabled','tabletoperator_with_umpire_enabled', 
+		'language', 'dm_style', 'tabletoperator_enabled', 'tabletoperator_winner_of_quaterfinals_enabled',
+		'tabletoperator_use_manual_counting_boards_enabled', 'tabletoperator_with_umpire_enabled', 
 		'logo_background_color', 'logo_foreground_color']);
 
 	if (msg.props.btp_timezone) {
@@ -143,6 +144,11 @@ function handle_tournament_get(app, ws, msg) {
 		}, function(cb) {
 			stournament.get_matches(app.db, tournament.key, function(err, matches) {
 				tournament.matches = matches;
+				cb(err);
+			});
+		}, function (cb) {
+			stournament.get_displays(app.db, tournament.key, function (err, displays) {
+				tournament.displays = displays;
 				cb(err);
 			});
 		}], function(err) {

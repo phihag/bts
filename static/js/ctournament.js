@@ -736,28 +736,12 @@ function ui_edit() {
 		value: (curt.ticker_password || ''),
 	});
 
-	const to_attrs_label = uiu.el(ticker_fieldset, 'label');
-	const to_attrs = {
-		type: 'checkbox',
-		name: 'tabletoperator_enabled',
-	};
-	if (curt.tabletoperator_enabled) {
-		to_attrs.checked = 'checked';
-	}
-	uiu.el(to_attrs_label, 'input', to_attrs);
-	uiu.el(to_attrs_label, 'span', {}, ci18n('tournament:edit:tableroperator_enabled'));
 
-	const to_withumpire_attrs_label = uiu.el(ticker_fieldset, 'label');
-	const to_withumpire_attrs = {
-		type: 'checkbox',
-		name: 'tabletoperator_with_umpire_enabled',
-	};
-	if (curt.tabletoperator_with_umpire_enabled) {
-		to_withumpire_attrs.checked = 'checked';
-	}
-	uiu.el(to_withumpire_attrs_label, 'input', to_withumpire_attrs);
-	uiu.el(to_withumpire_attrs_label, 'span', {}, ci18n('tournament:edit:tableroperator_with_umpire'));
-
+	create_checkbox(curt, ticker_fieldset,'tabletoperator_enabled')
+	create_checkbox(curt, ticker_fieldset, 'tabletoperator_with_umpire_enabled')
+	create_checkbox(curt, ticker_fieldset, 'tabletoperator_winner_of_quaterfinals_enabled')
+	create_checkbox(curt, ticker_fieldset, 'tabletoperator_use_manual_counting_boards_enabled')
+	
 
 	uiu.el(form, 'button', {
 		role: 'submit',
@@ -783,6 +767,8 @@ function ui_edit() {
 			ticker_url: data.ticker_url,
 			ticker_password: data.ticker_password,
 			tabletoperator_with_umpire_enabled: (!!data.tabletoperator_with_umpire_enabled),
+			tabletoperator_winner_of_quaterfinals_enabled: (!!data.tabletoperator_winner_of_quaterfinals_enabled),
+			tabletoperator_use_manual_counting_boards_enabled: (!!data.tabletoperator_use_manual_counting_boards_enabled),
 			tabletoperator_enabled: (!!data.tabletoperator_enabled),
 		};
 		send({
@@ -919,6 +905,19 @@ function ui_edit() {
 }
 _route_single(/t\/([a-z0-9]+)\/edit$/, ui_edit);
 
+
+function create_checkbox(curt, parent_el, filed_id) {
+	const label = uiu.el(parent_el, 'label');
+	const attrs = {
+		type: 'checkbox',
+		name: filed_id,
+	};
+	if (curt[filed_id]) {
+		attrs.checked = 'checked';
+	}
+	uiu.el(label, 'input', attrs);
+	uiu.el(label, 'span', {}, ci18n('tournament:edit:' + filed_id));
+}
 
 function render_upcoming(container) {
 	cmatch.prepare_render(curt);
