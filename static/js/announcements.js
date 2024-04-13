@@ -40,11 +40,20 @@ function announceSecondCallTeamTwo(matchSetup) {
 }
 
 function announceSecondCallTabletoperator(matchSetup) {
-    if(!(window.localStorage.getItem('enable_announcements') === 'true')) {
+    if (!(window.localStorage.getItem('enable_announcements') === 'true')) {
         return;
     }
-    const call = createFieldAnnouncement(matchSetup) + createSecondCallAnnouncement() + createTabletOperator(matchSetup);
-    announce([call]);
+    const umpireCall = createUmpire(matchSetup);;
+    if (umpireCall != null) {
+        const call = createFieldAnnouncement(matchSetup) + createSecondCallAnnouncement() + umpireCall;
+        announce([call]);
+    }
+
+    const tabletOperatorCall = createTabletOperator(matchSetup);;
+    if (tabletOperatorCall != null) { 
+        const call = createFieldAnnouncement(matchSetup) + createSecondCallAnnouncement() + tabletOperatorCall;
+         announce([call]);
+    }
 }
 
 function announceSecondCall(matchSetup, team) {
