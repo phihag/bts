@@ -289,16 +289,17 @@ function matches_handler(app, ws, tournament_key, court_id) {
 				}
 				return res;
 			});
-		}
+		
 
-		const event = create_event_representation(tournament);
-		event.matches = matches;
-		event.courts = courts;
-		const reply = {
-			status: 'ok',
-			event,
-		};
-		notify_change_ws(ws, tournament_key, court_id, "score-update",reply)
+			const event = create_event_representation(tournament);
+			event.matches = matches;
+			event.courts = courts;
+			const reply = {
+				status: 'ok',
+				event,
+			};
+			notify_change_ws(ws, tournament_key, court_id, "score-update", reply)
+		}		
 	});
 }
 
