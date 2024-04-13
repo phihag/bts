@@ -68,28 +68,28 @@ function announceBeginnToPlay(matchSetup, team) {
     if(!(window.localStorage.getItem('enable_announcements') === 'true')) {
         return;
     }
-    announce([createFieldAnnouncement(matchSetup) + "Bitte mit dem Spielen beginnen!"]);
+    announce([createFieldAnnouncement(matchSetup) + ci18n('announcements:begin_to_play')]);
 }
 
 function createSecondCallAnnouncement() {
-    return "Zweiter Aufruf fuer:";
+    return ci18n('announcements:second_call');
 }
 
 function createTeamAnnouncement(matchSetup) {
-    var teams = createSingleTeam(matchSetup.teams[0].players) + ", gegen " + createSingleTeam(matchSetup.teams[1].players);
+    var teams = createSingleTeam(matchSetup.teams[0].players) + "," + ci18n('announcements:vs') + createSingleTeam(matchSetup.teams[1].players);
     return teams;
 }
 
 function createTabletOperator(matchSetup) {
     if (matchSetup.tabletoperators && matchSetup.tabletoperators != null) {
-        return (curt.tabletoperator_use_manual_counting_boards_enabled ? "Klapptafelbedienung:" : "Tabletbedienung: ") + createSingleTeam(matchSetup.tabletoperators);
+        return (curt.tabletoperator_use_manual_counting_boards_enabled ? ci18n('announcements:counting_board_service') : ci18n('announcements:table_service')) + createSingleTeam(matchSetup.tabletoperators);
     } 
     return null;
 }
 
 function createUmpire(matchSetup) {
     if (matchSetup.umpire_name && matchSetup.umpire_name != null) {
-        return "Schiedsrichter: " + matchSetup.umpire_name;
+        return ci18n('announcements:umpire') + matchSetup.umpire_name;
     }
     return null;
 }
@@ -97,7 +97,7 @@ function createUmpire(matchSetup) {
 function createSingleTeam(playersSetup) {
     var team = playersSetup[0].name;
     if (playersSetup.length == 2) {
-        team = team + " und " + playersSetup[1].name
+        team = team + ci18n('announcements:and')+ playersSetup[1].name
     }
     return team;
 }
@@ -105,23 +105,23 @@ function createSingleTeam(playersSetup) {
 function createRoundAnnouncement(matchSetup) {
     var round = matchSetup.match_name;
     if (round == "R16") {
-        round = "Achtelfinale";
+        round = ci18n('announcements:round_16');
     } else if (round == "VF") {
-        round = "Viertelfinale";
+        round = ci18n('announcements:quaterfinal');
     } else if (round == "HF") {
-        round = "Halbfinale";
+        round = ci18n('announcements:semifinal');
     } else if (round == "Finale") {
-        round = "Finale";
+        round = ci18n('announcements:final');
     } else if (round.indexOf('/') !== -1) {
         var roundParts = round.split("/")
         var diff = roundParts[1] - roundParts[0];
         if (diff > 1) {
-            round = "Zwischenrunde";
+            round = ci18n('announcements:intermediate_round');
         } else {
-            round = "Spiel um Platz " + roundParts[0] + " und " + roundParts[1];
+            round = ci18n('announcements:game_for_place') + roundParts[0] + ci18n('announcements:and') + roundParts[1];
         }
     } else if (round.indexOf('-') !== -1) {
-        round = "Zwischenrunde";
+        round = ci18n('announcements:intermediate_round');
     } else {
         round = "";
     }
@@ -131,43 +131,43 @@ function createEventAnnouncement(matchSetup) {
     var eventParts = matchSetup.event_name.split(" ");
     var eventName = "";
     if (eventParts[0] == 'JE') {
-        eventName = "Jungeneinzel"
+        eventName = ci18n('announcements:boys_singles');
     } else if (eventParts[0] == 'JD') {
-        eventName = "Jungendoppel"
+        eventName = ci18n('announcements:boys_doubles');
     } else if (eventParts[0] == 'ME') {
-        eventName = "Maedcheneinzel"
+        eventName = ci18n('announcements:girls_singles');
     } else if (eventParts[0] == 'MD') {
-        eventName = "Maedchendoppel"
+        eventName = ci18n('announcements:girls_doubles')
     } else if (eventParts[0] == 'GD' || eventParts[0] == 'MX') {
-        eventName = "Gemischtesdoppel"
+        eventName = ci18n('announcements:mixed_doubles')
     } else if (eventParts[0] == 'HE') {
-        eventName = "Herreneinzel"
+        eventName = ci18n('announcements:men_singles');
     } else if (eventParts[0] == 'HD') {
-        eventName = "Herrendoppel"
+        eventName = ci18n('announcements:men_doubles');
     } else if (eventParts[0] == 'DE') {
-        eventName = "Dameneinzel"
+        eventName = ci18n('announcements:women_singles');
     } else if (eventParts[0] == 'DD') {
-        eventName = "Damendoppel"
+        eventName = ci18n('announcements:women_doubles');
     }
     if (eventName == "") {
         if (eventParts[1] == 'JE') {
-            eventName = "Jungeneinzel"
+            eventName = ci18n('announcements:boys_singles');
         } else if (eventParts[1] == 'JD') {
-            eventName = "Jungendoppel"
+            eventName = ci18n('announcements:boys_doubles');
         } else if (eventParts[1] == 'ME') {
-            eventName = "Maedcheneinzel"
+            eventName = ci18n('announcements:girls_singles');
         } else if (eventParts[1] == 'MD') {
-            eventName = "Maedchendoppel"
+            eventName = ci18n('announcements:girls_doubles')
         } else if (eventParts[1] == 'GD' || eventParts[1] == 'MX') {
-            eventName = "Gemischtesdoppel"
+            eventName = ci18n('announcements:mixed_doubles')
         } else if (eventParts[1] == 'HE') {
-            eventName = "Herreneinzel"
+            eventName = ci18n('announcements:men_singles');
         } else if (eventParts[1] == 'HD') {
-            eventName = "Herrendoppel"
+            eventName = ci18n('announcements:men_doubles');
         } else if (eventParts[1] == 'DE') {
-            eventName = "Dameneinzel"
+            eventName = ci18n('announcements:women_singles');
         } else if (eventParts[1] == 'DD') {
-            eventName = "Damendoppel"
+            eventName = ci18n('announcements:women_doubles');
         }
         if (eventParts[0]) {
             eventName = eventName + " " + eventParts[0];
@@ -182,13 +182,13 @@ function createEventAnnouncement(matchSetup) {
 
 function createMatchNumberAnnouncement(matchSetup) {
     var number = matchSetup.match_num;
-    return "Spiel Nummer " + number + "!";
+    return ci18n('announcements:match_number') + number + "!";
 }
 
 function createFieldAnnouncement(matchSetup) {
     if (matchSetup.court_id) {
         var court = matchSetup.court_id.split("_")[1];
-        return "Auf Spielfeld " + court + "!";
+        return ci18n('announcements:on_court') + court + "!";
     } else {
         return "";
     }
@@ -196,7 +196,7 @@ function createFieldAnnouncement(matchSetup) {
 }
 
 function createPreparationAnnouncement() {
-    return "In Vorbereitung:";
+    return ci18n('announcements:preparation');
 }
 
 function announce(callArray) {
@@ -222,7 +222,7 @@ function announce(callArray) {
     allVoicesObtained.then(voices => {
         var voice = null;
         for (var i = 0; i < voices.length; i++) {
-            if (voices[i].voiceURI == "Google Deutsch") {
+            if (voices[i].voiceURI == ci18n('announcements:voice')) {
                 voice = voices[i];
                 break;
             }
@@ -230,10 +230,10 @@ function announce(callArray) {
         callArray.forEach(function (part) {
             if (part && part != null) { 
                 var words = new SpeechSynthesisUtterance(part);
-                words.lang = "de-DE";
-                words.rate = 1.05;
-                words.pitch = 0.9;
-                words.volume = 2.0;
+                words.lang = ci18n('announcements:lang');
+                words.rate = 1;
+                words.pitch = 0;
+                words.volume = 1;
                 words.voice = voice;
                 window.speechSynthesis.speak(words);
             }
