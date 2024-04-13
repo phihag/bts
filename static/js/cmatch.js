@@ -132,14 +132,17 @@ function render_match_row(tr, match, court, style, show_player_status, show_add_
 				uiu.el(to_td, 'span', {}, ' \u200B+ ');
 				uiu.el(to_td, 'span', {}, setup.service_judge_name);
 			}
-		} else if (setup.tabletoperators && setup.tabletoperators.length > 0){
+		}
+		if (setup.tabletoperators && setup.tabletoperators.length > 0) {
 			uiu.el(to_td, 'div', 'tablet', '');
 			uiu.el(to_td, 'span', 'match_no_umpire', setup.tabletoperators[0].name );
 			if (setup.tabletoperators.length > 1) {
 				uiu.el(to_td, 'span', 'match_no_umpire', ' \u200B/ ');
 				uiu.el(to_td, 'span', 'match_no_umpire', setup.tabletoperators[1].name );
 			}
-		} else {
+		}
+
+		if (!setup.umpire_name && (!setup.tabletoperators || setup.tabletoperators.length == 0)) {
 			uiu.el(to_td, 'div', 'no_umpire', '');
 			uiu.el(to_td, 'span', 'match_no_umpire', ci18n('No umpire'));
 		
