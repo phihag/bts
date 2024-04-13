@@ -4,13 +4,14 @@ function announceNewMatch(matchSetup) {
     if(!(window.localStorage.getItem('enable_announcements') === 'true')) {
         return;
     }
-    var field = createFieldAnnouncement(matchSetup);
-    var matchNumber = createMatchNumberAnnouncement(matchSetup);
-    var eventName = createEventAnnouncement(matchSetup);
-    var round = createRoundAnnouncement(matchSetup);
-    var teams = createTeamAnnouncement(matchSetup);
-    var tabletOperator = createTabletOperator(matchSetup);
-    announce([field, matchNumber, eventName, round, teams, tabletOperator, field]);
+    const field = createFieldAnnouncement(matchSetup);
+    const matchNumber = createMatchNumberAnnouncement(matchSetup);
+    const eventName = createEventAnnouncement(matchSetup);
+    const round = createRoundAnnouncement(matchSetup);
+    const teams = createTeamAnnouncement(matchSetup);
+    const umpire = createUmpire(matchSetup);
+    const tabletOperator = createTabletOperator(matchSetup);
+    announce([field, matchNumber, eventName, round, teams, umpire, tabletOperator, field]);
 }
 
 function announcePreparationMatch(matchSetup) {
@@ -85,6 +86,14 @@ function createTabletOperator(matchSetup) {
 
     return tabletOperator;
 }
+
+function createUmpire(matchSetup) {
+    if (matchSetup.umpire_name && matchSetup.umpire_name != null) {
+        return "Schiedsrichter: " + matchSetup.umpire_name;
+    }
+    return null;
+}
+
 
 function createSingleTeam(playersSetup) {
     var team = playersSetup[0].name;
@@ -220,13 +229,15 @@ function announce(callArray) {
             }
         }
         callArray.forEach(function (part) {
-            var words = new SpeechSynthesisUtterance(part);
-            words.lang = "de-DE";
-            words.rate = 1.05;
-            words.pitch = 0.9;
-            words.volume = 2.0;
-            words.voice = voice;
-            window.speechSynthesis.speak(words);
+            if (part && part != null) { 
+                var words = new SpeechSynthesisUtterance(part);
+                words.lang = "de-DE";
+                words.rate = 1.05;
+                words.pitch = 0.9;
+                words.volume = 2.0;
+                words.voice = voice;
+                window.speechSynthesis.speak(words);
+            }
         });
     });
 }
