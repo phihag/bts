@@ -19,6 +19,8 @@ const TABLES = [
 	'tabletoperators',
 	'displaysettings',
 	'display_court_displaysettings',
+	'normalizations'
+
 ];
 
 

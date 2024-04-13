@@ -89,17 +89,29 @@ function createTabletOperator(matchSetup) {
 
 function createUmpire(matchSetup) {
     if (matchSetup.umpire_name && matchSetup.umpire_name != null) {
-        return ci18n('announcements:umpire') + matchSetup.umpire_name;
+        return ci18n('announcements:umpire') + normalizeNames(matchSetup.umpire_name);
     }
     return null;
 }
 
 function createSingleTeam(playersSetup) {
-    var team = playersSetup[0].name;
+    var team = normalizeNames(playersSetup[0].name);
     if (playersSetup.length == 2) {
-        team = team + ci18n('announcements:and')+ playersSetup[1].name
+        team = team + ci18n('announcements:and') + normalizeNames(playersSetup[1].name)
     }
     return team;
+}
+
+
+function normalizeNames(name) {
+    if (curt.normalizations && curt.normalizations.length > 0) {
+        for (const norm of curt.normalizations) {
+            if (ci18n('announcements:lang') == norm.language) {
+                name = name.replaceAll(norm.origin, norm.replace); 
+            }
+        }
+    }
+    return name;
 }
 
 function createRoundAnnouncement(matchSetup) {

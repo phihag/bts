@@ -151,6 +151,11 @@ function handle_tournament_get(app, ws, msg) {
 				tournament.displays = displays;
 				cb(err);
 			});
+		}, function (cb) {
+				stournament.get_normalizations(app.db, tournament.key, function (err, normalizations) {
+					tournament.normalizations = normalizations;
+				cb(err);
+			});
 		}], function(err) {
 			tournament.btp_status = btp_manager.get_status(tournament.key);
 			tournament.ticker_status = ticker_manager.get_status(tournament.key);
