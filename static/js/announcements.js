@@ -22,7 +22,7 @@ function announcePreparationMatch(matchSetup) {
     var eventName = createEventAnnouncement(matchSetup);
     var round = createRoundAnnouncement(matchSetup);
     var teams = createTeamAnnouncement(matchSetup);
-    announce([preparation, matchNumber, eventName, round, teams]);
+    announce([preparation, matchNumber, eventName, round, teams, preparation]);
 }
 function announceSecondCallTeamOne(matchSetup) {
     if(!(window.localStorage.getItem('enable_announcements') === 'true')) {
