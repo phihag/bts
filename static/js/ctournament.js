@@ -736,6 +736,20 @@ function ui_edit() {
 		value: (curt.ticker_password || ''),
 	});
 
+	const to_withumpire_attrs_label = uiu.el(ticker_fieldset, 'label');
+	const to_withumpire_attrs = {
+		type: 'checkbox',
+		name: 'tabletoperator_with_umpire_enabled',
+	};
+	if (curt.tabletoperator_with_umpire_enabled) {
+		to_withumpire_attrs.checked = 'checked';
+	}
+	uiu.el(to_withumpire_attrs_label, 'input', to_withumpire_attrs);
+	uiu.el(to_withumpire_attrs_label, 'span', {}, ci18n('tournament:edit:tableroperator_with_umpire'));
+
+
+
+
 	uiu.el(form, 'button', {
 		role: 'submit',
 	}, ci18n('Change'));
@@ -759,6 +773,7 @@ function ui_edit() {
 			ticker_enabled: (!! data.ticker_enabled),
 			ticker_url: data.ticker_url,
 			ticker_password: data.ticker_password,
+			tabletoperator_with_umpire_enabled: (!!data.tabletoperator_with_umpire_enabled),
 		};
 		send({
 			type: 'tournament_edit_props',

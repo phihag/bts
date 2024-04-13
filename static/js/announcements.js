@@ -72,19 +72,10 @@ function createTeamAnnouncement(matchSetup) {
 }
 
 function createTabletOperator(matchSetup) {
-    var tabletOperator = "Tabletbedienung: ";
-    //if (matchSetup.teams[1].players[0].state) {
-    //    tabletOperator = tabletOperator + matchSetup.teams[1].players[0].state;
-    //} else
-    if (matchSetup.tabletoperators) {
-        tabletOperator = tabletOperator + createSingleTeam(matchSetup.tabletoperators);
-    } else if (matchSetup.umpire_name) {
-        tabletOperator = tabletOperator + matchSetup.umpire_name;
-    } else {
-        tabletOperator = tabletOperator + "Verlierer des vorhergehenden Spiels";
-    }
-
-    return tabletOperator;
+    if (matchSetup.tabletoperators && matchSetup.tabletoperators != null) {
+        return "Tabletbedienung: " + createSingleTeam(matchSetup.tabletoperators);
+    } 
+    return null;
 }
 
 function createUmpire(matchSetup) {
@@ -93,7 +84,6 @@ function createUmpire(matchSetup) {
     }
     return null;
 }
-
 
 function createSingleTeam(playersSetup) {
     var team = playersSetup[0].name;

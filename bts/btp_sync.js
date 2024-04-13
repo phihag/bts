@@ -775,8 +775,10 @@ async function integrate_now_on_court(app, tkey, callback) {
 				if(!setup.called_timestamp) {
 					setup.called_timestamp = called_timestamp;
 					try{
-						const value = await serializedAsyncTask(admin, app, tkey, court_id, setup.umpire_name);
-						setup.tabletoperators = value;
+						const value = await serializedAsyncTask(admin, app, tkey, court_id);
+						if (!setup.umpire_name || (tournament.tabletoperator_with_umpire_enabled && tournament.tabletoperator_with_umpire_enabled == true)){
+							setup.tabletoperators = value;
+						}
 						
 					} catch (err) {
 						callback(err)
@@ -848,7 +850,7 @@ function serialized(fn) {
 	}
 }
 const serializedAsyncTask = serialized(get_last_looser_on_court);
-function get_last_looser_on_court(admin, app, tkey, court_id, umpire_name) {
+function get_last_looser_on_court(admin, app, tkey, court_id) {
 	return new Promise((resolve, reject) => {
 		const tabletoperator_querry = { 'tournament_key': tkey, court: null };
 		let tabletoperators = undefined;

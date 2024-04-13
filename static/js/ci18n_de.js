@@ -69,7 +69,7 @@ var ci18n_de = {
 'tournament:edit:btp:password': 'BTP-Passwort:',
 'tournament:edit:btp:timezone': 'BTP-Zeitzone:',
 'tournament:edit:btp:system timezone': 'Systemeinstellung ({tz})',
-
+'tournament:edit:tableroperator_with_umpire': 'Schiedrichter und Tabletbediener aufrufen',
 'tournament:edit:ticker_enabled': 'Ticker aktivieren',
 'tournament:edit:ticker_url': 'Ticker-Adresse:',
 'tournament:edit:ticker_password': 'Ticker-Passwort:',
