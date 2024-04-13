@@ -736,6 +736,17 @@ function ui_edit() {
 		value: (curt.ticker_password || ''),
 	});
 
+	const to_attrs_label = uiu.el(ticker_fieldset, 'label');
+	const to_attrs = {
+		type: 'checkbox',
+		name: 'tabletoperator_enabled',
+	};
+	if (curt.tabletoperator_enabled) {
+		to_attrs.checked = 'checked';
+	}
+	uiu.el(to_attrs_label, 'input', to_attrs);
+	uiu.el(to_attrs_label, 'span', {}, ci18n('tournament:edit:tableroperator_enabled'));
+
 	const to_withumpire_attrs_label = uiu.el(ticker_fieldset, 'label');
 	const to_withumpire_attrs = {
 		type: 'checkbox',
@@ -746,8 +757,6 @@ function ui_edit() {
 	}
 	uiu.el(to_withumpire_attrs_label, 'input', to_withumpire_attrs);
 	uiu.el(to_withumpire_attrs_label, 'span', {}, ci18n('tournament:edit:tableroperator_with_umpire'));
-
-
 
 
 	uiu.el(form, 'button', {
@@ -774,6 +783,7 @@ function ui_edit() {
 			ticker_url: data.ticker_url,
 			ticker_password: data.ticker_password,
 			tabletoperator_with_umpire_enabled: (!!data.tabletoperator_with_umpire_enabled),
+			tabletoperator_enabled: (!!data.tabletoperator_enabled),
 		};
 		send({
 			type: 'tournament_edit_props',

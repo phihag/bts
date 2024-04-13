@@ -379,12 +379,18 @@ function score_handler(req, res) {
 }
 
 function add_player_to_tabletoperator_list(app, tournament_key, cur_match_id, end_ts) {
-	const admin = require('./admin'); // avoid dependency cycle
-	app.db.matches.findOne({ 'tournament_key': tournament_key, '_id': cur_match_id }, (err, cur_match) => {
+	app.db.tournaments.findOne({ key: tournament_key }, async (err, tournament) => {
 		if (err) {
-			return reject(err);
-		}	
-		add_player_to_tabletoperator_list_by_match(app, tournament_key, cur_match, end_ts)
+			return callback(err);
+		}
+		if ((tournament.tabletoperator_enabled && tournament.tabletoperator_enabled == true)) {
+			app.db.matches.findOne({ 'tournament_key': tournament_key, '_id': cur_match_id }, (err, cur_match) => {
+				if (err) {
+					return reject(err);
+				}
+				add_player_to_tabletoperator_list_by_match(app, tournament_key, cur_match, end_ts)
+			});
+		}
 	});
 }
 
@@ -425,6 +431,7 @@ function add_player_to_tabletoperator_list_by_match(app, tournament_key, cur_mat
 							ws.respond(msg, err);
 							return;
 						}
+						const admin = require('./admin'); // avoid dependency cycle
 						admin.notify_change(app, tournament_key, 'tabletoperator_add', { tabletoperator: inserted_t });
 					});
 

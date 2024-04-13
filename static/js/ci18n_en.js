@@ -73,6 +73,7 @@ var ci18n_en = {
 'tournament:edit:ticker_enabled': 'Activate online ticker',
 'tournament:edit:ticker_url': 'Ticker URL:',
 'tournament:edit:ticker_password': 'Ticker password:',
+'tournament:edit:tableroperator_enabled': 'Use Tabletoperators',
 'tournament:edit:tableroperator_with_umpire': 'Announce Umpire and Tabletoperator ',
 'to_stats:header': 'Technical Officials Statistics',
 'to_stats:name': 'Name',

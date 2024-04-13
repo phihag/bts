@@ -774,12 +774,13 @@ async function integrate_now_on_court(app, tkey, callback) {
 				const setup = match.setup;
 				if(!setup.called_timestamp) {
 					setup.called_timestamp = called_timestamp;
-					try{
-						const value = await serializedAsyncTask(admin, app, tkey, court_id);
-						if (!setup.umpire_name || (tournament.tabletoperator_with_umpire_enabled && tournament.tabletoperator_with_umpire_enabled == true)){
-							setup.tabletoperators = value;
+					try {
+						if ((tournament.tabletoperator_enabled && tournament.tabletoperator_enabled == true)) {
+							const value = await serializedAsyncTask(admin, app, tkey, court_id);
+							if (!setup.umpire_name || (tournament.tabletoperator_with_umpire_enabled && tournament.tabletoperator_with_umpire_enabled == true)) {
+								setup.tabletoperators = value;
+							}
 						}
-						
 					} catch (err) {
 						callback(err)
 					}
