@@ -190,8 +190,9 @@ function update_upcoming_match(c){
 	console.log(new_section);
 
 	if(old_section != new_section || new_section == 'unassigned') {
-		const upcoming_container = uiu.qs('.upcoming_container');
-		cmatch.render_upcoming_matches(upcoming_container);
+		uiu.qsEach('.upcoming_container', (upcoming_container) => {
+			cmatch.render_upcoming_matches(upcoming_container);
+		});
 	}
 }
 
