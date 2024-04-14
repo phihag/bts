@@ -96,6 +96,7 @@ async function craft_match(app, tkey, btp_id, court_map, event, draw, btp_links,
 		};
 
 		app.db.tournaments.findOne({key: tkey}, (err, tournament) => {
+
 			if(err) {
 				console.log("reject");
 				reject(err);
@@ -185,7 +186,6 @@ async function craft_match(app, tkey, btp_id, court_map, event, draw, btp_links,
 				match.match_order = bm.DisplayOrder[0];
 			}
 			match._id = 'btp_' + btp_id;
-		
 			resolve(match);
 		});
 	});	
@@ -356,8 +356,8 @@ async function integrate_matches(app, tkey, btp_state, court_map, callback) {
 						match.setup.tabletoperators = cur_match.setup.tabletoperators;
 					}
    
-				   	for(let team_index = 0; team_index < cur_match.setup.teams.length; team_index++) {
-					   	for (let player_index = 0; player_index < cur_match.setup.teams[team_index].players.length; player_index++){
+				   	for(let team_index = 0; team_index < Math.min(cur_match.setup.teams.length, match.setup.teams.length); team_index++) {
+					   	for (let player_index = 0; player_index < Math.min(cur_match.setup.teams[team_index].players.length, match.setup.teams[team_index].players.length); player_index++){
 					   
 						   	if (cur_match.setup.teams[team_index].players[player_index].now_playing_on_court != undefined) {
 							   	match.setup.teams[team_index].players[player_index].now_playing_on_court = cur_match.setup.teams[team_index].players[player_index].now_playing_on_court;
@@ -416,8 +416,8 @@ async function integrate_matches(app, tkey, btp_state, court_map, callback) {
 				   	let only_change_check_in = false;
 					let result_enterd_in_btp = false;
 
-				   	for(let team_index = 0; team_index < cur_match.setup.teams.length; team_index++) {
-					   	for (let player_index = 0; player_index < cur_match.setup.teams[team_index].players.length; player_index++){
+				   	for(let team_index = 0; team_index < Math.min(cur_match.setup.teams.length, match.setup.teams.length); team_index++) {
+					   	for (let player_index = 0; player_index < Math.min(cur_match.setup.teams[team_index].players.length, match.setup.teams[team_index].players.length); player_index++){
 						   	cur_match.setup.teams[team_index].players[player_index].checked_in = match.setup.teams[team_index].players[player_index].checked_in;
 					   	}
 				   	}
