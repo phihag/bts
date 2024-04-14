@@ -42,8 +42,6 @@ function render_match_table_header(table, include_courts) {
 }
 
 function render_match_row(tr, match, court, style, show_player_status, show_add_tabletoperator) {
-	console.warn("rerender_row");
-
 	if(!match.setup.is_match) {
 		return;
 	}
