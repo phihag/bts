@@ -289,7 +289,8 @@ function handle_tabletoperator_add(app, ws, msg) {
 				'match_id': 'manually_added',
 				'start_ts': Date.now(),
 				'end_ts': null,
-				'court': null
+				'court': null,
+				'played_on_court': null
 			};
 			app.db.tabletoperators.insert(new_tabletoperator, function (err, inserted_tabletoperator) {
 				if (err) {

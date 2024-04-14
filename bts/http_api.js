@@ -424,8 +424,10 @@ function add_player_to_tabletoperator_list_by_match(app, tournament, tournament_
 						'match_id': cur_match._id,
 						'start_ts': end_ts,
 						'end_ts': null,
-						'court': null
+						'court': null,
+						'played_on_court': (cur_match.setup.court_id ? cur_match.setup.court_id : null)
 					};
+
 					app.db.tabletoperators.insert(new_tabletoperator, function (err, inserted_t) {
 						if (err) {
 							ws.respond(msg, err);

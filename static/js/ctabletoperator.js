@@ -36,6 +36,10 @@ function render_tabletoperator_row(tr, tabletoperator) {
 		uiu.el(to_td, 'span', 'match_no_umpire', ' \u200B/ ');
 		uiu.el(to_td, 'span', 'match_no_umpire', to[1].name);
 	}
+
+	const court = curt.courts_by_id[tabletoperator.played_on_court];
+	uiu.el(tr, 'td', court ? 'court_history' : '', court ? court.num : '');
+
 	if (tabletoperator.court == null) {
 		const buttonbar = uiu.el(tr, 'td');
 		create_tabletoperator_button(buttonbar, 'vlink tabletoperator_remove_button', 'tabletoperator:remove', on_remove_from_list_button_click, tabletoperator._id);
