@@ -43,9 +43,13 @@ function get_displays(app, tournament_key, callback) {
 		if (err) return callback(err);
 
 		// TODO: Append not registered Displays and set status online/offline of registered displays by using ite registered ws in bubws
+		display_court_displaysettings = display_court_displaysettings.filter(function (obj) {
+			return obj.client_id !== 'deleted';
+		});
 
 		const bupws = require('./bupws');
 		bupws.add_display_status(app, tournament_key, display_court_displaysettings);
+		display_court_displaysettings = display_court_displaysettings.sort(utils.cmp_key('client_id'));
 		return callback(err, display_court_displaysettings);
 	});
 }

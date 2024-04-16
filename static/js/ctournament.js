@@ -917,7 +917,7 @@ function ui_edit() {
 	for (const c of curt.displays) {
 		const tr = uiu.el(display_tbody, 'tr');
 		uiu.el(tr, 'th', {}, c.client_id);
-		uiu.el(tr, 'td', {}, c.court_id || '');
+		createCourtSelectBox(uiu.el(tr, 'td', {}, ''), c.client_id, c.court_id);
 		uiu.el(tr, 'td', {}, c.displaysetting_id || '');
 		uiu.el(tr, 'td', {}, (!c.online) ? 'offline' : 'online');
 		const actions_td = uiu.el(tr, 'td', {});
@@ -958,6 +958,42 @@ function create_checkbox(curt, parent_el, filed_id) {
 	uiu.el(label, 'input', attrs);
 	uiu.el(label, 'span', {}, ci18n('tournament:edit:' + filed_id));
 }
+
+
+function createCourtSelectBox(parentEl,parent_id, court_id) {
+	const court_select_box = uiu.el(parentEl, 'select', {
+		name: 'court_'+	parent_id,
+	});
+
+	for (const court of curt.courts) {
+		const attrs = {
+			'data-display-setting-id': court_id,
+			value: court._id,
+		}
+
+		if ((court_id === court._id)) {
+			attrs.selected = 'selected';
+		}
+
+		uiu.el(court_select_box, 'option', attrs, court.name);
+	}
+
+	court_select_box.addEventListener('change', (e) => {
+		const select_box = e.target;
+		const display_setting_id = select_box.name.split("_")[1];
+		send({
+			type: 'relocate_display',
+			tournament_key: curt.key,
+			new_court_id: e.srcElement.value,
+			display_setting_id: display_setting_id,
+		}, err => {
+			if (err) {
+				return cerror.net(err);
+			}
+		});
+	});
+}
+
 
 function render_upcoming(container) {
 	cmatch.prepare_render(curt);

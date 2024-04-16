@@ -428,6 +428,18 @@ function handle_reset_display(app, ws, msg) {
 	ws.respond("Angekommen: " + client_id);
 }
 
+function handle_relocate_display(app, ws, msg) {
+	const tournament_key = msg.tournament_key;
+	const client_id = msg.display_setting_id;
+	const new_court_id = msg.new_court_id;
+	const bupws = require('./bupws');
+	bupws.restart_panel(app, tournament_key, client_id, new_court_id);
+	ws.respond("Angekommen: " + client_id);
+}
+
+
+
+
 
 function handle_second_call_team_two(app, ws, msg) {
 	if (!_require_msg(ws, msg, ['tournament_key', 'setup'])) {
@@ -606,6 +618,7 @@ module.exports = {
 	handle_tournament_list,
 	handle_tournament_edit_props,
 	handle_reset_display,
+	handle_relocate_display,
 	notify_change,
 	on_close,
 	on_connect,
