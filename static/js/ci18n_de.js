@@ -105,6 +105,11 @@ var ci18n_de = {
 	'tournament:edit:ticker_enabled': 'Ticker aktivieren',
 	'tournament:edit:ticker_url': 'Ticker-Adresse:',
 	'tournament:edit:ticker_password': 'Ticker-Passwort:',
+	'tournament:edit:displays': 'Anzeigen administrieren:',
+	'tournament:edit:displays:num': 'Monitor',
+	'tournament:edit:displays:court': 'Feld',
+	'tournament:edit:displays:setting': 'Einstellung',
+	'tournament:edit:displays:onlinestatus': 'Status',
 
 	'to_stats:header': 'Statistik der Technischen Offiziellen',
 	'to_stats:name': 'Name',

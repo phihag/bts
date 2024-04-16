@@ -99,24 +99,30 @@ async function handle_init(app, ws, msg) {
 		court_id = undefined;
 	}
 	if (msg.initialize_display) {
-		const client_id = determine_client_id(ws);
-		if (client_id) {
-			let display_setting = await get_display_setting(app, tournament_key, client_id, court_id)
-			if (display_setting != null) {
-				ws.court_id = display_setting.court_id;
-				court_id = display_setting.court_id;
-				notify_change_ws(ws, tournament_key, court_id, "settings-update", display_setting);
-			}
-		}
+		initialize_client(ws, app, tournament_key, court_id);
 	}
 	matches_handler(app, ws, tournament_key, court_id);
 }
 
-function determine_client_id(ws) {
-	const remote_adress_seqments = ws._socket.remoteAddress.split('.');
-	return remote_adress_seqments[remote_adress_seqments.length - 1];
+async function initialize_client(ws, app, tournament_key, court_id) {
+	const client_id = determine_client_id(ws);
+	if (client_id) {
+		let display_setting = await get_display_setting(app, tournament_key, client_id, court_id)
+		if (display_setting != null) {
+			ws.court_id = display_setting.court_id;
+			court_id = display_setting.court_id;
+			notify_change_ws(ws, tournament_key, court_id, "settings-update", display_setting);
+		}
+	}
 }
 
+function determine_client_id(ws) {
+	if (!ws.client_id) {
+		const remote_adress_seqments = ws._socket.remoteAddress.split('.');
+		ws.client_id = remote_adress_seqments[remote_adress_seqments.length - 1];
+	}
+	return ws.client_id;
+}
 
 function persist_client_court_displaysetting(app, client_court_displaysetting) {
 	return new Promise((resolve, reject) => {
@@ -155,7 +161,7 @@ function persist_displaysetting(app, setting) {
 }
 
 
-function get_display_court_displaysettings(app, tkey, client_id) {
+function client_id(app, tkey, client_id) {
 	return new Promise((resolve, reject) => {
 		const display_court_query = { 'client_id': client_id };
 		app.db.display_court_displaysettings.find(display_court_query).limit(1).exec((err, display_court_displaysetting) => {
@@ -362,6 +368,49 @@ function create_event_representation(tournament) {
 	return res;
 }
 
+function restart_panel(app, tournament_key, client_id) {
+	for (const panel_ws of all_panels) {
+
+		const ws_client_id = determine_client_id(panel_ws);
+		if (client_id == ws_client_id) {
+			initialize_client(panel_ws, app, tournament_key, panel_ws.court_id);
+			// Two time to make it work, no idea why
+			matches_handler(app, panel_ws, tournament_key, panel_ws.court_id);
+			matches_handler(app, panel_ws, tournament_key, panel_ws.court_id);
+		}
+		
+	}
+}
+function add_display_status(app, tournament_key, displays) {
+	for (const d of displays) {
+		d.online = false;
+		for (const panel_ws of all_panels) {
+			const ws_client_id = determine_client_id(panel_ws);
+			if (d.client_id == ws_client_id) {
+				d.online = true;
+			}
+		}
+	}
+	for (const panel_ws of all_panels) {
+		var found = false;
+		const ws_client_id = determine_client_id(panel_ws);
+		for (const d of displays) {
+			
+			if (d.client_id == ws_client_id) {
+				found = true;
+			}
+		}
+		if (!found) {
+			client_court_displaysetting = {
+				client_id: ws_client_id,
+				court_id: panel_ws.court_id,
+				displaysetting_id: "default",
+				online: true
+			}
+			displays[displays.length] = client_court_displaysetting;
+		}
+	}
+}
 
 module.exports = {
 	on_close,
@@ -371,4 +420,6 @@ module.exports = {
 	handle_score_change,
 	handle_persist_display_settings,
 	handle_reset_display_settings,
+	restart_panel,
+	add_display_status,
 };

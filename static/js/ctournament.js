@@ -903,6 +903,45 @@ function ui_edit() {
 			ui_edit();
 		});
 	});
+
+	uiu.el(main, 'h2', {}, ci18n('tournament:edit:displays'));
+
+	const display_table = uiu.el(main, 'table');
+	const display_tbody = uiu.el(display_table, 'tbody');
+	const tr = uiu.el(display_tbody, 'tr');
+	uiu.el(tr, 'th', {}, ci18n('tournament:edit:displays:num'));
+	uiu.el(tr, 'td', {}, ci18n('tournament:edit:displays:court'));
+	uiu.el(tr, 'td', {}, ci18n('tournament:edit:displays:setting'));
+	uiu.el(tr, 'td', {}, ci18n('tournament:edit:displays:onlinestatus'));
+
+	for (const c of curt.displays) {
+		const tr = uiu.el(display_tbody, 'tr');
+		uiu.el(tr, 'th', {}, c.client_id);
+		uiu.el(tr, 'td', {}, c.court_id || '');
+		uiu.el(tr, 'td', {}, c.displaysetting_id || '');
+		uiu.el(tr, 'td', {}, (!c.online) ? 'offline' : 'online');
+		const actions_td = uiu.el(tr, 'td', {});
+		const reset_btn = uiu.el(actions_td, 'button', {
+			'data-display-setting-id': c.client_id,
+		}, 'Restart');
+
+		if (!c.online) {
+			reset_btn.setAttribute('disabled', 'disabled');
+		}
+		reset_btn.addEventListener('click', function (e) {
+			const del_btn = e.target;
+			const display_setting_id = del_btn.getAttribute('data-display-setting-id');
+			send({
+				type: 'reset_display',
+				tournament_key: curt.key,
+				display_setting_id: display_setting_id,
+			}, err => {
+				if (err) {
+					return cerror.net(err);
+				}
+			});
+		});
+	}
 }
 _route_single(/t\/([a-z0-9]+)\/edit$/, ui_edit);
 

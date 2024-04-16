@@ -147,7 +147,7 @@ function handle_tournament_get(app, ws, msg) {
 				cb(err);
 			});
 		}, function (cb) {
-			stournament.get_displays(app.db, tournament.key, function (err, displays) {
+			stournament.get_displays(app, tournament.key, function (err, displays) {
 				tournament.displays = displays;
 				cb(err);
 			});
@@ -420,6 +420,15 @@ function handle_second_call_team_one(app, ws, msg) {
 	ws.respond(msg);
 }
 
+function handle_reset_display(app, ws, msg) {
+	const tournament_key = msg.tournament_key;
+	const client_id = msg.display_setting_id;
+	const bupws = require('./bupws');
+	bupws.restart_panel(app, tournament_key, client_id);
+	ws.respond("Angekommen: " + client_id);
+}
+
+
 function handle_second_call_team_two(app, ws, msg) {
 	if (!_require_msg(ws, msg, ['tournament_key', 'setup'])) {
 		return;
@@ -596,6 +605,7 @@ module.exports = {
 	handle_tournament_get,
 	handle_tournament_list,
 	handle_tournament_edit_props,
+	handle_reset_display,
 	notify_change,
 	on_close,
 	on_connect,
