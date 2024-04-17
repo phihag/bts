@@ -975,7 +975,7 @@ function createCourtSelectBox(parentEl,parent_id, court_id) {
 			attrs.selected = 'selected';
 		}
 
-		uiu.el(court_select_box, 'option', attrs, court.name);
+		uiu.el(court_select_box, 'option', attrs, court.num);
 	}
 
 	court_select_box.addEventListener('change', (e) => {
