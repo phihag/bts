@@ -918,7 +918,7 @@ function ui_edit() {
 		const tr = uiu.el(display_tbody, 'tr');
 		uiu.el(tr, 'th', {}, c.client_id);
 		createCourtSelectBox(uiu.el(tr, 'td', {}, ''), c.client_id, c.court_id);
-		uiu.el(tr, 'td', {}, c.displaysetting_id || '');
+		createDisplaySettingsSelectBox(uiu.el(tr, 'td', {}, ''), c.client_id, c.displaysetting_id);
 		uiu.el(tr, 'td', {}, (!c.online) ? 'offline' : 'online');
 		const actions_td = uiu.el(tr, 'td', {});
 		const reset_btn = uiu.el(actions_td, 'button', {
@@ -985,6 +985,40 @@ function createCourtSelectBox(parentEl,parent_id, court_id) {
 			type: 'relocate_display',
 			tournament_key: curt.key,
 			new_court_id: e.srcElement.value,
+			display_setting_id: display_setting_id,
+		}, err => {
+			if (err) {
+				return cerror.net(err);
+			}
+		});
+	});
+}
+
+function createDisplaySettingsSelectBox(parentEl, parent_id, displaysettings_id) {
+	const displaysettings_select_box = uiu.el(parentEl, 'select', {
+		name: 'displaysettings_' + parent_id,
+	});
+
+	for (const ds of curt.displaysettings) {
+		const attrs = {
+			'data-display-setting-id': displaysettings_id,
+			value: ds.id,
+		}
+
+		if ((displaysettings_id === ds.id)) {
+			attrs.selected = 'selected';
+		}
+
+		uiu.el(displaysettings_select_box, 'option', attrs, ds.id);
+	}
+
+	displaysettings_select_box.addEventListener('change', (e) => {
+		const select_box = e.target;
+		const display_setting_id = select_box.name.split("_")[1];
+		send({
+			type: 'change_display_mode',
+			tournament_key: curt.key,
+			new_displaysettings_id: e.srcElement.value,
 			display_setting_id: display_setting_id,
 		}, err => {
 			if (err) {

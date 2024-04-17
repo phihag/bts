@@ -147,15 +147,20 @@ function handle_tournament_get(app, ws, msg) {
 				cb(err);
 			});
 		}, function (cb) {
-			stournament.get_displays(app, tournament.key, function (err, displays) {
-				tournament.displays = displays;
+		stournament.get_displays(app, tournament.key, function (err, displays) {
+			tournament.displays = displays;
+			cb(err);
+		});
+		}, function (cb) {
+			stournament.get_normalizations(app.db, tournament.key, function (err, normalizations) {
+				tournament.normalizations = normalizations;
 				cb(err);
 			});
 		}, function (cb) {
-				stournament.get_normalizations(app.db, tournament.key, function (err, normalizations) {
-					tournament.normalizations = normalizations;
-				cb(err);
-			});
+		stournament.get_displaysettings(app.db, tournament.key, function (err, displaysettings) {
+			tournament.displaysettings = displaysettings;
+			cb(err);
+		});
 		}], function(err) {
 			tournament.btp_status = btp_manager.get_status(tournament.key);
 			tournament.ticker_status = ticker_manager.get_status(tournament.key);
@@ -436,6 +441,16 @@ function handle_relocate_display(app, ws, msg) {
 	bupws.restart_panel(app, tournament_key, client_id, new_court_id);
 	ws.respond("Angekommen: " + client_id);
 }
+function handle_change_display_mode(app, ws, msg) {
+	const tournament_key = msg.tournament_key;
+	const client_id = msg.display_setting_id;
+	const new_displaysettings_id = msg.new_displaysettings_id;
+	const bupws = require('./bupws');
+	bupws.change_display_mode(app, tournament_key, client_id, new_displaysettings_id);
+	ws.respond("Angekommen: " + client_id);
+}
+
+
 
 
 
@@ -619,6 +634,7 @@ module.exports = {
 	handle_tournament_edit_props,
 	handle_reset_display,
 	handle_relocate_display,
+	handle_change_display_mode,
 	notify_change,
 	on_close,
 	on_connect,

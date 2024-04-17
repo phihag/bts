@@ -61,6 +61,13 @@ function get_normalizations(db, tournament_key, callback) {
 	});
 }
 
+function get_displaysettings(db, tournament_key, callback) {
+	db.displaysettings.find({}, function (err, displaysettings) {
+		if (err) return callback(err);
+		return callback(err, displaysettings);
+	});
+}
+
 
 module.exports = {
 	get_courts,
@@ -69,4 +76,5 @@ module.exports = {
 	get_tabletoperators,
 	get_displays,
 	get_normalizations,
+	get_displaysettings,
 };

@@ -386,16 +386,17 @@ async function restart_panel(app, tournament_key, client_id, new_court_id) {
 	for (const panel_ws of all_panels) {
 
 		const ws_client_id = determine_client_id(panel_ws);
-		if (new_court_id) {
-			panel_ws.court_id = new_court_id;
-
-			const updatevalues = {
-				court_id: new_court_id
-			}
-			const client_court_displaysetting = await update_client_court_displaysetting(app, client_id, updatevalues);
-
-		}
 		if (client_id == ws_client_id) {
+			if (new_court_id) {
+				panel_ws.court_id = new_court_id;
+
+				const updatevalues = {
+					court_id: new_court_id
+				}
+				const client_court_displaysetting = await update_client_court_displaysetting(app, client_id, updatevalues);
+
+			}
+		
 			initialize_client(panel_ws, app, tournament_key, panel_ws.court_id);
 			// Two time to make it work, no idea why
 			matches_handler(app, panel_ws, tournament_key, panel_ws.court_id);
@@ -404,6 +405,27 @@ async function restart_panel(app, tournament_key, client_id, new_court_id) {
 		
 	}
 }
+
+async function change_display_mode(app, tournament_key, client_id, new_displaysettings_id) {
+	if (new_displaysettings_id) {
+		for (const panel_ws of all_panels) {
+
+			const ws_client_id = determine_client_id(panel_ws);
+			if (client_id == ws_client_id) {
+				const updatevalues = {
+					displaysetting_id: new_displaysettings_id
+				}
+				const client_court_displaysetting = await update_client_court_displaysetting(app, client_id, updatevalues);
+			
+				initialize_client(panel_ws, app, tournament_key, panel_ws.court_id);
+				// Two time to make it work, no idea why
+				matches_handler(app, panel_ws, tournament_key, panel_ws.court_id);
+				matches_handler(app, panel_ws, tournament_key, panel_ws.court_id);
+			}
+		}
+	}
+}
+
 function add_display_status(app, tournament_key, displays) {
 	for (const d of displays) {
 		d.online = false;
@@ -444,5 +466,6 @@ module.exports = {
 	handle_persist_display_settings,
 	handle_reset_display_settings,
 	restart_panel,
+	change_display_mode,
 	add_display_status,
 };
