@@ -157,6 +157,24 @@ function default_handler_func(rerender, special_funcs, c) {
 	case 'update_player_status':
 		//nothing todo here
 		break;
+	case 'display_status_changed':
+		const display_setting = c.val.display_court_displaysetting;
+		const d = utils.find(curt.displays, m => m.client_id === display_setting.client_id);
+		var laststatus = false;
+		if (!d) {
+			curt.displays[curt.displays.length] = display_setting;
+			curt.displays.sort(utils.cmp_key('client_id'));
+			return;
+		} else {
+			laststatus = d.online;
+			d.court_id = display_setting.court_id;
+			d.displaysetting_id = display_setting.displaysetting_id;
+			d.online = display_setting.online;
+		}
+		if (laststatus != d.online) {
+			cerror.silent('Display ' + display_setting.client_id + ' is ' + (display_setting.online ? 'online' : 'offline'));
+		}
+		break;
 	default:
 		cerror.silent('Unsupported change type ' + c.ctype);
 	}

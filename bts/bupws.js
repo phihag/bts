@@ -3,6 +3,7 @@
 const { forEach } = require('async');
 const serror = require('./serror');
 const utils = require('./utils');
+const admin = require('./admin');
 
 const all_panels = [];
 
@@ -10,10 +11,22 @@ function on_close(app, ws) {
 	if (!utils.remove(all_panels, ws)) {
 		serror.silent('Removing Scoreboard ws, but it was not connected!?');
 	}
+	notify_admin_display_status_changed(app, ws, false);
 }
 
-function on_connect(app, ws) {
+async function on_connect(app, ws) {
 	all_panels.push(ws);
+	notify_admin_display_status_changed(app, ws, true);
+}
+
+async function notify_admin_display_status_changed(app, ws, ws_online) {
+	const client_id = determine_client_id(ws);
+	var display_court_displaysetting = await get_display_court_displaysettings(app, client_id);
+	if (display_court_displaysetting == null) {
+		display_court_displaysetting = create_display_court_displaysettings(client_id, null, "default");
+	}
+	display_court_displaysetting.online = ws_online;
+	admin.notify_change(app, 'default', 'display_status_changed', { 'display_court_displaysetting': display_court_displaysetting });
 }
 
 function notify_change(tournament_key, court_id, ctype, val) {
@@ -51,13 +64,12 @@ async function handle_reset_display_settings(app, ws, msg) {
 	var setting = msg.panel_settings;
 
 	const client_id = determine_client_id(ws);
-	var client_court_displaysetting = await get_display_court_displaysettings(app, tournament_key, client_id);
+	var client_court_displaysetting = await get_display_court_displaysettings(app, client_id);
 	if (client_court_displaysetting != null) {
 		const updatevalues = {
 			client_id: 'deleted'
 		}
 		client_court_displaysetting = await update_client_court_displaysetting(app, client_court_displaysetting.client_id, updatevalues);
-
 	}
 }
 
@@ -67,16 +79,11 @@ async function handle_persist_display_settings(app, ws, msg) {
 	var setting = msg.panel_settings;
 
 	const client_id = determine_client_id(ws);
-	var client_court_displaysetting = await get_display_court_displaysettings(app, tournament_key, client_id);
+	var client_court_displaysetting = await get_display_court_displaysettings(app, client_id);
 	if (client_court_displaysetting == null) {
 		setting.id = tournament_key + "_" + court_id + " _" + Date.now();
 		setting = await persist_displaysetting(app, setting);
-
-		client_court_displaysetting = {
-			client_id: client_id,
-			court_id: court_id,
-			displaysetting_id: setting.id,
-		}
+		client_court_displaysetting = create_display_court_displaysettings(client_id, court_id, setting.id);
 		client_court_displaysetting = await persist_client_court_displaysetting(app, client_court_displaysetting);
 	} else {
 		setting.id = tournament_key + "_" + court_id + " _" + Date.now();
@@ -86,6 +93,14 @@ async function handle_persist_display_settings(app, ws, msg) {
 			displaysetting_id: setting.id,
 		}
 		client_court_displaysetting = await update_client_court_displaysetting(app, client_court_displaysetting.client_id, updatevalues);
+	}
+}
+
+function create_display_court_displaysettings(client_id, court_id, displaysetting_id) {
+	return  {
+		client_id: client_id,
+		court_id: court_id,
+		displaysetting_id: displaysetting_id,
 	}
 }
 
@@ -100,8 +115,9 @@ async function handle_init(app, ws, msg) {
 	}
 	if (msg.initialize_display) {
 		initialize_client(ws, app, tournament_key, court_id);
+	} else { 
+		matches_handler(app, ws, tournament_key, ws.court_id);
 	}
-	matches_handler(app, ws, tournament_key, court_id);
 }
 
 async function initialize_client(ws, app, tournament_key, court_id) {
@@ -114,6 +130,7 @@ async function initialize_client(ws, app, tournament_key, court_id) {
 			notify_change_ws(ws, tournament_key, court_id, "settings-update", display_setting);
 		}
 	}
+	matches_handler(app, ws, tournament_key, ws.court_id);
 }
 
 function determine_client_id(ws) {
@@ -177,7 +194,7 @@ function client_id(app, tkey, client_id) {
 	});
 }
 
-function get_display_court_displaysettings(app, tkey, client_id) {
+function get_display_court_displaysettings(app, client_id) {
 	return new Promise((resolve, reject) => {
 		const display_court_query = { 'client_id': client_id };
 		app.db.display_court_displaysettings.find(display_court_query).limit(1).exec((err, display_court_displaysetting) => {
@@ -383,47 +400,50 @@ function create_event_representation(tournament) {
 }
 
 async function restart_panel(app, tournament_key, client_id, new_court_id) {
-	for (const panel_ws of all_panels) {
-
-		const ws_client_id = determine_client_id(panel_ws);
-		if (client_id == ws_client_id) {
-			if (new_court_id) {
-				panel_ws.court_id = new_court_id;
-
-				const updatevalues = {
-					court_id: new_court_id
-				}
-				const client_court_displaysetting = await update_client_court_displaysetting(app, client_id, updatevalues);
-
-			}
+	var client_court_displaysetting = null;
+	if (new_court_id) {
 		
-			initialize_client(panel_ws, app, tournament_key, panel_ws.court_id);
-			// Two time to make it work, no idea why
-			matches_handler(app, panel_ws, tournament_key, panel_ws.court_id);
-			matches_handler(app, panel_ws, tournament_key, panel_ws.court_id);
+		const updatevalues = {
+			court_id: new_court_id
 		}
-		
+		client_court_displaysetting = await update_client_court_displaysetting(app, client_id, updatevalues);
 	}
+	var display_online = reinitialize_panel(app, tournament_key,client_id, new_court_id);
+	if (client_court_displaysetting != null) { 
+		client_court_displaysetting.online = display_online;
+		admin.notify_change(app, tournament_key, 'display_status_changed', { 'display_court_displaysetting': client_court_displaysetting });
+	}
+	
 }
 
 async function change_display_mode(app, tournament_key, client_id, new_displaysettings_id) {
 	if (new_displaysettings_id) {
-		for (const panel_ws of all_panels) {
+		const updatevalues = {
+			displaysetting_id: new_displaysettings_id
+		}
+		const client_court_displaysetting = await update_client_court_displaysetting(app, client_id, updatevalues);
+		var display_online = reinitialize_panel(app, tournament_key, client_id,null);
+		client_court_displaysetting.online = display_online;
+		admin.notify_change(app, tournament_key, 'display_status_changed', { 'display_court_displaysetting': client_court_displaysetting });
+	}
+}
 
-			const ws_client_id = determine_client_id(panel_ws);
-			if (client_id == ws_client_id) {
-				const updatevalues = {
-					displaysetting_id: new_displaysettings_id
-				}
-				const client_court_displaysetting = await update_client_court_displaysetting(app, client_id, updatevalues);
-			
-				initialize_client(panel_ws, app, tournament_key, panel_ws.court_id);
-				// Two time to make it work, no idea why
-				matches_handler(app, panel_ws, tournament_key, panel_ws.court_id);
-				matches_handler(app, panel_ws, tournament_key, panel_ws.court_id);
+function reinitialize_panel(app, tournament_key, client_id, new_court_id) {
+	for (const panel_ws of all_panels) {
+		const ws_client_id = determine_client_id(panel_ws);
+		if (client_id == ws_client_id) {
+			if (new_court_id != null) {
+				panel_ws.court_id = new_court_id;
 			}
+
+			initialize_client(panel_ws, app, tournament_key, panel_ws.court_id);
+			// Two times to make it work, no idea why
+			//matches_handler(app, panel_ws, tournament_key, panel_ws.court_id);
+			//matches_handler(app, panel_ws, tournament_key, panel_ws.court_id);
+			return true;
 		}
 	}
+	return false;;
 }
 
 function add_display_status(app, tournament_key, displays) {
@@ -446,12 +466,8 @@ function add_display_status(app, tournament_key, displays) {
 			}
 		}
 		if (!found) {
-			const client_court_displaysetting = {
-				client_id: ws_client_id,
-				court_id: panel_ws.court_id,
-				displaysetting_id: "default",
-				online: true
-			}
+			const client_court_displaysetting = display_court_displaysettings = create_display_court_displaysettings(ws_client_id, panel_ws.court_id, setting.id, "default");
+			client_court_displaysetting.online = true;
 			displays[displays.length] = client_court_displaysetting;
 		}
 	}
