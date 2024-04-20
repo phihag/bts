@@ -466,7 +466,7 @@ function add_display_status(app, tournament_key, displays) {
 			}
 		}
 		if (!found) {
-			const client_court_displaysetting = display_court_displaysettings = create_display_court_displaysettings(ws_client_id, panel_ws.court_id, setting.id, "default");
+			const client_court_displaysetting = display_court_displaysettings = create_display_court_displaysettings(ws_client_id, panel_ws.court_id, "default");
 			client_court_displaysetting.online = true;
 			displays[displays.length] = client_court_displaysetting;
 		}

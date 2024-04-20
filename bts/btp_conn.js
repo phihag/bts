@@ -270,7 +270,7 @@ class BTPConn {
 			}
 
 			if (! this.key_unicode) {
-				serror.silent('Trying to send match data, but never logged in. Must retry later');
+				//serror.silent('Trying to send match data, but never logged in. Must retry later');
 				return;
 			}
 
@@ -307,7 +307,7 @@ class BTPConn {
 		}
 
 		if (! this.key_unicode) {
-			serror.silent('Trying to update player data, but never logged in. Must retry later');
+			//serror.silent('Trying to update player data, but never logged in. Must retry later');
 			return;
 		}
 
