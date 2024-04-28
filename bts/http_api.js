@@ -582,25 +582,25 @@ function remove_tablet_on_court (app, tkey, cur_match_id, end_ts, callback) {
 				
 					if (match.setup.teams[0].players.length > 0 &&
 						remove_btp_ids.includes(match.setup.teams[0].players[0].btp_id)) {
-						reset_tabletoperator_settings_at_player(tournament, match.setup.teams[0].players[0]);
+						reset_tabletoperator_settings_at_player(tournament, match.setup.teams[0].players[0], end_ts);
 						change = true;
 					}
 
 					if (match.setup.teams[0].players.length > 1 && 
 						remove_btp_ids.includes(match.setup.teams[0].players[1].btp_id)) {
-						reset_tabletoperator_settings_at_player(tournament, match.setup.teams[0].players[1]);
+						reset_tabletoperator_settings_at_player(tournament, match.setup.teams[0].players[1], end_ts);
 						change = true;
 					}
 
 					if (match.setup.teams[1].players.length > 0 &&
 						remove_btp_ids.includes(match.setup.teams[1].players[0].btp_id)) {
-						reset_tabletoperator_settings_at_player(tournament, match.setup.teams[1].players[0]);
+						reset_tabletoperator_settings_at_player(tournament, match.setup.teams[1].players[0], end_ts);
 						change = true;
 					}
 
 					if (match.setup.teams[1].players.length > 1 && 
 						remove_btp_ids.includes(match.setup.teams[1].players[1].btp_id)) {
-						reset_tabletoperator_settings_at_player(tournament, match.setup.teams[1].players[1]);
+						reset_tabletoperator_settings_at_player(tournament, match.setup.teams[1].players[1], end_ts);
 						change = true;
 					}
 
@@ -624,11 +624,13 @@ function remove_tablet_on_court (app, tkey, cur_match_id, end_ts, callback) {
 	});
 }
 
-function reset_tabletoperator_settings_at_player(tournament, player) {
+function reset_tabletoperator_settings_at_player(tournament, player, end_ts) {
 	player.now_tablet_on_court = false;
-	player.checked_in = false;
 	if (tournament.tabletoperator_set_break_after_tabletservice) {
 		player.last_time_on_court_ts = end_ts;
+		player.checked_in = false;
+	} else {
+		player.checked_in = true;
 	}
 }
 
