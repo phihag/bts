@@ -412,30 +412,44 @@ function add_player_to_tabletoperator_list_by_match(app, tournament, tournament_
 					team = cur_match.setup.teams[index];
 				}
 				if (team && typeof team.players !== 'undefined') {
-					var tabletoperator = [];
+					var teams = [];
+					if (tournament.tabletoperator_split_doubles && team.players.length > 1) {
+						for (const player of team.players) {
+							var newTeam = {
+								players: [player]
+							};
 
-					team.players.forEach((player) => {
-						tabletoperator.push(player);
-					});
-
-					const new_tabletoperator = {
-						tournament_key,
-						tabletoperator,
-						'match_id': cur_match._id,
-						'start_ts': end_ts,
-						'end_ts': null,
-						'court': null,
-						'played_on_court': (cur_match.setup.court_id ? cur_match.setup.court_id : null)
-					};
-
-					app.db.tabletoperators.insert(new_tabletoperator, function (err, inserted_t) {
-						if (err) {
-							ws.respond(msg, err);
-							return;
+							teams.push(newTeam); 
 						}
-						const admin = require('./admin'); // avoid dependency cycle
-						admin.notify_change(app, tournament_key, 'tabletoperator_add', { tabletoperator: inserted_t });
-					});
+					} else {
+						teams.push(team); 
+					}
+
+					for (const t of teams) {
+						var tabletoperator = [];
+						t.players.forEach((player) => {
+							tabletoperator.push(player);
+						});
+
+						const new_tabletoperator = {
+							tournament_key,
+							tabletoperator,
+							'match_id': cur_match._id,
+							'start_ts': end_ts,
+							'end_ts': null,
+							'court': null,
+							'played_on_court': (cur_match.setup.court_id ? cur_match.setup.court_id : null)
+						};
+
+						app.db.tabletoperators.insert(new_tabletoperator, function (err, inserted_t) {
+							if (err) {
+								ws.respond(msg, err);
+								return;
+							}
+							const admin = require('./admin'); // avoid dependency cycle
+							admin.notify_change(app, tournament_key, 'tabletoperator_add', { tabletoperator: inserted_t });
+						});
+					}
 
 				}
 			}

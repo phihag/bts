@@ -742,6 +742,7 @@ function ui_edit() {
 	create_checkbox(curt, ticker_fieldset, 'tabletoperator_with_umpire_enabled')
 	create_checkbox(curt, ticker_fieldset, 'tabletoperator_winner_of_quaterfinals_enabled')
 	create_checkbox(curt, ticker_fieldset, 'tabletoperator_use_manual_counting_boards_enabled')
+	create_checkbox(curt, ticker_fieldset, 'tabletoperator_split_doubles')
 	
 
 	uiu.el(form, 'button', {
@@ -769,6 +770,7 @@ function ui_edit() {
 			ticker_password: data.ticker_password,
 			tabletoperator_with_umpire_enabled: (!!data.tabletoperator_with_umpire_enabled),
 			tabletoperator_winner_of_quaterfinals_enabled: (!!data.tabletoperator_winner_of_quaterfinals_enabled),
+			tabletoperator_split_doubles: (!!data.tabletoperator_split_doubles),
 			tabletoperator_use_manual_counting_boards_enabled: (!!data.tabletoperator_use_manual_counting_boards_enabled),
 			tabletoperator_enabled: (!!data.tabletoperator_enabled),
 		};
