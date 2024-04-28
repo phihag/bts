@@ -101,6 +101,7 @@ var ci18n_de = {
 	'tournament:edit:tabletoperator_enabled': 'Tabletbediener einsetzen',
 	'tournament:edit:tabletoperator_winner_of_quaterfinals_enabled': 'Gewinner der Viertelfinals bedienen das Tablet',
 	'tournament:edit:tabletoperator_split_doubles': 'Doppelpaarungen für Tabletbdienung teilen',
+	'tournament:edit:tabletoperator_set_break_after_tabletservice': 'Pausenzeit für Tabletbedienung setzen',
 	'tournament:edit:tabletoperator_with_umpire_enabled': 'Schiedrichter und Tabletbediener aufrufen',
 	'tournament:edit:tabletoperator_use_manual_counting_boards_enabled': 'Klapptafeln anstelle von Tablets in Nutzung',
 	'tournament:edit:ticker_enabled': 'Ticker aktivieren',
