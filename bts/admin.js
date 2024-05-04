@@ -56,7 +56,7 @@ function handle_tournament_edit_props(app, ws, msg) {
 		'btp_ip', 'btp_password',
 		'is_team', 'is_nation_competition', 'only_now_on_court',
 		'warmup', 'warmup_ready', 'warmup_start',
-		'ticker_enabled', 'ticker_url', 'ticker_password',
+		'ticker_enabled', 'ticker_url', 'ticker_password','tabletoperator_break_seconds',
 		'language', 'dm_style', 'tabletoperator_enabled','tabletoperator_set_break_after_tabletservice',
 		'tabletoperator_winner_of_quaterfinals_enabled','tabletoperator_split_doubles',
 		'tabletoperator_use_manual_counting_boards_enabled', 'tabletoperator_with_umpire_enabled', 
