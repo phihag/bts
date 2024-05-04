@@ -393,6 +393,7 @@ async function integrate_matches(app, tkey, btp_state, court_map, callback) {
 					match.duration_ms = cur_match.duration_ms; 
 					match.end_ts = cur_match.end_ts;
 
+
 					if(match.setup.now_on_court === false) {
 						if(cur_match.setup.warmup) {
 							match.setup.warmup = cur_match.setup.warmup;
@@ -418,7 +419,8 @@ async function integrate_matches(app, tkey, btp_state, court_map, callback) {
 
 				   	for(let team_index = 0; team_index < Math.min(cur_match.setup.teams.length, match.setup.teams.length); team_index++) {
 					   	for (let player_index = 0; player_index < Math.min(cur_match.setup.teams[team_index].players.length, match.setup.teams[team_index].players.length); player_index++){
-						   	cur_match.setup.teams[team_index].players[player_index].checked_in = match.setup.teams[team_index].players[player_index].checked_in;
+							cur_match.setup.teams[team_index].players[player_index].checked_in = match.setup.teams[team_index].players[player_index].checked_in;
+							match.setup.teams[team_index].players[player_index].tablet_break_active = cur_match.setup.teams[team_index].players[player_index].tablet_break_active;
 					   	}
 				   	}
 
@@ -603,6 +605,7 @@ async function integrate_player_state(app, tkey, btp_state, callback) {
 									const player = cur_match.setup.teams[team_nr].players[player_nr];
 									if(ids_to_change.indexOf(id) == -1) {
 										player.checked_in = true;
+										player.tablet_break_active = false;
 										ids_to_change.push(id);
 										players_to_change.push(player);
 									}
@@ -979,21 +982,25 @@ function set_player_on_court (app, tkey, match_on_court_setup, callback) {
 			
 			if (match.setup.teams[0].players.length > 0 && on_court_btp_ids.includes(match.setup.teams[0].players[0].btp_id)) {
 				match.setup.teams[0].players[0].now_playing_on_court = match_on_court_setup.court_id;
+				match.setup.teams[0].players[0].tablet_break_active = false;
 				change = true;
 			}
 
 			if (match.setup.teams[0].players.length > 1 && on_court_btp_ids.includes(match.setup.teams[0].players[1].btp_id)) {
 				match.setup.teams[0].players[1].now_playing_on_court = match_on_court_setup.court_id;
+				match.setup.teams[0].players[1].tablet_break_active = false;
 				change = true;
 			}
 
 			if (match.setup.teams[1].players.length > 0 && on_court_btp_ids.includes(match.setup.teams[1].players[0].btp_id)) {
 				match.setup.teams[1].players[0].now_playing_on_court = match_on_court_setup.court_id;
+				match.setup.teams[1].players[0].tablet_break_active = false;
 				change = true;
 			}
 
 			if (match.setup.teams[1].players.length > 1 && on_court_btp_ids.includes(match.setup.teams[1].players[1].btp_id)) {
 				match.setup.teams[1].players[1].now_playing_on_court = match_on_court_setup.court_id;
+				match.setup.teams[1].players[1].tablet_break_active = false;
 				change = true;
 			}
 			if (change) {

@@ -555,7 +555,9 @@ function create_timer(timer_state, parent, default_color, exigent_color) {
 		return;
 	}
 
-	let el = uiu.el(parent, 'div', {class: 'timer', style: ('color:' + default_color +';')}, tv.str);
+
+	var bgColor = timer_state.bgColor;
+	let el = uiu.el(parent, 'div', { class: 'timer', style: ('background-color:' + bgColor +'; color:' + default_color +';')}, tv.str);
 	
 	var tobj = {}
 
@@ -592,6 +594,12 @@ function _extract_player_timer_state(player) {
 	s.timer.start = (player.last_time_on_court_ts ? player.last_time_on_court_ts : false);
 	s.timer.upwards = false;
 	s.timer.exigent = false;
+
+	if (player.tablet_break_active) {
+		s.bgColor = "#0000ff";
+	} else {
+		s.bgColor = "#ff0000";
+	}
 	
 	return s;
 }

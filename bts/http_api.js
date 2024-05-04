@@ -547,7 +547,7 @@ function remove_player_on_court (app, tkey, cur_match_id, end_ts, callback) {
 
 
 function remove_tablet_on_court (app, tkey, cur_match_id, end_ts, callback) {
-	
+	const admin = require('./admin'); // avoid dependency cycle
 	app.db.tournaments.findOne({ key: tkey }, async (err, tournament) => {
 		if (err) {
 			return callback(err);
@@ -609,7 +609,6 @@ function remove_tablet_on_court (app, tkey, cur_match_id, end_ts, callback) {
 						const match_q = {_id: match_id};
 						app.db.matches.update(match_q, {$set: {setup}}, {}, (err) => {
 							if (err) return cb(err);
-							const admin = require('./admin'); // avoid dependency cycle
 							admin.notify_change(app, match.tournament_key, 'update_player_status', {	match__id: match._id,
 																										btp_winner: match.btp_winner, 
 																										setup: match.setup});
@@ -629,8 +628,11 @@ function reset_tabletoperator_settings_at_player(app, tkey, tournament, player, 
 	if (tournament.tabletoperator_set_break_after_tabletservice) {
 		player.last_time_on_court_ts = end_ts;
 		player.checked_in = false;
+		player.tablet_break_active = true;
+		
 	} else {
 		player.checked_in = true;
+		player.tablet_break_active = false;
 		btp_manager.update_players(app, tkey, [player]);
 	}
 }
