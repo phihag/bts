@@ -738,13 +738,16 @@ function ui_edit() {
 	});
 
 
-	create_checkbox(curt, ticker_fieldset,'tabletoperator_enabled')
-	create_checkbox(curt, ticker_fieldset, 'tabletoperator_with_umpire_enabled')
-	create_checkbox(curt, ticker_fieldset, 'tabletoperator_winner_of_quaterfinals_enabled')
-	create_checkbox(curt, ticker_fieldset, 'tabletoperator_use_manual_counting_boards_enabled')
-	create_checkbox(curt, ticker_fieldset, 'tabletoperator_split_doubles')
-	create_checkbox(curt, ticker_fieldset, 'tabletoperator_set_break_after_tabletservice')
-	
+	create_checkbox(curt, ticker_fieldset, 'tabletoperator_enabled');
+	create_checkbox(curt, ticker_fieldset, 'tabletoperator_with_umpire_enabled');
+	create_checkbox(curt, ticker_fieldset, 'tabletoperator_winner_of_quaterfinals_enabled');
+	create_checkbox(curt, ticker_fieldset, 'tabletoperator_use_manual_counting_boards_enabled');
+	create_checkbox(curt, ticker_fieldset, 'tabletoperator_split_doubles');
+	create_checkbox(curt, ticker_fieldset, 'tabletoperator_set_break_after_tabletservice');
+	if (!curt.tabletoperator_break_seconds) {
+		curt.tabletoperator_break_seconds = 300;
+	}
+	create_input(curt, "number", ticker_fieldset, 'tabletoperator_break_seconds')
 
 	uiu.el(form, 'button', {
 		role: 'submit',
@@ -775,6 +778,7 @@ function ui_edit() {
 			tabletoperator_set_break_after_tabletservice: (!!data.tabletoperator_set_break_after_tabletservice),
 			tabletoperator_use_manual_counting_boards_enabled: (!!data.tabletoperator_use_manual_counting_boards_enabled),
 			tabletoperator_enabled: (!!data.tabletoperator_enabled),
+			tabletoperator_break_seconds: data.tabletoperator_break_seconds,
 		};
 		send({
 			type: 'tournament_edit_props',
@@ -950,18 +954,30 @@ function ui_edit() {
 _route_single(/t\/([a-z0-9]+)\/edit$/, ui_edit);
 
 
-function create_checkbox(curt, parent_el, filed_id) {
-	const label = uiu.el(parent_el, 'label');
-	const attrs = {
-		type: 'checkbox',
-		name: filed_id,
-	};
-	if (curt[filed_id]) {
-		attrs.checked = 'checked';
+	function create_checkbox(curt, parent_el, filed_id) {
+		const label = uiu.el(parent_el, 'label');
+		const attrs = {
+			type: 'checkbox',
+			name: filed_id,
+		};
+		if (curt[filed_id]) {
+			attrs.checked = 'checked';
+		}
+		uiu.el(label, 'input', attrs);
+		uiu.el(label, 'span', {}, ci18n('tournament:edit:' + filed_id));
 	}
-	uiu.el(label, 'input', attrs);
-	uiu.el(label, 'span', {}, ci18n('tournament:edit:' + filed_id));
-}
+
+	function create_input(curt, type, parent_el, filed_id) {
+		const text_input = uiu.el(parent_el, 'label');
+		uiu.el(text_input, 'span', {}, ci18n('tournament:edit:' + filed_id));
+		uiu.el(text_input, 'input', {
+			type: type,
+			name: filed_id,
+			value: curt[filed_id] || '',
+		});
+	}
+
+
 
 
 function createCourtSelectBox(parentEl,parent_id, court_id) {

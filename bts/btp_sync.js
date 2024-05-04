@@ -437,6 +437,15 @@ async function integrate_matches(app, tkey, btp_state, court_map, callback) {
 								if ((tournament.tabletoperator_enabled && tournament.tabletoperator_enabled == true)) {
 									const http_api = require('./http_api');
 									http_api.add_player_to_tabletoperator_list_by_match(app, tournament, tkey, match, match.end_ts);
+
+									async.waterfall([
+										cb => http_api.remove_tablet_on_court(app, tkey, match._id, match.end_ts, cb)
+									], function (err) {
+										if (err) {
+											return;
+										}
+									});
+									
 								}
 							});
 						}

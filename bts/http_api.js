@@ -626,9 +626,14 @@ function remove_tablet_on_court (app, tkey, cur_match_id, end_ts, callback) {
 function reset_tabletoperator_settings_at_player(app, tkey, tournament, player, end_ts) {
 	player.now_tablet_on_court = false;
 	if (tournament.tabletoperator_set_break_after_tabletservice) {
-		player.last_time_on_court_ts = end_ts;
+		var offset = 0;
+		if (tournament.tabletoperator_break_seconds) {
+			offset = (parseInt(tournament.tabletoperator_break_seconds) * 1000) - tournament.btp_settings.pause_duration_ms;
+		}
+		player.last_time_on_court_ts = end_ts + offset;
 		player.checked_in = false;
 		player.tablet_break_active = true;
+		btp_manager.update_players(app, tkey, [player]);
 		
 	} else {
 		player.checked_in = true;
@@ -667,4 +672,5 @@ module.exports = {
 	matchinfo_handler,
 	score_handler,
 	add_player_to_tabletoperator_list_by_match,
+	remove_tablet_on_court
 };
