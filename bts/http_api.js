@@ -273,20 +273,7 @@ function score_handler(req, res) {
 	}
 
 	if (update.team1_won != undefined && update.team1_won != null) {
-		async.waterfall([
-			cb => remove_player_on_court(req.app, tournament_key, match_id, update.end_ts, cb),
-			cb => remove_tablet_on_court(req.app, tournament_key, match_id, update.end_ts, cb),
-			cb => add_player_to_tabletoperator_list(req.app, tournament_key, match_id, update.end_ts)
-
-		], function(err) {
-			if (err) {
-				res.json({
-					status: 'error',
-					message: err.message,
-				});
-				return;
-			}
-		});
+		reset_player_tabletoperator(req.app, tournament_key, match_id, update.end_ts);
 	}
 
 	if (req.body.shuttle_count) {
@@ -375,6 +362,19 @@ function score_handler(req, res) {
 		}
 
 		res.json({status: 'ok'});
+	});
+}
+
+function reset_player_tabletoperator(app, tournament_key, match_id, end_ts) {
+	async.waterfall([
+		cb => remove_player_on_court(app, tournament_key, match_id, end_ts, cb),
+		cb => remove_tablet_on_court(app, tournament_key, match_id, end_ts, cb),
+		cb => add_player_to_tabletoperator_list(app, tournament_key, match_id, end_ts)
+
+	], function (err) {
+		if (err) {
+			return;
+		}
 	});
 }
 
@@ -694,6 +694,5 @@ module.exports = {
 	matches_handler,
 	matchinfo_handler,
 	score_handler,
-	add_player_to_tabletoperator_list_by_match,
-	remove_tablet_on_court
+	reset_player_tabletoperator
 };
