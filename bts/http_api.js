@@ -411,18 +411,30 @@ function add_player_to_tabletoperator_list_by_match(app, tournament, tournament_
 					const index = cur_match.btp_winner % 2;
 					team = cur_match.setup.teams[index];
 				}
+
+				// TODO: 'tabletoperator_with_state_enabled'
+
 				if (team && typeof team.players !== 'undefined') {
 					var teams = [];
 					if (tournament.tabletoperator_split_doubles && team.players.length > 1) {
 						for (const player of team.players) {
+							var toinsert = player
+							if (tournament.tabletoperator_with_state_enabled && player.state) {
+								toinsert = create_team_from_player_state(player);
+							} 
 							var newTeam = {
-								players: [player]
+								players: [toinsert]
 							};
-
 							teams.push(newTeam); 
 						}
 					} else {
-						teams.push(team); 
+						var toinsert = team;
+						if (tournament.tabletoperator_with_state_enabled && team.players[0].state) {
+							toinsert = {
+								players: [create_team_from_player_state(team.players[0])]
+							};
+						}
+						teams.push(toinsert); 
 					}
 
 					for (const t of teams) {
@@ -455,6 +467,17 @@ function add_player_to_tabletoperator_list_by_match(app, tournament, tournament_
 			}
 		});
 	}
+}
+
+
+function create_team_from_player_state(player) {
+	return {
+		"asian_name": false,
+		"name": player.state,
+		"firstname": "",
+		"lastname": "",
+		"btp_id": -1
+	};
 }
 function remove_player_on_court (app, tkey, cur_match_id, end_ts, callback) {	
 	const admin = require('./admin'); // avoid dependency cycle

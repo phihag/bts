@@ -743,6 +743,7 @@ function ui_edit() {
 	create_checkbox(curt, ticker_fieldset, 'tabletoperator_winner_of_quaterfinals_enabled');
 	create_checkbox(curt, ticker_fieldset, 'tabletoperator_use_manual_counting_boards_enabled');
 	create_checkbox(curt, ticker_fieldset, 'tabletoperator_split_doubles');
+	create_checkbox(curt, ticker_fieldset, 'tabletoperator_with_state_enabled');
 	create_checkbox(curt, ticker_fieldset, 'tabletoperator_set_break_after_tabletservice');
 	if (!curt.tabletoperator_break_seconds) {
 		curt.tabletoperator_break_seconds = 300;
@@ -775,6 +776,7 @@ function ui_edit() {
 			tabletoperator_with_umpire_enabled: (!!data.tabletoperator_with_umpire_enabled),
 			tabletoperator_winner_of_quaterfinals_enabled: (!!data.tabletoperator_winner_of_quaterfinals_enabled),
 			tabletoperator_split_doubles: (!!data.tabletoperator_split_doubles),
+			tabletoperator_with_state_enabled: (!!data.tabletoperator_with_state_enabled),
 			tabletoperator_set_break_after_tabletservice: (!!data.tabletoperator_set_break_after_tabletservice),
 			tabletoperator_use_manual_counting_boards_enabled: (!!data.tabletoperator_use_manual_counting_boards_enabled),
 			tabletoperator_enabled: (!!data.tabletoperator_enabled),

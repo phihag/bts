@@ -57,7 +57,8 @@ function handle_tournament_edit_props(app, ws, msg) {
 		'is_team', 'is_nation_competition', 'only_now_on_court',
 		'warmup', 'warmup_ready', 'warmup_start',
 		'ticker_enabled', 'ticker_url', 'ticker_password',
-		'language', 'dm_style', 'tabletoperator_enabled','tabletoperator_set_break_after_tabletservice',
+		'language', 'dm_style', 'tabletoperator_enabled','tabletoperator_break_seconds',
+		'tabletoperator_set_break_after_tabletservice','tabletoperator_with_state_enabled',
 		'tabletoperator_winner_of_quaterfinals_enabled','tabletoperator_split_doubles',
 		'tabletoperator_use_manual_counting_boards_enabled', 'tabletoperator_with_umpire_enabled', 
 		'logo_background_color', 'logo_foreground_color']);
@@ -265,50 +266,66 @@ function handle_tabletoperator_add(app, ws, msg) {
 		return ws.respond(msg, { message: 'Missing tournament_key' });
 	}
 	const tournament_key = msg.tournament_key;
-	var team = null;
-	if (msg.match) {
-		const team_id = msg.team_id;
-		const match = msg.match
-		team = match.setup.teams[team_id];
-	} else if (msg.tabletoperator_name) {
-		team = {
-			"players": [
-				{
-					"asian_name": false,
-					"name": msg.tabletoperator_name,
-					"firstname": "",
-					"lastname": "",
-					"btp_id": -1
-				}
-			],
-			"name": "N/N"
-		};
-			
-	}
-	if (team != null) {
-		team.players.forEach((player) => {
-			var tabletoperator = [];
-			tabletoperator.push(player);
-			const new_tabletoperator = {
-				tournament_key,
-				tabletoperator,
-				'match_id': 'manually_added',
-				'start_ts': Date.now(),
-				'end_ts': null,
-				'court': null,
-				'played_on_court': null
+	app.db.tournaments.findOne({ key: tournament_key }, async (err, tournament) => {
+		if (err) {
+			return ws.respond(err);
+		}
+
+		var team = null;
+		if (msg.match) {
+			const team_id = msg.team_id;
+			const match = msg.match
+			team = match.setup.teams[team_id];
+		} else if (msg.tabletoperator_name) {
+			team = {
+				"players": [
+					{
+						"asian_name": false,
+						"name": msg.tabletoperator_name,
+						"firstname": "",
+						"lastname": "",
+						"btp_id": -1
+					}
+				],
+				"name": "N/N"
 			};
-			app.db.tabletoperators.insert(new_tabletoperator, function (err, inserted_tabletoperator) {
-				if (err) {
-					ws.respond(msg, err);
-					return;
+
+		}
+		if (team != null) {
+			team.players.forEach((player) => {
+				var tabletoperator = [];
+				if (tournament.tabletoperator_with_state_enabled && player.state) {
+					tabletoperator.push({
+						"asian_name": false,
+						"name": player.state,
+						"firstname": "",
+						"lastname": "",
+						"btp_id": -1
+					});
+				} else { 
+					tabletoperator.push(player);
 				}
-				notify_change(app, tournament_key, 'tabletoperator_add', { tabletoperator: inserted_tabletoperator });
+				const new_tabletoperator = {
+					tournament_key,
+					tabletoperator,
+					'match_id': 'manually_added',
+					'start_ts': Date.now(),
+					'end_ts': null,
+					'court': null,
+					'played_on_court': null
+				};
+				app.db.tabletoperators.insert(new_tabletoperator, function (err, inserted_tabletoperator) {
+					if (err) {
+						ws.respond(msg, err);
+						return;
+					}
+					notify_change(app, tournament_key, 'tabletoperator_add', { tabletoperator: inserted_tabletoperator });
+				});
 			});
-		});
-	} else {
-		return ws.respond(msg, { message: 'Not enough Information to add a tabletoperator to list' });
-	}
+		} else {
+			return ws.respond(msg, { message: 'Not enough Information to add a tabletoperator to list' });
+		}
+	});
 }
 
 function handle_match_edit(app, ws, msg) {

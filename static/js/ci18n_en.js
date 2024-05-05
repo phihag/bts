@@ -107,6 +107,7 @@ var ci18n_en = {
 	'tournament:edit:tabletoperator_set_break_after_tabletservice': 'Set break after tabletservice',
 	'tournament:edit:tabletoperator_break_seconds': 'Pausenzeit nach Tabletbedienung (sec)',
 	'tournament:edit:tabletoperator_split_doubles': 'Split Doubles for Tablet Service.',
+	'tournament:edit:tabletoperator_with_state_enabled': 'Call up national association instead of player',
 	'tournament:edit:tabletoperator_with_umpire_enabled': 'Announce Umpire and Tabletoperator ',
 	'tournament:edit:tabletoperator_use_manual_counting_boards_enabled': 'Usage of Counting Boards instead of Tablets',
 	'tournament:edit:displays': 'Manage Displays:',
