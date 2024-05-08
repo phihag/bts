@@ -114,6 +114,9 @@ var ci18n_de = {
 	'tournament:edit:displays:court': 'Feld',
 	'tournament:edit:displays:setting': 'Einstellung',
 	'tournament:edit:displays:onlinestatus': 'Status',
+	'tournament:edit:tablets': 'Tablets Einstellungen:',
+	'tournament:edit:ticker': 'Ticker Einstellungen:',
+	'tournament:edit:btp': 'Badminton Turnier Planer Einstellungen:',
 
 	'to_stats:header': 'Statistik der Technischen Offiziellen',
 	'to_stats:name': 'Name',

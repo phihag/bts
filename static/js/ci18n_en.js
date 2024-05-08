@@ -115,6 +115,10 @@ var ci18n_en = {
 	'tournament:edit:displays:court': 'Ar Court',
 	'tournament:edit:displays:setting': 'Setting',
 	'tournament:edit:displays:onlinestatus': 'Status',
+	'tournament:edit:tablets': 'Tablets Settings:',
+	'tournament:edit:ticker': 'Ticker Settings:',
+	'tournament:edit:btp': 'Badminton Tournament Planer Settings:',
+
 	'to_stats:header': 'Technical Officials Statistics',
 	'to_stats:name': 'Name',
 	'to_stats:umpire': 'U',
