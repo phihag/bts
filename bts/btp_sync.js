@@ -578,7 +578,6 @@ function integrate_btp_settings(app, tkey, btp_state, callback) {
 
 async function integrate_player_state(app, tkey, btp_state, callback) {
 	const btp_manager = require('./btp_manager');
-
 	app.db.tournaments.findOne({key: tkey}, (err, tournament) => {
 		if(err) return callback(err);
 		
@@ -619,6 +618,10 @@ async function integrate_player_state(app, tkey, btp_state, callback) {
 				btp_manager.update_players(app, tkey, players_to_change);
 				return callback(null);
 			});
+		}
+		else
+		{
+			return callback(null);
 		}
 		
 	});
