@@ -743,14 +743,14 @@ function ui_edit() {
 
 	const tablet_fieldset = uiu.el(form, 'fieldset');
 	uiu.el(tablet_fieldset, 'h2', {}, ci18n('tournament:edit:tablets'));
-	create_checkbox(curt, ticker_fieldset, 'tabletoperator_enabled');
-	create_checkbox(curt, ticker_fieldset, 'tabletoperator_with_umpire_enabled');
-	create_checkbox(curt, ticker_fieldset, 'tabletoperator_winner_of_quaterfinals_enabled');
-	create_checkbox(curt, ticker_fieldset, 'tabletoperator_use_manual_counting_boards_enabled');
-	create_checkbox(curt, ticker_fieldset, 'tabletoperator_split_doubles');
-	create_checkbox(curt, ticker_fieldset, 'tabletoperator_with_state_enabled');
-	create_checkbox(curt, ticker_fieldset, 'tabletoperator_set_break_after_tabletservice');
-	create_checkbox(curt, ticker_fieldset, 'preparation_meetingpoint_enabled');
+	create_checkbox(curt, tablet_fieldset, 'tabletoperator_enabled');
+	create_checkbox(curt, tablet_fieldset, 'tabletoperator_with_umpire_enabled');
+	create_checkbox(curt, tablet_fieldset, 'tabletoperator_winner_of_quaterfinals_enabled');
+	create_checkbox(curt, tablet_fieldset, 'tabletoperator_use_manual_counting_boards_enabled');
+	create_checkbox(curt, tablet_fieldset, 'tabletoperator_split_doubles');
+	create_checkbox(curt, tablet_fieldset, 'tabletoperator_with_state_enabled');
+	create_checkbox(curt, tablet_fieldset, 'tabletoperator_set_break_after_tabletservice');
+	create_checkbox(curt, tablet_fieldset, 'preparation_meetingpoint_enabled');
 	if (!curt.tabletoperator_break_seconds) {
 		curt.tabletoperator_break_seconds = 300;
 	}
