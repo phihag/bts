@@ -636,6 +636,7 @@ function ui_edit() {
 
 	// BTP
 	const btp_fieldset = uiu.el(form, 'fieldset');
+	uiu.el(btp_fieldset, 'h2', {}, ci18n('tournament:edit:btp'));
 	const btp_enabled_label = uiu.el(btp_fieldset, 'label');
 	const ba_attrs = {
 		type: 'checkbox',
@@ -710,6 +711,7 @@ function ui_edit() {
 
 	// Ticker
 	const ticker_fieldset = uiu.el(form, 'fieldset');
+	uiu.el(ticker_fieldset, 'h2', {}, ci18n('tournament:edit:ticker'));
 	const ticker_enabled_label = uiu.el(ticker_fieldset, 'label');
 	const te_attrs = {
 		type: 'checkbox',
@@ -738,6 +740,9 @@ function ui_edit() {
 	});
 
 
+
+	const tablet_fieldset = uiu.el(form, 'fieldset');
+	uiu.el(tablet_fieldset, 'h2', {}, ci18n('tournament:edit:tablets'));
 	create_checkbox(curt, ticker_fieldset, 'tabletoperator_enabled');
 	create_checkbox(curt, ticker_fieldset, 'tabletoperator_with_umpire_enabled');
 	create_checkbox(curt, ticker_fieldset, 'tabletoperator_winner_of_quaterfinals_enabled');
@@ -749,7 +754,10 @@ function ui_edit() {
 	if (!curt.tabletoperator_break_seconds) {
 		curt.tabletoperator_break_seconds = 300;
 	}
-	create_input(curt, "number", ticker_fieldset, 'tabletoperator_break_seconds')
+	create_input(curt, "number", tablet_fieldset, 'tabletoperator_break_seconds')
+
+
+
 
 	uiu.el(form, 'button', {
 		role: 'submit',
