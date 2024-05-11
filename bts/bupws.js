@@ -308,8 +308,8 @@ function matches_handler(app, ws, tournament_key, court_id) {
 
 		if(db_matches){
 		    let matches = db_matches.map(dbm => create_match_representation(tournament, dbm));
-		    if (tournament.only_now_on_court) {
-		        	matches = matches.filter(m => m.setup.now_on_court);
+			if (!court_id && tournament.only_now_on_court) {
+		        matches = matches.filter(m => m.setup.now_on_court);
 		    }
 
 		    db_courts.sort(utils.cmp_key('num'));
