@@ -745,6 +745,7 @@ function ui_edit() {
 	create_checkbox(curt, ticker_fieldset, 'tabletoperator_split_doubles');
 	create_checkbox(curt, ticker_fieldset, 'tabletoperator_with_state_enabled');
 	create_checkbox(curt, ticker_fieldset, 'tabletoperator_set_break_after_tabletservice');
+	create_checkbox(curt, ticker_fieldset, 'preparation_meetingpoint_enabled');
 	if (!curt.tabletoperator_break_seconds) {
 		curt.tabletoperator_break_seconds = 300;
 	}
@@ -781,6 +782,7 @@ function ui_edit() {
 			tabletoperator_use_manual_counting_boards_enabled: (!!data.tabletoperator_use_manual_counting_boards_enabled),
 			tabletoperator_enabled: (!!data.tabletoperator_enabled),
 			tabletoperator_break_seconds: data.tabletoperator_break_seconds,
+			preparation_meetingpoint_enabled: (!!data.preparation_meetingpoint_enabled),
 		};
 		send({
 			type: 'tournament_edit_props',

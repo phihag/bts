@@ -23,7 +23,12 @@ function announcePreparationMatch(matchSetup) {
     var eventName = createEventAnnouncement(matchSetup);
     var round = createRoundAnnouncement(matchSetup);
     var teams = createTeamAnnouncement(matchSetup);
-    announce([preparation, matchNumber, eventName, round, teams, preparation]);
+    const umpire = createUmpire(matchSetup);
+    var lastPart = preparation;
+    if (curt.preparation_meetingpoint_enabled) {
+        lastPart = createMeetingPointAnnouncement();
+    }
+    announce([preparation, matchNumber, eventName, round, teams, umpire, lastPart]);
 }
 function announceSecondCallTeamOne(matchSetup) {
     if(!(window.localStorage.getItem('enable_announcements') === 'true')) {
@@ -209,6 +214,10 @@ function createFieldAnnouncement(matchSetup) {
 
 function createPreparationAnnouncement() {
     return ci18n('announcements:preparation');
+}
+
+function createMeetingPointAnnouncement() {
+    return ci18n('announcements:meetingpoint');
 }
 
 function announce(callArray) {

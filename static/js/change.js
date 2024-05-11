@@ -72,7 +72,8 @@ function default_handler_func(rerender, special_funcs, c) {
 			'ticker_enabled', 'tabletoperator_enabled', 'tabletoperator_with_state_enabled',
 			'tabletoperator_winner_of_quaterfinals_enabled', 'tabletoperator_split_doubles',
 			'tabletoperator_set_break_after_tabletservice', 'tabletoperator_break_seconds',
-			'tabletoperator_use_manual_counting_boards_enabled', 'tabletoperator_with_umpire_enabled'];
+			'tabletoperator_use_manual_counting_boards_enabled', 'tabletoperator_with_umpire_enabled',
+			'preparation_meetingpoint_enabled'];
 		for (const cb_name of CHECKBOXES) {
 			uiu.qsEach('input[name="' + cb_name + '"]', function(el) {
 				el.checked = curt[cb_name];
