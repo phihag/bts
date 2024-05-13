@@ -108,6 +108,7 @@ var ci18n_de = {
 	'tournament:edit:tabletoperator_with_umpire_enabled': 'Schiedrichter und Tabletbediener aufrufen',
 	'tournament:edit:tabletoperator_use_manual_counting_boards_enabled': 'Klapptafeln anstelle von Tablets in Nutzung',
 	'tournament:edit:preparation_meetingpoint_enabled': 'Meetingpoint für Vorbereitung nutzen',
+	'tournament:edit:preparation_tabletoperator_setup_enabled': 'Tabletbediener in Vorbereitung aufrufen',
 	'tournament:edit:ticker_enabled': 'Ticker aktivieren',
 	'tournament:edit:ticker_url': 'Ticker-Adresse:',
 	'tournament:edit:ticker_password': 'Ticker-Passwort:',

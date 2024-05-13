@@ -11,6 +11,7 @@ const serror = require('./serror');
 const stournament = require('./stournament');
 const ticker_manager = require('./ticker_manager');
 const utils = require('./utils');
+const btp_sync = require('./btp_sync');
 
 
 /**
@@ -61,7 +62,7 @@ function handle_tournament_edit_props(app, ws, msg) {
 		'tabletoperator_set_break_after_tabletservice','tabletoperator_with_state_enabled',
 		'tabletoperator_winner_of_quaterfinals_enabled','tabletoperator_split_doubles',
 		'tabletoperator_use_manual_counting_boards_enabled', 'tabletoperator_with_umpire_enabled', 
-		'preparation_meetingpoint_enabled',
+		'preparation_meetingpoint_enabled','preparation_tabletoperator_setup_enabled',
 		'logo_background_color', 'logo_foreground_color']);
 
 	if (msg.props.btp_timezone) {
@@ -367,30 +368,44 @@ function handle_match_preparation_call(app, ws, msg) {
 	}
 
 	const tournament_key = msg.tournament_key;
-	const setup = _extract_setup(msg.setup);
-
-	app.db.matches.update({_id: msg.id, tournament_key}, {$set: {setup}}, {returnUpdatedDocs: true}, function(err, numAffected, changed_match) {
+	app.db.tournaments.findOne({ key: tournament_key }, async (err, tournament) => {
 		if (err) {
+			return ws.respond(err);
+		}
+		const setup = _extract_setup(msg.setup);
+		if (tournament.preparation_tabletoperator_setup_enabled) { 
+			if (!setup.umpire_name || (tournament.tabletoperator_with_umpire_enabled && tournament.tabletoperator_with_umpire_enabled == true)) {
+				if (!setup.tabletoperators || setup.tabletoperators == null) { 
+					const admin = require('./admin');
+					setup.tabletoperators = await btp_sync.fetch_tabletoperator(admin, app, tournament_key, "prep_call");
+				}
+			}
+		}
+
+
+		app.db.matches.update({ _id: msg.id, tournament_key }, { $set: { setup } }, { returnUpdatedDocs: true }, function (err, numAffected, changed_match) {
+			if (err) {
+				ws.respond(msg, err);
+				return;
+			}
+			if (numAffected !== 1) {
+				ws.respond(msg, new Error('Cannot find match ' + msg.id + ' of tournament ' + tournament_key + ' in database'));
+				return;
+			}
+			if (changed_match._id !== msg.id) {
+				const errmsg = 'Match ' + changed_match._id + ' changed by accident, intended to change ' + msg.id + ' (old nedb version?)';
+				serror.silent(errmsg);
+				ws.respond(msg, new Error(errmsg));
+				return;
+			}
+
+			//notify_change(app, tournament_key, 'match_edit', {match__id: msg.id, setup});
+			notify_change(app, tournament_key, 'match_preparation_call', { match__id: msg.id, match: changed_match });
+
+			btp_manager.update_highlight(app, changed_match);
+
 			ws.respond(msg, err);
-			return;
-		}
-		if (numAffected !== 1) {
-			ws.respond(msg, new Error('Cannot find match ' + msg.id + ' of tournament ' + tournament_key + ' in database'));
-			return;
-		}
-		if (changed_match._id !== msg.id) {
-			const errmsg = 'Match ' + changed_match._id + ' changed by accident, intended to change ' + msg.id + ' (old nedb version?)';
-			serror.silent(errmsg);
-			ws.respond(msg, new Error(errmsg));
-			return;
-		}
-
-		//notify_change(app, tournament_key, 'match_edit', {match__id: msg.id, setup});
-		notify_change(app, tournament_key, 'match_preparation_call', {match__id: msg.id, match: changed_match});
-
-		btp_manager.update_highlight(app, changed_match);
-		
-		ws.respond(msg, err);
+		});
 	});
 }
 function handle_begin_to_play_call(app, ws, msg) {

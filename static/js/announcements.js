@@ -24,11 +24,12 @@ function announcePreparationMatch(matchSetup) {
     var round = createRoundAnnouncement(matchSetup);
     var teams = createTeamAnnouncement(matchSetup);
     const umpire = createUmpire(matchSetup);
+    const tabletOperator = createTabletOperator(matchSetup);
     var lastPart = preparation;
     if (curt.preparation_meetingpoint_enabled) {
         lastPart = createMeetingPointAnnouncement();
     }
-    announce([preparation, matchNumber, eventName, round, teams, umpire, lastPart]);
+    announce([preparation, matchNumber, eventName, round, teams, umpire, tabletOperator, lastPart]);
 }
 function announceSecondCallTeamOne(matchSetup) {
     if(!(window.localStorage.getItem('enable_announcements') === 'true')) {

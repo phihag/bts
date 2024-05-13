@@ -112,6 +112,7 @@ var ci18n_en = {
 	'tournament:edit:tabletoperator_with_umpire_enabled': 'Announce Umpire and Tabletoperator ',
 	'tournament:edit:tabletoperator_use_manual_counting_boards_enabled': 'Usage of Counting Boards instead of Tablets',
 	'tournament:edit:preparation_meetingpoint_enabled': 'Use Meetingpoint for preparation',
+	'tournament:edit:preparation_tabletoperator_setup_enabled': 'Call up tablet operator in preparation',
 	'tournament:edit:displays': 'Manage Displays:',
 	'tournament:edit:displays:num': 'Displaynumber',
 	'tournament:edit:displays:court': 'Ar Court',

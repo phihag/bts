@@ -790,9 +790,11 @@ async function integrate_now_on_court(app, tkey, callback) {
 					setup.called_timestamp = called_timestamp;
 					try {
 						if ((tournament.tabletoperator_enabled && tournament.tabletoperator_enabled == true)) {
-							const value = await serializedAsyncTask(admin, app, tkey, court_id);
-							if (!setup.umpire_name || (tournament.tabletoperator_with_umpire_enabled && tournament.tabletoperator_with_umpire_enabled == true)) {
-								setup.tabletoperators = value;
+							if (!setup.tabletoperators || setup.tabletoperators == null) {
+								const value = await fetch_tabletoperator(admin, app, tkey, court_id);
+								if (!setup.umpire_name || (tournament.tabletoperator_with_umpire_enabled && tournament.tabletoperator_with_umpire_enabled == true)) {
+									setup.tabletoperators = value;
+								}
 							}
 						}
 					} catch (err) {
@@ -864,7 +866,7 @@ function serialized(fn) {
 		return res;
 	}
 }
-const serializedAsyncTask = serialized(get_last_looser_on_court);
+const fetch_tabletoperator = serialized(get_last_looser_on_court);
 function get_last_looser_on_court(admin, app, tkey, court_id) {
 	return new Promise((resolve, reject) => {
 		const tabletoperator_querry = { 'tournament_key': tkey, court: null };
@@ -1048,6 +1050,7 @@ module.exports = {
 	date_str,
 	fetch,
 	time_str,
+	fetch_tabletoperator,
 	// test only
 	_integrate_umpires: integrate_umpires,
 };
