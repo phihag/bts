@@ -273,6 +273,7 @@ function render_announcement_formular(target) {
 		name: 'custom_announcement',
 		cols: '50',
 		rows: '4',
+		maxlength: '175'
 	});
 	const btp_fetch_btn = uiu.el(form, 'button', {
 		'class': 'match_save_button',
