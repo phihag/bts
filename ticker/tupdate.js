@@ -22,7 +22,12 @@ function handle_tset(app, ws, msg) {
 	if (!_require_msg(ws, msg, ['event'])) {
 		return;
 	}
-
+	if (msg.event.tournament_name) {
+		app.config.tournament_name = msg.event.tournament_name;
+	}
+	if (msg.event.tournament_url) {
+		app.config.note_html = "Alle Spiele auf <a href=\"" + msg.event.tournament_url+"\" target='_blank'>Turnier.de</a>";
+	}
 	tdata.set(app, msg.event, (err) => {
 		if (err) {
 			serror.silent('Failed tset: ' + err.message + ' ' + err.stack);

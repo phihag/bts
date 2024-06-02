@@ -80,6 +80,7 @@ var ci18n_en = {
 	'tournament:edit:language': 'Language:',
 	'tournament:edit:language:auto': 'Not set (browser default)',
 	'tournament:edit:name': 'Name:',
+	'tournament:edit:tguid': 'Tournament Guid:',
 	'tournament:edit:courts': 'Courts:',
 	'tournament:edit:dm_style': 'Default display style:',
 	'tournament:edit:only_now_on_court': 'Matches have to be dragged onto court',

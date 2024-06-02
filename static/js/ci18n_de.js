@@ -80,6 +80,7 @@ var ci18n_de = {
 	'tournament:edit:language': 'Sprache:',
 	'tournament:edit:language:auto': 'Nicht gesetzt (Browser-Einstellung)',
 	'tournament:edit:name': 'Name:',
+	'tournament:edit:tguid': 'Turnier Guid:',
 	'tournament:edit:courts': 'Felder:',
 	'tournament:edit:dm_style': 'Standard-Ansicht:',
 	'tournament:edit:only_now_on_court': 'Spiele müssen auf Feld gezogen werden',

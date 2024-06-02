@@ -52,7 +52,7 @@ function handle_tournament_edit_props(app, ws, msg) {
 
 	const key = msg.key;
 	const props = utils.pluck(msg.props, [
-		'name',
+		'name','tguid',
 		'btp_enabled', 'btp_autofetch_enabled', 'btp_readonly',
 		'btp_ip', 'btp_password',
 		'is_team', 'is_nation_competition', 'only_now_on_court',
@@ -120,16 +120,33 @@ function handle_tournament_get(app, ws, msg) {
 		return ws.respond(msg, {message: 'Missing key'});
 	}
 
-	app.db.tournaments.findOne({key: msg.key}, function(err, tournament) {
+	app.db.tournaments.findOne({ key: msg.key }, function (err, tournament) {
 		if (!err && !tournament) {
-			err = {message: 'No tournament ' + msg.key};
+			err = { message: 'No tournament ' + msg.key };
 		}
 		if (err) {
 			ws.respond(msg, err);
 			return;
 		}
-
 		async.parallel([
+		function (cb) { 
+			try {
+				const qrcode = require('qrcode');
+				var url = "";
+				if (tournament.ticker_enabled) {
+					url = "https://" + tournament.ticker_url.split("/")[2];
+				} else {
+					url = "https://" + (tournament.btp_settings ? tournament.btp_settings.tournament_urn : "www.turnier.de") + "/tournament" + (tournament.tguid ? "/" + tournament.tguid + "/matches" : "s/");
+				}
+
+				qrcode.toDataURL(url, function (error, data) {
+					const qrCodeDataUrl = data;
+					tournament.mainQrCode = qrCodeDataUrl;
+					cb(error);
+				});
+			} catch (error)
+			{ }
+		},
 		function(cb) {
 			stournament.get_courts(app.db, tournament.key, function(err, courts) {
 				tournament.courts = courts;

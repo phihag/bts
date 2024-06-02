@@ -1042,6 +1042,13 @@ function render_upcoming_matches(container) {
 		});
 		render_match_row(tr, match, null, 'upcoming');
 	}
+
+	const qr = uiu.el(container, 'img', {
+		type: 'img',
+		id: 'main_q_code_upcoming',
+		src: curt.mainQrCode,
+		style: 'position: absolute; right: 20px; bottom: 20px;'
+	});
 }
 
 function render_finished(container) {

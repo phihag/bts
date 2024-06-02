@@ -44,6 +44,7 @@ function default_handler_func(rerender, special_funcs, c) {
 	case 'props': {
 		curt.name = c.val.name;
 		curt.is_team = c.val.is_team;
+		curt.tguid = c.val.tguid;
 		curt.is_nation_competition = c.val.is_nation_competition;
 		curt.only_now_on_court = c.val.only_now_on_court;
 		curt.btp_timezone = c.val.btp_timezone;

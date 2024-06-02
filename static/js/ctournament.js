@@ -470,6 +470,16 @@ function ui_edit() {
 		'class': 'ct_name',
 	});
 
+
+	const name_tguid = uiu.el(form, 'label');
+	uiu.el(name_tguid, 'span', {}, ci18n('tournament:edit:tguid'));
+	uiu.el(name_tguid, 'input', {
+		type: 'text',
+		name: 'tguid',		
+		value: curt.tguid ? curt.tguid : "",
+		'class': 'ct_tguid',
+	});
+
 	// Tournament language selection
 	const language_label = uiu.el(form, 'label');
 	uiu.el(language_label, 'span', {}, ci18n('tournament:edit:language'));
@@ -767,6 +777,7 @@ function ui_edit() {
 	form_utils.onsubmit(form, function(data) {
 		const props = {
 			name: data.name,
+			tguid: data.tguid,
 			language: data.language,
 			is_team: (!!data.is_team),
 			is_nation_competition: (!!data.is_nation_competition),

@@ -160,7 +160,10 @@ class TickerConn {
 		}, {
 			collection: 'matches',
 			query: {tournament_key},
-		}], (err, db_courts, db_matches) => {
+		}, {
+			collection: 'tournaments',
+			query: { key: tournament_key},
+		}], (err, db_courts, db_matches, db_tournaments) => {
 			if (err) return cb(err);
 
 			const interesting_ids = utils.filter_map(db_courts, c => c.match_id);
@@ -183,9 +186,20 @@ class TickerConn {
 				}
 			}
 
+
+			var tname = "";
+			var turl = "";
+			if (db_tournaments && db_tournaments.length == 1) {
+
+				tname = db_tournaments[0].name;
+				turl = "https://" + (db_tournaments.btp_settings ? db_tournaments.btp_settings.tournament_urn : "www.turnier.de") +"/tournament" + (db_tournaments[0].tguid ? "/" + db_tournaments[0].tguid+"/matches" : "s/");
+			}
+
 			return cb(null, {
 				courts: db_courts.map(craft_court),
 				matches: interesting_matches.map(craft_match),
+				tournament_name:  tname,
+				tournament_url: turl
 			});
 		});
 	}

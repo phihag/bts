@@ -562,17 +562,54 @@ function integrate_courts(app, tournament_key, btp_state, callback) {
 }
 
 function integrate_btp_settings(app, tkey, btp_state, callback) {
-	let btp_settings = {};
 
-	btp_settings.check_in_per_match = btp_state.btp_settings.get(1003).Value[0] ? false : true;
-	btp_settings.pause_duration_ms = btp_state.btp_settings.get(1303).Value[0] * 60 * 1000;
-
-	app.db.tournaments.update({key: tkey}, {$set: {btp_settings}}, {}, (err) => {
-		if (err) {
-			return callback(err);
+	app.db.tournaments.findOne({ key: tkey }, (err, tournament) => {
+		if (err) return callback(err);
+		var toChange = {};
+		var changed = false;
+		if (!tournament.btpSettings) {
+			tournament.btpSettings = {};
+			changed = true;
 		}
+		
+		const tournament_name = btp_state.btp_settings.get(1001).Value[0];
+		const tournament_urn = btp_state.btp_settings.get(1008).Value[0];
+		const check_in_per_match = btp_state.btp_settings.get(1003).Value[0] ? false : true;
+		const pause_duration_ms = btp_state.btp_settings.get(1303).Value[0] * 60 * 1000;
 
-		return callback(null);
+		
+
+		if (tournament.btpSettings.tournament_name != tournament_name) {
+			tournament.btpSettings.tournament_name = tournament_name;
+			changed = true;
+			toChange.btpSettings = tournament.btpSettings;
+			toChange.name = tournament_name;
+		}
+		if (tournament.btpSettings.tournament_urn != tournament_urn) {
+			tournament.btpSettings.tournament_urn = tournament_urn;
+			changed = true;
+			toChange.btpSettings = tournament.btpSettings;
+		}
+		if (tournament.btpSettings.check_in_per_match != check_in_per_match) {
+			tournament.btpSettings.check_in_per_match = check_in_per_match;
+			changed = true;
+			toChange.btpSettings = tournament.btpSettings;
+		}
+		if (tournament.btpSettings.pause_duration_ms != pause_duration_ms) {
+			tournament.btpSettings.pause_duration_ms = pause_duration_ms;
+			changed = true;
+			toChange.btpSettings = tournament.btpSettings;
+		}
+		
+		if (changed) {
+			app.db.tournaments.update({ key: tkey }, { $set: toChange }, {}, (err) => {
+				if (err) {
+					return callback(err);
+				}
+
+				return callback(null);
+			});
+		}
 	});
 }
 
