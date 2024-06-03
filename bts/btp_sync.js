@@ -567,8 +567,8 @@ function integrate_btp_settings(app, tkey, btp_state, callback) {
 		if (err) return callback(err);
 		var toChange = {};
 		var changed = false;
-		if (!tournament.btpSettings) {
-			tournament.btpSettings = {};
+		if (!tournament.btp_settings) {
+			tournament.btp_settings = {};
 			changed = true;
 		}
 		
@@ -579,26 +579,26 @@ function integrate_btp_settings(app, tkey, btp_state, callback) {
 
 		
 
-		if (tournament.btpSettings.tournament_name != tournament_name) {
-			tournament.btpSettings.tournament_name = tournament_name;
+		if (tournament.btp_settings.tournament_name != tournament_name) {
+			tournament.btp_settings.tournament_name = tournament_name;
 			changed = true;
-			toChange.btpSettings = tournament.btpSettings;
+			toChange.btp_settings = tournament.btp_settings;
 			toChange.name = tournament_name;
 		}
-		if (tournament.btpSettings.tournament_urn != tournament_urn) {
-			tournament.btpSettings.tournament_urn = tournament_urn;
+		if (tournament.btp_settings.tournament_urn != tournament_urn) {
+			tournament.btp_settings.tournament_urn = tournament_urn;
 			changed = true;
-			toChange.btpSettings = tournament.btpSettings;
+			toChange.btp_settings = tournament.btp_settings;
 		}
-		if (tournament.btpSettings.check_in_per_match != check_in_per_match) {
-			tournament.btpSettings.check_in_per_match = check_in_per_match;
+		if (tournament.btp_settings.check_in_per_match != check_in_per_match) {
+			tournament.btp_settings.check_in_per_match = check_in_per_match;
 			changed = true;
-			toChange.btpSettings = tournament.btpSettings;
+			toChange.btp_settings = tournament.btp_settings;
 		}
-		if (tournament.btpSettings.pause_duration_ms != pause_duration_ms) {
-			tournament.btpSettings.pause_duration_ms = pause_duration_ms;
+		if (tournament.btp_settings.pause_duration_ms != pause_duration_ms) {
+			tournament.btp_settings.pause_duration_ms = pause_duration_ms;
 			changed = true;
-			toChange.btpSettings = tournament.btpSettings;
+			toChange.btp_settings = tournament.btp_settings;
 		}
 		
 		if (changed) {
@@ -609,6 +609,8 @@ function integrate_btp_settings(app, tkey, btp_state, callback) {
 
 				return callback(null);
 			});
+		} else {
+			return callback(null);
 		}
 	});
 }
