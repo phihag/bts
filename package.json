@@ -15,6 +15,7 @@
 		"nedb": "*",
 		"node-xlsx": "^0.21.0",
 		"pretty-data": "^0.40.0",
+		"qrcode": "^1.5.3",
 		"request": "^2.88.0",
 		"rimraf": "*",
 		"serve-favicon": "*",
