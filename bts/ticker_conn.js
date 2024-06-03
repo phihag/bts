@@ -192,7 +192,7 @@ class TickerConn {
 			if (db_tournaments && db_tournaments.length == 1) {
 
 				tname = db_tournaments[0].name;
-				turl = "https://" + (db_tournaments.btp_settings ? db_tournaments.btp_settings.tournament_urn : "www.turnier.de") +"/tournament" + (db_tournaments[0].tguid ? "/" + db_tournaments[0].tguid+"/matches" : "s/");
+				turl = "https://" + ((tournament.btp_settings && tournament.btp_settings.tournament_urn) ? db_tournaments.btp_settings.tournament_urn : "www.turnier.de") +"/tournament" + (db_tournaments[0].tguid ? "/" + db_tournaments[0].tguid+"/matches" : "s/");
 			}
 
 			return cb(null, {

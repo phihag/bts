@@ -136,7 +136,7 @@ function handle_tournament_get(app, ws, msg) {
 				if (tournament.ticker_enabled) {
 					url = "https://" + tournament.ticker_url.split("/")[2];
 				} else {
-					url = "https://" + (tournament.btp_settings ? tournament.btp_settings.tournament_urn : "www.turnier.de") + "/tournament" + (tournament.tguid ? "/" + tournament.tguid + "/matches" : "s/");
+					url = "https://" + ((tournament.btp_settings && tournament.btp_settings.tournament_urn) ? tournament.btp_settings.tournament_urn : "www.turnier.de") + "/tournament" + (tournament.tguid ? "/" + tournament.tguid + "/matches" : "s/");
 				}
 
 				qrcode.toDataURL(url, function (error, data) {
