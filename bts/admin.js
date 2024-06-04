@@ -115,6 +115,15 @@ function handle_courts_add(app, ws, msg) {
 	});
 }
 
+function generate_tournament_web_url(tournament) {
+	var url = "";
+	if (tournament.ticker_enabled) {
+		url = "https://" + tournament.ticker_url.split("/")[2];
+	} else {
+		url = "https://" + ((tournament.btp_settings && tournament.btp_settings.tournament_urn) ? tournament.btp_settings.tournament_urn : "www.turnier.de") + "/tournament" + (tournament.tguid ? "/" + tournament.tguid + "/matches" : "s/");
+	}
+	return url;
+}
 function handle_tournament_get(app, ws, msg) {
 	if (! msg.key) {
 		return ws.respond(msg, {message: 'Missing key'});
@@ -132,13 +141,8 @@ function handle_tournament_get(app, ws, msg) {
 		function (cb) { 
 			try {
 				const qrcode = require('qrcode');
-				var url = "";
-				if (tournament.ticker_enabled) {
-					url = "https://" + tournament.ticker_url.split("/")[2];
-				} else {
-					url = "https://" + ((tournament.btp_settings && tournament.btp_settings.tournament_urn) ? tournament.btp_settings.tournament_urn : "www.turnier.de") + "/tournament" + (tournament.tguid ? "/" + tournament.tguid + "/matches" : "s/");
-				}
-
+				
+				const url = generate_tournament_web_url(tournament);
 				qrcode.toDataURL(url, function (error, data) {
 					const qrCodeDataUrl = data;
 					tournament.mainQrCode = qrCodeDataUrl;
@@ -687,6 +691,7 @@ module.exports = {
 	handle_relocate_display,
 	handle_change_display_mode,
 	notify_change,
+	generate_tournament_web_url,
 	on_close,
 	on_connect,
 };

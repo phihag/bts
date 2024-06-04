@@ -394,6 +394,24 @@ function create_event_representation(tournament) {
 	if (tournament.logo_id) {
 		res.tournament_logo_url = `/h/${encodeURIComponent(tournament.key)}/logo/${tournament.logo_id}`;
 	}
+	else {
+		try {
+			const fs = require('fs');
+			const path = require('path');
+			const d = new Date();
+			const datestring = d.toISOString().slice(0, 10);
+			const filename = "logo/" + datestring +"_"+tournament._id + ".png";
+			const filepath = path.join(utils.root_dir(), 'data', 'logos', datestring +"_"+tournament._id + ".png");
+			if (!fs.existsSync(filepath)) {
+				const qrcode = require('qrcode');
+				const url = admin.generate_tournament_web_url(tournament);
+				qrcode.toFile(filepath, url, { scale: 7, errorCorrectionLevel: 'H' }, function (error) { });
+			}
+			res.tournament_logo_url = `/h/${encodeURIComponent(tournament.key)}/${filename}`;
+		} catch (error) {
+			console.log("A error occured during generating QR-Code for displays");
+		}
+	}
 	res.tournament_logo_background_color = tournament.logo_background_color || '#000000';
 	res.tournament_logo_foreground_color = tournament.logo_foreground_color || '#aaaaaa';
 	return res;

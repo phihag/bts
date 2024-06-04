@@ -670,8 +670,7 @@ function logo_handler(req, res) {
 	const {tournament_key, logo_id} = req.params;
 	assert(tournament_key);
 	assert(logo_id);
-	const m = /^[-0-9a-f]+\.(gif|png|jpg|jpeg|svg|webp)$/.exec(logo_id);
-	assert(m, `Invalid logo ${logo_id}`);
+	const filetype = logo_id.split(".")[1];
 	const mime = {
 		gif: 'image/gif',
 		png: 'image/png',
@@ -679,9 +678,8 @@ function logo_handler(req, res) {
 		jpeg: 'image/jpeg',
 		svg: 'image/svg+xml',
 		webp: 'image/webp',
-	}[m[1]];
-	assert(mime, `Unsupported ext ${JSON.stringify(m[1])}`);
-
+	}[filetype];
+	assert(mime, `Unsupported ext ${JSON.stringify(filetype)}`);
 	const fn = path.join(utils.root_dir(), 'data', 'logos', path.basename(logo_id));
 	res.setHeader('Content-Type', mime);
 	res.setHeader('Cache-Control', 'public, max-age=31536000');
