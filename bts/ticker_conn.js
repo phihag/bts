@@ -190,9 +190,9 @@ class TickerConn {
 			var tname = "";
 			var turl = "";
 			if (db_tournaments && db_tournaments.length == 1) {
-
-				tname = db_tournaments[0].name;
-				turl = "https://" + ((tournament.btp_settings && tournament.btp_settings.tournament_urn) ? db_tournaments.btp_settings.tournament_urn : "www.turnier.de") +"/tournament" + (db_tournaments[0].tguid ? "/" + db_tournaments[0].tguid+"/matches" : "s/");
+				const tournament = db_tournaments[0];
+				tname = tournament.name;
+				turl = "https://" + ((tournament.btp_settings && tournament.btp_settings.tournament_urn) ? tournament.btp_settings.tournament_urn : "www.turnier.de") + "/tournament" + (tournament.tguid ? "/" + tournament.tguid+"/matches" : "s/");
 			}
 
 			return cb(null, {
