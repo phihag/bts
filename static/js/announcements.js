@@ -253,7 +253,7 @@ function announce(callArray) {
             if (part && part != null) { 
                 var words = new SpeechSynthesisUtterance(part);
                 words.lang = ci18n('announcements:lang');
-                words.rate = 1;
+                words.rate = 1.125;
                 words.pitch = 0;
                 words.volume = 1;
                 words.voice = voice;
