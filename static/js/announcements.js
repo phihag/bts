@@ -146,7 +146,7 @@ function createRoundAnnouncement(matchSetup) {
     return round;
 }
 function createEventAnnouncement(matchSetup) {
-    var eventParts = matchSetup.event_name.split(" ");
+    var eventParts = matchSetup.event_name.replaceAll("-"," ").split(" ");
     var eventName = "";
     if (eventParts[0] == 'JE') {
         eventName = ci18n('announcements:boys_singles');
@@ -253,7 +253,7 @@ function announce(callArray) {
             if (part && part != null) { 
                 var words = new SpeechSynthesisUtterance(part);
                 words.lang = ci18n('announcements:lang');
-                words.rate = 1.125;
+                words.rate = 1.05;
                 words.pitch = 0;
                 words.volume = 1;
                 words.voice = voice;
