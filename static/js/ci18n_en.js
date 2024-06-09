@@ -113,6 +113,7 @@ var ci18n_en = {
 	'tournament:edit:tabletoperator_with_state_enabled': 'Call up national association instead of player',
 	'tournament:edit:tabletoperator_with_umpire_enabled': 'Announce Umpire and Tabletoperator ',
 	'tournament:edit:tabletoperator_use_manual_counting_boards_enabled': 'Usage of Counting Boards instead of Tablets',
+	'tournament:edit:announcement_speed': 'Announcementspeed (0.8-1.3)',
 	'tournament:edit:preparation_meetingpoint_enabled': 'Use Meetingpoint for preparation',
 	'tournament:edit:preparation_tabletoperator_setup_enabled': 'Call up tablet operator in preparation',
 	'tournament:edit:displays': 'Manage Displays:',

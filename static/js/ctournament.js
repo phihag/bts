@@ -768,7 +768,7 @@ var ctournament = (function() {
 			curt.tabletoperator_break_seconds = 300;
 		}
 		create_input(curt, "number", tablet_fieldset, 'tabletoperator_break_seconds')
-
+		create_numeric_input(curt, tablet_fieldset, 'announcement_speed', 0.8, 1.3, 1.05,0.01);
 
 
 
@@ -805,6 +805,7 @@ var ctournament = (function() {
 				tabletoperator_use_manual_counting_boards_enabled: (!!data.tabletoperator_use_manual_counting_boards_enabled),
 				tabletoperator_enabled: (!!data.tabletoperator_enabled),
 				tabletoperator_break_seconds: data.tabletoperator_break_seconds,
+				announcement_speed: data.announcement_speed,
 				preparation_meetingpoint_enabled: (!!data.preparation_meetingpoint_enabled),
 				preparation_tabletoperator_setup_enabled: (!!data.preparation_tabletoperator_setup_enabled)
 			};
@@ -1005,8 +1006,18 @@ var ctournament = (function() {
 		});
 	}
 
-
-
+	function create_numeric_input(curt, parent_el, filed_id, min_value, max_value, default_value, step_value) {
+		const text_input = uiu.el(parent_el, 'label');
+		uiu.el(text_input, 'span', {}, ci18n('tournament:edit:' + filed_id));
+		uiu.el(text_input, 'input', {
+			type: "number",
+			name: filed_id,
+			value: curt[filed_id] || default_value,
+			min: min_value,
+			max: max_value,
+			step: step_value
+		});
+	}
 
 	function createCourtSelectBox(parentEl, parent_id, court_id) {
 		const court_select_box = uiu.el(parentEl, 'select', {

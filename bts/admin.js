@@ -59,7 +59,7 @@ function handle_tournament_edit_props(app, ws, msg) {
 		'warmup', 'warmup_ready', 'warmup_start',
 		'ticker_enabled', 'ticker_url', 'ticker_password',
 		'language', 'dm_style', 'displaysettings_general',
-		'tabletoperator_enabled', 'tabletoperator_break_seconds',
+		'tabletoperator_enabled', 'tabletoperator_break_seconds','announcement_speed',  
 		'tabletoperator_set_break_after_tabletservice','tabletoperator_with_state_enabled',
 		'tabletoperator_winner_of_quaterfinals_enabled','tabletoperator_split_doubles',
 		'tabletoperator_use_manual_counting_boards_enabled', 'tabletoperator_with_umpire_enabled', 
