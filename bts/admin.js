@@ -58,7 +58,8 @@ function handle_tournament_edit_props(app, ws, msg) {
 		'is_team', 'is_nation_competition', 'only_now_on_court',
 		'warmup', 'warmup_ready', 'warmup_start',
 		'ticker_enabled', 'ticker_url', 'ticker_password',
-		'language', 'dm_style', 'tabletoperator_enabled','tabletoperator_break_seconds',
+		'language', 'dm_style', 'displaysettings_general',
+		'tabletoperator_enabled', 'tabletoperator_break_seconds',
 		'tabletoperator_set_break_after_tabletservice','tabletoperator_with_state_enabled',
 		'tabletoperator_winner_of_quaterfinals_enabled','tabletoperator_split_doubles',
 		'tabletoperator_use_manual_counting_boards_enabled', 'tabletoperator_with_umpire_enabled', 
@@ -68,21 +69,32 @@ function handle_tournament_edit_props(app, ws, msg) {
 	if (msg.props.btp_timezone) {
 		props.btp_timezone = msg.props.btp_timezone === 'system' ? undefined : msg.props.btp_timezone;
 	}
-
-	app.db.tournaments.update({key}, {$set: props}, {returnUpdatedDocs: true}, function(err, num, t) {
-		if (err) {
+	app.db.tournaments.findOne({ key }, async (err, tournament) => {
+		if (err || !tournament) {
 			ws.respond(msg, err);
 			return;
 		}
-		if (utils.has_key(props, k => /^btp_/.test(k))) {
-			btp_manager.reconfigure(app, t);
-		}
-		if (utils.has_key(props, k => /^ticker_/.test(k))) {
-			ticker_manager.reconfigure(app, t);
-		}
-		notify_change(app, key, 'props', t);
+		app.db.tournaments.update({ key }, { $set: props }, { returnUpdatedDocs: true }, function (err, num, t) {
+			if (err) {
+				ws.respond(msg, err);
+				return;
+			}
+			if (utils.has_key(props, k => /^btp_/.test(k))) {
+				btp_manager.reconfigure(app, t);
+			}
+			if (utils.has_key(props, k => /^ticker_/.test(k))) {
+				ticker_manager.reconfigure(app, t);
+			}
+			notify_change(app, key, 'props', t);
 
-		ws.respond(msg, err);
+			if (!tournament.displaysettings_general || (tournament.displaysettings_general != t.displaysettings_general)){
+
+				const bupws = require('./bupws');
+				bupws.change_default_display_mode(app, t, tournament.displaysettings_general, t.displaysettings_general);
+			}
+
+			ws.respond(msg, err);
+		});
 	});
 }
 
@@ -172,7 +184,7 @@ function handle_tournament_get(app, ws, msg) {
 				cb(err);
 			});
 		}, function (cb) {
-		stournament.get_displays(app, tournament.key, function (err, displays) {
+		stournament.get_displays(app, tournament, function (err, displays) {
 			tournament.displays = displays;
 			cb(err);
 		});

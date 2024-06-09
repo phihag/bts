@@ -38,7 +38,7 @@ function get_tabletoperators(db, tournament_key, callback) {
 	});
 }
 
-function get_displays(app, tournament_key, callback) {
+function get_displays(app, tournament, callback) {
 	app.db.display_court_displaysettings.find({}, function (err, display_court_displaysettings) {
 		if (err) return callback(err);
 
@@ -48,7 +48,7 @@ function get_displays(app, tournament_key, callback) {
 		});
 
 		const bupws = require('./bupws');
-		bupws.add_display_status(app, tournament_key, display_court_displaysettings);
+		bupws.add_display_status(app, tournament, display_court_displaysettings);
 		display_court_displaysettings = display_court_displaysettings.sort(utils.cmp_key('client_id'));
 		return callback(err, display_court_displaysettings);
 	});
