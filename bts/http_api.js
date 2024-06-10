@@ -289,6 +289,17 @@ function score_handler(req, res) {
 	async.waterfall([
 		cb => db.matches.update(query, {$set: update}, {returnUpdatedDocs: true}, (err, _, match) => cb(err, match)),
 		(match, cb) => {
+			bupws.handle_score_change(req.app, tournament_key, match.setup.court_id);
+			admin.notify_change(req.app, tournament_key, 'score', {
+				match_id,
+				network_score: update.network_score,
+				team1_won: update.team1_won,
+				shuttle_count: update.shuttle_count,
+				presses: match.presses,
+			});
+			cb(null,match);
+		},
+		(match, cb) => {
 			if (!match) {
 				return cb(new Error('Cannot find match ' + JSON.stringify(match)));
 			}
@@ -339,18 +350,6 @@ function score_handler(req, res) {
 			}
 
 			cb(null, match);
-		},
-		(match, cb) => {
-			admin.notify_change(req.app, tournament_key, 'score', {
-				match_id,
-				network_score: update.network_score,
-				team1_won: update.team1_won,
-				shuttle_count: update.shuttle_count,
-				presses: match.presses,
-			});
-
-			bupws.handle_score_change(req.app, tournament_key, match.setup.court_id);
-			cb();
 		},
 	], function(err) {
 		if (err) {
