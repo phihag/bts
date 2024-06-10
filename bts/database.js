@@ -20,14 +20,13 @@ const TABLES = [
 	'displaysettings',
 	'display_court_displaysettings',
 	'normalizations'
-
 ];
 
 
 async function init_test() {
 	const db = {}
 	for (const key of TABLES) {
-		db[key] = new Datastore({inMemoryOnly: true});
+		db[key] = new Datastore({ inMemoryOnly: true });
 	}
 	await promisify(prepare)(db);
 	return db;
@@ -51,7 +50,9 @@ function init(callback) {
 	}
 
 	TABLES.forEach(function(key) {
-		db[key] = new Datastore({filename: path.join(db_dir, key), autoload: true});
+		var d = new Datastore({ filename: path.join(db_dir, key), autoload: true });
+		d.persistence.setAutocompactionInterval(60000*10);
+		db[key] = d;
 	});
 
 	prepare(db, callback);
@@ -65,7 +66,7 @@ function prepare(db, callback) {
 	db.tournaments.ensureIndex({fieldName: 'key', unique: true});
 	db.umpires.ensureIndex({fieldName: 'name', unique: true});
 	db.umpires.ensureIndex({fieldName: 'tournament_key', unique: false});
-	db.logs.ensureIndex({fieldName: 'tournament_key', unique: false});
+	db.logs.ensureIndex({ fieldName: 'tournament_key', unique: false });
 
 	setup_helpers(db);
 
