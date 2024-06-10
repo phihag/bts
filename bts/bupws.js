@@ -139,6 +139,7 @@ async function initialize_client(ws, app, tournament_key, court_id, displaysetti
 			ws.court_id = display_setting.court_id;
 			court_id = display_setting.court_id;
 			notify_change_ws(ws, tournament_key, court_id, "settings-update", display_setting);
+			notify_change_ws(ws, tournament_key, court_id, "settings-update", display_setting);
 		}
 	}
 	matches_handler(app, ws, tournament_key, ws.court_id);
