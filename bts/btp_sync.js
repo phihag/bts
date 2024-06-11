@@ -407,6 +407,14 @@ async function integrate_matches(app, tkey, btp_state, court_map, callback) {
 						   	match.setup.warmup_start = cur_match.setup.warmup_start;
 				   		}
 					}
+
+					for(let team_index = 0; team_index < Math.min(cur_match.setup.teams.length, match.setup.teams.length); team_index++) {
+						for (let player_index = 0; player_index < Math.min(cur_match.setup.teams[team_index].players.length, match.setup.teams[team_index].players.length); player_index++){
+						 	if('tablet_break_active' in cur_match.setup.teams[team_index].players[player_index]){
+								match.setup.teams[team_index].players[player_index].tablet_break_active = cur_match.setup.teams[team_index].players[player_index].tablet_break_active;
+							}
+						}
+					}
    
 				   	if (utils.plucked_deep_equal(match, cur_match, Object.keys(match), true)) {
 					   	// No update required
@@ -420,7 +428,6 @@ async function integrate_matches(app, tkey, btp_state, court_map, callback) {
 				   	for(let team_index = 0; team_index < Math.min(cur_match.setup.teams.length, match.setup.teams.length); team_index++) {
 					   	for (let player_index = 0; player_index < Math.min(cur_match.setup.teams[team_index].players.length, match.setup.teams[team_index].players.length); player_index++){
 							cur_match.setup.teams[team_index].players[player_index].checked_in = match.setup.teams[team_index].players[player_index].checked_in;
-							match.setup.teams[team_index].players[player_index].tablet_break_active = cur_match.setup.teams[team_index].players[player_index].tablet_break_active;
 					   	}
 				   	}
 
