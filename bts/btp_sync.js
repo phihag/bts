@@ -319,6 +319,10 @@ async function integrate_matches(app, tkey, btp_state, court_map, callback) {
 		const discipline_name = (event.Name[0] === draw.Name[0]) ? draw.Name[0] : event.Name[0] + '_' + draw.Name[0];
 		const btp_id = tkey + '_' + discipline_name + '_' + bm.ID[0];
 
+		if(bm.ReverseHomeAway){
+			cb(null);
+			return;
+		}
 		const query = {
 			btp_id,
 			tournament_key: tkey,
