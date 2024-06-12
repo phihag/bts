@@ -23,7 +23,7 @@ async function on_connect(app, ws) {
 
 async function notify_admin_display_status_changed(app, ws, ws_online) {
 	app.db.tournaments.findOne({ key: default_tournament_key }, async (err, tournament) => {
-		if (!err && !tournament) {
+		if (!err || !tournament) {
 			err = { message: 'No tournament ' + default_tournament_key };
 		}
 		const client_id = determine_client_id(ws);
@@ -32,7 +32,7 @@ async function notify_admin_display_status_changed(app, ws, ws_online) {
 			display_court_displaysetting = create_display_court_displaysettings(client_id, null, generate_default_displaysettings_id(tournament));
 		}
 		display_court_displaysetting.online = ws_online;
-		admin.notify_change(app, default_tournament_key, 'display_status_changed', { 'display_court_displaysetting': display_court_displaysetting });
+		admin.notify_change(app, default_tournament_key, 'display_status_changed', { 'display_court_displaysetting': display_court_displaysetting });	
 	});
 }
 
