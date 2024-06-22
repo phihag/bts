@@ -289,14 +289,16 @@ function score_handler(req, res) {
 	async.waterfall([
 		cb => db.matches.update(query, {$set: update}, {returnUpdatedDocs: true}, (err, _, match) => cb(err, match)),
 		(match, cb) => {
-			bupws.handle_score_change(req.app, tournament_key, match.setup.court_id);
-			admin.notify_change(req.app, tournament_key, 'score', {
-				match_id,
-				network_score: update.network_score,
-				team1_won: update.team1_won,
-				shuttle_count: update.shuttle_count,
-				presses: match.presses,
-			});
+			if (match) { 
+				bupws.handle_score_change(req.app, tournament_key, match.setup.court_id);
+				admin.notify_change(req.app, tournament_key, 'score', {
+					match_id,
+					network_score: update.network_score,
+					team1_won: update.team1_won,
+					shuttle_count: update.shuttle_count,
+					presses: match.presses,
+				});
+			}
 			cb(null,match);
 		},
 		(match, cb) => {
@@ -307,17 +309,20 @@ function score_handler(req, res) {
 		},
 		(match, cb) => db.courts.findOne(court_q, (err, court) => cb(err, match, court)),
 		(match, court, cb) => {
-			if (court.match_id === match_id) {
-				cb(null, match, court, false);
-				return;
-			}
+			if (!match) { 
+				if (court.match_id === match_id) {
+					cb(null, match, court, false);
+					return;
+				}
 
-			db.courts.update(court_q, {$set: {match_id: match_id}}, {}, (err) => {
-				cb(err, match, court, true);
-			});
+				db.courts.update(court_q, {$set: {match_id: match_id}}, {}, (err) => {
+					cb(err, match, court, true);
+				});
+			}
+			cb(null, match, court, true);
 		},
 		(match, court, changed_court, cb) => {
-			if (changed_court) {
+			if (match && changed_court) {
 				admin.notify_change(req.app, tournament_key, 'court_current_match', {
 					match__id: match_id,
 					match: match,
@@ -326,12 +331,13 @@ function score_handler(req, res) {
 			cb(null, match, changed_court);
 		},
 		(match, changed_court, cb) => {
-			btp_manager.update_score(req.app, match);
-
+			if (match) {
+				btp_manager.update_score(req.app, match);
+			}
 			cb(null, match, changed_court);
 		},
 		(match, changed_court, cb) => {
-			if (match.setup.highlight &&
+			if (match && match.setup.highlight &&
 				match.setup.highlight == 6 &&
 				match.network_score && 
 				match.network_score.length > 0 && 
@@ -346,9 +352,10 @@ function score_handler(req, res) {
 			if (changed_court) {
 				ticker_manager.pushall(req.app, tournament_key);
 			} else {
-				ticker_manager.update_score(req.app, match);
+				if (match) {
+					ticker_manager.update_score(req.app, match);
+				}
 			}
-
 			cb(null, match);
 		},
 	], function(err) {
