@@ -448,8 +448,7 @@ function update_player(match_id, player, now_on_court, show_player_status) {
 	});
 }
 
-function update_match(m, old_section, new_section) {	
-	if(old_section != new_section) {
+	function remove_match_from_gui(m, old_section) {
 		switch (old_section) {
 			case 'finished':
 			case 'unassigned':
@@ -459,13 +458,16 @@ function update_match(m, old_section, new_section) {
 				break;
 			default:
 				uiu.qsEach('.court_row[data-court_id=' + JSON.stringify(m.setup.court_id) + ']', (match_row_el) => {
-					while(match_row_el.childElementCount > 1){
+					while (match_row_el.childElementCount > 1) {
 						match_row_el.removeChild(match_row_el.lastChild);
 					}
 				});
 				break;
 		}
-
+	}
+function update_match(m, old_section, new_section) {	
+	if(old_section != new_section) {
+		remove_match_from_gui(m, old_section);
 		switch (new_section) {
 			case 'finished':
 				uiu.qsEach('.finished_container', (finished_container) => {
@@ -1505,6 +1507,7 @@ return {
 	render_upcoming_matches,
 	update_match_score,
 	update_match,
+	remove_match_from_gui,
 	update_players,
 };
 

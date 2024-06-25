@@ -146,6 +146,19 @@ var ctournament = (function() {
 		cmatch.update_players(m);
 	}
 
+	function remove_match(c) {
+		const cval = c.val;
+		const match_id = cval.match__id;
+
+		const m = utils.find(curt.matches, m => m._id === match_id);
+		if (!m) {
+			cerror.silent('Cannot find match to update, ID: ' + JSON.stringify(match_id));
+			return;
+		}
+		const section = cmatch.calc_section(m);
+		cmatch.remove_match_from_gui(m, section);
+
+	}
 	function update_match(c) {
 		const cval = c.val;
 		const match_id = cval.match__id;
@@ -383,6 +396,7 @@ var ctournament = (function() {
 		court_current_match: update_current_match,
 		update_player_status: update_player_status,
 		match_edit: update_match,
+		match_remove: remove_match,
 		tabletoperator_add: tabletoperator_add,
 		tabletoperator_removed: tabletoperator_removed,
 	}));
