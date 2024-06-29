@@ -488,6 +488,19 @@ function handle_second_call_tabletoperator(app, ws, msg) {
 	ws.respond(msg);
 }
 
+function handle_second_call_umpire(app, ws, msg) {
+	if (!_require_msg(ws, msg, ['tournament_key', 'setup'])) {
+		return;
+	}
+
+	const tournament_key = msg.tournament_key;
+	const setup = _extract_setup(msg.setup);
+
+	notify_change(app, tournament_key, 'second_call_umpire', { setup });
+
+	ws.respond(msg);
+}
+
 function handle_second_call_team_one(app, ws, msg) {
 	if (!_require_msg(ws, msg, ['tournament_key', 'setup'])) {
 		return;
@@ -703,6 +716,7 @@ module.exports = {
 	handle_ticker_pushall,
 	handle_ticker_reset,
 	handle_free_announce,
+	handle_second_call_umpire,
 	handle_second_call_tabletoperator,
 	handle_second_call_team_one,
 	handle_second_call_team_two,

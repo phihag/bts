@@ -126,6 +126,9 @@ function render_match_row(tr, match, court, style, show_player_status, show_add_
 		if (setup.umpire_name) {
 			uiu.el(to_td, 'div', 'umpire', '');
 			uiu.el(to_td, 'span', {}, setup.umpire_name);
+			if (style === 'default' || style === 'plain') {
+				create_match_button(to_td, 'vlink match_second_call_button', 'match:secondcallumpire', on_second_call_umpire_button_click, match._id);
+			}
 			if (setup.service_judge_name) {
 				uiu.el(to_td, 'span', {}, ' \u200B+ ');
 				uiu.el(to_td, 'span', {}, setup.service_judge_name);
@@ -138,6 +141,9 @@ function render_match_row(tr, match, court, style, show_player_status, show_add_
 				uiu.el(to_td, 'span', 'match_no_umpire', ' \u200B/ ');
 				uiu.el(to_td, 'span', 'match_no_umpire', setup.tabletoperators[1].name );
 			}
+			if (style === 'default' || style === 'plain') {
+				create_match_button(to_td, 'vlink match_second_call_button', 'match:secondcaltabletoperator', on_second_call_tabletoperator_button_click, match._id);
+			}
 		}
 
 		if (!setup.umpire_name && (!setup.tabletoperators || setup.tabletoperators.length == 0)) {
@@ -149,9 +155,7 @@ function render_match_row(tr, match, court, style, show_player_status, show_add_
 		uiu.el(to_td, 'span', 'preperation', 'Spiel in Vorbereitung!');
 	}
 	
-	if (style === 'default' || style === 'plain') {
-		create_match_button(to_td, 'vlink match_second_call_button', 'match:secondcaltabletoperator', on_second_call_tabletoperator_button_click, match._id);
-	}	
+		
 
 	const score_td = uiu.el(tr, 'td');
 	if (court && (court.match_id !== match._id) && (typeof match.team1_won !== 'boolean') && setup.umpire_name) {
@@ -735,20 +739,34 @@ function on_second_call_team_two_button_click(e) {
 		});
 	}
 }
-function on_second_call_tabletoperator_button_click(e) {
-	const match = fetchMatchFromEvent(e);
-	if (match != null) {
-		send({
-			type: 'second_call_tabletoperator',
-			tournament_key: curt.key,
-			setup: match.setup,
-		}, err => {
-			if (err) {
-				return cerror.net(err);
-			}
-		});
+	function on_second_call_tabletoperator_button_click(e) {
+		const match = fetchMatchFromEvent(e);
+		if (match != null) {
+			send({
+				type: 'second_call_tabletoperator',
+				tournament_key: curt.key,
+				setup: match.setup,
+			}, err => {
+				if (err) {
+					return cerror.net(err);
+				}
+			});
+		}
 	}
-}
+	function on_second_call_umpire_button_click(e) {
+		const match = fetchMatchFromEvent(e);
+		if (match != null) {
+			send({
+				type: 'second_call_umpire',
+				tournament_key: curt.key,
+				setup: match.setup,
+			}, err => {
+				if (err) {
+					return cerror.net(err);
+				}
+			});
+		}
+	}
 
 	function on_begin_to_play_button_click(e) {
 		const match = fetchMatchFromEvent(e);

@@ -136,6 +136,7 @@ var ci18n_de = {
 	'match:begintoplay': 'Aufruf: Mit dem Spielen beginnen',
 	'match:secondcallteamone': 'Aufruf: Zweiter Aufruf Team 1',
 	'match:secondcallteamtwo': 'Aufruf: Zweiter Aufruf Team 2',
+	'match:secondcallumpire': 'Announcement: Zweiter Aufruf Schiedsrichter',
 	'match:secondcaltabletoperator': 'Aufruf: Zweiter Aufruf Tabletbediener',
 	'match:scoresheet': 'Schiedsrichterzettel',
 	'match:edit': 'Bearbeiten',

@@ -137,6 +137,7 @@ var ci18n_en = {
 	'match:begintoplay': 'Announcement: Beginn to play',
 	'match:secondcallteamone': 'Announcement: Second call Team 1',
 	'match:secondcallteamtwo': 'Announcement: Second call Team 2',
+	'match:secondcallumpire': 'Announcement: Second call Umpire',
 	'match:secondcaltabletoperator': 'Announcement: Second call Tabletoperator',
 	'match:scoresheet': 'Scoresheet',
 	'match:edit': 'Edit',
