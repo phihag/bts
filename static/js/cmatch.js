@@ -130,8 +130,11 @@ function render_match_row(tr, match, court, style, show_player_status, show_add_
 				create_match_button(to_td, 'vlink match_second_call_button', 'match:secondcallumpire', on_second_call_umpire_button_click, match._id);
 			}
 			if (setup.service_judge_name) {
-				uiu.el(to_td, 'span', {}, ' \u200B+ ');
+				uiu.el(to_td, 'div', 'service_judge', '');
 				uiu.el(to_td, 'span', {}, setup.service_judge_name);
+				if (style === 'default' || style === 'plain') {
+					create_match_button(to_td, 'vlink match_second_call_button', 'match:secondcallservicejudge', on_second_call_servicejudge_button_click, match._id);
+				}
 			}
 		}
 		if (setup.tabletoperators && setup.tabletoperators.length > 0) {
@@ -767,6 +770,22 @@ function on_second_call_team_two_button_click(e) {
 			});
 		}
 	}
+
+	function on_second_call_servicejudge_button_click(e) {
+		const match = fetchMatchFromEvent(e);
+		if (match != null) {
+			send({
+				type: 'second_call_servicejudge',
+				tournament_key: curt.key,
+				setup: match.setup,
+			}, err => {
+				if (err) {
+					return cerror.net(err);
+				}
+			});
+		}
+	}
+	
 
 	function on_begin_to_play_button_click(e) {
 		const match = fetchMatchFromEvent(e);

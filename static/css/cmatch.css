@@ -134,15 +134,16 @@
 	padding-left: 0.3em;
 }
 
-.match_score_current > .tablet,
-.match_score_current > .umpire {
-	min-width: 1em;
-	width: 1em;
-	min-height: 0.65em;
-	height: 0.65em;
-	margin: 0px 5px;
-	/*cursor: none;*/
-}
+	.match_score_current > .tablet,
+	.match_score_current > .service_judge,
+	.match_score_current > .umpire {
+		min-width: 1em;
+		width: 1em;
+		min-height: 0.65em;
+		height: 0.65em;
+		margin: 0px 5px;
+		/*cursor: none;*/
+	}
 
 .match_score_current > .match_no_umpire,
 .match_score_current > span {
@@ -276,6 +277,7 @@ match_manual_call_button,
 .tablet,
 .tablet_inline,
 .umpire,
+.service_judge,
 .no_umpire,
 .court,
 .court_history {
@@ -291,12 +293,7 @@ match_manual_call_button,
 	text-align: center;
 	-webkit-text-stroke-width: 1px;
 	-webkit-text-stroke-color: black;
-	text-shadow:
-	3px 3px 3px #000,
-   -1px -1px 3px #000,  
-   	1px -1px 3px #000,
-   -1px 1px 3px #000,
-	1px 1px 3px #000;
+	text-shadow: 3px 3px 3px #000, -1px -1px 3px #000, 1px -1px 3px #000, -1px 1px 3px #000, 1px 1px 3px #000;
 }
 
 .tablet,
@@ -317,6 +314,10 @@ match_manual_call_button,
 
 .umpire {
 	background-image: url(../icons/umpire.svg);
+}
+
+.service_judge {
+	background-image: url(../icons/service_judge.svg);
 }
 
 .no_umpire {

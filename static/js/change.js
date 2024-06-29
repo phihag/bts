@@ -135,6 +135,9 @@ function default_handler_func(rerender, special_funcs, c) {
 	case 'second_call_umpire':
 		announceSecondCallUmpire(c.val.setup);
 		break;
+	case 'second_call_servicejudge':
+		announceSecondCallServiceJudge(c.val.setup);
+		break;
 	case 'second_call_team_one':
 		announceSecondCallTeamOne(c.val.setup);
 		break;

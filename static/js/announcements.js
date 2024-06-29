@@ -10,8 +10,9 @@ function announceNewMatch(matchSetup) {
     const round = createRoundAnnouncement(matchSetup);
     const teams = createTeamAnnouncement(matchSetup);
     const umpire = createUmpire(matchSetup);
+    const serviceJudge = createServiceJudge(matchSetup);
     const tabletOperator = createTabletOperator(matchSetup);
-    announce([field, matchNumber, eventName, round, teams, umpire, tabletOperator, field]);
+    announce([field, matchNumber, eventName, round, teams, umpire, serviceJudge, tabletOperator, field]);
 }
 
 function announcePreparationMatch(matchSetup) {
@@ -24,12 +25,13 @@ function announcePreparationMatch(matchSetup) {
     var round = createRoundAnnouncement(matchSetup);
     var teams = createTeamAnnouncement(matchSetup);
     const umpire = createUmpire(matchSetup);
+    const serviceJudge = createServiceJudge(matchSetup);
     const tabletOperator = createTabletOperator(matchSetup);
     var lastPart = preparation;
     if (curt.preparation_meetingpoint_enabled) {
         lastPart = createMeetingPointAnnouncement();
     }
-    announce([preparation, matchNumber, eventName, round, teams, umpire, tabletOperator, lastPart]);
+    announce([preparation, matchNumber, eventName, round, teams, umpire, serviceJudge, tabletOperator, lastPart]);
 }
 function announceSecondCallTeamOne(matchSetup) {
     if(!(window.localStorage.getItem('enable_announcements') === 'true')) {
@@ -65,6 +67,17 @@ function announceSecondCallUmpire(matchSetup) {
         announce([call]);
     }
 }
+function announceSecondCallServiceJudge(matchSetup) {
+    if (!(window.localStorage.getItem('enable_announcements') === 'true')) {
+        return;
+    }
+    const servicejudgeCall = createServiceJudge(matchSetup);;
+    if (servicejudgeCall != null) {
+        const call = createFieldAnnouncement(matchSetup) + createSecondCallAnnouncement() + servicejudgeCall;
+        announce([call]);
+    }
+}
+
 
 function announceSecondCall(matchSetup, team) {
     if(!(window.localStorage.getItem('enable_announcements') === 'true')) {
@@ -100,6 +113,13 @@ function createTabletOperator(matchSetup) {
 function createUmpire(matchSetup) {
     if (matchSetup.umpire_name && matchSetup.umpire_name != null) {
         return ci18n('announcements:umpire') + normalizeNames(matchSetup.umpire_name);
+    }
+    return null;
+}
+
+function createServiceJudge(matchSetup) {
+    if (matchSetup.service_judge_name && matchSetup.service_judge_name != null) {
+        return ci18n('announcements:service_judge') + normalizeNames(matchSetup.service_judge_name);
     }
     return null;
 }
