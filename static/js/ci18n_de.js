@@ -131,6 +131,7 @@ var ci18n_de = {
 	'to_stats:total': 'Total',
 
 	'match:rawinfo': 'Technische Informationen',
+	'match:manualcall': 'Aufruf: Manueller Spielaufruf',
 	'match:preparationcall': 'Aufruf: Spiel in Vorbereitung',
 	'match:begintoplay': 'Aufruf: Mit dem Spielen beginnen',
 	'match:secondcallteamone': 'Aufruf: Zweiter Aufruf Team 1',

@@ -132,6 +132,7 @@ var ci18n_en = {
 	'to_stats:total': 'Total',
 
 	'match:rawinfo': 'Technical information',
+	'match:manualcall': 'Announcement: Manuall call of Match',
 	'match:preparationcall': 'Announcement: Match in preparation',
 	'match:begintoplay': 'Announcement: Beginn to play',
 	'match:secondcallteamone': 'Announcement: Second call Team 1',

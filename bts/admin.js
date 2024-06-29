@@ -454,6 +454,15 @@ function handle_begin_to_play_call(app, ws, msg) {
 	ws.respond(msg);
 }
 
+function handle_announce_match_manually(app, ws, msg) {
+	if (!_require_msg(ws, msg, ['tournament_key', 'match'])) {
+		return;
+	}
+	notify_change(app, msg.tournament_key, 'match_called_on_court', msg.match);
+	ws.respond(msg);
+}
+
+
 function handle_free_announce(app, ws, msg) {
 	if (!_require_msg(ws, msg, ['text'])) {
 		return;
@@ -681,6 +690,7 @@ module.exports = {
 	async_handle_match_delete,
 	async_handle_tournament_upload_logo,
 	handle_begin_to_play_call,
+	handle_announce_match_manually,
 	handle_btp_fetch,
 	handle_tabletoperator_add,
 	handle_tabletoperator_remove,

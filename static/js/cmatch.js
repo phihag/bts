@@ -209,6 +209,7 @@ function render_match_row(tr, match, court, style, show_player_status, show_add_
 			create_match_button(call_td, 'vlink match_preparation_call_button', 'match:preparationcall', on_announce_preparation_matchbutton_click, match._id);
 
 		} else {
+			create_match_button(call_td, 'vlink match_manual_call_button', 'match:manualcall', on_announce_match_manually_button_click, match._id);
 			create_match_button(call_td, 'vlink match_begin_to_play_button', 'match:begintoplay', on_begin_to_play_button_click, match._id);
 		}
 	}
@@ -223,6 +224,13 @@ function render_match_row(tr, match, court, style, show_player_status, show_add_
 		});
 		uiu.qsEach('.match_begin_to_play_button[data-match_id=' + JSON.stringify(match._id) + ']', (button_el) => {
 			if(match.setup.now_on_court) {
+				button_el.style.visibility = 'hidden';
+			} else {
+				uiu.hide(button_el);
+			}
+		});
+		uiu.qsEach('.match_manual_call_button[data-match_id=' + JSON.stringify(match._id) + ']', (button_el) => {
+			if (match.setup.now_on_court) {
 				button_el.style.visibility = 'hidden';
 			} else {
 				uiu.hide(button_el);
@@ -265,11 +273,17 @@ function update_match_score(m) {
 		uiu.qsEach('.match_begin_to_play_button[data-match_id=' + JSON.stringify(m._id) + ']', (button_el) => {
 			button_el.style.visibility = 'hidden';
 		});
+		uiu.qsEach('.match_manual_call_button[data-match_id=' + JSON.stringify(m._id) + ']', (button_el) => {
+			button_el.style.visibility = 'hidden';
+		});
 	} else {
 		uiu.qsEach('.match_second_call_button[data-match_id=' + JSON.stringify(m._id) + ']', (button_el) => {
 			button_el.style.visibility = 'visible';
 		});
 		uiu.qsEach('.match_begin_to_play_button[data-match_id=' + JSON.stringify(m._id) + ']', (button_el) => {
+			button_el.style.visibility = 'visible';
+		});
+		uiu.qsEach('.match_manual_call_button[data-match_id=' + JSON.stringify(m._id) + ']', (button_el) => {
 			button_el.style.visibility = 'visible';
 		});
 	}
@@ -736,20 +750,35 @@ function on_second_call_tabletoperator_button_click(e) {
 	}
 }
 
-function on_begin_to_play_button_click(e) {
-	const match = fetchMatchFromEvent(e);
-	if (match != null) {
-		send({
-			type: 'begin_to_play_call',
-			tournament_key: curt.key,
-			setup: match.setup,
-		}, err => {
-			if (err) {
-				return cerror.net(err);
-			}
-		});
+	function on_begin_to_play_button_click(e) {
+		const match = fetchMatchFromEvent(e);
+		if (match != null) {
+			send({
+				type: 'begin_to_play_call',
+				tournament_key: curt.key,
+				setup: match.setup,
+			}, err => {
+				if (err) {
+					return cerror.net(err);
+				}
+			});
+		}
 	}
-}
+
+	function on_announce_match_manually_button_click(e) {
+		const match = fetchMatchFromEvent(e);
+		if (match != null) {
+			send({
+				type: 'announce_match_manually',
+				tournament_key: curt.key,
+				match: match,
+			}, err => {
+				if (err) {
+					return cerror.net(err);
+				}
+			});
+		}
+	}
 function fetchMatchFromEvent(e) {
 	const btn = e.target;
 	const match_id = btn.getAttribute('data-match_id');
