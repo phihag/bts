@@ -158,12 +158,6 @@ function default_handler_func(rerender, special_funcs, c) {
 		change_current_match(c.val);
 		// Most dialogs don't show any matches, so do not rerender
 		break;
-	case 'btp_status':
-		uiu.text_qs('.btp_status', 'BTP status: ' + c.val);
-		break;
-	case 'ticker_status':
-		uiu.text_qs('.ticker_status', 'Ticker status: ' + c.val);
-		break;
 	case 'update_player_status':
 		//nothing todo here
 		break;

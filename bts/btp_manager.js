@@ -103,7 +103,7 @@ function init(app, cb) {
 function get_status(tkey) {
 	const conn = conns_by_tkey.get(tkey);
 	if (!conn) {
-		return 'deactivated.';
+		return { status: 'deactivated', message: '' };
 	}
 
 	return conn.last_status;

@@ -26,8 +26,6 @@ var ctournament = (function() {
 			if (curt.language && curt.language !== 'auto') {
 				ci18n.switch_language(curt.language);
 			}
-			uiu.text_qs('.btp_status', 'BTP status: ' + curt.btp_status);
-			uiu.text_qs('.ticker_status', 'Ticker status: ' + curt.ticker_status);
 			success_cb();
 		});
 	}
@@ -399,24 +397,71 @@ var ctournament = (function() {
 		match_remove: remove_match,
 		tabletoperator_add: tabletoperator_add,
 		tabletoperator_removed: tabletoperator_removed,
+		btp_status: btp_status_changed,
+		ticker_status: ticker_status_changed,
 	}));
 
 	function render_settings(target) {
-		const settings_div = uiu.el(target, 'div', 'metadata_right_container');
+		const settings_div = uiu.el(target, 'div', 'metadata_right_container_2');
 		uiu.el(settings_div, 'h3', {}, 'Turnier-Einstellungen');
-		const settings_btn = uiu.el(settings_div, 'div', 'tournament_settings_link vlink', ci18n('edit tournament'));
+	
+		const settings_table = uiu.el(settings_div, 'table');	
+		var tr = uiu.el(settings_table, 'tr');
+		var td = uiu.el(tr, 'td');
+		uiu.el(td, 'div', 'status_label', 'BTS status:');
+		var td = uiu.el(tr, 'td');
+		uiu.el(td, 'div', 'status status_connected','');
+		var td = uiu.el(tr, 'td');
+		const settings_btn = uiu.el(td, 'button', 'tournament_settings_link vlink', ci18n('edit tournament'));
 		settings_btn.addEventListener('click', ui_edit);
 
+		var tr = uiu.el(settings_table, 'tr');
+		var td = uiu.el(tr, 'td');
+		uiu.el(td, 'div', 'btp_status_label', 'BTP status:');
+		var td = uiu.el(tr, 'td');
+		uiu.el(td, 'div', 'btp_status', '');
+		btp_status_changed({ val: curt.btp_status });
+		var td = uiu.el(tr, 'td');
 		if (curt.btp_enabled) {
-			const btp_fetch_btn = uiu.el(settings_div, 'button', 'tournament_btp_fetch', ci18n('update from BTP'));
+			const btp_fetch_btn = uiu.el(td, 'button', 'tournament_btp_fetch vlink', ci18n('update from BTP'));
 			btp_fetch_btn.addEventListener('click', ui_btp_fetch);
 		}
+		var tr = uiu.el(settings_table, 'tr');
+		var td = uiu.el(tr, 'td');
+		uiu.el(td, 'div', 'ticker_status_label', 'Ticker status:');
+		var td = uiu.el(tr, 'td');
+		uiu.el(td, 'div', 'ticker_status', '');
+		ticker_status_changed({ val: curt.ticker_status });
+		var td = uiu.el(tr, 'td');
 		if (curt.ticker_enabled) {
-			const ticker_push_btn = uiu.el(settings_div, 'button', 'tournament_ticker_push', ci18n('update ticker'));
+			const ticker_push_btn = uiu.el(td, 'button', 'tournament_ticker_push vlink', ci18n('update ticker'));
 			ticker_push_btn.addEventListener('click', ui_ticker_push);
 		}
+
+		uiu.el(settings_div, 'div', 'errors');
 	}
 
+	function btp_status_changed(c) {
+		set_service_status('btp_status', c);
+	}
+	function ticker_status_changed(c) {
+		set_service_status('ticker_status', c);
+	}
+
+	function bts_status_changed(c) {
+		set_service_status('status', c);
+	}
+	
+	function set_service_status(service_id, c) {
+		if (curt) { 
+			curt[service_id] = c.val.status;
+		}
+		uiu.qsEach('.' + service_id, (div_el) => {
+			div_el.className = service_id +' status_' + c.val.status;
+			div_el.title = c.val.message;
+		});
+	}
+	
 	function _upload_logo(e) {
 		const input = e.target;
 		if (!input.files.length) return;
@@ -1138,10 +1183,6 @@ var ctournament = (function() {
 		uiu.empty(main);
 		main.classList.add('main_upcoming');
 
-		uiu.hide_qs('.btp_status');
-		uiu.hide_qs('.ticker_status');
-		uiu.hide_qs('.status');
-
 		render_upcoming(main);
 		main.addEventListener('click', () => {
 			fullscreen.toggle();
@@ -1332,6 +1373,7 @@ var ctournament = (function() {
 		ui_list,
 		update_match,
 		update_upcoming_match,
+		bts_status_changed
 	};
 
 })();

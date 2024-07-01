@@ -89,21 +89,21 @@ class BTPConn {
 			return;
 		}
 
-		this.report_status('Connecting ...');
+		this.report_status('connecting','Try to establish connection to BTP.');
 		this.send(btp_proto.login_request(this.password), response => {
 			if (!response.Action || !response.Action[0] || !response.Action[0].ID[0] || (response.Action[0].ID[0] !== 'REPLY')) {
-				this.report_status('Invalid reply to login request');
+				this.report_status('error','Invalid reply to login request');
 				this.schedule_reconnect();
 				return;
 			}
 
 			if (response.Action[0].Result[0] !== 1) {
-				this.report_status('Invalid password');
+				this.report_status('error', 'Invalid password');
 				this.schedule_reconnect();
 				return;
 			}
 
-			this.report_status('Logged in.');
+			this.report_status('connected','Logged in.');
 			this.key_unicode = response.Action[0].Unicode[0];
 
 			this.pushall();
@@ -119,7 +119,7 @@ class BTPConn {
 		this.send(ir, response => {
 			btp_sync.fetch(this.app, this.tkey, response, (err) => {
 				if (err) {
-					this.report_status('Synchronisations-Fehler: ' + err.stack);
+					this.report_status('error','Synchronisations-Fehler: ' + err.stack);
 					console.error(err.stack);
 				}
 			});
@@ -142,7 +142,7 @@ class BTPConn {
 
 	terminate() {
 		this.terminated = true;
-		this.report_status('Terminated.');
+		this.report_status('deactivated','Terminated.');
 	}
 
 	send(xml_req, success_cb) {
@@ -151,7 +151,7 @@ class BTPConn {
 		const port = this.is_team ? BLP_PORT : BTP_PORT;
 		send_request(this.ip, port, xml_req, this.timeZone, (err, response) => {
 			if (err) {
-				this.report_status('Connection error: ' + err.message);
+				this.report_status('error', 'Connection error: ' + err.message);
 				this.schedule_reconnect();
 				return;
 			}
@@ -195,11 +195,15 @@ class BTPConn {
 	}
 
 	on_end() {
-		this.report_status('Verbindung verloren, versuche erneut ...');
+		this.report_status('error', 'Verbindung verloren, versuche erneut ...');
 		this.schedule_reconnect();
 	}
 
-	report_status(msg) {
+	report_status(status, message) {
+		const msg = {
+			status: status,
+			message: message
+		}
 		this.last_status = msg;
 		const admin = require('./admin');
 		admin.notify_change(this.app, this.tkey, 'btp_status', msg);

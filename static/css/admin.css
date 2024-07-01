@@ -33,37 +33,25 @@ h3 {
 	background: rgba(255, 255, 255, 0.8);
 	font-size: 50px;
 }
-
+.status_label,
 .status {
-	position: fixed;
-	bottom: 0;
-	right: 0;
 	color: #666;
-	background: rgba(255, 255, 255, 0.8);
 }
+.btp_status_label,
 .btp_status {
-	position: fixed;
-	bottom: 1.5em;
-	right: 0;
 	color: #666;
-	background: rgba(255, 255, 255, 0.8);
 }
+.ticker_status_label,
 .ticker_status {
-	position: fixed;
-	bottom: 3em;
-	right: 0;
 	color: #666;
-	background: rgba(255, 255, 255, 0.8);
 }
 
 
 .errors {
-	position: fixed;
-	bottom: 4.5em;
-	right: 0.5em;
 	color: #f00;
-	background: rgba(255, 255, 255, 0.8);
 	white-space: pre-wrap;
+	max-height: 50px;
+	overflow-y: scroll;
 }
 
 .vlink,
@@ -86,8 +74,7 @@ a:hover {
 .tournament_btp_fetch,
 .tournament_ticker_push,
 .tournament_settings_link {
-	float: right;
-	margin-right: 0.5em;
+	display: inline-block;
 }
 
 .tournament_settings fieldset {
@@ -176,5 +163,37 @@ table.striped-table {
 	display: flex;
     flex-direction: column;
     justify-content: space-evenly;
+}
+
+.status_error,
+.status_deactivated,
+.status_connecting,
+.status_connected {
+	display: inline-block;
+	min-width: 1em;
+	min-height: 1em;
+	background-size: 100%;
+	background-repeat: no-repeat;
+	background-position: center center;
+	height: 1.2em;
+	min-height: 1em;
+	width: 1.9em;
+	margin: 0 0.2em -0.2em 0.2em;
+}
+
+.status_connected {
+	background-image: url(../icons/signal_green.svg);
+}
+
+.status_connecting {
+	background-image: url(../icons/signal_yellow.svg);
+}
+
+.status_error {
+	background-image: url(../icons/signal_red.svg);
+}
+
+.status_deactivated {
+	background-image: url(../icons/signal_black.svg);
 }
 

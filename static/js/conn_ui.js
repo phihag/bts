@@ -16,7 +16,8 @@ function ui_on_status(status) {
 		text = 'Unsupported status: ' + status.code;
 	}
 
-	uiu.text_qs('.status', text);
+	ctournament.bts_status_changed({ val: { status: status.code, message: text } })
+	
 	uiu.visible_qs('.connecting', (status.code === 'connecting') || (status.code === 'waiting'));
 
 	if (status.code === 'connected') {
@@ -56,6 +57,7 @@ if ((typeof module !== 'undefined') && (typeof require !== 'undefined')) {
 	var ci18n = require('./ci18n');
 	var conn = require('./conn');
 	var crouting = require('./crouting');
+	var ctournament = require('./ctournament');
 	var uiu = null; // UI only
 
 	module.exports = conn_ui;

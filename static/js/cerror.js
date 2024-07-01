@@ -9,10 +9,12 @@ var error_list = [];
 var report_enabled = true;
 
 function show(msg) {
-	error_list.push(msg);
+	error_list.unshift(msg);
 	if (typeof uiu !== 'undefined') {
-		uiu.show_qs('.errors');
-		uiu.text_qs('.errors', error_list.join('\n'));
+		try {
+			uiu.show_qs('.errors');
+			uiu.text_qs('.errors', error_list.join('\n'));
+		} catch (e) { }
 	}
 }
 
