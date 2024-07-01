@@ -6,14 +6,15 @@ function render_unassigned(container) {
 	uiu.empty(container);
 	uiu.el(container, 'h3', {}, ci18n('tabletoperator:unassigned'));
 	const unassigned_tabletoperators = curt.tabletoperators.filter(m => m.court == null);
-	render_tabletoperator_table(container, unassigned_tabletoperators);
+	const tableoperator_content = uiu.el(container, 'div', 'unassigned_tableoperators_content');
+	render_tabletoperator_table(tableoperator_content, unassigned_tabletoperators);
 	render_tabletoperator_formular(container);
 }
 
 function render_tabletoperator_table(container, tabletoperators) {
 	
 	const table = uiu.el(container, 'table', 'tabletoperators_table');
-	render_tabletoperator_table_header(table);
+	//render_tabletoperator_table_header(table);
 	const tbody = uiu.el(table, 'tbody');
 
 	for (const t of tabletoperators) {
@@ -85,12 +86,12 @@ function render_tabletoperator_formular(target) {
 		const form = uiu.el(announcements, 'form');
 		uiu.el(form, 'input', {
 			type: 'input',
+			class: 'tabletoperator_add_custom_input',
 			id: 'tabletoperator_name',
 			name: 'tabletoperator_name'
 		});
 		const btp_fetch_btn = uiu.el(form, 'button', {
-			'class': 'vlink tabletoperator_add_custom_button',
-			height: 50,
+			class: 'vlink tabletoperator_add_custom_button',
 			role: 'submit',
 		});
 		form_utils.onsubmit(form, function (d) {

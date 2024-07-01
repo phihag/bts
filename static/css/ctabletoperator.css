@@ -6,9 +6,9 @@
 	height: 25px;
 	background-size: cover;
 	width: 25px;
-	margin: 0 0.2em -0.2em 0.2em;
 	background-image: url(../icons/tabletoperator_add.svg);
-	border-width: 0px;
+	padding: 0.4em 0.4em;
+	margin: 0.4em 0 0 0.25em;
 }
 .tabletoperator_add_button {
 	display: inline-block;
@@ -55,3 +55,16 @@
 	padding: 0.1em 0.1em;
 	min-width: 5em;
 }
+
+.unassigned_tableoperators_content {
+	height: 130px;
+	max-height: 130px;
+	width: 325px;
+	max-height: 325px;
+	overflow: auto;
+}
+
+.tabletoperator_add_custom_input {
+	width: 290px;
+}
+
