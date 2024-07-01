@@ -166,18 +166,17 @@ table.striped-table {
 }
 
 .status_error,
+.status_waiting,
 .status_deactivated,
 .status_connecting,
 .status_connected {
 	display: inline-block;
-	min-width: 1em;
-	min-height: 1em;
 	background-size: 100%;
 	background-repeat: no-repeat;
 	background-position: center center;
-	height: 1.2em;
+	height: 1.0em;
 	min-height: 1em;
-	width: 1.9em;
+	width: 1.0em;
 	margin: 0 0.2em -0.2em 0.2em;
 }
 
@@ -189,6 +188,7 @@ table.striped-table {
 	background-image: url(../icons/signal_yellow.svg);
 }
 
+.status_waiting,
 .status_error {
 	background-image: url(../icons/signal_red.svg);
 }

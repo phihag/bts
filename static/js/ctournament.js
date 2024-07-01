@@ -408,7 +408,7 @@ var ctournament = (function() {
 		const settings_table = uiu.el(settings_div, 'table');	
 		var tr = uiu.el(settings_table, 'tr');
 		var td = uiu.el(tr, 'td');
-		uiu.el(td, 'div', 'status_label', 'BTS status:');
+		uiu.el(td, 'div', 'status_label', 'BTS');
 		var td = uiu.el(tr, 'td');
 		uiu.el(td, 'div', 'status status_connected','');
 		var td = uiu.el(tr, 'td');
@@ -417,7 +417,7 @@ var ctournament = (function() {
 
 		var tr = uiu.el(settings_table, 'tr');
 		var td = uiu.el(tr, 'td');
-		uiu.el(td, 'div', 'btp_status_label', 'BTP status:');
+		uiu.el(td, 'div', 'btp_status_label', 'BTP');
 		var td = uiu.el(tr, 'td');
 		uiu.el(td, 'div', 'btp_status', '');
 		btp_status_changed({ val: curt.btp_status });
@@ -428,7 +428,7 @@ var ctournament = (function() {
 		}
 		var tr = uiu.el(settings_table, 'tr');
 		var td = uiu.el(tr, 'td');
-		uiu.el(td, 'div', 'ticker_status_label', 'Ticker status:');
+		uiu.el(td, 'div', 'ticker_status_label', 'Ticker');
 		var td = uiu.el(tr, 'td');
 		uiu.el(td, 'div', 'ticker_status', '');
 		ticker_status_changed({ val: curt.ticker_status });
