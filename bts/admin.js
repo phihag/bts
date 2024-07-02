@@ -55,7 +55,7 @@ function handle_tournament_edit_props(app, ws, msg) {
 		'name','tguid',
 		'btp_enabled', 'btp_autofetch_enabled', 'btp_readonly',
 		'btp_ip', 'btp_password',
-		'is_team', 'is_nation_competition', 'only_now_on_court',
+		'is_team', 'is_nation_competition',
 		'warmup', 'warmup_ready', 'warmup_start',
 		'ticker_enabled', 'ticker_url', 'ticker_password',
 		'language', 'dm_style', 'displaysettings_general',

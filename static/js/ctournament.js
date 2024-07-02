@@ -223,12 +223,10 @@ var ctournament = (function() {
 	}
 
 	function update_current_match(c) {
-		//change.change_current_match(c.val);
 		update_match(c);
 	}
 
 	function update_upcoming_current_match(c) {
-		//change.change_current_match(c.val);
 		update_upcoming_match(c);
 	}
 
@@ -601,19 +599,7 @@ var ctournament = (function() {
 		uiu.el(displaysettings_style_label, 'span', {}, ci18n('tournament:edit:displaysettings_general'));
 		createGeneralDisplaySettingsSelectBox(displaysettings_style_label, curt.displaysettings_general ? curt.displaysettings_general : "default");
 
-
-
-		// Placed on court required?
-		const only_now_on_court_label = uiu.el(form, 'label');
-		const attrs = {
-			type: 'checkbox',
-			name: 'only_now_on_court',
-		};
-		if (curt.only_now_on_court) {
-			attrs.checked = 'checked';
-		}
-		uiu.el(only_now_on_court_label, 'input', attrs);
-		uiu.el(only_now_on_court_label, 'span', {}, ci18n('tournament:edit:only_now_on_court'));
+			
 
 		// Warmup Timer
 		if (!curt.warmup_ready) {
@@ -841,7 +827,6 @@ var ctournament = (function() {
 				language: data.language,
 				is_team: (!!data.is_team),
 				is_nation_competition: (!!data.is_nation_competition),
-				only_now_on_court: (!!data.only_now_on_court),
 				btp_enabled: (!!data.btp_enabled),
 				btp_autofetch_enabled: (!!data.btp_autofetch_enabled),
 				btp_readonly: (!!data.btp_readonly),
@@ -1191,10 +1176,7 @@ var ctournament = (function() {
 	_route_single(/t\/([a-z0-9]+)\/upcoming/, ui_upcoming, change.default_handler(_update_all_ui_elements_upcoming, {
 		score: update_score,
 		court_current_match: update_upcoming_current_match,
-		//update_player_status: update_player_status,
 		match_edit: update_upcoming_match,
-		//tabletoperator_add: tabletoperator_add,
-		//tabletoperator_removed: tabletoperator_removed,
 	}));
 
 

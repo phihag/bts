@@ -21,16 +21,6 @@ function change_score(cval) {
 	m.team1_won = cval.team1_won;
 }
 
-//function change_current_match(cval) {
-//	// Do not use courts_by_id since that may not be initialized in all views
-//	const court = utils.find(curt.courts, c => c._id === cval.court_id);
-//	if (court) {
-//		court.match_id = cval.match_id;
-//	} else {
-//		cerror.silent('Cannot find court ' + JSON.stringify(cval.court_id));
-//	}
-//}
-
 function default_handler_func(rerender, special_funcs, c) {
 	if (special_funcs && special_funcs[c.ctype]) {
 		special_funcs[c.ctype](c);
@@ -46,7 +36,6 @@ function default_handler_func(rerender, special_funcs, c) {
 		curt.is_team = c.val.is_team;
 		curt.tguid = c.val.tguid;
 		curt.is_nation_competition = c.val.is_nation_competition;
-		curt.only_now_on_court = c.val.only_now_on_court;
 		curt.btp_timezone = c.val.btp_timezone;
 		curt.warmup = c.val.warmup;
 		curt.warmup_ready = c.val.warmup_ready;
@@ -68,7 +57,7 @@ function default_handler_func(rerender, special_funcs, c) {
 			}
 		});
 		const CHECKBOXES = [
-			'is_team', 'is_nation_competition', 'only_now_on_court',
+			'is_team', 'is_nation_competition',
 			'btp_enabled', 'btp_autofetch_enabled', 'btp_readonly',
 			'ticker_enabled', 'tabletoperator_enabled', 'tabletoperator_with_state_enabled',
 			'tabletoperator_winner_of_quaterfinals_enabled', 'tabletoperator_split_doubles',
@@ -154,13 +143,6 @@ function default_handler_func(rerender, special_funcs, c) {
 		change_score(c.val);
 		// Most dialogs don't show any matches, so do not rerender
 		break;
-	case 'court_current_match':
-		change_current_match(c.val);
-		// Most dialogs don't show any matches, so do not rerender
-		break;
-	case 'update_player_status':
-		//nothing todo here
-		break;
 	case 'display_status_changed':
 		const display_setting = c.val.display_court_displaysetting;
 		const d = utils.find(curt.displays, m => m.client_id === display_setting.client_id);
@@ -185,8 +167,7 @@ function default_handler_func(rerender, special_funcs, c) {
 }
 
 return {
-	default_handler,
-	//change_current_match,
+	default_handler
 };
 
 })();

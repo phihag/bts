@@ -16,21 +16,17 @@ function calc_section(m) {
 	if (typeof m.team1_won === 'boolean') {
 		return 'finished';
 	}
-	if (m.setup.court_id) {
-		if (!curt.only_now_on_court || m.setup.now_on_court) {
-			return 'court_' + m.setup.court_id;
-		}
+	if (m.setup.court_id && m.setup.now_on_court) {
+		return 'court_' + m.setup.court_id;
 	}
 	return 'unassigned';
 }
 
-function render_match_table_header(table, include_courts) {
+function render_match_table_header(table) {
 	const thead = uiu.el(table, 'thead');
 	const title_tr = uiu.el(thead, 'tr');
-	uiu.el(title_tr, 'th'); // Buttons holder
-	if (include_courts) {
-		uiu.el(title_tr, 'th', {}, ci18n('Court'));
-	}
+	uiu.el(title_tr, 'th');
+	uiu.el(title_tr, 'th', {}, ci18n('Court'));
 	uiu.el(title_tr, 'th', {}, '#');
 	uiu.el(title_tr, 'th', {}, ci18n('Match'));
 	uiu.el(title_tr, 'th', {
@@ -545,23 +541,6 @@ function update_match(m, old_section, new_section) {
 			});
 			break;
 	}
-
-	
-	//uiu.qsEach('.match[data-match_id=' + JSON.stringify(m._id) + ']', (match_row_el) => {
-	//	console.log("render single row: match_num = " + m.setup.match_num);
-	//	switch (new_section) {
-	//		case 'finished':
-	//			render_match_row(match_row_el, m, null, 'default', false, true);
-	//			break;
-	//		case 'unassigned':
-	//			render_match_row(match_row_el, m, null, 'default', true, true);
-	//			break;
-	//		default:
-	//			uiu.qsEach('.court_row[data-court_id=' + JSON.stringify(m.setup.court_id) + ']', (match_row_el) => {
-	//			render_match_row(match_row_el, m, null, 'plain', false, false);
-	//			break;
-	//	}
-	//});
 }
 
 var active_timers = {'matches': {}, 'players' : {}};
@@ -1068,20 +1047,20 @@ crouting.register(/t\/([a-z0-9]+)\/m\/([-a-zA-Z0-9_ ]+)\/scoresheet$/, function(
 	ui_scoresheet(match_id);
 }));
 
-function render_match_table(container, matches, include_courts, show_player_status, show_add_tabletoperator) {
+function render_match_table(container, matches, show_player_status, show_add_tabletoperator) {
 	if(!show_player_status)
 	{
 		show_player_status = false;
 	}
 	
 	const table = uiu.el(container, 'table', 'match_table');
-	render_match_table_header(table, include_courts);
+	render_match_table_header(table, true);
 	const tbody = uiu.el(table, 'tbody');
 
 	for (const m of matches) {
 		if(m.setup.is_match) {
 			const tr = uiu.el(tbody, 'tr', {'class' : 'match highlight_' + m.setup.highlight , 'data-match_id': m._id});
-			render_match_row(tr, m, null, include_courts ? 'default' : 'plain', show_player_status, show_add_tabletoperator);
+			render_match_row(tr, m, null, 'default', show_player_status, show_add_tabletoperator);
 		}
 	}
 }
@@ -1091,7 +1070,7 @@ function render_unassigned(container) {
 	uiu.el(container, 'h3', {}, ci18n('Unassigned Matches'));
 
 	const unassigned_matches = curt.matches.filter(m => calc_section(m) === 'unassigned');
-	render_match_table(container, unassigned_matches, curt.only_now_on_court, true,true);
+	render_match_table(container, unassigned_matches, true, true);
 }
 
 function render_upcoming_matches(container) {
@@ -1124,7 +1103,7 @@ function render_finished(container) {
 	uiu.el(container, 'h3', {}, ci18n('Finished Matches'));
 
 	const matches = curt.matches.filter(m => calc_section(m) === 'finished').sort((a, b) => {return b.end_ts - a.end_ts});
-	render_match_table(container, matches, true, false, true);
+	render_match_table(container, matches, false, true);
 }
 
 function render_courts(container, style) {

@@ -85,7 +85,6 @@ var ci18n_de = {
 	'tournament:edit:courts': 'Felder:',
 	'tournament:edit:dm_style': 'Standard-Ansicht:',
 	'tournament:edit:displaysettings_general': 'Standard-Displayeinstellung:',
-	'tournament:edit:only_now_on_court': 'Spiele müssen auf Feld gezogen werden',
 	'tournament:edit:warmup_timer_behavior': 'Verhalten des Vorbereitungs-Countdowns:',
 	'tournament:edit:warmup_timer_behavior:bwf-2016': 'BWF ab 2016 (ab Auslosung)',
 	'tournament:edit:warmup_timer_behavior:legacy': 'Deutschland (ab Auslosung)',

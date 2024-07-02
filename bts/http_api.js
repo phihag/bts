@@ -153,10 +153,8 @@ function matches_handler(req, res) {
 		}
 
 		let matches = db_matches.map(dbm => create_match_representation(tournament, dbm));
-		if (tournament.only_now_on_court) {
-			matches = matches.filter(m => m.setup.now_on_court);
-		}
-
+		matches = matches.filter(m => m.setup.now_on_court);
+		
 		db_courts.sort(utils.cmp_key('num'));
 		const courts = db_courts.map(function(dc) {
 			var res = {

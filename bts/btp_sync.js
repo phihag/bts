@@ -848,10 +848,7 @@ async function integrate_now_on_court(app, tkey, callback) {
 			return callback(err);
 		}
 		assert(tournament);
-		if (!tournament.only_now_on_court) {
-			return callback(null); // Nothing to do here
-		}
-
+		
 		app.db.matches.find({ 'setup.now_on_court': true }, async (err, now_on_court_matches) => {
 			if (err) return callback(err);
 
