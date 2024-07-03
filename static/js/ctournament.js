@@ -475,7 +475,7 @@ var ctournament = (function() {
 	function set_service_status(service_id, c) {
 		if (c && c.val) {
 			if (curt) {
-				curt[service_id] = c.val.status;
+				curt[service_id] = c.val;
 			}
 			uiu.qsEach('.' + service_id, (div_el) => {
 				div_el.className = service_id + ' status_' + c.val.status;
