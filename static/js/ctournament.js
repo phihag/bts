@@ -222,6 +222,26 @@ var ctournament = (function() {
 		_show_render_tabletoperators();
 	}
 
+	function add_normalization(c) {
+		curt.normalizations.push(c.val.normalization);
+		update_normalization_values(c)
+	}
+
+	function remove_normalization(c) {
+		const changed_t = utils.find(curt.normalizations, m => m._id === c.val.normalization_id);
+		if (changed_t) {
+			curt.normalizations.splice(curt.normalizations.indexOf(changed_t), 1);
+		}
+		update_normalization_values(c)
+	}
+
+	function update_normalization_values(c) {
+		uiu.qsEach('.normalizations_values_div',(div_el) => {
+			div_el.innerHTML = "";
+			render_normalisation_values(div_el);
+		});
+	}
+
 	function update_current_match(c) {
 		update_match(c);
 	}
@@ -393,6 +413,8 @@ var ctournament = (function() {
 		update_player_status: update_player_status,
 		match_edit: update_match,
 		match_remove: remove_match,
+		normalization_removed: remove_normalization,
+		normalization_add: add_normalization,
 		tabletoperator_add: tabletoperator_add,
 		tabletoperator_removed: tabletoperator_removed,
 		btp_status: btp_status_changed,
@@ -451,13 +473,15 @@ var ctournament = (function() {
 	}
 	
 	function set_service_status(service_id, c) {
-		if (curt) { 
-			curt[service_id] = c.val.status;
+		if (c && c.val) {
+			if (curt) {
+				curt[service_id] = c.val.status;
+			}
+			uiu.qsEach('.' + service_id, (div_el) => {
+				div_el.className = service_id + ' status_' + c.val.status;
+				div_el.title = c.val.message;
+			});
 		}
-		uiu.qsEach('.' + service_id, (div_el) => {
-			div_el.className = service_id +' status_' + c.val.status;
-			div_el.title = c.val.message;
-		});
 	}
 	
 	function _upload_logo(e) {
@@ -928,6 +952,115 @@ var ctournament = (function() {
 			});
 		});
 
+		
+		render_courts(main);
+		render_displaysettings(main);
+		render_normalisation_values(uiu.el(main, 'div','normalizations_values_div'));
+	}
+	_route_single(/t\/([a-z0-9]+)\/edit$/, ui_edit);
+
+	function render_normalisation_values(main) {
+		uiu.el(main, 'h2', {}, ci18n('tournament:edit:normalizations'));
+
+		const display_table = uiu.el(main, 'table');
+		const display_tbody = uiu.el(display_table, 'tbody');
+		const tr = uiu.el(display_tbody, 'tr');
+		uiu.el(tr, 'th', {}, ci18n('tournament:edit:normalizations:origin'));
+		uiu.el(tr, 'th', {}, ci18n('tournament:edit:normalizations:replace'));
+		uiu.el(tr, 'th', {}, ci18n('tournament:edit:normalizations:language'));
+		uiu.el(tr, 'th', {}, '');
+		const tr_input = uiu.el(display_tbody, 'tr');
+		create_undecorated_input("text", uiu.el(tr_input, 'td', {}), 'normalizations_origin');
+		create_undecorated_input("text", uiu.el(tr_input, 'td', {}), 'normalizations_replace');
+		create_undecorated_input("text", uiu.el(tr_input, 'td', {}), 'normalizations_language');
+		const actions_td = uiu.el(tr_input, 'td', {});
+		const add_btn = uiu.el(actions_td, 'button', {}, 'Add');
+		add_btn.addEventListener('click', function (e) {
+
+			var new_normalization = {}
+			new_normalization.origin = document.getElementById('normalizations_origin').value;
+			new_normalization.replace = document.getElementById('normalizations_replace').value;
+			new_normalization.language = document.getElementById('normalizations_language').value;
+
+			send({
+				type: 'normalization_add',
+				tournament_key: curt.key,
+				normalization: new_normalization,
+			}, err => {
+				if (err) {
+					return cerror.net(err);
+				}
+			});
+		});
+		for (const nv of curt.normalizations) {
+			const tr = uiu.el(display_tbody, 'tr');
+			uiu.el(tr, 'td', {}, nv.origin);
+			uiu.el(tr, 'td', {}, nv.replace);
+			uiu.el(tr, 'td', {}, nv.language);
+			const actions_td = uiu.el(tr, 'td', {});
+			const delete_btn = uiu.el(actions_td, 'button', {
+				'data-normalization-id': nv._id,
+			}, 'Delete');
+						
+			delete_btn.addEventListener('click', function (e) {
+				const del_btn = e.target;
+				const normalization_id = del_btn.getAttribute('data-normalization-id');
+				send({
+					type: 'normalization_remove',
+					tournament_key: curt.key,
+					normalization_id: normalization_id,
+				}, err => {
+					if (err) {
+						return cerror.net(err);
+					}
+				});
+			});
+		}
+	}
+
+
+	function render_displaysettings(main) {
+		uiu.el(main, 'h2', {}, ci18n('tournament:edit:displays'));
+
+		const display_table = uiu.el(main, 'table');
+		const display_tbody = uiu.el(display_table, 'tbody');
+		const tr = uiu.el(display_tbody, 'tr');
+		uiu.el(tr, 'th', {}, ci18n('tournament:edit:displays:num'));
+		uiu.el(tr, 'td', {}, ci18n('tournament:edit:displays:court'));
+		uiu.el(tr, 'td', {}, ci18n('tournament:edit:displays:setting'));
+		uiu.el(tr, 'td', {}, ci18n('tournament:edit:displays:onlinestatus'));
+
+		for (const c of curt.displays) {
+			const tr = uiu.el(display_tbody, 'tr');
+			uiu.el(tr, 'th', {}, c.client_id);
+			createCourtSelectBox(uiu.el(tr, 'td', {}, ''), c.client_id, c.court_id);
+			createDisplaySettingsSelectBox(uiu.el(tr, 'td', {}, ''), c.client_id, c.displaysetting_id);
+			uiu.el(tr, 'td', {}, (!c.online) ? 'offline' : 'online');
+			const actions_td = uiu.el(tr, 'td', {});
+			const reset_btn = uiu.el(actions_td, 'button', {
+				'data-display-setting-id': c.client_id,
+			}, 'Restart');
+
+			if (!c.online) {
+				reset_btn.setAttribute('disabled', 'disabled');
+			}
+			reset_btn.addEventListener('click', function (e) {
+				const del_btn = e.target;
+				const display_setting_id = del_btn.getAttribute('data-display-setting-id');
+				send({
+					type: 'reset_display',
+					tournament_key: curt.key,
+					display_setting_id: display_setting_id,
+				}, err => {
+					if (err) {
+						return cerror.net(err);
+					}
+				});
+			});
+		}
+	}
+
+	function render_courts(main) {
 		uiu.el(main, 'h2', {}, ci18n('tournament:edit:courts'));
 
 		const courts_table = uiu.el(main, 'table');
@@ -984,48 +1117,7 @@ var ctournament = (function() {
 				ui_edit();
 			});
 		});
-
-		uiu.el(main, 'h2', {}, ci18n('tournament:edit:displays'));
-
-		const display_table = uiu.el(main, 'table');
-		const display_tbody = uiu.el(display_table, 'tbody');
-		const tr = uiu.el(display_tbody, 'tr');
-		uiu.el(tr, 'th', {}, ci18n('tournament:edit:displays:num'));
-		uiu.el(tr, 'td', {}, ci18n('tournament:edit:displays:court'));
-		uiu.el(tr, 'td', {}, ci18n('tournament:edit:displays:setting'));
-		uiu.el(tr, 'td', {}, ci18n('tournament:edit:displays:onlinestatus'));
-
-		for (const c of curt.displays) {
-			const tr = uiu.el(display_tbody, 'tr');
-			uiu.el(tr, 'th', {}, c.client_id);
-			createCourtSelectBox(uiu.el(tr, 'td', {}, ''), c.client_id, c.court_id);
-			createDisplaySettingsSelectBox(uiu.el(tr, 'td', {}, ''), c.client_id, c.displaysetting_id);
-			uiu.el(tr, 'td', {}, (!c.online) ? 'offline' : 'online');
-			const actions_td = uiu.el(tr, 'td', {});
-			const reset_btn = uiu.el(actions_td, 'button', {
-				'data-display-setting-id': c.client_id,
-			}, 'Restart');
-
-			if (!c.online) {
-				reset_btn.setAttribute('disabled', 'disabled');
-			}
-			reset_btn.addEventListener('click', function (e) {
-				const del_btn = e.target;
-				const display_setting_id = del_btn.getAttribute('data-display-setting-id');
-				send({
-					type: 'reset_display',
-					tournament_key: curt.key,
-					display_setting_id: display_setting_id,
-				}, err => {
-					if (err) {
-						return cerror.net(err);
-					}
-				});
-			});
-		}
 	}
-	_route_single(/t\/([a-z0-9]+)\/edit$/, ui_edit);
-
 
 	function create_checkbox(curt, parent_el, filed_id) {
 		const label = uiu.el(parent_el, 'label');
@@ -1047,6 +1139,15 @@ var ctournament = (function() {
 			type: type,
 			name: filed_id,
 			value: curt[filed_id] || '',
+		});
+	}
+
+	function create_undecorated_input(type, parent_el, filed_id) {
+		uiu.el(parent_el, 'input', {
+			type: type,
+			name: filed_id,
+			id: filed_id,
+			value: '',
 		});
 	}
 
@@ -1355,7 +1456,12 @@ var ctournament = (function() {
 		ui_list,
 		update_match,
 		update_upcoming_match,
-		bts_status_changed
+		btp_status_changed,
+		ticker_status_changed,
+		bts_status_changed,
+		remove_normalization,
+		add_normalization,
+		
 	};
 
 })();

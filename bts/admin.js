@@ -278,6 +278,39 @@ function handle_match_add(app, ws, msg) {
 	});
 }
 
+function handle_normalization_add(app, ws, msg) {
+	if (!msg.tournament_key) {
+		return ws.respond(msg, { message: 'Missing tournament_key' });
+	}
+
+	if (!msg.normalization) {
+		return ws.respond(msg, { message: 'Missing required normalization' });
+	}
+
+	app.db.normalizations.insert(msg.normalization, function (err, inserted_normalization) {
+		if (err) {
+			ws.respond(msg, err);
+			return;
+		}
+		notify_change(app, msg.tournament_key, 'normalization_add', { normalization: inserted_normalization });
+	});
+}
+
+function handle_normalization_remove(app, ws, msg) {
+	if (!msg.tournament_key) {
+		return ws.respond(msg, { message: 'Missing tournament_key' });
+	}
+
+	if (!msg.normalization_id) {
+		return ws.respond(msg, { message: 'Missing required normalization' });
+	}
+
+	const query = { _id: msg.normalization_id };
+	app.db.normalizations.remove(query, {}, (err) => {
+		notify_change(app, msg.tournament_key, 'normalization_removed', {normalization_id: msg.normalization_id});
+		return;
+	});
+}
 function handle_tabletoperator_remove(app, ws, msg) {
 	if (!msg.tournament_key) {
 		return ws.respond(msg, { message: 'Missing tournament_key' });
@@ -718,6 +751,8 @@ module.exports = {
 	handle_begin_to_play_call,
 	handle_announce_match_manually,
 	handle_btp_fetch,
+	handle_normalization_add,
+	handle_normalization_remove,
 	handle_tabletoperator_add,
 	handle_tabletoperator_remove,
 	handle_fetch_allscoresheets_data,
