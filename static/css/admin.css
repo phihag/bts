@@ -14,7 +14,7 @@ select {
 }
 
 .main {
-	padding: 0 0 0 1em;
+	padding: 0 0 0 0;
 }
 
 h1 {
@@ -75,6 +75,7 @@ a:hover {
 .tournament_ticker_push,
 .tournament_settings_link {
 	display: inline-block;
+	color: black;
 }
 
 .tournament_settings fieldset {
@@ -150,13 +151,14 @@ table.striped-table {
 	white-space: pre-wrap;
 }
 
-.metadata_container{
-	background-color: #aaaa;
-    display: flex;
-    flex-direction: row;
-    justify-content: space-around;
-    margin: 20px 20px 20px 0px;
-    padding: 10px;
+.metadata_container {
+	background-color: #00000020;
+	display: flex;
+	flex-direction: row;
+	justify-content: space-around;
+	padding: 0.25em 0 0 0;
+	margin: 0 0 0.75em 0;
+	border-bottom: 1px solid black;
 }
 
 .announcements_container > form{

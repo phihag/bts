@@ -333,7 +333,7 @@ var ctournament = (function() {
 		});
 
 		enable_announcements.checked = (window.localStorage.getItem('enable_announcements') === 'true');
-		uiu.el(form, 'label', { for: 'enable_announcements' }, 'Ansagen auf diesem Gerät aktivieren');
+		uiu.el(form, 'label', { for: 'enable_announcements' }, 'aktiv');
 		enable_announcements.addEventListener('change', change_announcements);
 	}
 
@@ -378,9 +378,7 @@ var ctournament = (function() {
 		render_enable_announcement(meta_right_div);
 
 		render_settings(meta_right_div);
-
-		uiu.el(main, 'h1', 'tournament_name ct_name', curt.name || curt.key);
-
+		
 		cmatch.prepare_render(curt);
 
 
