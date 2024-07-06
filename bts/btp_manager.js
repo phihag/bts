@@ -70,6 +70,22 @@ function update_players(app, tkey, players) {
 	conn.update_players(players);
 }
 
+function update_courts(app, tkey, courts) {
+	assert(tkey);
+
+	if (!courts || courts.length < 1) {
+		return;
+	}
+
+	const conn = conns_by_tkey.get(tkey);
+	if (!conn) {
+		// Do not output an error; this happens if BTP support gets disabled
+		return;
+	}
+	
+	conn.update_courts(courts);
+}
+
 function update_highlight(app, match) {	
 	assert(match);
 	const tkey = match.tournament_key;
@@ -116,5 +132,6 @@ module.exports = {
 	reconfigure,
 	update_score,
 	update_players,
+	update_courts,
 	update_highlight,
 };

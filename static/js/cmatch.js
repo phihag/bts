@@ -41,9 +41,15 @@ function render_match_row(tr, match, court, style, show_player_status, show_add_
 	if(!match.setup.is_match) {
 		return;
 	}
-	
+
 	if (!court && match.setup.court_id) {
 		court = curt.courts_by_id[match.setup.court_id];
+	}
+
+	if (style === 'default') {
+		if(!court){
+			tr.setAttribute('draggable', 'true');
+		}
 	}
 
 	const waitForMatchStart = 	match.setup.called_timestamp && 
@@ -816,6 +822,34 @@ function _nation_team_name(nat0, nat1) {
 	return '';
 }
 
+function _update_setup(setup, d) {
+	if(!setup) {
+		return _make_setup(d);
+	}
+
+	const result = setup;
+
+	let override_colors = undefined;
+	if (d.override_colors_checkbox) {
+		override_colors = {};
+		for (let team_id = 0;team_id < 2;team_id++) {
+			const team_override_colors = {};
+			for (const key of OVERRIDE_COLORS_KEYS) {
+				override_colors[key + team_id] = d[`override_colors_${team_id}_${key}`];
+			}
+		}
+	}
+
+	result.court_id           = d.court_id;
+	result.now_on_court       = !! d.now_on_court;
+	result.scheduled_time_str = d.scheduled_time_str;
+	result.umpire_name        = d.umpire_name;
+	result.service_judge_name = d.service_judge_name;
+	result.override_colors    = override_colors;
+
+	return result;
+}
+
 function _make_setup(d) {
 	const is_doubles = !! d.team0player1lastname;
 	const teams = [_make_team(d, 0), _make_team(d, 1)];
@@ -922,6 +956,7 @@ function ui_edit(match_id) {
 		uiu.el(sendbtp_label, 'input', {
 			type: 'checkbox',
 			name: 'btp_update',
+			checked: 'true',
 		});
 		sendbtp_label.appendChild(document.createTextNode('auch in BTP ändern'));
 	}
@@ -933,11 +968,15 @@ function ui_edit(match_id) {
 
 	form_utils.onsubmit(form, function(d) {
 		const setup = _make_setup(d);
+		console.log(setup);
+		console.log(match.setup);
+		match.setup = _update_setup(match.setup, d);
+		console.log(match.setup);
 		btn.setAttribute('disabled', 'disabled');
 		send({
 			type: 'match_edit',
 			id: d.match_id,
-			setup,
+			match,
 			tournament_key: curt.key,
 			btp_update: (curt.btp_enabled && !! d.btp_update),
 		}, function match_edit_callback(err) {
@@ -1201,6 +1240,7 @@ function render_edit(form, match) {
 		required: 'required',
 		value: setup.match_num || '',
 		tabindex: 1,
+		disabled: 'disabled',
 	});
 
 	uiu.el(metadata, 'span', 'match_label', 'Event:');
@@ -1210,6 +1250,7 @@ function render_edit(form, match) {
 		placeholder: ci18n('e.g. MX O55'),
 		size: 10,
 		value: setup.event_name || '',
+		disabled: 'disabled',
 	});
 
 	uiu.el(metadata, 'span', 'match_label', 'Match:');
@@ -1219,6 +1260,8 @@ function render_edit(form, match) {
 		placeholder: ci18n('e.g. semi-finals'),
 		size: 10,
 		value: setup.match_name || '',
+		disabled: 'disabled',
+		style: 'width: 253px;',
 	});
 
 	const start = uiu.el(edit_match_container, 'div');
@@ -1230,6 +1273,7 @@ function render_edit(form, match) {
 		title: 'Date in ISO8601 format, e.g. 2020-05-30',
 		size: 6,
 		value: setup.scheduled_date || '',
+		style: 'width: 238px;',
 	});
 
 	uiu.el(start, 'span', 'match_label', ci18n('Time:'));
@@ -1240,6 +1284,7 @@ function render_edit(form, match) {
 		title: 'Time in 24 hour format, e.g. 09:23',
 		size: 3,
 		value: setup.scheduled_time_str || '',
+		style: 'width: 268px;',
 	});
 
 	const player_table = uiu.el(edit_match_container, 'table');
@@ -1252,6 +1297,7 @@ function render_edit(form, match) {
 		size: 3,
 		name: 'team0player0nationality',
 		value: player_names.team0player0.nationality || '',
+		disabled: 'disabled',
 	});
 	uiu.el(t0p0td, 'input', {
 		type: 'text',
@@ -1260,6 +1306,7 @@ function render_edit(form, match) {
 		required: 'required',
 		value: player_names.team0player0.firstname,
 		tabindex: 20,
+		disabled: 'disabled',
 	});
 	uiu.el(t0p0td, 'input', {
 		type: 'text',
@@ -1268,6 +1315,7 @@ function render_edit(form, match) {
 		required: 'required',
 		value: player_names.team0player0.lastname,
 		tabindex: 20,
+		disabled: 'disabled',
 	});
 	const t0p1td = uiu.el(tr1, 'td');
 	uiu.el(t0p1td, 'input', {
@@ -1275,6 +1323,7 @@ function render_edit(form, match) {
 		size: 3,
 		name: 'team0player1nationality',
 		value: player_names.team0player1.nationality || '',
+		disabled: 'disabled',
 	});
 	uiu.el(t0p1td, 'input', {
 		type: 'text',
@@ -1282,6 +1331,7 @@ function render_edit(form, match) {
 		name: 'team0player1firstname',
 		value: player_names.team0player1.firstname,
 		tabindex: 21,
+		disabled: 'disabled',
 	});
 	uiu.el(t0p1td, 'input', {
 		type: 'text',
@@ -1290,6 +1340,7 @@ function render_edit(form, match) {
 		placeholder: ci18n('(Singles)'),
 		value: player_names.team0player1.lastname,
 		tabindex: 21,
+		disabled: 'disabled',
 	});
 
 	uiu.el(tr0, 'td', {
@@ -1303,6 +1354,7 @@ function render_edit(form, match) {
 		size: 3,
 		name: 'team1player0nationality',
 		value: player_names.team1player0.nationality  || '',
+		disabled: 'disabled',
 	});
 	uiu.el(t1p0td, 'input', {
 		type: 'text',
@@ -1311,6 +1363,7 @@ function render_edit(form, match) {
 		required: 'required',
 		value: player_names.team1player0.firstname,
 		tabindex: 30,
+		disabled: 'disabled',
 	});
 	uiu.el(t1p0td, 'input', {
 		type: 'text',
@@ -1319,6 +1372,7 @@ function render_edit(form, match) {
 		required: 'required',
 		value: player_names.team1player0.lastname,
 		tabindex: 30,
+		disabled: 'disabled',
 	});
 	const t1p1td = uiu.el(tr1, 'td');
 	uiu.el(t1p1td, 'input', {
@@ -1326,6 +1380,7 @@ function render_edit(form, match) {
 		size: 3,
 		name: 'team1player1nationality',
 		value: player_names.team1player1.nationality || '',
+		disabled: 'disabled',
 	});
 	uiu.el(t1p1td, 'input', {
 		type: 'text',
@@ -1333,6 +1388,7 @@ function render_edit(form, match) {
 		name: 'team1player1firstname',
 		value: player_names.team1player1.firstname,
 		tabindex: 31,
+		disabled: 'disabled',
 	});
 	uiu.el(t1p1td, 'input', {
 		type: 'text',
@@ -1341,6 +1397,7 @@ function render_edit(form, match) {
 		placeholder: ci18n('(Singles)'),
 		value: player_names.team1player1.lastname,
 		tabindex: 31,
+		disabled: 'disabled',
 	});
 
 	if (curt.is_team) {

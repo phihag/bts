@@ -53,6 +53,7 @@ function login_request(password) {
 function update_request(match, key_unicode, password, umpire_btp_id, service_judge_btp_id, court_btp_id) {
 	assert(key_unicode);
 	const matches = [];
+	const courts = [];
 	const res = {
 		Header: {
 			Version: {
@@ -69,7 +70,7 @@ function update_request(match, key_unicode, password, umpire_btp_id, service_jud
 		},
 		Update: {
 			Tournament: {
-				Matches: matches,
+				Matches: matches
 			},
 		},
 	};
@@ -216,6 +217,56 @@ function update_players_request(players, key_unicode, password) {
 			btp_players.push({Player: pupdate});
 		}
 	});
+	return res;
+}
+
+function update_courts_request(courts, key_unicode, password){
+	assert(key_unicode);
+	const courts_list = [];
+	const res = {
+		Header: {
+			Version: {
+				Hi: 1,
+				Lo: 1,
+			},
+		},
+		Action: {
+			ID: 'SENDUPDATE',
+			Unicode: key_unicode,
+		},
+		Client: {
+			IP: 'bts',
+		},
+		Update: {
+			Tournament: {
+				Courts: courts_list,
+			},
+		},
+	};
+
+	if (password) {
+		res.Action.Password = password;
+	}
+
+	assert(courts);
+	assert(courts.length > 0);
+
+	for (const court of courts) {
+		assert(court.btp_id);
+
+		if (court.btp_id){
+		 	const c = {
+		 		ID: court.btp_id
+		 	}
+
+			if(court.btp_match_id){
+				c.MatchID = court.btp_match_id;
+			}
+
+		 	courts_list.push({Court: c});
+		}
+	}
+
 	return res;
 }
 
@@ -401,6 +452,7 @@ module.exports = {
 	login_request,
 	update_request,
 	update_players_request,
+	update_courts_request,
 	// Tests only
 	_req2xml: req2xml,
 };

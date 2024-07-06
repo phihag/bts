@@ -326,6 +326,32 @@ class BTPConn {
 			}
 		});
 	}
+
+	update_courts(courts) {
+		if (this.readonly) {
+			return;
+		}
+
+		if (!courts || courts.length < 1) {
+			return;
+		}
+
+		if (! this.key_unicode) {
+			//serror.silent('Trying to update court data, but never logged in. Must retry later');
+			return;
+		}
+
+		const req = btp_proto.update_courts_request(courts, this.key_unicode, this.password);
+		this.send(req, response => {
+			const results = response.Action[0].Result;
+			const rescode = results ? results[0] : 'no-result';
+			if (rescode === 1) {
+
+			} else {
+				serror.silent('Update Courts failed with error code ' + rescode);
+			}
+		});
+	}
 }
 
 module.exports = {

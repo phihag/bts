@@ -574,7 +574,8 @@ async function integrate_matches(app, tkey, btp_state, court_map, callback) {
 					cb(null);
 					return;
 				}
-				app.db.matches.insert(match, function (err) {
+
+				app.db.matches.insert(match, function(err) {
 					if (err) {
 						cb(null);
 						return;
@@ -928,6 +929,7 @@ async function integrate_now_on_court(app, tkey, callback) {
 	const admin = require('./admin'); // avoid dependency cycle
 	const btp_manager = require('./btp_manager');
 	const bupws = require('./bupws');
+	const match_utils = require('./match_utils');
 
 	// TODO after switching to async, this should happen during court&match construction
 	app.db.tournaments.findOne({ key: tkey }, async (err, tournament) => {
@@ -943,87 +945,16 @@ async function integrate_now_on_court(app, tkey, callback) {
 
 				const court_id = match.setup.court_id;
 				const match_id = match._id;
-				const called_timestamp = Date.now();
+				//const called_timestamp = Date.now();
 
 				if (!court_id || !match_id) {
 					return; // TODO in async we would assert both to be true
 				}
 
 				const setup = match.setup;
-				if (!setup.called_timestamp) {
-					setup.called_timestamp = called_timestamp;
-					try {
-						if ((tournament.tabletoperator_enabled && tournament.tabletoperator_enabled == true)) {
-							if (!setup.tabletoperators || setup.tabletoperators == null) {
-								const value = await fetch_tabletoperator(admin, app, tkey, court_id);
-								if (!setup.umpire_name || (tournament.tabletoperator_with_umpire_enabled && tournament.tabletoperator_with_umpire_enabled == true)) {
-									setup.tabletoperators = value;
-								}
-							}
-						}
-					} catch (err) {
-						callback(err)
-					}
-
-					if (setup.tabletoperators) {
-						for (let operator of setup.tabletoperators) {
-							operator.checked_in = false;
-						}
-						btp_manager.update_players(app, tkey, setup.tabletoperators);
-					}
-
-
-					if (setup.umpire_name) {
-						update_umpire(app, tkey, setup.umpire_name, 'oncourt', called_timestamp, court_id);
-					}
-
-					if (setup.service_judge_name) {
-						update_umpire(app, tkey, setup.service_judge_name, 'oncourt', called_timestamp, court_id);
-					}
-
-					if (setup.highlight == 6) {
-						setup.highlight = 0;
-					}
-
-					const match_q = { _id: match_id };
-					app.db.matches.update(match_q, { $set: { setup } }, {}, (err) => {
-						if (err) {
-							console.error(err);
-							return;
-						}
-
-						btp_manager.update_highlight(app, match);
-
-						const court_q = { _id: court_id };
-						app.db.courts.find(court_q, (err, courts) => {
-							if (err) {
-								console.error(err);
-								return;
-							}
-							if (courts.length !== 1) return;
-
-							app.db.courts.update(court_q, { $set: { match_id } }, {}, (err) => {
-								if (err) {
-									console.error(err);
-									return;
-								}
-
-								admin.notify_change(app, match.tournament_key, 'match_edit', {
-									match__id: match._id,
-									match: match
-								});
-								admin.notify_change(app, tkey, 'match_called_on_court', match);
-								bupws.handle_score_change(app, tkey, court_id);
-								async.waterfall([wcb => set_player_on_court(app, tkey, match.setup, wcb),
-								wcb => set_player_on_tablet(app, tkey, match.setup, wcb)],
-									(err) => {
-										if (err) {
-											console.error(err);
-											return;
-										}
-									});
-							});
-						});
+				if(!setup.called_timestamp) {
+					match_utils.call_match(app, tournament, match, (err) => {
+						if (err) console.log(err);
 					});
 				}
 			}));
@@ -1031,177 +962,6 @@ async function integrate_now_on_court(app, tkey, callback) {
 		});
 	});
 	// TODO clear courts (better in async)
-}
-
-function serialized(fn) {
-	let queue = Promise.resolve();
-	return (...args) => {
-		const res = queue.then(() => fn(...args));
-		queue = res.catch(() => { });
-		return res;
-	}
-}
-const fetch_tabletoperator = serialized(get_last_looser_on_court);
-function get_last_looser_on_court(admin, app, tkey, court_id) {
-	return new Promise((resolve, reject) => {
-		const tabletoperator_querry = { 'tournament_key': tkey, court: null };
-		let tabletoperators = undefined;
-		app.db.tabletoperators.find(tabletoperator_querry).sort({ 'start_ts': 1 }).limit(1).exec((err, tabletoperator) => {
-			if (err) {
-				return reject(err);
-			}
-			var returnvalue = undefined;
-			if (tabletoperator && tabletoperator.length == 1) {
-				returnvalue = tabletoperator[0].tabletoperator
-				app.db.tabletoperators.update({ _id: tabletoperator[0]._id, tournament_key: tkey }, { $set: { court: court_id } }, { returnUpdatedDocs: true }, function (err, numAffected, changed_tabletoperator) {
-					if (err) {
-						return reject(err);
-					}
-					admin.notify_change(app, tkey, 'tabletoperator_removed', { tabletoperator: changed_tabletoperator });
-					return resolve(returnvalue);
-				});
-			} else {
-				return resolve(returnvalue);
-			}
-		});
-	});
-}
-
-function set_player_on_tablet(app, tkey, match_on_court_setup, callback) {
-
-	if (!match_on_court_setup.tabletoperators || match_on_court_setup.tabletoperators.length == 0) {
-		return;
-	}
-
-	const admin = require('./admin'); // avoid dependency cycle	
-	app.db.matches.find({ 'tournament_key': tkey }, async (err, matches) => {
-		if (err) {
-			callback(err);
-		}
-
-		async.each(matches, async (match, cb) => {
-			if (match.setup.now_on_court == false) {
-				return;
-			}
-
-			const match_id = match._id;
-			let tablet_operatorns_btp_ids = [match_on_court_setup.tabletoperators[0].btp_id];
-
-			if (match_on_court_setup.tabletoperators.length > 1) {
-				tablet_operatorns_btp_ids.push(match_on_court_setup.tabletoperators[1].btp_id);
-			}
-
-			let change = false;
-
-			if (match.setup.teams[0].players.length > 0 && tablet_operatorns_btp_ids.includes(match.setup.teams[0].players[0].btp_id)) {
-				match.setup.teams[0].players[0].now_tablet_on_court = match_on_court_setup.court_id;
-				match.setup.teams[0].players[0].checked_in = false;
-				change = true;
-			}
-
-			if (match.setup.teams[0].players.length > 1 && tablet_operatorns_btp_ids.includes(match.setup.teams[0].players[1].btp_id)) {
-				match.setup.teams[0].players[1].now_tablet_on_court = match_on_court_setup.court_id;
-				match.setup.teams[0].players[1].checked_in = false;
-				change = true;
-			}
-
-			if (match.setup.teams[1].players.length > 0 && tablet_operatorns_btp_ids.includes(match.setup.teams[1].players[0].btp_id)) {
-				match.setup.teams[1].players[0].now_tablet_on_court = match_on_court_setup.court_id;
-				match.setup.teams[1].players[0].checked_in = false;
-				change = true;
-			}
-
-			if (match.setup.teams[1].players.length > 1 && tablet_operatorns_btp_ids.includes(match.setup.teams[1].players[1].btp_id)) {
-				match.setup.teams[1].players[1].now_tablet_on_court = match_on_court_setup.court_id;
-				match.setup.teams[1].players[1].checked_in = false;
-				change = true;
-			}
-
-			if (change) {
-				const setup = match.setup;
-				const match_q = { _id: match_id };
-				app.db.matches.update(match_q, { $set: { setup } }, {}, (err) => {
-					if (err) return callback(err);
-					admin.notify_change(app, match.tournament_key, 'update_player_status', {
-						match__id: match._id,
-						btp_winner: match.btp_winner,
-						setup: match.setup
-					});
-				});
-			}
-		});
-
-		callback(null);
-	});
-}
-
-
-function set_player_on_court(app, tkey, match_on_court_setup, callback) {
-	const admin = require('./admin'); // avoid dependency cycle	
-	app.db.matches.find({ 'tournament_key': tkey }, async (err, matches) => {
-		if (err) {
-			callback(err);
-		}
-
-		async.each(matches, async (match, cb) => {
-			if (match.setup.now_on_court == false) {
-				return;
-			}
-
-			const match_id = match._id;
-			let on_court_btp_ids = [match_on_court_setup.teams[0].players[0].btp_id,
-			match_on_court_setup.teams[1].players[0].btp_id];
-
-			if (match_on_court_setup.teams[0].players.length > 1) {
-				on_court_btp_ids.push(match_on_court_setup.teams[0].players[1].btp_id);
-			}
-
-			if (match_on_court_setup.teams[1].players.length > 1) {
-				on_court_btp_ids.push(match_on_court_setup.teams[1].players[1].btp_id);
-			}
-
-			let change = false;
-
-			if (match.setup.teams[0].players.length > 0 && on_court_btp_ids.includes(match.setup.teams[0].players[0].btp_id)) {
-				match.setup.teams[0].players[0].now_playing_on_court = match_on_court_setup.court_id;
-				match.setup.teams[0].players[0].tablet_break_active = false;
-				change = true;
-			}
-
-			if (match.setup.teams[0].players.length > 1 && on_court_btp_ids.includes(match.setup.teams[0].players[1].btp_id)) {
-				match.setup.teams[0].players[1].now_playing_on_court = match_on_court_setup.court_id;
-				match.setup.teams[0].players[1].tablet_break_active = false;
-				change = true;
-			}
-
-			if (match.setup.teams[1].players.length > 0 && on_court_btp_ids.includes(match.setup.teams[1].players[0].btp_id)) {
-				match.setup.teams[1].players[0].now_playing_on_court = match_on_court_setup.court_id;
-				match.setup.teams[1].players[0].tablet_break_active = false;
-				change = true;
-			}
-
-			if (match.setup.teams[1].players.length > 1 && on_court_btp_ids.includes(match.setup.teams[1].players[1].btp_id)) {
-				match.setup.teams[1].players[1].now_playing_on_court = match_on_court_setup.court_id;
-				match.setup.teams[1].players[1].tablet_break_active = false;
-				change = true;
-			}
-			if (change) {
-				const setup = match.setup;
-				const match_q = { _id: match_id };
-				app.db.matches.update(match_q, { $set: { setup } }, {}, (err) => {
-					if (err) return callback(err);
-
-					admin.notify_change(app, match.tournament_key, 'update_player_status', {
-						match__id: match._id,
-						btp_winner: match.btp_winner,
-						setup: match.setup
-					});
-				});
-			}
-		});
-
-		callback(null);
-	});
 }
 
 
@@ -1230,8 +990,6 @@ module.exports = {
 	date_str,
 	fetch,
 	time_str,
-	fetch_tabletoperator,
-	update_umpire,
 	// test only
 	_integrate_umpires: integrate_umpires,
 };

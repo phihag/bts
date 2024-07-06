@@ -397,33 +397,102 @@ function handle_tabletoperator_add(app, ws, msg) {
 }
 
 function handle_match_edit(app, ws, msg) {
+	const match_utils = require('./match_utils');
+	
 	if (!_require_msg(ws, msg, ['tournament_key', 'id', 'match'])) {
 		return;
 	}
 	const tournament_key = msg.tournament_key;
-	const setup = _extract_setup(msg.setup);
-	// TODO get old setup, make sure no key has been removed
-	app.db.matches.update({_id: msg.id, tournament_key}, {$set: {setup}}, {returnUpdatedDocs: true}, function(err, numAffected, changed_match) {
+	const setup = msg.match.setup;
+
+	app.db.tournaments.findOne({ key: tournament_key }, async (err, tournament) => {
 		if (err) {
-			ws.respond(msg, err);
-			return;
+			return ws.respond(msg, err);
 		}
-		if (numAffected !== 1) {
-			ws.respond(msg, new Error('Cannot find match ' + msg.id + ' of tournament ' + tournament_key + ' in database'));
-			return;
+
+		if(setup.now_on_court && !setup.called_timestamp) {
+			match_utils.call_match(app, tournament, msg.match, (err, match) => {
+				if (err) {
+					ws.respond(msg, err);
+					return;
+				}
+
+				update_btp_courts(app, tournament_key, msg.match, (err) => {
+					ws.respond(msg, err);
+					return;
+				})
+			});
+		} else if (!setup.now_on_court && setup.called_timestamp) {
+			match_utils.uncall_match(app, tournament, msg.match, (err) => {
+				if (err) {
+					ws.respond(msg, err);
+					return;
+				}
+
+				update_btp_courts(app, tournament_key, msg.match, (err) => {
+					ws.respond(msg, err);
+					return;
+				})
+			});
+
+		} else {
+			// TODO get old setup, make sure no key has been removed
+			app.db.matches.update({_id: msg.id, tournament_key}, {$set: {setup}}, {returnUpdatedDocs: true}, function(err, numAffected, changed_match) {
+				if (err) {
+					ws.respond(msg, err);
+					return;
+				}
+				if (numAffected !== 1) {
+					ws.respond(msg, new Error('Cannot find match ' + msg.id + ' of tournament ' + tournament_key + ' in database'));
+					return;
+				}
+				if (changed_match._id !== msg.id) {
+					const errmsg = 'Match ' + changed_match._id + ' changed by accident, intended to change ' + msg.id + ' (old nedb version?)';
+					serror.silent(errmsg);
+					ws.respond(msg, new Error(errmsg));
+					return;
+				}
+
+				notify_change(app, tournament_key, 'match_edit', {match__id: msg.id, changed_match});
+				if (msg.btp_update) {
+					btp_manager.update_score(app, changed_match);
+				}
+				ws.respond(msg, err);
+			});
 		}
-		if (changed_match._id !== msg.id) {
-			const errmsg = 'Match ' + changed_match._id + ' changed by accident, intended to change ' + msg.id + ' (old nedb version?)';
-			serror.silent(errmsg);
-			ws.respond(msg, new Error(errmsg));
+	});
+}
+
+function update_btp_courts(app, tournament_key, match, callback) {
+	stournament.get_courts(app.db, tournament_key, (err, all_courts) => { 
+		if (err) {
+			callback(err);
 			return;
 		}
 
-		notify_change(app, tournament_key, 'match_edit', {match__id: msg.id, match});
-		if (msg.btp_update) {
-			btp_manager.update_score(app, changed_match);
-		}
-		ws.respond(msg, err);
+		const courts = [];
+
+		all_courts.forEach((element, index) => {			
+			if(match.setup.court_id === element._id && match.setup.now_on_court) {
+				const court = {
+					btp_id: element.btp_id,
+					btp_match_id: match.btp_match_ids[0].id,
+				}
+
+				courts.push(court);
+			} else if (element.match_id && element.match_id == ("btp_" + match.btp_id) && !match.setup.now_on_court) {
+				const court = {
+					btp_id: element.btp_id
+				}
+
+				courts.push(court);
+			}
+		});
+
+		btp_manager.update_courts(app, tournament_key, courts);
+
+		callback(null);
+		return;
 	});
 }
 

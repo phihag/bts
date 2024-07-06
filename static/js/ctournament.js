@@ -159,6 +159,9 @@ var ctournament = (function() {
 	}
 	function update_match(c) {
 		const cval = c.val;
+
+		console.log(cval);
+
 		const match_id = cval.match__id;
 
 		// Find the match
@@ -168,12 +171,16 @@ var ctournament = (function() {
 			return;
 		}
 		const old_section = cmatch.calc_section(m);
-		m.network_score = cval.match.network_score;
-		m.presses = cval.match.presses;
-		m.team1_won = cval.match.team1_won;
-		m.shuttle_count = cval.match.shuttle_count;
-		m.setup = cval.match.setup;
-		m.btp_winner = cval.match.btp_winner;
+		if (cval.match) {
+			if('network_score' in cval.match){
+				m.network_score = cval.match.network_score;
+			}
+			m.presses = cval.match.presses;
+			m.team1_won = cval.match.team1_won;
+			m.shuttle_count = cval.match.shuttle_count;
+			m.setup = cval.match.setup;
+			m.btp_winner = cval.match.btp_winner;
+		}
 		const new_section = cmatch.calc_section(m);
 		cmatch.update_match(m, old_section, new_section);
 	}
