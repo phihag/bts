@@ -146,14 +146,14 @@ async function craft_match(app, tkey, btp_id, court_map, event, draw, btp_links,
 				setup.now_on_court = match_ids_on_court.has(bm.ID[0]);
 			}
 			if (bm.Official1ID) {
-				const o = officials.get(bm.Official1ID[0]);
+				const o = get_umpire(app, tkey, officials, bm.Official1ID[0]);
 				assert(o);
-				setup.umpire_name = o.FirstName + ' ' + o.Name;
+				setup.umpire_name = o.firstName + ' ' + o.surname;
 			}
 			if (bm.Official2ID) {
-				const o = officials.get(bm.Official2ID[0]);
+				const o = get_umpire(app, tkey, officials, bm.Official2ID[0]);
 				assert(o);
-				setup.service_judge_name = o.FirstName + ' ' + o.Name;
+				setup.service_judge_name = o.firstName + ' ' + o.surname;
 			}
 
 			const btp_match_ids = [{
@@ -303,7 +303,7 @@ function _parse_score(bm) {
 	return bm.Sets[0].Set.map(s => [s.T1[0], s.T2[0]]);
 }
 
-async function cleanup_matches(app, tkey, btp_state, callback) {
+async function cleanup_entities(app, tkey, btp_state, callback) {
 
 	const { draws, events } = btp_state;
 	var btpMaptches = {}
@@ -333,6 +333,33 @@ async function cleanup_matches(app, tkey, btp_state, callback) {
 			}
 		})
 	});
+	var btpUmpires = {}
+	btp_state.officials.forEach(function (umpire) {
+		btpUmpires[umpire.ID[0]] = true;
+	})
+
+	const querry = { 'tournament_key': tkey };
+	app.db.umpires.find(querry).exec((err, umpires) => {
+		if (err) {
+			return callback(err);
+		}
+		umpires.forEach(function (umpire) {
+			if (btpUmpires[umpire.btp_id] === true) {
+				//TODO invert query
+				return;
+			} else {
+				const mumpire_q = { _id: umpire._id };
+				app.db.umpires.remove(mumpire_q, {}, (err) => {
+					const admin = require('./admin');
+					admin.notify_change(app, tkey, 'umpire_removed', { umpire });
+					return;
+				});
+
+			}
+		});
+	});
+
+
 	return callback(null);
 }
 
@@ -343,11 +370,37 @@ function calculate_btp_match_id(tkey, bm, draws, events) {
 	const discipline_name = (event.Name[0] === draw.Name[0]) ? draw.Name[0] : event.Name[0] + '_' + draw.Name[0];
 	return tkey + '_' + discipline_name + '_' + bm.ID[0];
 }
+
+
+function get_umpires(app, tkey) {
+	return new Promise((resolve, reject) => {
+		const querry = { 'tournament_key': tkey };
+		app.db.umpires.find(querry).exec((err, umpires) => {
+			if (err) {
+				return reject(err);
+			}
+			return resolve(umpires);
+		});
+	});
+}
+
+function get_umpire(app, tkey, umpires , btp_id) {
+	var returnValue = null;
+	umpires.forEach((umpire) => {
+		if (umpire.btp_id === btp_id) {
+			returnValue = umpire;
+		}
+	});
+	return returnValue;
+}
+
 async function integrate_matches(app, tkey, btp_state, court_map, callback) {
 	const admin = require('./admin'); // avoid dependency cycle
-	const { draws, events, officials } = btp_state;
+	const { draws, events } = btp_state;
 
 	const match_ids_on_court = calculate_match_ids_on_court(btp_state);
+
+	const officials = await get_umpires(app, tkey);
 
 	async.each(btp_state.matches, function (bm, cb) {
 		const draw = draws.get(bm.DrawID[0]);
@@ -783,20 +836,23 @@ function integrate_umpires(app, tournament_key, btp_state, callback) {
 	var changed = false;
 
 	async.each(officials, (o, cb) => {
-		const name = (o.FirstName ? (o.FirstName[0] + ' ') : '') + ((o.Name && o.Name[0]) ? o.Name[0] : '');
-		if (!name) {
+		const firstName = (o.FirstName ? o.FirstName[0] : '');
+		const surname = (o.Name ? o.Name[0] : '');
+		const name = (firstName + " " + surname).trim();
+		const btp_id = o.ID[0];
+		if (!btp_id) {
 			return cb();
 		}
-		const btp_id = o.ID[0];
+		
 
-		app.db.umpires.findOne({ tournament_key, name }, (err, cur) => {
+		app.db.umpires.findOne({ tournament_key, btp_id }, (err, cur) => {
 			if (err) return cb(err);
 
 			if (cur) {
 				if (cur.btp_id === btp_id) {
 					return cb();
 				} else {
-					app.db.umpires.update({ tournament_key, name }, { $set: { btp_id } }, {}, (err) => cb(err));
+					app.db.umpires.update({ tournament_key, btp_id }, { $set: { btp_id } }, {}, (err) => cb(err));
 					return;
 				}
 			}
@@ -804,11 +860,19 @@ function integrate_umpires(app, tournament_key, btp_state, callback) {
 			const u = {
 				_id: tournament_key + '_btp_' + btp_id,
 				btp_id,
+				firstName,
+				surname,
 				name,
+				status: 'ready',
 				tournament_key,
 			};
 			changed = true;
-			app.db.umpires.insert(u, err => cb(err));
+			app.db.umpires.insert(u, function (err, inserted_umpire) {
+				if (err) {
+					return cb(err);
+				}
+				admin.notify_change(app, tournament_key, 'umpire_add', { umpire: inserted_umpire });
+			});
 		});
 	}, err => {
 		if (changed) {
@@ -836,9 +900,20 @@ function calculate_match_ids_on_court(btp_state) {
 	return res;
 }
 
+
+
+function update_umpire(app, tkey, umpire_name, status, last_time_on_court_ts,court_id) {
+	app.db.umpires.update({ tournament_key: tkey, name: umpire_name }, { $set: { last_time_on_court_ts: last_time_on_court_ts, status: status, court_id: court_id } }, { returnUpdatedDocs: true }, function (err, numAffected, changed_umpire) {
+		if (err) {
+			console.error(err);
+			return;
+		}
+		const admin = require('./admin');
+		admin.notify_change(app, tkey, 'umpire_updated', changed_umpire);
+	});
+}
 async function integrate_now_on_court(app, tkey, callback) {
 	const admin = require('./admin'); // avoid dependency cycle
-	const stournament = require('./stournament'); // avoid dependency cycle
 	const btp_manager = require('./btp_manager');
 	const bupws = require('./bupws');
 
@@ -883,6 +958,15 @@ async function integrate_now_on_court(app, tkey, callback) {
 							operator.checked_in = false;
 						}
 						btp_manager.update_players(app, tkey, setup.tabletoperators);
+					}
+
+
+					if (setup.umpire_name) {
+						update_umpire(app, tkey, setup.umpire_name, 'oncourt', called_timestamp, court_id);
+					}
+
+					if (setup.service_judge_name) {
+						update_umpire(app, tkey, setup.service_judge_name, 'oncourt', called_timestamp, court_id);
 					}
 
 					if (setup.highlight == 6) {
@@ -1124,7 +1208,7 @@ function fetch(app, tkey, response, callback) {
 		cb => integrate_courts(app, tkey, btp_state, cb),
 		(court_map, cb) => integrate_matches(app, tkey, btp_state, court_map, cb),
 		cb => integrate_now_on_court(app, tkey, cb),
-		cb => cleanup_matches(app, tkey, btp_state, cb),
+		cb => cleanup_entities(app, tkey, btp_state, cb),
 	], callback);
 }
 
@@ -1135,6 +1219,7 @@ module.exports = {
 	fetch,
 	time_str,
 	fetch_tabletoperator,
+	update_umpire,
 	// test only
 	_integrate_umpires: integrate_umpires,
 };

@@ -115,17 +115,6 @@ a:hover {
 	background: #eee;
 }
 
-.footer_links {
-	margin-top: 1em;
-	margin-bottom: 0.5em;
-}
-.footer_links > * {
-	display: inline-block;
-}
-.footer_links > * + * {
-	margin-left: 1em;
-}
-
 table.striped-table {
 
 }
@@ -161,10 +150,13 @@ table.striped-table {
 	border-bottom: 1px solid black;
 }
 
-.announcements_container > form{
+.announcements_container{
+	width: 400px;
+}
+.announcements_container > form {
 	display: flex;
-    flex-direction: column;
-    justify-content: space-evenly;
+	flex-direction: column;
+	justify-content: space-evenly;
 }
 
 .status_error,

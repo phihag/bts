@@ -449,6 +449,14 @@ function handle_match_preparation_call(app, ws, msg) {
 		}
 
 
+		if (setup.umpire_name) {
+			btp_sync.update_umpire(app, tournament_key, setup.umpire_name, 'standby', null, null);
+		}
+
+		if (setup.service_judge_name) {
+			btp_sync.update_umpire(app, tournament_key, setup.service_judge_name, 'standby', null, null);
+		}
+
 		app.db.matches.update({ _id: msg.id, tournament_key }, { $set: { setup } }, { returnUpdatedDocs: true }, function (err, numAffected, changed_match) {
 			if (err) {
 				ws.respond(msg, err);

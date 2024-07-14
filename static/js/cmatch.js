@@ -1554,6 +1554,7 @@ return {
 	update_match,
 	remove_match_from_gui,
 	update_players,
+	create_timer
 };
 
 })();

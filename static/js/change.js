@@ -157,6 +157,27 @@ function default_handler(rerender, special_funcs) {
 				cmatch.render_umpire_options(select, select.value);
 			});
 			break;
+		case 'umpire_updated':
+			const umpire = c.val;
+			const u = utils.find(curt.umpires, m => m._id === umpire._id);
+			if (u) {
+				u.last_time_on_court_ts = umpire.last_time_on_court_ts;
+				u.status = umpire.status;
+				u.court_id = umpire.court_id;
+			}
+			cumpires.ui_status(uiu.qs('.umpire_container'));
+			break;
+		case 'umpire_add':
+			const added_umpire = c.val.umpire;
+			curt.umpires.push(added_umpire);
+			cumpires.ui_status(uiu.qs('.umpire_container'));
+				break;
+		case 'umpire_removed':
+			const removed_umpire = c.val.umpire;
+			const ru = utils.find(curt.umpires, m => m._id === removed_umpire._id);
+			curt.umpires.splice(curt.umpires.indexOf(ru), 1);
+			cumpires.ui_status(uiu.qs('.umpire_container'));
+			break;
 		case 'score':
 			change_score(c.val);
 			// Most dialogs don't show any matches, so do not rerender
@@ -197,7 +218,7 @@ if ((typeof module !== 'undefined') && (typeof require !== 'undefined')) {
 	var ctournament = require('./ctournament');
 	var uiu = require('../bup/js/uiu');
 	var utils = require('./utils');
-
+	var cumpires = require('./cumpires');
     module.exports = change;
 }
 /*/@DEV*/

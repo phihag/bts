@@ -166,6 +166,7 @@ var ci18n_en = {
 	'umpires:status:ready': 'Ready',
 	'umpires:status:paused': 'Reserve',
 	'umpires:paused_since': 'since {time}',
+	'umpires:oncourt': 'On Court',
 	'umpires:btp_id': 'BTP ID {btp_id}',
 	'umpires:last_on_court': 'previous match ended at {time}',
 

@@ -165,6 +165,7 @@ var ci18n_de = {
 	'umpires:status:ready': 'Bereit',
 	'umpires:status:paused': 'In Pause',
 	'umpires:paused_since': 'seit {time}',
+	'umpires:oncourt': 'Auf dem Feld',
 	'umpires:btp_id': 'BTP-ID {btp_id}',
 	'umpires:last_on_court': 'letztes Spiel endete {time}',
 

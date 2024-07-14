@@ -1,3 +1,9 @@
 .umpires_since {
 	color: #666;
 }
+
+.umpire_container_content {
+	height: 160px;
+	width: 325px;
+	overflow: auto;
+}

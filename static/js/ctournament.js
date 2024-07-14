@@ -209,7 +209,6 @@ var ctournament = (function() {
 
 	function tabletoperator_add(c) {
 		curt.tabletoperators.push(c.val.tabletoperator);
-
 		_show_render_tabletoperators();
 	}
 
@@ -218,7 +217,6 @@ var ctournament = (function() {
 		if (changed_t) {
 			changed_t.court = c.val.tabletoperator.court;
 		}
-
 		_show_render_tabletoperators();
 	}
 
@@ -267,6 +265,10 @@ var ctournament = (function() {
 	}
 	function _show_render_tabletoperators() {
 		ctabletoperator.render_unassigned(uiu.qs('.unassigned_tableoperators_container'));
+	}
+
+	function _show_render_umpires() {
+		cumpires.ui_status(uiu.qs('.umpire_container'));
 	}
 
 
@@ -371,6 +373,7 @@ var ctournament = (function() {
 		const meta_div = uiu.el(main, 'div', 'metadata_container');
 
 		uiu.el(meta_div, 'div', 'unassigned_tableoperators_container');
+		uiu.el(meta_div, 'div', 'umpire_container');
 		render_announcement_formular(meta_div);
 
 		const meta_right_div = uiu.el(meta_div, 'div', 'metadata_right_container');
@@ -390,20 +393,8 @@ var ctournament = (function() {
 
 		_show_render_matches();
 
-		const footer_links = uiu.el(main, 'div', 'footer_links');
-		const umpires_link = uiu.el(footer_links, 'span', 'vlink', ci18n('umpires:status:heading'));
-		umpires_link.addEventListener('click', cumpires.ui_status);
-
-		if (/^dmo35/.test(curt.key)) {
-			const csvexport_link = uiu.el(footer_links, 'span', 'vlink', ci18n('csvexport:winners'));
-			csvexport_link.addEventListener('click', ccsvexport.export_winners);
-		}
-
-		if (curt.is_nation_competition) {
-			crouting.render_link(footer_links, `t/${curt.key}/nationstats`, ci18n('nationstats'));
-		}
-
 		_show_render_tabletoperators();
+		_show_render_umpires();
 	}
 	_route_single(/t\/([a-z0-9]+)\/$/, ui_show, change.default_handler(_update_all_ui_elements, {
 		score: update_score,

@@ -373,12 +373,42 @@ function reset_player_tabletoperator(app, tournament_key, match_id, end_ts) {
 	async.waterfall([
 		cb => remove_player_on_court(app, tournament_key, match_id, end_ts, cb),
 		cb => remove_tablet_on_court(app, tournament_key, match_id, end_ts, cb),
+		cb => remove_umpire_on_court(app, tournament_key, match_id, end_ts,cb),
 		cb => add_player_to_tabletoperator_list(app, tournament_key, match_id, end_ts)
-
 	], function (err) {
 		if (err) {
 			return;
 		}
+	});
+}
+
+function remove_umpire_on_court(app, tournament_key, cur_match_id, end_ts, callback) {
+	app.db.matches.findOne({ 'tournament_key': tournament_key, '_id': cur_match_id }, (err, cur_match) => {
+		if (err) {
+			return reject(err);
+		}
+		if (cur_match.setup.umpire_name) {
+		
+			update_umpire(app, tournament_key, cur_match.setup.umpire_name, 'ready', end_ts, null);
+		}
+
+		if (cur_match.setup.service_judge_name) {
+			
+			update_umpire(app, tournament_key, cur_match.setup.service_judge_name, 'ready', end_ts, null);
+		}
+		return callback(null);	
+
+	});
+}
+
+function update_umpire(app, tkey, umpire_name, status, last_time_on_court_ts, court_id, callback) {
+	app.db.umpires.update({ tournament_key: tkey, name: umpire_name }, { $set: { last_time_on_court_ts: last_time_on_court_ts, status: status, court_id: court_id } }, { returnUpdatedDocs: true }, function (err, numAffected, changed_umpire) {
+		if (err) {
+			console.error(err);
+			return;
+		}
+		const admin = require('./admin');
+		admin.notify_change(app, tkey, 'umpire_updated', changed_umpire);
 	});
 }
 
@@ -409,7 +439,7 @@ function add_player_to_tabletoperator_list_by_match(app, tournament, tournament_
 				const round = cur_match.setup.match_name;
 				var team = null;
 
-				if (tournament.tabletoperator_winner_of_quaterfinals_enabled && (round == 'VF' || round == 'QF')) { 
+				if (tournament.tabletoperator_winner_of_quaterfinals_enabled && (round == 'VF' || round == 'QF')) {
 					team = cur_match.setup.teams[cur_match.btp_winner - 1];
 				} else {
 					const index = cur_match.btp_winner % 2;
@@ -425,11 +455,11 @@ function add_player_to_tabletoperator_list_by_match(app, tournament, tournament_
 							var toinsert = player
 							if (tournament.tabletoperator_with_state_enabled && player.state) {
 								toinsert = create_team_from_player_state(player);
-							} 
+							}
 							var newTeam = {
 								players: [toinsert]
 							};
-							teams.push(newTeam); 
+							teams.push(newTeam);
 						}
 					} else {
 						var toinsert = team;
@@ -438,7 +468,7 @@ function add_player_to_tabletoperator_list_by_match(app, tournament, tournament_
 								players: [create_team_from_player_state(team.players[0])]
 							};
 						}
-						teams.push(toinsert); 
+						teams.push(toinsert);
 					}
 
 					for (const t of teams) {
@@ -468,9 +498,9 @@ function add_player_to_tabletoperator_list_by_match(app, tournament, tournament_
 					}
 
 				}
-			}
+			} 
 		});
-	}
+	} 
 }
 
 
