@@ -39,8 +39,8 @@ var cumpires = (function() {
 	function ui_status(container) {
 		uiu.empty(container);
 		var umpires = curt.umpires;
-		if (umpires.length > 0) { 
-
+		if (umpires.length > 0) {
+			container.style.display = "block";
 			umpires = umpires.sort((a, b) => {
 
 
@@ -66,6 +66,8 @@ var cumpires = (function() {
 			uiu.el(container, 'h3', {}, ci18n('Umpire:'));
 			const tableoperator_content = uiu.el(container, 'div', 'umpire_container_content');
 			_ui_render_table(tableoperator_content, umpires, 'ready');
+		} else {
+			container.style.display = "none";
 		}
 
 	}
