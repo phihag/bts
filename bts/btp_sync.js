@@ -839,6 +839,7 @@ function integrate_umpires(app, tournament_key, btp_state, callback) {
 		const firstName = (o.FirstName ? o.FirstName[0] : '');
 		const surname = (o.Name ? o.Name[0] : '');
 		const name = (firstName + " " + surname).trim();
+		const country = (o.Country ? o.Country[0] : '');
 		const btp_id = o.ID[0];
 		if (!btp_id) {
 			return cb();
@@ -849,10 +850,20 @@ function integrate_umpires(app, tournament_key, btp_state, callback) {
 			if (err) return cb(err);
 
 			if (cur) {
-				if (cur.btp_id === btp_id) {
+				if (cur.btp_id === btp_id &&
+					cur.firstName == firstName &&
+					cur.surname == surname &&
+					cur.country === country) {
 					return cb();
 				} else {
-					app.db.umpires.update({ tournament_key, btp_id }, { $set: { btp_id } }, {}, (err) => cb(err));
+					app.db.umpires.update({ tournament_key, btp_id }, { $set: { btp_id, firstName, surname, name, country } }, { returnUpdatedDocs: true }, function (err, numAffected, changed_umpire) {
+						if (err) {
+							console.error(err);
+							return;
+						}
+						const admin = require('./admin');
+						admin.notify_change(app, tournament_key, 'umpire_updated', changed_umpire);
+					});
 					return;
 				}
 			}
@@ -865,6 +876,7 @@ function integrate_umpires(app, tournament_key, btp_state, callback) {
 				name,
 				status: 'ready',
 				tournament_key,
+				country
 			};
 			changed = true;
 			app.db.umpires.insert(u, function (err, inserted_umpire) {

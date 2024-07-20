@@ -162,6 +162,10 @@ function default_handler(rerender, special_funcs) {
 			const u = utils.find(curt.umpires, m => m._id === umpire._id);
 			if (u) {
 				u.last_time_on_court_ts = umpire.last_time_on_court_ts;
+				u.firstName = umpire.firstName;
+				u.surname = umpire.surname;
+				u.name = umpire.name;
+				u.country = umpire.country;
 				u.status = umpire.status;
 				u.court_id = umpire.court_id;
 			}

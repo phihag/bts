@@ -9,9 +9,9 @@ var cumpires = (function() {
 		for (const u of umpires) {
 		
 			const tr = uiu.el(tbody, 'tr');
-			if (curt.is_nation_competition) {
-				const flag_td = uiu.el(tr, 'td');
-				cflags.render_flag_el(flag_td, u.nationality);
+			const flag_td = uiu.el(tr, 'td');
+			if (u.country) {
+				cflags.render_flag_el(flag_td, u.country);
 			}
 			uiu.el(tr, 'td', {
 				class: 'umpires_firstname',
