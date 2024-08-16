@@ -59,6 +59,15 @@ function recalc(app, cb) {
 			td.last_update_str = utils.format_ts(tournament.last_update);
 		}
 
+		let show_event = app.config.show_event;
+		if (show_event === undefined) {
+			show_event = 'auto';
+		}
+		if (show_event === 'auto') {
+			show_event = true; // Right now, no option yet to set it from frontend
+		}
+		td.show_event = show_event;
+
 		app.ticker_data = td;
 	});
 }
