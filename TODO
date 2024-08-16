@@ -1,16 +1,36 @@
+check with new BTP!
+
+set default tournament
+
 make bupdate in docker
-
-make a backup of what we pulled every hour and save it for debugging
-
-bts: do not use umpire name
 
 CP
 	read support
 		get individual matches
 		test?
-
 	write individual results
 	Check SetRation / GameRatio etc. when writing
+
+manual adding fix styles
+
+undefined when manual
+manual edit team competition
+
+document docker mount volume
+
+flags in streamcourt
+
+
+test followed-by (display & order)
+
+override TP status when a game is reset?
+Test case: umpire sends result accidentally, goes back
+	-> should put game back on court if recently	 
+
+make a backup of what we pulled every hour and save it for debugging
+
+bts: do not use umpire name
+
 
 fix handling of umpire name if no first name set
 
