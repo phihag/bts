@@ -172,6 +172,8 @@ var ci18n_de = {
 	'tabletoperator:unassigned': 'Nächste TabletbedienerInnen',
 	'tabletoperator:name': 'Name',
 	'tabletoperator:add': 'Als Tabletoperator planen',
+	'tabletoperator:move_up': 'In Liste vorziehen',
+	'tabletoperator:move_down': 'In Liste zurückstellen',
 	'tabletoperator:remove': 'Von Liste nehmen',
 	'csvexport:winners': 'CSV-Export für Siegerurkunden',
 };

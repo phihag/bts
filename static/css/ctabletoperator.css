@@ -23,6 +23,33 @@
 	margin: 0 0.2em 0 0.2em;
 	background-image: url(../icons/tabletoperator_add.svg);
 }
+.tabletoperator_move_up_button {
+	display: inline-block;
+	min-width: 1em;
+	min-height: 1em;
+	background-size: 50%;
+	background-repeat: no-repeat;
+	background-position: center center;
+	height: 1.2em;
+	background-size: cover;
+	width: 0.8em;
+	margin: 0 -0.1em -0.2em 0.0em;
+	background-image: url(../icons/move_up.svg);
+}
+.tabletoperator_move_down_button {
+	display: inline-block;
+	min-width: 1em;
+	min-height: 1em;
+	background-size: 80%;
+	background-repeat: no-repeat;
+	background-position: center center;
+	height: 1.2em;
+	background-size: cover;
+	width: 0.8em;
+	margin: 0 0.0em -0.2em -0.1em;
+	background-image: url(../icons/move_down.svg);
+}
+
 .tabletoperator_remove_button {
 	display: inline-block;
 	min-width: 1em;
@@ -38,6 +65,8 @@
 }
 
 .tabletoperator_add_custom_button:hover,
+.tabletoperator_move_up_button:hover,
+.tabletoperator_move_down_button:hover,
 .tabletoperator_remove_button:hover,
 .tabletoperator_add_button:hover {
 	opacity: 0.5;

@@ -173,6 +173,8 @@ var ci18n_en = {
 	'tabletoperator:unassigned': 'Next Tabletoperators',
 	'tabletoperator:name': 'Name',
 	'tabletoperator:add': 'Schedule as Tabletoperator',
+	'tabletoperator:move_up': 'Move up in list',
+	'tabletoperator:move_down': 'Move down in list',
 	'tabletoperator:remove': 'Remove from list',
 	'csvexport:winners': 'CSV export (winner\'s certificates)',
 };

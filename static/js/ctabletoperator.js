@@ -6,6 +6,15 @@ function render_unassigned(container) {
 	uiu.empty(container);
 	uiu.el(container, 'h3', {}, ci18n('tabletoperator:unassigned'));
 	const unassigned_tabletoperators = curt.tabletoperators.filter(m => m.court == null);
+	console.log(unassigned_tabletoperators);
+
+	unassigned_tabletoperators.sort((a, b) => {
+		return a.start_ts - b.start_ts;
+	});
+
+
+	console.log(unassigned_tabletoperators);
+
 	const tableoperator_content = uiu.el(container, 'div', 'unassigned_tableoperators_content');
 	render_tabletoperator_table(tableoperator_content, unassigned_tabletoperators);
 	render_tabletoperator_formular(container);
@@ -17,10 +26,14 @@ function render_tabletoperator_table(container, tabletoperators) {
 	//render_tabletoperator_table_header(table);
 	const tbody = uiu.el(table, 'tbody');
 
-	for (const t of tabletoperators) {
+	tabletoperators.forEach((t, index) => {
+
+		console.log(tabletoperators.length);
+		console.log(index);
+
 		const tr = uiu.el(tbody, 'tr');
-		render_tabletoperator_row(tr, t);
-	}
+		render_tabletoperator_row(tr, t, index === 0, index >= (tabletoperators.length - 1));
+	});
 }
 
 function render_tabletoperator_table_header(table) {
@@ -28,7 +41,7 @@ function render_tabletoperator_table_header(table) {
 	const title_tr = uiu.el(thead, 'tr');
 	uiu.el(title_tr, 'th', {}, ci18n('tabletoperator:name'));
 }
-function render_tabletoperator_row(tr, tabletoperator) {
+function render_tabletoperator_row(tr, tabletoperator, is_fist_entry, is_last_entry) {
 	const to = tabletoperator.tabletoperator;
 	const to_td = uiu.el(tr, 'td');
 	uiu.el(to_td, 'div', 'tablet', '');
@@ -43,9 +56,54 @@ function render_tabletoperator_row(tr, tabletoperator) {
 
 	if (tabletoperator.court == null) {
 		const buttonbar = uiu.el(tr, 'td');
+		if(!is_fist_entry) {
+			create_tabletoperator_button(buttonbar, 'vlink tabletoperator_move_up_button', 'tabletoperator:move_up', on_move_up_button_click, tabletoperator._id);
+		}
+	}
+
+	if (tabletoperator.court == null) {
+		const buttonbar = uiu.el(tr, 'td');
+		if(! is_last_entry) {
+			create_tabletoperator_button(buttonbar, 'vlink tabletoperator_move_down_button', 'tabletoperator:move_down', on_move_down_button_click, tabletoperator._id);
+		}
+	}
+
+	if (tabletoperator.court == null) {
+		const buttonbar = uiu.el(tr, 'td');
 		create_tabletoperator_button(buttonbar, 'vlink tabletoperator_remove_button', 'tabletoperator:remove', on_remove_from_list_button_click, tabletoperator._id);
 	}
 }
+
+function on_move_up_button_click(e) {
+	const to = fetchTabletOperatorFromEvent(e);
+	if (to != null) {
+		send({
+			type: 'tabletoperator_move_up',
+			tournament_key: curt.key,
+			tabletoperator: to,
+		}, err => {
+			if (err) {
+				return cerror.net(err);
+			}
+		});
+	}
+}
+
+function on_move_down_button_click(e) {
+	const to = fetchTabletOperatorFromEvent(e);
+	if (to != null) {
+		send({
+			type: 'tabletoperator_move_down',
+			tournament_key: curt.key,
+			tabletoperator: to,
+		}, err => {
+			if (err) {
+				return cerror.net(err);
+			}
+		});
+	}
+}
+
 function on_remove_from_list_button_click(e) {
 	const to = fetchTabletOperatorFromEvent(e);
 	if (to != null) {

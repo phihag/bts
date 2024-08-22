@@ -687,7 +687,7 @@ function reset_tabletoperator_settings_at_player(app, tkey, tournament, player, 
 function remove_umpire_on_court(app, tournament_key, cur_match_id, end_ts, callback) {
 	app.db.matches.findOne({ 'tournament_key': tournament_key, '_id': cur_match_id }, (err, cur_match) => {
 		if (err) {
-			return reject(err);
+			return callback(err);
 		}
 		if (cur_match.setup.umpire_name) {
 		

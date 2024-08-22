@@ -311,6 +311,81 @@ function handle_normalization_remove(app, ws, msg) {
 		return;
 	});
 }
+function handle_tabletoperator_move_up(app, ws, msg) {
+	if (!msg.tournament_key) {
+		return ws.respond(msg, { message: 'Missing tournament_key' });
+	}
+	if (!msg.tabletoperator) {
+		return ws.respond(msg, { message: 'Missing tabletoperator' });
+	}
+	const tournament_key = msg.tournament_key;
+	const tabletoperator = msg.tabletoperator
+
+	const tabletoperator_querry = { 'tournament_key': msg.tournament_key, court: null };
+
+	
+	app.db.tabletoperators.find(tabletoperator_querry).sort({ 'start_ts': 1 }).exec((err, tabletoperators) => {
+		if (err) {
+			ws.respond(msg, err);
+			return;
+		}
+		
+		let start_ts_1 = 0;
+		let start_ts_2 = 0;
+		let index = 0;
+
+		while (index <  tabletoperators.length && tabletoperators[index]._id != tabletoperator._id) {
+			start_ts_2 = start_ts_1;
+			start_ts_1 = tabletoperators[index].start_ts;
+			index++;
+		}
+		app.db.tabletoperators.update({ _id: tabletoperator._id, tournament_key: tournament_key }, { $set: { start_ts: (start_ts_1 + start_ts_2)/2 } }, { returnUpdatedDocs: true}, function (err, numAffected, changed_tabletoperator) {
+			if (err) {
+				ws.respond(msg, err);
+				return;
+			}
+			notify_change(app, tournament_key, 'tabletoperator_moved_up', { tabletoperator: changed_tabletoperator });
+		});
+	});
+}
+
+function handle_tabletoperator_move_down(app, ws, msg) {
+	if (!msg.tournament_key) {
+		return ws.respond(msg, { message: 'Missing tournament_key' });
+	}
+	if (!msg.tabletoperator) {
+		return ws.respond(msg, { message: 'Missing tabletoperator' });
+	}
+	const tournament_key = msg.tournament_key;
+	const tabletoperator = msg.tabletoperator
+
+	const tabletoperator_querry = { 'tournament_key': msg.tournament_key, court: null };
+
+	
+	app.db.tabletoperators.find(tabletoperator_querry).sort({ 'start_ts': -1 }).exec((err, tabletoperators) => {
+		if (err) {
+			ws.respond(msg, err);
+			return;
+		}
+		
+		let start_ts_1 = Date.now();
+		let start_ts_2 = Date.now();
+		let index = 0;
+
+		while (index <  tabletoperators.length && tabletoperators[index]._id != tabletoperator._id) {
+			start_ts_2 = start_ts_1;
+			start_ts_1 = tabletoperators[index].start_ts;
+			index++;
+		}
+		app.db.tabletoperators.update({ _id: tabletoperator._id, tournament_key: tournament_key }, { $set: { start_ts: (start_ts_1 + start_ts_2)/2 } }, { returnUpdatedDocs: true}, function (err, numAffected, changed_tabletoperator) {
+			if (err) {
+				ws.respond(msg, err);
+				return;
+			}
+			notify_change(app, tournament_key, 'tabletoperator_moved_up', { tabletoperator: changed_tabletoperator });
+		});
+	});
+}
 function handle_tabletoperator_remove(app, ws, msg) {
 	if (!msg.tournament_key) {
 		return ws.respond(msg, { message: 'Missing tournament_key' });
@@ -831,6 +906,8 @@ module.exports = {
 	handle_normalization_add,
 	handle_normalization_remove,
 	handle_tabletoperator_add,
+	handle_tabletoperator_move_up,
+	handle_tabletoperator_move_down,
 	handle_tabletoperator_remove,
 	handle_fetch_allscoresheets_data,
 	handle_create_tournament,

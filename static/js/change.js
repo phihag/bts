@@ -83,6 +83,12 @@ function default_handler(rerender, special_funcs) {
 		case 'tabletoperator_add':
 			//nothing to do here
 			break;
+		case 'tabletoperator_moved_up':
+			//nothing todo here
+			break;
+		case 'tabletoperator_moved_down':
+			//nothing todo here
+			break;
 		case 'tabletoperator_removed':
 			//nothing todo here
 			break;

@@ -219,6 +219,22 @@ var ctournament = (function() {
 		_show_render_tabletoperators();
 	}
 
+	function tabletoperator_moved_up(c) {
+		const changed_t = utils.find(curt.tabletoperators, m => m._id === c.val.tabletoperator._id);
+		if (changed_t) {
+			changed_t.start_ts = c.val.tabletoperator.start_ts;
+		}
+		_show_render_tabletoperators();
+	}
+
+	function tabletoperator_moved_down(c) {
+		const changed_t = utils.find(curt.tabletoperators, m => m._id === c.val.tabletoperator._id);
+		if (changed_t) {
+			changed_t.start_ts = c.val.tabletoperator.start_ts;
+		}
+		_show_render_tabletoperators();
+	}
+
 	function tabletoperator_removed(c) {
 		const changed_t = utils.find(curt.tabletoperators, m => m._id === c.val.tabletoperator._id);
 		if (changed_t) {
@@ -412,6 +428,8 @@ var ctournament = (function() {
 		normalization_removed: remove_normalization,
 		normalization_add: add_normalization,
 		tabletoperator_add: tabletoperator_add,
+		tabletoperator_moved_up: tabletoperator_moved_up,
+		tabletoperator_moved_down: tabletoperator_moved_down,
 		tabletoperator_removed: tabletoperator_removed,
 		btp_status: btp_status_changed,
 		ticker_status: ticker_status_changed,
