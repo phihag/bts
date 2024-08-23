@@ -89,7 +89,10 @@
 
 .match_table {
 	border-collapse: collapse;
+	width: 98%;
+	margin: 0 1% 0 1%;
 }
+
 .match_table > thead > tr > th {
 	text-align: left;
 }
@@ -103,6 +106,29 @@
 
 .match_table > tbody > tr:nth-of-type(even):hover > td {
 	background-color: #00000030;
+}
+
+.match_table > tbody > tr > td.droppable_active {
+	
+	background-color: #fbe44d44;
+}
+
+.match_table > tbody > tr:hover > td.droppable_active {
+	background-color: #fbe44dbb;
+}
+
+.match_table > tbody > tr:nth-of-type(even) > td.droppable_active {
+	
+	background-color: #fbe44d88;
+}
+
+.match_table > tbody > tr:nth-of-type(even):hover > td.droppable_active {
+	background-color: #fbe44dbb;
+}
+
+
+.match_table > tbody > tr > #droppable {
+	min-width: 1000px;
 }
 
 .match_cancel_link {
@@ -119,6 +145,7 @@
 .match_vs {
 	color: #999;
 	padding: 0 0.5em;
+	width: 0.5em;
 }
 .match_team_won {
 	font-weight: bold;
@@ -154,7 +181,11 @@
 }
 
 .match_timer {
-	min-width: 3.6em;
+	width: 3.6em;
+}
+
+.call_td {
+	width: 5.5em;
 }
 
 .match_timer > div {

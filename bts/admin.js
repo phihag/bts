@@ -471,6 +471,42 @@ function handle_tabletoperator_add(app, ws, msg) {
 	});
 }
 
+function handle_match_call_on_court(app, ws, msg) {
+	const match_utils = require('./match_utils');
+
+	if (!_require_msg(ws, msg, ['tournament_key', 'court_id', 'match_id'])) {
+		return;
+	}
+
+	app.db.tournaments.findOne({ key: msg.tournament_key }, async (err, tournament) => {
+		if (err) {
+			return ws.respond(msg, err);
+		}
+
+		app.db.matches.findOne({tournament_key: msg.tournament_key, _id: msg.match_id}, async (err, match) => {
+			if (err) {
+				return ws.respond(msg, err);
+			}
+
+			match.setup.court_id = msg.court_id;
+			match.setup.now_on_court = true;
+
+			match_utils.call_match(app, tournament, match, (err, updated_match) => {
+				if (err) {
+					ws.respond(msg, err);
+					return;
+				}
+
+				update_btp_courts(app, msg.tournament_key, updated_match, (err) => {
+					ws.respond(msg, err);
+					return;
+				});
+			});
+		});
+	});
+
+}
+
 function handle_match_edit(app, ws, msg) {
 	const match_utils = require('./match_utils');
 	
@@ -914,6 +950,7 @@ module.exports = {
 	handle_courts_add,
 	handle_match_add,
 	handle_match_edit,
+	handle_match_call_on_court,
 	handle_match_preparation_call,
 	handle_ticker_pushall,
 	handle_ticker_reset,

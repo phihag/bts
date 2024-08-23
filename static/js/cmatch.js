@@ -49,6 +49,8 @@ function render_match_row(tr, match, court, style, show_player_status, show_add_
 	if (style === 'default') {
 		if(!court){
 			tr.setAttribute('draggable', 'true');
+			tr.addEventListener("dragstart", drag);
+			tr.addEventListener("dragend", dragend);
 		}
 	}
 
@@ -256,7 +258,6 @@ function create_match_button(targetEl, cssClass, title, listener, matchId,) {
 	btn.addEventListener('click', listener);
 }
 function update_match_score(m) {
-	console.log('In Matchscore update');
 	uiu.qsEach('.match_score[data-match_id=' + JSON.stringify(m._id) + ']', function(score_el) {
 		uiu.text(score_el, calc_score_str(m));
 	});
@@ -484,6 +485,8 @@ function update_player(match_id, player, now_on_court, show_player_status) {
 					while (match_row_el.childElementCount > 1) {
 						match_row_el.removeChild(match_row_el.lastChild);
 					}
+					const c = {_id:m.setup.court_id};
+					render_droppable_row(match_row_el, c, 'plain', true);
 				});
 				break;
 		}
@@ -538,6 +541,9 @@ function update_match(m, old_section, new_section) {
 			break;
 		default:
 			uiu.qsEach('.court_row[data-court_id=' + JSON.stringify(m.setup.court_id) + ']', (match_row_el) => {
+				while(match_row_el.childElementCount > 1){
+					match_row_el.removeChild(match_row_el.lastChild);
+				}
 				const closest = match_row_el.closest('.main_upcoming');
 				if(Boolean(closest)) {
 					render_match_row(match_row_el, m, null, 'public');
@@ -1102,6 +1108,7 @@ function render_match_table(container, matches, show_player_status, show_add_tab
 			render_match_row(tr, m, null, 'default', show_player_status, show_add_tabletoperator);
 		}
 	}
+
 }
 
 function render_unassigned(container) {
@@ -1163,7 +1170,7 @@ function render_courts(container, style) {
 		}, c.num);
 
 		if (court_matches.length === 0) {
-			uiu.el(tr, 'td', {colspan: 11}, '');
+			render_droppable_row(tr, c, style, true);
 		} else {
 			let i = 0;
 			for (const cm of court_matches) {
@@ -1172,6 +1179,52 @@ function render_courts(container, style) {
 				i++;
 			}
 		}
+	}
+}
+
+function render_droppable_row(tr, court, style, is_droppable) {
+	const target_td = uiu.el(tr, 'td', {class: "droppable", colspan: 11, "data-court_id":court._id}, '');
+
+	target_td.addEventListener("drop", drop);
+    target_td.addEventListener("dragover", allowDrop);
+}
+
+
+function allowDrop(ev) {
+  	ev.preventDefault();
+}
+
+function drag(ev) {
+  	ev.dataTransfer.setData('text', ev.target.getAttribute("data-match_id"));
+
+	for (const dropp_row of document.getElementsByClassName ("droppable")) {
+		dropp_row.setAttribute("class", "droppable droppable_active");
+	}
+}
+
+function dragend(ev) {
+	for (const dropp_row of document.getElementsByClassName ("droppable")) {
+		dropp_row.setAttribute("class", "droppable");
+	}
+}
+
+function drop(ev) {
+	ev.preventDefault();
+	let match_id = ev.dataTransfer.getData('text');
+
+	send({
+		type: 'match_call_on_court',
+		court_id: ev.target.getAttribute('data-court_id'),
+		match_id: match_id,
+		tournament_key: curt.key,
+		}, function (err) {
+		if (err) {
+			return cerror.net(err);
+		}
+	});
+
+	for (const dropp_row of document.getElementsByClassName ("droppable")) {
+		dropp_row.setAttribute("class", "droppable");
 	}
 }
 

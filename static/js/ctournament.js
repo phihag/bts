@@ -160,8 +160,6 @@ var ctournament = (function() {
 	function update_match(c) {
 		const cval = c.val;
 
-		console.log(cval);
-
 		const match_id = cval.match__id;
 
 		// Find the match

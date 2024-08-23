@@ -6,14 +6,10 @@ function render_unassigned(container) {
 	uiu.empty(container);
 	uiu.el(container, 'h3', {}, ci18n('tabletoperator:unassigned'));
 	const unassigned_tabletoperators = curt.tabletoperators.filter(m => m.court == null);
-	console.log(unassigned_tabletoperators);
 
 	unassigned_tabletoperators.sort((a, b) => {
 		return a.start_ts - b.start_ts;
 	});
-
-
-	console.log(unassigned_tabletoperators);
 
 	const tableoperator_content = uiu.el(container, 'div', 'unassigned_tableoperators_content');
 	render_tabletoperator_table(tableoperator_content, unassigned_tabletoperators);
@@ -27,9 +23,6 @@ function render_tabletoperator_table(container, tabletoperators) {
 	const tbody = uiu.el(table, 'tbody');
 
 	tabletoperators.forEach((t, index) => {
-
-		console.log(tabletoperators.length);
-		console.log(index);
 
 		const tr = uiu.el(tbody, 'tr');
 		render_tabletoperator_row(tr, t, index === 0, index >= (tabletoperators.length - 1));
