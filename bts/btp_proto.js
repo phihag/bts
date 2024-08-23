@@ -142,6 +142,25 @@ function update_request(match, key_unicode, password, umpire_btp_id, service_jud
 			m.Shuttles = shuttle_count;
 		}
 
+
+		if(match.setup.teams.length > 1) {
+			if(match.setup.teams[0].players[0].checked_in) {
+				m.Status = m.Status | 0b0001;
+			}
+
+			if(match.setup.teams[0].players.length > 1 &&  match.setup.teams[0].players[1].checked_in) {
+				m.Status = m.Status | 0b0010;
+			}
+
+			if(match.setup.teams[1].players[0].checked_in) {
+				m.Status = m.Status | 0b0100;
+			}
+
+			if(match.setup.teams[1].players.length > 1 &&  match.setup.teams[1].players[1].checked_in) {
+				m.Status = m.Status | 0b1000;
+			}
+		}
+
 		matches.push({Match: m});
 	}
 

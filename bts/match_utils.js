@@ -3,6 +3,20 @@
 const assert = require('assert');
 const async = require('async');
 
+
+async function match_update(app, match, callback) {
+	async.waterfall([	
+						(wcb) => update_match_btp(app, match, wcb), 
+						(wcb) => update_match_db(app, match, wcb),
+						(wcb) => notify_change_match_edit(app, match, wcb),
+						(wcb) => notify_bupws(app, match, wcb),
+					],
+						(err) => {
+							return callback(err);
+						}
+					);
+}
+
 async function uncall_match(app, tournament, match, callback) {
 	// Imports
 
@@ -717,6 +731,7 @@ function update_umpire(app, tkey, umpire_name, status, last_time_on_court_ts, co
 module.exports ={
     add_player_to_tabletoperator_list,
 	call_match,
+	match_update,
 	uncall_match,
 	remove_player_on_court,
 	remove_tablet_on_court,

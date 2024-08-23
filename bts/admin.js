@@ -543,7 +543,7 @@ function handle_match_edit(app, ws, msg) {
 				update_btp_courts(app, tournament_key, msg.match, (err) => {
 					ws.respond(msg, err);
 					return;
-				})
+				});
 			});
 
 		} else {
@@ -662,6 +662,41 @@ function handle_match_preparation_call(app, ws, msg) {
 		});
 	});
 }
+
+function handle_match_player_check_in (app, ws, msg) {
+	const match_utils = require('./match_utils');
+
+	if (!_require_msg(ws, msg, ['tournament_key', 'player_id', 'match_id', 'checked_in'])) {
+		return;
+	}
+
+	app.db.tournaments.findOne({ key: msg.tournament_key }, async (err, tournament) => {
+		if (err) {
+			return ws.respond(msg, err);
+		}
+
+		app.db.matches.findOne({tournament_key: msg.tournament_key, _id: msg.match_id}, async (err, match) => {
+			if (err) {
+				return ws.respond(msg, err);
+			}
+
+			for(const team of match.setup.teams) {
+				for(const player of team.players) {
+					if(player.btp_id == msg.player_id) {
+						player.checked_in = msg.checked_in;
+					}
+				}
+			}
+
+			match_utils.match_update(app, match, (err) => {
+				ws.respond(msg, err);
+				return;
+			});
+		});
+	});
+}
+
+
 function handle_begin_to_play_call(app, ws, msg) {
 	if (!_require_msg(ws, msg, ['tournament_key', 'setup'])) {
 		return;
@@ -952,6 +987,7 @@ module.exports = {
 	handle_match_edit,
 	handle_match_call_on_court,
 	handle_match_preparation_call,
+	handle_match_player_check_in,
 	handle_ticker_pushall,
 	handle_ticker_reset,
 	handle_free_announce,

@@ -394,6 +394,27 @@ function render_player_el(parentNode, player, match_id, now_on_court, show_playe
 		'data-btp_id' : player.btp_id, 
 		'data-match_id': match_id,
 	}, player.name.replace(' ', '\xa0'));
+
+
+	player_element.addEventListener("click", (ev) => {
+		if(curt.btp_settings.check_in_per_match) {
+			
+			send({
+				type: 'match_player_check_in',
+				match_id: ev.target.getAttribute("data-match_id"),
+				player_id: ev.target.getAttribute("data-btp_id"),
+				checked_in: (ev.target.getAttribute("class") == "player not_checked_in" ? true : false),
+				tournament_key: curt.key
+			}, function (err) {
+				if (err) {
+					return cerror.net(err);
+				}
+			});
+		}
+	}, false);
+
+
+
 	if (player.now_playing_on_court && player_status != "now_on_court") {
 		let parts = player.now_playing_on_court.split("_");
 		let court_number = parts[parts.length - 1];
