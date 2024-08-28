@@ -1,7 +1,8 @@
 FROM node:20-bookworm-slim
 
 RUN apt-get update -qq && \
-	apt-get install -qy make git && \
+	apt-get install -qy make git \
+		htop psmisc && \
 	rm -rf /var/lib/apt/lists/*
 
 WORKDIR /bts
