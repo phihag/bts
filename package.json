@@ -20,7 +20,7 @@
 		"serve-favicon": "*",
 		"text-encoding": "^0.7.0",
 		"uuid": "^3.3.2",
-		"ws": "*",
+		"ws": "8.17.1",
 		"xmldom": "*"
 	},
 	"devDependencies": {
