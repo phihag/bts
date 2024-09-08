@@ -44,6 +44,10 @@ async function call_match(app, tournament, match, callback) {
         return; // TODO in async we would assert both to be true
     }
 
+	if (match.setup.teams[0].players.length == 0 || match.setup.teams[1].players.length == 0) {
+		return callback("Match cannot be called one or more Teams are not set.");
+	}
+
 	async.waterfall([	(wcb) => add_called_timestamp(match, wcb),
 		(wcb) => add_tabletoperators(app, tournament, match, wcb),
 		(wcb) => set_umpires_on_court(app, tournament, match, wcb),
