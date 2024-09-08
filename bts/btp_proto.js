@@ -1,12 +1,8 @@
 'use strict';
-
 const assert = require('assert');
 const zlib = require('zlib');
-
 const xmldom = require('xmldom');
-
 const serror = require('./serror');
-
 
 function get_info_request(password) {
 	const res = {
@@ -53,7 +49,6 @@ function login_request(password) {
 function update_request(match, key_unicode, password, umpire_btp_id, service_judge_btp_id, court_btp_id) {
 	assert(key_unicode);
 	const matches = [];
-	const courts = [];
 	const res = {
 		Header: {
 			Version: {
@@ -144,7 +139,7 @@ function update_request(match, key_unicode, password, umpire_btp_id, service_jud
 
 
 		if(match.setup.teams.length > 1) {
-			if(match.setup.teams[0].players[0].checked_in) {
+			if (match.setup.teams[0].players.length > 0 && match.setup.teams[0].players[0].checked_in) {
 				m.Status = m.Status | 0b0001;
 			}
 
@@ -152,7 +147,7 @@ function update_request(match, key_unicode, password, umpire_btp_id, service_jud
 				m.Status = m.Status | 0b0010;
 			}
 
-			if(match.setup.teams[1].players[0].checked_in) {
+			if (match.setup.teams[1].players.length > 0 && match.setup.teams[1].players[0].checked_in) {
 				m.Status = m.Status | 0b0100;
 			}
 
