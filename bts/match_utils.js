@@ -733,6 +733,7 @@ module.exports ={
 	call_match,
 	match_update,
 	uncall_match,
+	fetch_tabletoperator,
 	remove_player_on_court,
 	remove_tablet_on_court,
 	remove_umpire_on_court

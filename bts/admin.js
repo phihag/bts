@@ -623,7 +623,8 @@ function handle_match_preparation_call(app, ws, msg) {
 			if (!setup.umpire_name || (tournament.tabletoperator_with_umpire_enabled && tournament.tabletoperator_with_umpire_enabled == true)) {
 				if (!setup.tabletoperators || setup.tabletoperators == null) { 
 					const admin = require('./admin');
-					setup.tabletoperators = await btp_sync.fetch_tabletoperator(admin, app, tournament_key, "prep_call");
+					const match_utils = require('./match_utils');
+					setup.tabletoperators = await match_utils.fetch_tabletoperator(admin, app, tournament_key, "prep_call");
 				}
 			}
 		}
