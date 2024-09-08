@@ -609,9 +609,16 @@ function update_btp_courts(app, tournament_key, match, callback) {
 
 
 function handle_match_preparation_call(app, ws, msg) {
+
+	const match_utils = require('./match_utils');
+
 	if (!_require_msg(ws, msg, ['tournament_key', 'id', 'setup'])) {
 		return;
 	}
+	if (match_utils.match_completly_initialized(msg.setup) == false) {
+		return ws.respond("Match cannot be called one or more Teams are not set.");
+	}
+
 
 	const tournament_key = msg.tournament_key;
 	app.db.tournaments.findOne({ key: tournament_key }, async (err, tournament) => {
@@ -628,15 +635,7 @@ function handle_match_preparation_call(app, ws, msg) {
 				}
 			}
 		}
-
-
-		if (setup.umpire_name) {
-			btp_sync.update_umpire(app, tournament_key, setup.umpire_name, 'standby', null, null);
-		}
-
-		if (setup.service_judge_name) {
-			btp_sync.update_umpire(app, tournament_key, setup.service_judge_name, 'standby', null, null);
-		}
+		match_utils.set_umpire_to_standby(app, tournament_key, setup);
 
 		app.db.matches.update({ _id: msg.id, tournament_key }, { $set: { setup } }, { returnUpdatedDocs: true }, function (err, numAffected, changed_match) {
 			if (err) {

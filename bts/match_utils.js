@@ -43,11 +43,9 @@ async function call_match(app, tournament, match, callback) {
     if (!match.setup.court_id || !match._id) {
         return; // TODO in async we would assert both to be true
     }
-
-	if (match.setup.teams[0].players.length == 0 || match.setup.teams[1].players.length == 0) {
+	if (match_completly_initialized(match.setup) == false) { 
 		return callback("Match cannot be called one or more Teams are not set.");
 	}
-
 	async.waterfall([	(wcb) => add_called_timestamp(match, wcb),
 		(wcb) => add_tabletoperators(app, tournament, match, wcb),
 		(wcb) => set_umpires_on_court(app, tournament, match, wcb),
@@ -64,6 +62,13 @@ async function call_match(app, tournament, match, callback) {
 			return callback(err, match);
 		}
 	);
+}
+
+function match_completly_initialized(setup) {
+	if (setup.teams[0].players.length == 0 || setup.teams[1].players.length == 0) {
+		return false;
+	}
+	return true;
 }
 
 function add_called_timestamp(match, callback) {
@@ -738,6 +743,18 @@ function remove_umpire_on_court(app, tournament_key, cur_match_id, end_ts, callb
 	});
 }
 
+function set_umpire_to_standby(app, tournament_key, setup) {
+	if (setup.umpire_name) {
+		update_umpire(app, tournament_key, setup.umpire_name, 'standby', null, null);
+	}
+
+	if (setup.service_judge_name) {
+		update_umpire(app, tournament_key, setup.service_judge_name, 'standby', null, null);
+	}
+}
+
+
+
 function update_umpire(app, tkey, umpire_name, status, last_time_on_court_ts, court_id, callback) {
 	app.db.umpires.update({ tournament_key: tkey, name: umpire_name }, { $set: { last_time_on_court_ts: last_time_on_court_ts, status: status, court_id: court_id } }, { returnUpdatedDocs: true }, function (err, numAffected, changed_umpire) {
 		if (err) {
@@ -755,7 +772,9 @@ module.exports ={
 	match_update,
 	uncall_match,
 	fetch_tabletoperator,
+	match_completly_initialized,
 	remove_player_on_court,
 	remove_tablet_on_court,
-	remove_umpire_on_court
+	remove_umpire_on_court,
+	set_umpire_to_standby,
 };
