@@ -45,20 +45,21 @@ async function call_match(app, tournament, match, callback) {
     }
 
 	async.waterfall([	(wcb) => add_called_timestamp(match, wcb),
-						(wcb) => add_tabletoperators(app, tournament, match, wcb),
-						(wcb) => remove_highlight_preperation(match, wcb),
-						(wcb) => update_match_btp(app, match, wcb),
-						(wcb) => update_match_db(app, match, wcb),
-						(wcb) => update_court_db(app, match, wcb),
-						(wcb) => notify_change_match_edit(app, match, wcb),
-						(wcb) => notify_change_match_called_on_court(app, match, wcb),
-						(wcb) => notify_bupws(app, match, wcb),
-						(wcb) => set_player_on_court(app, tournament.key, match.setup, wcb),
-						(wcb) => set_player_on_tablet(app, tournament.key, match.setup, wcb)],
-						(err) => {
-							return callback(err, match);
-						}
-					);
+		(wcb) => add_tabletoperators(app, tournament, match, wcb),
+		(wcb) => set_umpires_on_court(app, tournament, match, wcb),
+		(wcb) => remove_highlight_preperation(match, wcb),
+		(wcb) => update_match_btp(app, match, wcb),
+		(wcb) => update_match_db(app, match, wcb),
+		(wcb) => update_court_db(app, match, wcb),
+		(wcb) => notify_change_match_edit(app, match, wcb),
+		(wcb) => notify_change_match_called_on_court(app, match, wcb),
+		(wcb) => notify_bupws(app, match, wcb),
+		(wcb) => set_player_on_court(app, tournament.key, match.setup, wcb),
+		(wcb) => set_player_on_tablet(app, tournament.key, match.setup, wcb)],
+		(err) => {
+			return callback(err, match);
+		}
+	);
 }
 
 function add_called_timestamp(match, callback) {
@@ -119,7 +120,23 @@ async function add_tabletoperators(app, tournament, match, callback) {
         }
         btp_manager.update_players(app, tournament.key, setup.tabletoperators);
     }
-	
+	return callback(null);
+}
+
+async function set_umpires_on_court(app, tournament, match, callback) {
+	const setup = match.setup;
+	const court_id = setup.court_id;
+	if (!court_id) {
+		return; // TODO in async we would assert both to be true
+	}
+
+	if (setup.umpire_name) {
+		update_umpire(app, tournament.key, setup.umpire_name, 'oncourt', setup.called_timestamp, court_id);
+	}
+
+	if (setup.service_judge_name) {
+		update_umpire(app, tournament.key, setup.service_judge_name, 'oncourt', setup.called_timestamp, court_id);
+	}
 	return callback(null);
 }
 
