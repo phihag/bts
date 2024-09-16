@@ -97,13 +97,23 @@ function update_request(match, key_unicode, password, umpire_btp_id, service_jud
 			};
 		});
 
+		let scoreStatus = 0; //Won normally
+		if(	(match.presses.length > 0 && match.presses[match.presses.length - 1].type == "retired") || 
+			(match.presses.length > 1 && match.presses[match.presses.length - 2].type == "retired")) {
+			scoreStatus = 2; //retired
+		}
+		if(	(match.presses.length > 0 && match.presses[match.presses.length - 1].type == "disqualified") || 
+			(match.presses.length > 1 && match.presses[match.presses.length - 2].type == "disqualified")) {
+			scoreStatus = 3; //disqualified
+		}
+
 		const m = {
 			ID: btp_m_id.id,
 			DrawID: btp_m_id.draw,
 			PlanningID: btp_m_id.planning,
 			Sets: sets,
 			Winner: winner,
-			ScoreStatus: 0, // Won normally (TODO: correctly handle resignations etc.)
+			ScoreStatus: scoreStatus, 
 			Duration: duration_mins,
 			Status: 0,
 			// BTP also sends a boolean ScoreSheetPrinted here
