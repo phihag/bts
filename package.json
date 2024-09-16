@@ -15,7 +15,7 @@
 		"nedb": "*",
 		"node-xlsx": "^0.21.0",
 		"pretty-data": "^0.40.0",
-		"request": "^2.88.0",
+		"request": "^2.88.2",
 		"rimraf": "*",
 		"serve-favicon": "*",
 		"text-encoding": "^0.7.0",
