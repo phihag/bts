@@ -44,6 +44,9 @@ function default_handler_func(rerender, special_funcs, c) {
 		curt.is_nation_competition = c.val.is_nation_competition;
 		curt.only_now_on_court = c.val.only_now_on_court;
 		curt.btp_timezone = c.val.btp_timezone;
+		curt.warmup = c.val.warmup;
+		curt.warmup_ready = c.val.warmup_ready;
+		curt.warmup_start = c.val.warmup_start;
 		curt.btp_enabled = c.val.btp_enabled;
 		curt.btp_autofetch_enabled = c.val.btp_autofetch_enabled;
 		curt.btp_readonly = c.val.btp_readonly;

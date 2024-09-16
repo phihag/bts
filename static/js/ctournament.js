@@ -360,6 +360,99 @@ function ui_edit() {
 	uiu.el(only_now_on_court_label, 'input', attrs);
 	uiu.el(only_now_on_court_label, 'span', {}, ci18n('tournament:edit:only_now_on_court'));
 
+	// Warmup Timer
+	if (!curt.warmup_ready) {
+		curt.warmup_ready = 150;
+	}
+
+	if (!curt.warmup_start) {
+		curt.warmup_start = 180;
+	}
+
+	var warmup_options = [	['bwf-2016'  ,                90,               120, true],
+							['legacy'    ,               120,               120, true],
+							['choise'    , curt.warmup_ready, curt.warmup_start, false],
+							['call-down' , curt.warmup_ready, curt.warmup_start, false],
+							['call-up'   ,                 0,                 0, true],
+							['none'      ,                 0,                 0, true]];
+
+	var last_selected_warmup = warmup_options[0];
+
+	const warmup_timer_label = uiu.el(form, 'label');
+	uiu.el(warmup_timer_label, 'span', {}, ci18n('tournament:edit:warmup_timer_behavior'));
+	const warmup_timer_select = uiu.el(warmup_timer_label, 'select', {
+		name: 'warmup',
+	});
+	uiu.el(warmup_timer_select, 'option', {value: warmup_options[0][0]}, ci18n('tournament:edit:warmup_timer_behavior:' + warmup_options[0][0]), {wo: warmup_options[0][0]});
+	let warmup_marked = false;
+
+	const warmup_ready = uiu.el(form, 'label');
+	uiu.el(warmup_ready, 'span', {}, ci18n('tournament:edit:warmup_ready'));
+	var warmup_ready_input = uiu.el(warmup_ready, 'input', {
+		type: 'number',
+		name: 'warmup_ready',
+		required: 'required',
+		disabled: warmup_options[0][3],
+		value: warmup_options[0][1],
+		'class': 'ct_name',
+	});
+
+	const warmup_start = uiu.el(form, 'label');
+	uiu.el(warmup_start, 'span', {}, ci18n('tournament:edit:warmup_start'));
+	var warmup_start_input = uiu.el(warmup_start, 'input', {
+		type: 'number',
+		name: 'warmup_start',
+		required: 'required',
+		disabled: warmup_options[0][3],
+		value: warmup_options[0][2],
+		'class': 'ct_name',
+	});
+
+	for (const wo of warmup_options.slice(1)) {
+		const attrs = {
+			value: wo[0],
+		}
+
+		if ((wo[0] === curt.warmup) && !warmup_marked) {
+			warmup_marked = true;
+			attrs.selected = 'selected';
+
+			warmup_ready_input.value = wo[1];
+			warmup_ready_input.disabled = wo[3];
+			warmup_start_input.value = wo[2];
+			warmup_start_input.disabled = wo[3];
+
+			last_selected_warmup = wo;
+		}
+
+		uiu.el(warmup_timer_select, 'option', attrs, ci18n('tournament:edit:warmup_timer_behavior:'+wo[0]));
+	}
+
+	warmup_timer_select.onchange = function() {
+		console.log(last_selected_warmup);
+		if (!last_selected_warmup[3]) {
+			console.log("Sichern!");
+			for (const wo of warmup_options) {
+				if (!wo[3])
+				{
+					wo[1] = warmup_ready_input.value;
+					wo[2] = warmup_start_input.value;
+				}
+			}
+		}
+
+		for (const wo of warmup_options) {
+			if (warmup_timer_select.value == wo[0]) {
+				warmup_ready_input.value = wo[1];
+				warmup_ready_input.disabled = wo[3];
+				warmup_start_input.value = wo[2];
+				warmup_start_input.disabled = wo[3];
+
+				last_selected_warmup = wo;
+			}
+		}
+	};
+
 	// BTP
 	const btp_fieldset = uiu.el(form, 'fieldset');
 	const btp_enabled_label = uiu.el(btp_fieldset, 'label');
@@ -480,6 +573,9 @@ function ui_edit() {
 			btp_password: data.btp_password,
 			btp_timezone: data.btp_timezone,
 			dm_style: data.dm_style,
+			warmup: data.warmup,
+			warmup_ready: data.warmup_ready,
+			warmup_start: data.warmup_start,
 			ticker_enabled: (!! data.ticker_enabled),
 			ticker_url: data.ticker_url,
 			ticker_password: data.ticker_password,
