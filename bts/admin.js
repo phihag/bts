@@ -473,35 +473,33 @@ function handle_tabletoperator_add(app, ws, msg) {
 
 function handle_match_call_on_court(app, ws, msg) {
 	const match_utils = require('./match_utils');
-
 	if (!_require_msg(ws, msg, ['tournament_key', 'court_id', 'match_id'])) {
 		return;
 	}
-
 	app.db.tournaments.findOne({ key: msg.tournament_key }, async (err, tournament) => {
 		if (err) {
 			return ws.respond(msg, err);
 		}
-
 		app.db.matches.findOne({tournament_key: msg.tournament_key, _id: msg.match_id}, async (err, match) => {
 			if (err) {
 				return ws.respond(msg, err);
 			}
-
-			match.setup.court_id = msg.court_id;
-			match.setup.now_on_court = true;
-
-			match_utils.call_match(app, tournament, match, (err, updated_match) => {
-				if (err) {
-					ws.respond(msg, err);
-					return;
-				}
-
-				update_btp_courts(app, msg.tournament_key, updated_match, (err) => {
-					ws.respond(msg, err);
-					return;
+			if (match != null) {
+				match.setup.court_id = msg.court_id;
+				match.setup.now_on_court = true;
+				match_utils.call_match(app, tournament, match, (err, updated_match) => {
+					if (err) {
+						ws.respond(msg, err);
+						return;
+					}
+					update_btp_courts(app, msg.tournament_key, updated_match, (err) => {
+						ws.respond(msg, err);
+						return;
+					});
 				});
-			});
+			}else {
+				return ws.respond(msg, "Match cannot be fetched from DB " + msg.match_id);
+			}
 		});
 	});
 

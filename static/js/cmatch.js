@@ -1215,11 +1215,28 @@ function allowDrop(ev) {
   	ev.preventDefault();
 }
 
-function drag(ev) {
-  	ev.dataTransfer.setData('text', ev.target.getAttribute("data-match_id"));
+function validate_match_complete(match_id) {
+	const m = utils.find(curt.matches, m => m._id === match_id);
+	if (!m) {
+		cerror.silent('Cannot find match to call on court. ID: ' + JSON.stringify(match_id));
+		return false;
+	}
 
-	for (const dropp_row of document.getElementsByClassName ("droppable")) {
-		dropp_row.setAttribute("class", "droppable droppable_active");
+	if (m.setup.teams[0].players.length == 0 || m.setup.teams[1].players.length == 0) {
+		cerror.silent("Match cannot be called one or more Teams are not set.")
+		return false;
+	}
+	return true;
+}
+
+function drag(ev) {
+	let match_id = ev.target.getAttribute("data-match_id");
+	if (validate_match_complete(match_id)) {
+		ev.dataTransfer.setData('text', ev.target.getAttribute("data-match_id"));
+
+		for (const dropp_row of document.getElementsByClassName ("droppable")) {
+			dropp_row.setAttribute("class", "droppable droppable_active");
+		}
 	}
 }
 
@@ -1232,20 +1249,21 @@ function dragend(ev) {
 function drop(ev) {
 	ev.preventDefault();
 	let match_id = ev.dataTransfer.getData('text');
-
-	send({
-		type: 'match_call_on_court',
-		court_id: ev.target.getAttribute('data-court_id'),
-		match_id: match_id,
-		tournament_key: curt.key,
+	if (validate_match_complete(match_id)) {
+		send({
+			type: 'match_call_on_court',
+			court_id: ev.target.getAttribute('data-court_id'),
+			match_id: match_id,
+			tournament_key: curt.key,
 		}, function (err) {
-		if (err) {
-			return cerror.net(err);
-		}
-	});
+			if (err) {
+				return cerror.net(err);
+			}
+		});
 
-	for (const dropp_row of document.getElementsByClassName ("droppable")) {
-		dropp_row.setAttribute("class", "droppable");
+		for (const dropp_row of document.getElementsByClassName("droppable")) {
+			dropp_row.setAttribute("class", "droppable");
+		}
 	}
 }
 
