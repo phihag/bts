@@ -63,6 +63,7 @@ function handle_tournament_edit_props(app, ws, msg) {
 		'tabletoperator_set_break_after_tabletservice','tabletoperator_with_state_enabled',
 		'tabletoperator_winner_of_quaterfinals_enabled','tabletoperator_split_doubles',
 		'tabletoperator_use_manual_counting_boards_enabled', 'tabletoperator_with_umpire_enabled', 
+		'annoncement_include_event', 'annoncement_include_round','annoncement_include_matchnumber',
 		'preparation_meetingpoint_enabled','preparation_tabletoperator_setup_enabled',
 		'logo_background_color', 'logo_foreground_color']);
 

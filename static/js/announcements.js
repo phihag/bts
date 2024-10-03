@@ -145,86 +145,98 @@ function normalizeNames(name) {
 }
 
 function createRoundAnnouncement(matchSetup) {
-    var round = matchSetup.match_name;
-    if (round == "R16") {
-        round = ci18n('announcements:round_16');
-    } else if (round == "VF") {
-        round = ci18n('announcements:quaterfinal');
-    } else if (round == "HF") {
-        round = ci18n('announcements:semifinal');
-    } else if (round == "Finale") {
-        round = ci18n('announcements:final');
-    } else if (round.indexOf('/') !== -1) {
-        var roundParts = round.split("/")
-        var diff = roundParts[1] - roundParts[0];
-        if (diff > 1) {
+    if (curt.annoncement_include_round) {
+        var round = matchSetup.match_name;
+        if (round == "R16") {
+            round = ci18n('announcements:round_16');
+        } else if (round == "VF") {
+            round = ci18n('announcements:quaterfinal');
+        } else if (round == "HF") {
+            round = ci18n('announcements:semifinal');
+        } else if (round == "Finale") {
+            round = ci18n('announcements:final');
+        } else if (round.indexOf('/') !== -1) {
+            var roundParts = round.split("/")
+            var diff = roundParts[1] - roundParts[0];
+            if (diff > 1) {
+                round = ci18n('announcements:intermediate_round');
+            } else {
+                round = ci18n('announcements:game_for_place') + roundParts[0] + ci18n('announcements:and') + roundParts[1];
+            }
+        } else if (round.indexOf('-') !== -1) {
             round = ci18n('announcements:intermediate_round');
         } else {
-            round = ci18n('announcements:game_for_place') + roundParts[0] + ci18n('announcements:and') + roundParts[1];
+            round = "";
         }
-    } else if (round.indexOf('-') !== -1) {
-        round = ci18n('announcements:intermediate_round');
+        return round;
     } else {
-        round = "";
+        return null;
     }
-    return round;
 }
 function createEventAnnouncement(matchSetup) {
-    var eventParts = matchSetup.event_name.replaceAll("-"," ").split(" ");
-    var eventName = "";
-    if (eventParts[0] == 'JE') {
-        eventName = ci18n('announcements:boys_singles');
-    } else if (eventParts[0] == 'JD') {
-        eventName = ci18n('announcements:boys_doubles');
-    } else if (eventParts[0] == 'ME') {
-        eventName = ci18n('announcements:girls_singles');
-    } else if (eventParts[0] == 'MD') {
-        eventName = ci18n('announcements:girls_doubles')
-    } else if (eventParts[0] == 'GD' || eventParts[0] == 'MX') {
-        eventName = ci18n('announcements:mixed_doubles')
-    } else if (eventParts[0] == 'HE') {
-        eventName = ci18n('announcements:men_singles');
-    } else if (eventParts[0] == 'HD') {
-        eventName = ci18n('announcements:men_doubles');
-    } else if (eventParts[0] == 'DE') {
-        eventName = ci18n('announcements:women_singles');
-    } else if (eventParts[0] == 'DD') {
-        eventName = ci18n('announcements:women_doubles');
-    }
-    if (eventName == "") {
-        if (eventParts[1] == 'JE') {
+    if (curt.annoncement_include_event) {
+        var eventParts = matchSetup.event_name.replaceAll("-", " ").split(" ");
+        var eventName = "";
+        if (eventParts[0] == 'JE') {
             eventName = ci18n('announcements:boys_singles');
-        } else if (eventParts[1] == 'JD') {
+        } else if (eventParts[0] == 'JD') {
             eventName = ci18n('announcements:boys_doubles');
-        } else if (eventParts[1] == 'ME') {
+        } else if (eventParts[0] == 'ME') {
             eventName = ci18n('announcements:girls_singles');
-        } else if (eventParts[1] == 'MD') {
+        } else if (eventParts[0] == 'MD') {
             eventName = ci18n('announcements:girls_doubles')
-        } else if (eventParts[1] == 'GD' || eventParts[1] == 'MX') {
+        } else if (eventParts[0] == 'GD' || eventParts[0] == 'MX') {
             eventName = ci18n('announcements:mixed_doubles')
-        } else if (eventParts[1] == 'HE') {
+        } else if (eventParts[0] == 'HE') {
             eventName = ci18n('announcements:men_singles');
-        } else if (eventParts[1] == 'HD') {
+        } else if (eventParts[0] == 'HD') {
             eventName = ci18n('announcements:men_doubles');
-        } else if (eventParts[1] == 'DE') {
+        } else if (eventParts[0] == 'DE') {
             eventName = ci18n('announcements:women_singles');
-        } else if (eventParts[1] == 'DD') {
+        } else if (eventParts[0] == 'DD') {
             eventName = ci18n('announcements:women_doubles');
         }
-        if (eventParts[0]) {
-            eventName = eventName + " " + eventParts[0];
+        if (eventName == "") {
+            if (eventParts[1] == 'JE') {
+                eventName = ci18n('announcements:boys_singles');
+            } else if (eventParts[1] == 'JD') {
+                eventName = ci18n('announcements:boys_doubles');
+            } else if (eventParts[1] == 'ME') {
+                eventName = ci18n('announcements:girls_singles');
+            } else if (eventParts[1] == 'MD') {
+                eventName = ci18n('announcements:girls_doubles')
+            } else if (eventParts[1] == 'GD' || eventParts[1] == 'MX') {
+                eventName = ci18n('announcements:mixed_doubles')
+            } else if (eventParts[1] == 'HE') {
+                eventName = ci18n('announcements:men_singles');
+            } else if (eventParts[1] == 'HD') {
+                eventName = ci18n('announcements:men_doubles');
+            } else if (eventParts[1] == 'DE') {
+                eventName = ci18n('announcements:women_singles');
+            } else if (eventParts[1] == 'DD') {
+                eventName = ci18n('announcements:women_doubles');
+            }
+            if (eventParts[0]) {
+                eventName = eventName + " " + eventParts[0];
+            }
+        } else {
+            if (eventParts[1]) {
+                eventName = eventName + " " + eventParts[1];
+            }
         }
+        return eventName;
     } else {
-        if (eventParts[1]) {
-            eventName = eventName + " " + eventParts[1];
-        }
+        return null;
     }
-    return eventName;
 }
 
 function createMatchNumberAnnouncement(matchSetup) {
-    var number = matchSetup.match_num;
-    return ci18n('announcements:match_number') + number + "!";
+    if (curt.annoncement_include_matchnumber) {
+        var number = matchSetup.match_num;
+        return ci18n('announcements:match_number') + number + "!";
+    } else {
+        return null;
+    }
 }
 
 function createFieldAnnouncement(matchSetup) {

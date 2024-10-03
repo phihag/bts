@@ -63,6 +63,7 @@ function default_handler(rerender, special_funcs) {
 				'tabletoperator_winner_of_quaterfinals_enabled', 'tabletoperator_split_doubles',
 				'tabletoperator_set_break_after_tabletservice', 'tabletoperator_break_seconds','announcement_speed',
 				'tabletoperator_use_manual_counting_boards_enabled', 'tabletoperator_with_umpire_enabled',
+				'annoncement_include_event','annoncement_include_round','annoncement_include_matchnumber',
 				'preparation_meetingpoint_enabled','preparation_tabletoperator_setup_enabled'];
 			for (const cb_name of CHECKBOXES) {
 				uiu.qsEach('input[name="' + cb_name + '"]', function(el) {

@@ -843,6 +843,9 @@ var ctournament = (function() {
 		create_checkbox(curt, tablet_fieldset, 'tabletoperator_split_doubles');
 		create_checkbox(curt, tablet_fieldset, 'tabletoperator_with_state_enabled');
 		create_checkbox(curt, tablet_fieldset, 'tabletoperator_set_break_after_tabletservice');
+		create_checkbox(curt, tablet_fieldset, 'annoncement_include_event');
+		create_checkbox(curt, tablet_fieldset, 'annoncement_include_round');
+		create_checkbox(curt, tablet_fieldset, 'annoncement_include_matchnumber');
 		create_checkbox(curt, tablet_fieldset, 'preparation_meetingpoint_enabled');
 		create_checkbox(curt, tablet_fieldset, 'preparation_tabletoperator_setup_enabled');
 		if (!curt.tabletoperator_break_seconds) {
@@ -883,6 +886,9 @@ var ctournament = (function() {
 				tabletoperator_with_state_enabled: (!!data.tabletoperator_with_state_enabled),
 				tabletoperator_set_break_after_tabletservice: (!!data.tabletoperator_set_break_after_tabletservice),
 				tabletoperator_use_manual_counting_boards_enabled: (!!data.tabletoperator_use_manual_counting_boards_enabled),
+				annoncement_include_event: (!!data.annoncement_include_event),
+				annoncement_include_round: (!!data.annoncement_include_round),
+				annoncement_include_matchnumber: (!!data.annoncement_include_matchnumber),
 				tabletoperator_enabled: (!!data.tabletoperator_enabled),
 				tabletoperator_break_seconds: data.tabletoperator_break_seconds,
 				announcement_speed: data.announcement_speed,
