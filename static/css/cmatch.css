@@ -423,3 +423,13 @@ match_manual_call_button,
 		display: none;
 	}
 }
+
+.incomplete {
+	color: #aaaaaa;
+	font-style: italic;
+}
+
+.player {
+	color: #000000;
+	font-style: normal;
+}
