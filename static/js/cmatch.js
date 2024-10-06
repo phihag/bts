@@ -27,9 +27,10 @@ function render_match_table_header(table) {
 	const title_tr = uiu.el(thead, 'tr');
 	uiu.el(title_tr, 'th');
 	uiu.el(title_tr, 'th', {}, ci18n('Court'));
-	uiu.el(title_tr, 'th', {}, '#');
+	uiu.el(title_tr, 'th', 'match_num', '#');
 	uiu.el(title_tr, 'th', {}, ci18n('Match'));
 	uiu.el(title_tr, 'th', {
+		class: ('players'),
 		colspan: 3,
 	}, ci18n('Players'));
 	uiu.el(title_tr, 'th', {}, ci18n('Umpire'));
@@ -70,7 +71,7 @@ function render_match_row(tr, match, court, style, show_player_status, show_add_
 	const activeMatch = court && match.btp_winner != undefined;
 	const setup = match.setup;
 	if (style === 'default' || style === 'plain') {
-		const actions_td = uiu.el(tr, 'td');
+		const actions_td = uiu.el(tr, 'td', 'actions');
 		create_match_button(actions_td, 'vlink match_edit_button', 'match:edit', on_edit_button_click, match._id);
 		if(completeMatch) {
 			create_match_button(actions_td, 'vlink match_scoresheet_button', 'match:scoresheet', on_scoresheet_button_click, match._id);
@@ -83,13 +84,22 @@ function render_match_row(tr, match, court, style, show_player_status, show_add_
 	}
 
 	if (style === 'default') {
-		uiu.el(tr, 'td', court ? 'court_history' : '', court ? court.num : '');
+		const court_number_td = uiu.el(tr, 'td','court_number');
+		if(court) {
+			uiu.el(court_number_td, 'span', 'court_history', court.num);
+		}
+		//uiu.el(tr, 'td', court ? 'court_history' : 'empty_court', court ? court.num : '');
+	}
+
+	if (style === 'plain') {
+		const court_number_td = uiu.el(tr, "td", 'court_number');
+		uiu.el(court_number_td, "div", 'court_num', court.num);
 	}
 
 	if (style === 'default' || style === 'plain') {
 		const match_str = (setup.scheduled_time_str ? (setup.scheduled_time_str + ' ') : '') + (setup.match_name ? (setup.match_name + ' ') : '') + setup.event_name;
 		uiu.el(tr, 'td', 'match_num', setup.match_num);
-		uiu.el(tr, 'td', {}, match_str);
+		uiu.el(tr, 'td', 'match_properties', match_str);
 	} else if (style === 'upcoming') {
 		uiu.el(tr, 'td', {
 			style: 'min-width: 0.8em;'
@@ -134,19 +144,22 @@ function render_match_row(tr, match, court, style, show_player_status, show_add_
 
 	
 		
-	const to_td = uiu.el(tr, 'td');
+	const to_td = uiu.el(tr, 'td', 'umpire_and_tablet');
 	if (style === 'default' || style === 'plain') {
 		if (setup.umpire_name) {
-			uiu.el(to_td, 'div', 'umpire', '');
-			uiu.el(to_td, 'span', {}, setup.umpire_name);
+			const umpire_span = uiu.el(to_td, 'span', 'person');
+			uiu.el(umpire_span, 'div', 'umpire', '');
+			uiu.el(umpire_span, 'span', 'name', setup.umpire_name);
 			if (style === 'default' || style === 'plain') {
-				create_match_button(to_td, 'vlink match_second_call_button', 'match:secondcallumpire', on_second_call_umpire_button_click, match._id);
+				create_match_button(umpire_span, 'vlink match_second_call_button', 'match:secondcallumpire', on_second_call_umpire_button_click, match._id);
 			}
 			if (setup.service_judge_name) {
-				uiu.el(to_td, 'div', 'service_judge', '');
-				uiu.el(to_td, 'span', {}, setup.service_judge_name);
+
+				const service_judge_span = uiu.el(to_td, 'span', 'person');
+				uiu.el(service_judge_span, 'div', 'service_judge', '');
+				uiu.el(service_judge_span, 'span', 'name', setup.service_judge_name);
 				if (style === 'default' || style === 'plain') {
-					create_match_button(to_td, 'vlink match_second_call_button', 'match:secondcallservicejudge', on_second_call_servicejudge_button_click, match._id);
+					create_match_button(service_judge_span, 'vlink match_second_call_button', 'match:secondcallservicejudge', on_second_call_servicejudge_button_click, match._id);
 				}
 			}
 		}
@@ -163,8 +176,9 @@ function render_match_row(tr, match, court, style, show_player_status, show_add_
 		}
 
 		if (!setup.umpire_name && (!setup.tabletoperators || setup.tabletoperators.length == 0)) {
-			uiu.el(to_td, 'div', 'no_umpire', '');
-			uiu.el(to_td, 'span', 'match_no_umpire', ci18n('No umpire'));
+			const no_umpire_span = uiu.el(to_td, 'span', 'person');
+			uiu.el(no_umpire_span, 'div', 'no_umpire', '');
+			uiu.el(no_umpire_span, 'span', 'match_no_umpire', ci18n('No umpire'));
 		
 		}
 	} else if(style === 'upcoming' && setup.highlight == 6) {
@@ -173,11 +187,7 @@ function render_match_row(tr, match, court, style, show_player_status, show_add_
 	
 		
 
-	const score_td = uiu.el(tr, 'td');
-	if (court && (court.match_id !== match._id) && (typeof match.team1_won !== 'boolean') && setup.umpire_name) {
-		const ready_text = (style === 'public') ? ci18n('Ready') : ci18n(' Ready to start ');
-		uiu.el(score_td, 'span', {}, ready_text);
-	}
+	const score_td = uiu.el(tr, 'td', 'score');
 	const score_span = uiu.el(score_td, 'span', {
 		'class': ('match_score' + ((match.setup.now_on_court === true) ? ' match_score_current' : '')),
 		'data-match_id': match._id,
@@ -203,16 +213,27 @@ function render_match_row(tr, match, court, style, show_player_status, show_add_
 
 	if ((style === 'default' || style === 'plain') && match.setup.now_on_court != undefined) {
 		const shuttle_td = uiu.el(tr, 'td', 'match_shuttle_count');
+		if(match.shuttle_count) {
+			shuttle_td.classList.add('match_shuttle_count_display_active');
+		}
+
 		uiu.el(shuttle_td, 'span', {
 			'class': (
-				'match_shuttle_count_display' +
-				(match.shuttle_count ? ' match_shuttle_count_display_active' : '')
+				'match_shuttle_count_number'
 			),
 			'data-match_id': match._id,
 		}, match.shuttle_count || '');
+
+		const shutle_image = uiu.el(shuttle_td, 'div', 'match_shuttle_image');
+		if(!match.shuttle_count) {
+			shutle_image.style.display = 'none';
+		}
+		else {
+			shutle_image.style.display = 'inline-block'
+		}
 	}
 
-	if (style === 'default' || style === 'plain') {
+	if ((style === 'default' || style === 'plain') && match.setup.now_on_court != false){
 		const timer_td = uiu.el(tr, 'td', {'class': 'match_timer', 'data-match_id': match._id});
 
 		var timer_state = _extract_match_timer_state(match);
@@ -222,7 +243,7 @@ function render_match_row(tr, match, court, style, show_player_status, show_add_
 		}
 	}
 
-	if (style === 'default' || style === 'plain') {
+	if ((style === 'default' || style === 'plain') && match.setup.now_on_court != false) {
 		const call_td = uiu.el(tr, 'td', 'call_td');
 
 		if (!court) {
@@ -513,10 +534,11 @@ function update_player(match_id, player, now_on_court, show_player_status) {
 				break;
 			default:
 				uiu.qsEach('.court_row[data-court_id=' + JSON.stringify(m.setup.court_id) + ']', (match_row_el) => {
-					while (match_row_el.childElementCount > 1) {
-						match_row_el.removeChild(match_row_el.lastChild);
-					}
-					const c = {_id:m.setup.court_id};
+					const court_number = match_row_el.getElementsByClassName('court_number')[0].children[0].innerHTML;
+					const c = {	_id:m.setup.court_id,
+								num: court_number};
+
+					match_row_el.innerHTML = "";
 					render_droppable_row(match_row_el, c, 'plain', true);
 				});
 				break;
@@ -541,21 +563,9 @@ function update_match(m, old_section, new_section) {
 				break;
 		}
 	} else {
-		switch (old_section) {
-			case 'finished':
-			case 'unassigned':
-				uiu.qsEach('.match[data-match_id=' + JSON.stringify(m._id) + ']', (match_row_el) => {
-					match_row_el.innerHTML = '';
-				});
-				break;
-			default:
-				uiu.qsEach('.court_row[data-court_id=' + JSON.stringify(m.setup.court_id) + ']', (match_row_el) => {
-					while(match_row_el.childElementCount > 1){
-						match_row_el.removeChild(match_row_el.lastChild);
-					}
-				});
-				break;
-		}
+		uiu.qsEach('.match[data-match_id=' + JSON.stringify(m._id) + ']', (match_row_el) => {
+			match_row_el.innerHTML = '';
+		});
 	}
 
 	switch (new_section) {
@@ -572,9 +582,7 @@ function update_match(m, old_section, new_section) {
 			break;
 		default:
 			uiu.qsEach('.court_row[data-court_id=' + JSON.stringify(m.setup.court_id) + ']', (match_row_el) => {
-				while(match_row_el.childElementCount > 1){
-					match_row_el.removeChild(match_row_el.lastChild);
-				}
+				match_row_el.innerHTML = "";
 				const closest = match_row_el.closest('.main_upcoming');
 				if(Boolean(closest)) {
 					render_match_row(match_row_el, m, null, 'public');
@@ -1005,10 +1013,7 @@ function ui_edit(match_id) {
 
 	form_utils.onsubmit(form, function(d) {
 		const setup = _make_setup(d);
-		console.log(setup);
-		console.log(match.setup);
 		match.setup = _update_setup(match.setup, d);
-		console.log(match.setup);
 		btn.setAttribute('disabled', 'disabled');
 		send({
 			type: 'match_edit',
@@ -1144,7 +1149,7 @@ function render_match_table(container, matches, show_player_status, show_add_tab
 
 function render_unassigned(container) {
 	uiu.empty(container);
-	uiu.el(container, 'h3', {}, ci18n('Unassigned Matches'));
+	uiu.el(container, 'h3', 'section', ci18n('Unassigned Matches'));
 
 	const unassigned_matches = curt.matches.filter(m => calc_section(m) === 'unassigned');
 	render_match_table(container, unassigned_matches, true, true);
@@ -1177,7 +1182,7 @@ function render_upcoming_matches(container) {
 
 function render_finished(container) {
 	uiu.empty(container);
-	uiu.el(container, 'h3', {}, ci18n('Finished Matches'));
+	uiu.el(container, 'h3', 'section', ci18n('Finished Matches'));
 
 	const matches = curt.matches.filter(m => calc_section(m) === 'finished').sort((a, b) => {return b.end_ts - a.end_ts});
 	render_match_table(container, matches, false, true);
@@ -1194,11 +1199,15 @@ function render_courts(container, style) {
 
 		const tr = uiu.el(tbody, 'tr', {class:"court_row", "data-court_id":c._id} );
 		const rowspan = Math.max(1, court_matches.length);
-		uiu.el(tr, 'th', {
-			'class': 'court_num',
-			rowspan,
-			title: c._id,
-		}, c.num);
+		//uiu.el(tr, 'th', {
+		//	'class': 'court_num',
+		//	rowspan,
+		//	title: c._id,
+		//}, c.num);
+
+		//const court_number_td = uiu.el(tr, "td", 'court_number');
+		//uiu.el(court_number_td, "div", "court_num", c.num);
+
 
 		if (court_matches.length === 0) {
 			render_droppable_row(tr, c, style, true);
@@ -1214,7 +1223,15 @@ function render_courts(container, style) {
 }
 
 function render_droppable_row(tr, court, style, is_droppable) {
+	const lead_target_td = uiu.el(tr, 'td', {class: "droppable", colspan: 1, "data-court_id":court._id}, '');
+
+	const court_number_td = uiu.el(tr, "td", {'class':('court_number', 'droppable'), "data-court_id":court._id});
+	uiu.el(court_number_td, "div", 'court_num', court.num);
+
 	const target_td = uiu.el(tr, 'td', {class: "droppable", colspan: 11, "data-court_id":court._id}, '');
+	
+	lead_target_td.addEventListener("drop", drop);
+    lead_target_td.addEventListener("dragover", allowDrop);
 
 	target_td.addEventListener("drop", drop);
     target_td.addEventListener("dragover", allowDrop);
@@ -1271,9 +1288,9 @@ function drop(ev) {
 			}
 		});
 
-		for (const dropp_row of document.getElementsByClassName("droppable")) {
-			dropp_row.setAttribute("class", "droppable");
-		}
+		//for (const dropp_row of document.getElementsByClassName("droppable")) {
+		//	dropp_row.setAttribute("class", "droppable");
+		//}
 	}
 }
 
