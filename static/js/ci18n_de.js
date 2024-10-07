@@ -131,6 +131,12 @@ var ci18n_de = {
 	'tournament:edit:ticker': 'Ticker Einstellungen:',
 	'tournament:edit:btp': 'Badminton Turnier Planer Einstellungen:',
 
+	'tournament:edit:bts': 'Badminton Turnier Server Einstellungen:',
+	'tournament:edit:call_preparation_matches_automatically_enabled': 'Spiele in Vorbereitung automatisch auf freien Felden aufrufen',
+	'tournament:edit:call_next_possible_scheduled_match_in_preparation': 'Nächst mögliches Spiel automatisch in Vorbereitung aufrufen',
+	
+
+
 	'to_stats:header': 'Statistik der Technischen Offiziellen',
 	'to_stats:name': 'Name',
 	'to_stats:umpire': 'SR',

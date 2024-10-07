@@ -242,35 +242,39 @@ function matchinfo_handler(req, res) {
 	});
 }
 
-function score_handler(req, res) {
+async function score_handler(req, res) {
 	if (!_require_params(req, res, ['duration_ms', 'end_ts', 'network_score', 'team1_won', 'presses'])) return;
-
+	const match_utils = require('./match_utils');
 	const tournament_key = req.params.tournament_key;
 	const match_id = req.params.match_id;
-	const query = {
-		_id: match_id,
-		tournament_key,
-	};
+	
+
+	var match = await match_utils.fetch_match(req.app, tournament_key, match_id);
+	if (match == null || match.setup.now_on_court == false) {
+		res.json({
+			status: 'error',
+			message: "Match not found or not on court actualy.",
+		});
+		return;
+	}
 
 	const update = {
 		network_score: req.body.network_score,
 		network_team1_left: req.body.network_team1_left,
 		network_team1_serving: req.body.network_team1_serving,
 		network_teams_player1_even: req.body.network_teams_player1_even,
-		team1_won: req.body.team1_won,
 		presses: req.body.presses,
 		duration_ms: req.body.duration_ms,
 		end_ts: req.body.end_ts,
 		'setup.now_on_court': true,
 	};
 
-	if (update.team1_won !== undefined && update.team1_won != null) {
+	const finish_confirmed = req.body.finish_confirmed ? req.body.finish_confirmed : false;
+	if (finish_confirmed) {
+		update.team1_won = req.body.team1_won,
 		update.btp_winner = (update.team1_won === true) ? 1 : 2;
 		update.btp_needsync = true;
-		update['setup.now_on_court'] = false;
-	}
-
-	if (update.team1_won != undefined && update.team1_won != null) {
+		update["setup.now_on_court"] = false;
 		reset_player_tabletoperator(req.app, tournament_key, match_id, update.end_ts);
 	}
 
@@ -278,16 +282,21 @@ function score_handler(req, res) {
 		update.shuttle_count = req.body.shuttle_count;
 	}
 
+	const match_query = {
+		_id: match_id,
+		tournament_key,
+	};
+
 	const court_q = {
 		tournament_key,
 		_id: req.body.court_id,
 	};
 	const db = req.app.db;
- 
+
 	async.waterfall([
-		cb => db.matches.update(query, {$set: update}, {returnUpdatedDocs: true}, (err, _, match) => cb(err, match)),
+		cb => db.matches.update(match_query, { $set: update }, { returnUpdatedDocs: true }, (err, _, match) => cb(err, match)),
 		(match, cb) => {
-			if (match) { 
+			if (match) {
 				bupws.handle_score_change(req.app, tournament_key, match.setup.court_id);
 				admin.notify_change(req.app, tournament_key, 'score', {
 					match_id,
@@ -297,23 +306,17 @@ function score_handler(req, res) {
 					presses: match.presses,
 				});
 			}
-			cb(null,match);
-		},
-		(match, cb) => {
-			if (!match) {
-				return cb(new Error('Cannot find match ' + JSON.stringify(match)));
-			}
-			return cb(null, match);
+			cb(null, match);
 		},
 		(match, cb) => db.courts.findOne(court_q, (err, court) => cb(err, match, court)),
 		(match, court, cb) => {
-			if (!match) { 
+			if (!match) {
 				if (court.match_id === match_id) {
 					cb(null, match, court, false);
 					return;
 				}
 
-				db.courts.update(court_q, {$set: {match_id: match_id}}, {}, (err) => {
+				db.courts.update(court_q, { $set: { match_id: match_id } }, {}, (err) => {
 					cb(err, match, court, true);
 				});
 			}
@@ -337,12 +340,12 @@ function score_handler(req, res) {
 		(match, changed_court, cb) => {
 			if (match && match.setup.highlight &&
 				match.setup.highlight == 6 &&
-				match.network_score && 
-				match.network_score.length > 0 && 
-				match.network_score[0].length > 1 && 
+				match.network_score &&
+				match.network_score.length > 0 &&
+				match.network_score[0].length > 1 &&
 				(match.network_score[0][0] > 0 || match.network_score[0][1] > 0)) {
-					match.setup.highlight = 0;
-					btp_manager.update_highlight(req.app, match);
+				match.setup.highlight = 0;
+				btp_manager.update_highlight(req.app, match);
 			}
 			cb(null, match, changed_court);
 		},
@@ -354,9 +357,20 @@ function score_handler(req, res) {
 					ticker_manager.update_score(req.app, match);
 				}
 			}
-			cb(null, match);
+			cb(null, match, changed_court);
 		},
-	], function(err) {
+		(match, changed_court, cb) => {
+			if (!match) {
+				return cb(new Error('Cannot find match ' + JSON.stringify(match)));
+			}
+			if (finish_confirmed && match.team1_won != undefined && match.team1_won != null) {
+				match_utils.call_preparation_match_on_court(req.app, tournament_key, match.setup.court_id, (err) => {
+
+				});
+			}
+			return cb(null, match, changed_court);
+		},
+	], function (err) {
 		if (err) {
 			res.json({
 				status: 'error',
@@ -365,8 +379,9 @@ function score_handler(req, res) {
 			return;
 		}
 
-		res.json({status: 'ok'});
+		res.json({ status: 'ok' });
 	});
+	
 }
 
 function reset_player_tabletoperator(app, tournament_key, match_id, end_ts) {

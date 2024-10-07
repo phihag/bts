@@ -131,7 +131,9 @@ var ci18n_en = {
 	'tournament:edit:tablets': 'Tablets Settings:',
 	'tournament:edit:ticker': 'Ticker Settings:',
 	'tournament:edit:btp': 'Badminton Tournament Planer Settings:',
-
+	'tournament:edit:bts': 'Badminton Tournament Server Settings:',
+	'tournament:edit:call_preparation_matches_automatically_enabled': 'Call games in preparation on free fields automatically',
+	'tournament:edit:call_next_possible_scheduled_match_in_preparation': 'Automatically call up next possible game in preparation',
 	'to_stats:header': 'Technical Officials Statistics',
 	'to_stats:name': 'Name',
 	'to_stats:umpire': 'U',

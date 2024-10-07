@@ -727,6 +727,11 @@ var ctournament = (function() {
 			}
 		};
 
+		const bts_fieldset = uiu.el(form, 'fieldset');
+		uiu.el(bts_fieldset, 'h2', {}, ci18n('tournament:edit:bts'));
+		create_checkbox(curt, bts_fieldset, 'call_preparation_matches_automatically_enabled');
+		create_checkbox(curt, bts_fieldset, 'call_next_possible_scheduled_match_in_preparation');
+		
 		// BTP
 		const btp_fieldset = uiu.el(form, 'fieldset');
 		uiu.el(btp_fieldset, 'h2', {}, ci18n('tournament:edit:btp'));
@@ -893,7 +898,9 @@ var ctournament = (function() {
 				tabletoperator_break_seconds: data.tabletoperator_break_seconds,
 				announcement_speed: data.announcement_speed,
 				preparation_meetingpoint_enabled: (!!data.preparation_meetingpoint_enabled),
-				preparation_tabletoperator_setup_enabled: (!!data.preparation_tabletoperator_setup_enabled)
+				preparation_tabletoperator_setup_enabled: (!!data.preparation_tabletoperator_setup_enabled),
+				call_preparation_matches_automatically_enabled: (!!data.call_preparation_matches_automatically_enabled),
+				call_next_possible_scheduled_match_in_preparation: (!!data.call_next_possible_scheduled_match_in_preparation)
 			};
 			send({
 				type: 'tournament_edit_props',

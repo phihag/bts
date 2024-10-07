@@ -240,6 +240,12 @@ function render_match_row(tr, match, court, style, show_player_status, show_add_
 		var timer = create_timer(timer_state, timer_td, "#cccccc", "#ff0000");
 		if (timer) {
 			active_timers.matches[match._id] = timer;
+		} else {
+			var preparation_timer_state = _extract_preparation_timer_state(match);
+			var preparation_timer = create_timer(preparation_timer_state, timer_td, "#cccccc", "#ff0000");
+			if (preparation_timer) {
+				active_timers.matches[match._id] = preparation_timer;
+			}
 		}
 	}
 
@@ -302,6 +308,12 @@ function update_match_score(m) {
 		var timer = create_timer(timer_state, timer_td, "#cccccc", "#ff0000");
 		if (timer) {
 			active_timers.matches[m._id] = timer;
+		} else {
+			var preparation_timer_state = _extract_preparation_timer_state(m);
+			var preparation_timer = create_timer(preparation_timer_state, timer_td, "#cccccc", "#ff0000");
+			if (preparation_timer) {
+				active_timers.matches[match._id] = preparation_timer;
+			}
 		}
 	});
 	
@@ -657,6 +669,20 @@ function _extract_player_timer_state(player) {
 	return s;
 }
 
+function _extract_preparation_timer_state(match) {
+	let s = {};
+	s.settings = {};
+	s.settings.negative_timers = false;
+	s.lang = "de";
+	s.timer = {};
+	//s.timer.duration = curt.btp_settings.pause_duration_ms;
+	s.timer.start = (match.setup.preparation_call_timestamp ? match.setup.preparation_call_timestamp : false);
+	s.timer.upwards = true;
+	s.timer.exigent = false;
+	s.bgColor = "#C56BFF";
+	return s;
+}
+
 function _extract_match_timer_state(match) {
 	var presses = match.presses;
 
@@ -720,8 +746,6 @@ function on_scoresheet_button_click(e) {
 function on_announce_preparation_matchbutton_click(e) {
 	const match = fetchMatchFromEvent(e);
 	if (match != null) {
-		match.setup.highlight = 6; //its magenta
-
 		send({
 			type: 'match_preparation_call',
 			id: match._id,
