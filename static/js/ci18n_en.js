@@ -124,6 +124,7 @@ var ci18n_en = {
 	'tournament:edit:normalizations:replace': 'Replacement',
 	'tournament:edit:normalizations:language': 'Language',
 	'tournament:edit:displays': 'Manage Displays:',
+	'tournament:edit:displays:hostname': 'Hostname',
 	'tournament:edit:displays:num': 'Displaynumber',
 	'tournament:edit:displays:court': 'Ar Court',
 	'tournament:edit:displays:setting': 'Setting',

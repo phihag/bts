@@ -4,6 +4,9 @@ const { forEach } = require('async');
 const serror = require('./serror');
 const utils = require('./utils');
 const admin = require('./admin');
+const dns = require('dns');
+const cp = require('child_process');
+const os = require('os');
 
 const all_panels = [];
 
@@ -27,12 +30,13 @@ async function notify_admin_display_status_changed(app, ws, ws_online) {
 			err = { message: 'No tournament ' + default_tournament_key };
 		}
 		const client_id = determine_client_id(ws);
+		const hostname = await determine_client_hostname(ws);
 		var display_court_displaysetting = await get_display_court_displaysettings(app, client_id);
 		if (display_court_displaysetting == null) {
-			display_court_displaysetting = create_display_court_displaysettings(client_id, null, generate_default_displaysettings_id(tournament));
+			display_court_displaysetting = create_display_court_displaysettings(client_id, hostname, null, generate_default_displaysettings_id(tournament));
 		}
 		display_court_displaysetting.online = ws_online;
-		admin.notify_change(app, default_tournament_key, 'display_status_changed', { 'display_court_displaysetting': display_court_displaysetting });	
+		admin.notify_change(app, default_tournament_key, 'display_status_changed', {'display_court_displaysetting': display_court_displaysetting });	
 	});
 }
 
@@ -90,11 +94,12 @@ async function handle_persist_display_settings(app, ws, msg) {
 	var setting = msg.panel_settings;
 
 	const client_id = determine_client_id(ws);
+	const hostname = await determine_client_hostname(ws);
 	var client_court_displaysetting = await get_display_court_displaysettings(app, client_id);
 	if (client_court_displaysetting == null) {
 		setting.id = tournament_key + "_" + court_id + " _" + Date.now();
 		setting = await persist_displaysetting(app, setting);
-		client_court_displaysetting = create_display_court_displaysettings(client_id, court_id, setting.id);
+		client_court_displaysetting = create_display_court_displaysettings(client_id, hostname, court_id, setting.id);
 		client_court_displaysetting = await persist_client_court_displaysetting(app, client_court_displaysetting);
 	} else {
 		setting.id = tournament_key + "_" + court_id + " _" + Date.now();
@@ -107,9 +112,10 @@ async function handle_persist_display_settings(app, ws, msg) {
 	}
 }
 
-function create_display_court_displaysettings(client_id, court_id, displaysetting_id) {
+function create_display_court_displaysettings(client_id, hostname, court_id, displaysetting_id) {
 	return  {
 		client_id: client_id,
+		hostname: hostname,
 		court_id: court_id,
 		displaysetting_id: displaysetting_id,
 	}
@@ -133,6 +139,7 @@ async function handle_init(app, ws, msg) {
 
 async function initialize_client(ws, app, tournament_key, court_id, displaysetting) {
 	const client_id = determine_client_id(ws);
+	const hostname = await determine_client_hostname(ws);
 	if (client_id) {
 		let display_setting = await get_display_setting(app, tournament_key, client_id, court_id, displaysetting)
 		if (display_setting != null) {
@@ -145,10 +152,55 @@ async function initialize_client(ws, app, tournament_key, court_id, displaysetti
 	matches_handler(app, ws, tournament_key, ws.court_id);
 }
 
+function getComputerName() {
+	switch (process.platform) {
+	  case "win32":
+		return process.env.COMPUTERNAME;
+	  case "darwin":
+		return cp.execSync("scutil --get ComputerName").toString().trim();
+	  case "linux":
+		const prettyname = cp.execSync("hostnamectl --pretty").toString().trim();
+		return prettyname === "" ? os.hostname() : prettyname;
+	  default:
+		return os.hostname();
+	}
+  }
+
+async function determine_client_hostname(ws) {
+	return new Promise((resolve, reject)=> {
+		if(!ws.hostname) {
+			const remote_adress_seqments_v6 = ws._socket.remoteAddress.split(':');
+			const ip_v4 = remote_adress_seqments_v6[remote_adress_seqments_v6.length - 1];
+		
+			// catch ip for localhost
+			if(ip_v4 == '127.0.0.1') {
+				ws.hostname = getComputerName();
+				resolve(ws.hostname);
+				return;
+			}
+
+			dns.reverse(ip_v4, (err, hostnames) => {
+				if(err) {
+					reject(err);
+				}
+				if(hostnames.length >= 1) {
+					ws.hostname = hostnames[0].split('.')[0];
+				}
+				resolve(ws.hostname);
+			});
+
+		} 
+		else {
+			resolve(ws.hostname);
+		}
+	});
+}
+
 function determine_client_id(ws) {
 	if (!ws.client_id) {
 		const remote_adress_seqments = ws._socket.remoteAddress.split('.');
 		ws.client_id = remote_adress_seqments[remote_adress_seqments.length - 1];
+
 	}
 	return ws.client_id;
 }
@@ -510,7 +562,7 @@ function reinitialize_panel(app, tournament_key, client_id, new_court_id, displa
 	return false;;
 }
 
-function add_display_status(app, tournament, displays) {
+async function add_display_status(app, tournament, displays) {
 	for (const d of displays) {
 		d.online = false;
 		for (const panel_ws of all_panels) {
@@ -523,6 +575,7 @@ function add_display_status(app, tournament, displays) {
 	for (const panel_ws of all_panels) {
 		var found = false;
 		const ws_client_id = determine_client_id(panel_ws);
+		const ws_hostname = await determine_client_hostname(panel_ws);
 		for (const d of displays) {
 			
 			if (d.client_id == ws_client_id) {
@@ -530,7 +583,7 @@ function add_display_status(app, tournament, displays) {
 			}
 		}
 		if (!found) {
-			const client_court_displaysetting = create_display_court_displaysettings(ws_client_id, panel_ws.court_id, generate_default_displaysettings_id(tournament));
+			const client_court_displaysetting = create_display_court_displaysettings(ws_client_id, ws_hostname, panel_ws.court_id, generate_default_displaysettings_id(tournament));
 			client_court_displaysetting.online = true;
 			displays[displays.length] = client_court_displaysetting;
 		}

@@ -123,6 +123,7 @@ var ci18n_de = {
 	'tournament:edit:ticker_url': 'Ticker-Adresse:',
 	'tournament:edit:ticker_password': 'Ticker-Passwort:',
 	'tournament:edit:displays': 'Anzeigen administrieren:',
+	'tournament:edit:displays:hostname': 'Hostname',
 	'tournament:edit:displays:num': 'Monitor',
 	'tournament:edit:displays:court': 'Feld',
 	'tournament:edit:displays:setting': 'Einstellung',
