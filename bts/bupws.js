@@ -178,17 +178,15 @@ async function determine_client_hostname(ws) {
 				resolve(ws.hostname);
 				return;
 			}
-
 			dns.reverse(ip_v4, (err, hostnames) => {
-				if(err) {
-					reject(err);
+				if (err) {
+					resolve("N/N")
 				}
-				if(hostnames.length >= 1) {
+				if (hostnames && hostnames.length >= 1) {
 					ws.hostname = hostnames[0].split('.')[0];
 				}
 				resolve(ws.hostname);
 			});
-
 		} 
 		else {
 			resolve(ws.hostname);
