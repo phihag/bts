@@ -285,16 +285,27 @@ function announce(callArray) {
                 break;
             }
         }
-        callArray.forEach(function (part) {
-            if (part && part != null) { 
+        for (var i = 0; i < callArray.length; i++) {
+            const part = callArray[i];
+            if (part && part != null) {
                 var words = new SpeechSynthesisUtterance(part);
                 words.lang = ci18n('announcements:lang');
-                words.rate = curt.announcement_speed ? curt.announcement_speed: 1.05;
+                words.rate = curt.announcement_speed ? curt.announcement_speed : 1.05;
                 words.pitch = 0;
                 words.volume = 1;
                 words.voice = voice;
+                if (i == 0) {
+                    if (window.speechSynthesis.speaking) {
+                        words.onstart = function () {
+                            window.speechSynthesis.pause();
+                            setTimeout(() => {
+                                window.speechSynthesis.resume();
+                            }, curt.announcement_pause_time_ms ? curt.announcement_pause_time_ms * 1000 : 2000);
+                        }
+                    }
+                }
                 window.speechSynthesis.speak(words);
             }
-        });
+        }
     });
 }

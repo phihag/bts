@@ -857,8 +857,9 @@ var ctournament = (function() {
 			curt.tabletoperator_break_seconds = 300;
 		}
 		create_input(curt, "number", tablet_fieldset, 'tabletoperator_break_seconds')
-		create_numeric_input(curt, tablet_fieldset, 'announcement_speed', 0.8, 1.3, 1.05,0.01);
-
+		create_numeric_input(curt, tablet_fieldset, 'announcement_speed', 0.8, 1.3, 1.05, 0.01);
+		create_numeric_input(curt, tablet_fieldset, 'announcement_pause_time_ms', 0.0, 5.0, 2.0, 0.1);
+		
 
 
 		uiu.el(form, 'button', {
@@ -897,6 +898,7 @@ var ctournament = (function() {
 				tabletoperator_enabled: (!!data.tabletoperator_enabled),
 				tabletoperator_break_seconds: data.tabletoperator_break_seconds,
 				announcement_speed: data.announcement_speed,
+				announcement_pause_time_ms: data.announcement_pause_time_ms,
 				preparation_meetingpoint_enabled: (!!data.preparation_meetingpoint_enabled),
 				preparation_tabletoperator_setup_enabled: (!!data.preparation_tabletoperator_setup_enabled),
 				call_preparation_matches_automatically_enabled: (!!data.call_preparation_matches_automatically_enabled),
