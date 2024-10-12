@@ -827,7 +827,7 @@ async function call_next_possible_match_for_preparation(app, tournament_key, cal
 		}
 		if (tournament.call_next_possible_scheduled_match_in_preparation) {
 			const match_querry = { 'tournament_key': tournament_key, 'setup.state': 'scheduled' };
-			app.db.matches.find(match_querry).sort({ 'setup.scheduled_date': 1, 'setup.scheduled_time_str': 1, 'setup.match_number': 1 }).exec((err, matches) => {
+			app.db.matches.find(match_querry).sort({ 'setup.scheduled_date': 1, 'setup.scheduled_time_str': 1, 'match_order': 1 }).exec((err, matches) => {
 				if (err) {
 					return callback(msg, err);
 				}
