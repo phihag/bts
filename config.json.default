@@ -2,5 +2,9 @@
 	"port": 4000,
 	"bup_location": "static/bup/downloaded/",
 	"bup_index": "index.html",
-	"report_errors": true
+	"report_errors": false,
+	"enable_https": false,
+	"https_port": 4433,
+	"https_key": "${PATH_TO}/key.pem",
+	"https_cert": "${PATH_TO}/cert.pem"
 }

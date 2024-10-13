@@ -80,14 +80,10 @@ function cadmin_router() {
 }
 
 function create_app(config, db) {
-	const server = require('http').createServer();
+	
 	const app = express();
-	const wss = new ws_module.Server({server: server});
-
 	app.config = config;
 	app.db = db;
-	app.wss = wss;
-
 	app.use('/bup/', express.static(config.bup_location, {index: config.bup_index}));
 	app.use('/bupdev/', express.static(path.join(utils.root_dir(), 'static/bup/dev/')));
 	app.use('/static/', express.static('static/', {}));
@@ -106,6 +102,19 @@ function create_app(config, db) {
 	app.get('/h/:tournament_key/m/:match_id/info', http_api.matchinfo_handler);
 	app.get('/h/:tournament_key/logo/:logo_id', http_api.logo_handler);
 
+	var server = null;
+	if (config.enable_https) {
+		const options = {
+			key: fs.readFileSync(config.https_key),
+			cert: fs.readFileSync(config.https_cert)
+		}
+		server = require('https').createServer(options, app);
+	} else {
+		server = require('http').createServer(app);
+	}
+	
+	const wss = new ws_module.Server({ server: server });
+	app.wss = wss;
 	wss.on('connection', function connection(ws, req) {
 		const location = url.parse(req.url, true);
 		if (location.path === '/ws/admin') {
@@ -121,10 +130,27 @@ function create_app(config, db) {
 		}
 	});
 
-	server.on('request', app);
-	server.listen(config.port, function () {
-		// console.log('Listening on ' + server.address().port);
-	});
+	if (config.enable_https) {
+		server.listen(config.https_port, function () {
+			console.log("HTTPS server listening on port " + config.https_port);
+		});
+		const httpApp = express();
+		httpApp.get("*", function (req, res, next) {
+			var host = req.headers.host.split(":")[0]
+			if (config.https_port != 443) {
+				host = host + ":" + config.https_port
+			}
+			res.redirect("https://" + host + req.path);
+		});
+
+		require('http').createServer(httpApp).listen(config.port, function () {
+			console.log("HTTP server listening on port " + config.port+" ==> permanently redirected to https.");
+		});
+	} else {
+		server.listen(config.port, function () {
+			console.log("HTTP server listening on port " + config.port);
+		});
+	}
 	return app;
 }
 
