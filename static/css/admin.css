@@ -1,5 +1,27 @@
-html,
-body {
+td.battery-status-green {
+	background: linear-gradient(90deg, hsl(92, 89%, 46%) 15%, hsl(92, 90%, 68%) 100%);
+}
+td.battery-status-yellow {
+	background: linear-gradient(90deg, hsl(54, 89%, 46%) 15%, hsl(92, 90%, 45%) 100%);
+}
+td.battery-status-orange {
+	background: linear-gradient(90deg, hsl(22, 89%, 46%) 15%, hsl(54, 90%, 45%) 100%);
+	color: white;
+}
+td.battery-status-red {
+	background: linear-gradient(90deg, hsl(7, 89%, 46%) 15%, hsl(11, 93%, 68%) 100%);
+	color: white;
+}
+
+td.battery-status-charging {
+	background-image: url(../icons/charging.svg);
+	background-repeat: no-repeat;
+	background-position: center center;
+	background-color: forestgreen;
+	color: white;
+	font-weight: bold;
+}
+html, body {
 	margin: 0;
 	padding: 0;
 	font-size: 20px;

@@ -208,6 +208,7 @@ function default_handler(rerender, special_funcs) {
 				d.court_id = display_setting.court_id;
 				d.displaysetting_id = display_setting.displaysetting_id;
 				d.online = display_setting.online;
+				d.battery = display_setting.battery;
 			}
 			if (laststatus != d.online) {
 				cerror.silent('Display ' + display_setting.client_id + ' is ' + (display_setting.online ? 'online' : 'offline'));

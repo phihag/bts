@@ -112,6 +112,45 @@ async function handle_persist_display_settings(app, ws, msg) {
 	}
 }
 
+async function handle_device_info(app, ws, msg) {
+	const tournament_key = msg.tournament_key;
+	const device_info = msg.device;
+	if (device_info) {
+		device_info.client_ip = ws._socket.remoteAddress;
+		update_device_info(app, tournament_key, device_info);
+	}
+}
+async function update_device_info(app, tournament_key, device_info) {
+	app.db.tournaments.findOne({ key: tournament_key }, async (err, tournament) => {
+		if (!err || !tournament) {
+			err = { message: 'No tournament ' + default_tournament_key };
+		}
+		const client_id = determine_client_id_from_ip(device_info.client_ip);
+		const panel = fetch_panel(client_id);
+		if (panel != null) {
+			const hostname = "N/N";
+			var display_court_displaysetting = await get_display_court_displaysettings(app, client_id);
+			if (display_court_displaysetting == null) {
+				display_court_displaysetting = create_display_court_displaysettings(client_id, hostname, null, generate_default_displaysettings_id(tournament));
+			}
+			panel.battery = device_info.battery
+			display_court_displaysetting.battery = device_info.battery
+			display_court_displaysetting.online = true;
+			admin.notify_change(app, default_tournament_key, 'display_status_changed', { 'display_court_displaysetting': display_court_displaysetting });
+		}
+	});
+}
+
+function fetch_panel(client_id) {
+	for (const panel_ws of all_panels) {
+		if (client_id == panel_ws.client_id) {
+			return panel_ws;
+		}
+	}
+	return null;
+}
+
+
 function create_display_court_displaysettings(client_id, hostname, court_id, displaysetting_id) {
 	return  {
 		client_id: client_id,
@@ -196,11 +235,18 @@ async function determine_client_hostname(ws) {
 
 function determine_client_id(ws) {
 	if (!ws.client_id) {
-		const remote_adress_seqments = ws._socket.remoteAddress.split('.');
-		ws.client_id = remote_adress_seqments[remote_adress_seqments.length - 1];
-
+		ws.client_id = determine_client_id_from_ip (ws._socket.remoteAddress);
 	}
 	return ws.client_id;
+}
+
+function determine_client_id_from_ip(ip_adress) {
+	if (ip_adress) {
+		const remote_adress_seqments = ip_adress.split('.');
+		return remote_adress_seqments[remote_adress_seqments.length - 1];
+	} else {
+		return "UNDEFINED";
+	}
 }
 
 function persist_client_court_displaysetting(app, client_court_displaysetting) {
@@ -560,13 +606,14 @@ function reinitialize_panel(app, tournament_key, client_id, new_court_id, displa
 	return false;;
 }
 
-async function add_display_status(app, tournament, displays) {
+async function add_display_status(app, tournament, displays, callback) {
 	for (const d of displays) {
 		d.online = false;
 		for (const panel_ws of all_panels) {
 			const ws_client_id = determine_client_id(panel_ws);
 			if (d.client_id == ws_client_id) {
 				d.online = true;
+				d.battery = panel_ws.battery;
 			}
 		}
 	}
@@ -575,7 +622,6 @@ async function add_display_status(app, tournament, displays) {
 		const ws_client_id = determine_client_id(panel_ws);
 		const ws_hostname = await determine_client_hostname(panel_ws);
 		for (const d of displays) {
-			
 			if (d.client_id == ws_client_id) {
 				found = true;
 			}
@@ -583,9 +629,12 @@ async function add_display_status(app, tournament, displays) {
 		if (!found) {
 			const client_court_displaysetting = create_display_court_displaysettings(ws_client_id, ws_hostname, panel_ws.court_id, generate_default_displaysettings_id(tournament));
 			client_court_displaysetting.online = true;
+			client_court_displaysetting.battery = panel_ws.battery;
 			displays[displays.length] = client_court_displaysetting;
+
 		}
 	}
+	return callback(displays);
 }
 
 module.exports = {
@@ -596,6 +645,8 @@ module.exports = {
 	handle_score_change,
 	handle_persist_display_settings,
 	handle_reset_display_settings,
+	handle_device_info,
+	update_device_info,
 	restart_panel,
 	change_display_mode,
 	change_default_display_mode,

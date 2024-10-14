@@ -1045,6 +1045,34 @@ var ctournament = (function() {
 		}
 	}
 
+	function set_battery_state(battery, node) {
+		if (battery && battery != null) {
+			node.removeAttribute("class");
+			let level = Math.floor(battery.level * 100);
+			node.innerHTML = level + '%';
+			if (battery.charging) {
+				node.classList.add('battery-status-charging');
+
+				node.title = ci18n('tournament:edit:displays:battery_charging_time', {
+					battery_charging_time : Math.floor(battery.chargingTime / 60)
+				});
+			} else {
+				node.title = ci18n('tournament:edit:displays:battery_duscharging_time', {
+					battery_discharging_time: Math.floor(battery.dischargingTime / 60)
+				});
+				
+				if (level <= 10) {
+					node.classList.add('battery-status-red');
+				} else if (level <= 20) {
+					node.classList.add('battery-status-orange');
+				} else if (level <= 40) {
+					node.classList.add('battery-status-yellow');
+				} else {
+					node.classList.add('battery-status-green');
+				}
+			}
+		}
+	}
 
 	function render_displaysettings(main) {
 		uiu.el(main, 'h2', {}, ci18n('tournament:edit:displays'));
@@ -1054,14 +1082,18 @@ var ctournament = (function() {
 		const tr = uiu.el(display_tbody, 'tr');
 		uiu.el(tr, 'th', {}, ci18n('tournament:edit:displays:num'));
 		uiu.el(tr, 'th', {}, ci18n('tournament:edit:displays:hostname'));
-		uiu.el(tr, 'td', {}, ci18n('tournament:edit:displays:court'));
-		uiu.el(tr, 'td', {}, ci18n('tournament:edit:displays:setting'));
-		uiu.el(tr, 'td', {}, ci18n('tournament:edit:displays:onlinestatus'));
+		uiu.el(tr, 'th', {}, ci18n('tournament:edit:displays:batterylevel')); 
+		uiu.el(tr, 'th', {}, ci18n('tournament:edit:displays:court'));
+		uiu.el(tr, 'th', {}, ci18n('tournament:edit:displays:setting'));
+		uiu.el(tr, 'th', {}, ci18n('tournament:edit:displays:onlinestatus'));
+		
 
 		for (const c of curt.displays) {
 			const tr = uiu.el(display_tbody, 'tr');
 			uiu.el(tr, 'th', {}, c.client_id);
 			uiu.el(tr, 'th', {}, c.hostname);
+			var battery_node = uiu.el(tr, 'td', {}, 'N/N"');
+			set_battery_state(c.battery, battery_node);
 			createCourtSelectBox(uiu.el(tr, 'td', {}, ''), c.client_id, c.court_id);
 			createDisplaySettingsSelectBox(uiu.el(tr, 'td', {}, ''), c.client_id, c.displaysetting_id);
 			uiu.el(tr, 'td', {}, (!c.online) ? 'offline' : 'online');

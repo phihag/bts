@@ -48,9 +48,10 @@ function get_displays(app, tournament, callback) {
 		});
 
 		const bupws = require('./bupws');
-		bupws.add_display_status(app, tournament, display_court_displaysettings);
-		display_court_displaysettings = display_court_displaysettings.sort(utils.cmp_key('client_id'));
-		return callback(err, display_court_displaysettings);
+		bupws.add_display_status(app, tournament, display_court_displaysettings, function (display_court_displaysettings) {
+			display_court_displaysettings = display_court_displaysettings.sort(utils.cmp_key('client_id'));
+			return callback(err, display_court_displaysettings);
+		});
 	});
 }
 

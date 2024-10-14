@@ -269,6 +269,13 @@ async function score_handler(req, res) {
 		'setup.now_on_court': true,
 	};
 
+	const device_info = req.body.device;
+	if (device_info) {
+		const client_ip = req.socket.remoteAddress
+		device_info.client_ip = client_ip;
+	}
+
+
 	const finish_confirmed = req.body.finish_confirmed ? req.body.finish_confirmed : false;
 	if (finish_confirmed) {
 		update.team1_won = req.body.team1_won,
@@ -368,6 +375,13 @@ async function score_handler(req, res) {
 
 				});
 			}
+			return cb(null, match, changed_court);
+		},
+		(match, changed_court, cb) => {
+			if (!device_info) {
+				return cb(null, match, changed_court);
+			}
+			bupws.update_device_info(req.app, tournament_key, device_info);
 			return cb(null, match, changed_court);
 		},
 	], function (err) {
