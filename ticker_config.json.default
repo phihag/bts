@@ -1,5 +1,5 @@
 {
-	"port": 4001,
+	"port": 4002,
 	"report_errors": true,
 	"tournament_name": "Live-Ticker",
 	"prefix_html": "<!-- HTML to show before courts -->",
