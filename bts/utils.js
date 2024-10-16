@@ -202,6 +202,13 @@ function format_ts(ts) {
 	);
 }
 
+function format_time_ts(ts) {
+	var d = new Date(ts);
+	return (
+		pad(d.getHours(), 2) + ':' + pad(d.getMinutes(), 2)
+	);
+}
+
 function has_key(obj, testfunc) {
 	for (const k in obj) {
 		if (testfunc(k)) return true;
@@ -225,6 +232,7 @@ module.exports = {
 	deep_equal,
 	filter_map,
 	format_ts,
+	format_time_ts,
 	encode_html,
 	gen_token,
 	get_system_timezone,

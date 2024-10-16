@@ -56,7 +56,7 @@ function recalc(app, cb) {
 			courts_with_matches: courts,
 		};
 		if (tournament && tournament.last_update) {
-			td.last_update_str = utils.format_ts(tournament.last_update);
+			td.last_update_str = utils.format_time_ts(tournament.last_update);
 		}
 
 		app.ticker_data = td;

@@ -1,29 +1,32 @@
 <!DOCTYPE html>
 <html>
-<head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, user-scalable=yes" />
-<link rel="stylesheet" href="{{static_path}}ticker/ticker.css" />
-<title>{{tournament_name_html}}</title>
-</head>
-<body id="bts-data-holder" data-error-reporting="{{error_reporting}}">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, user-scalable=yes" />
+        <link rel="stylesheet" href="{{static_path}}ticker/ticker.css" />
+        <title>{{tournament_name_html}}</title>
+    </head>
+    <body id="bts-data-holder" data-error-reporting="{{error_reporting}}">
 
-<div class="main">
+        <div class="main">
 
-<div class="topline">
-<h1>{{tournament_name_html}}</h1> <div class="last_update">Last update: <span class="last_update_val">{{last_update_str}}</span></div>
-</div>
+            <div class="topline">
+                <h1>{{tournament_name_html}}</h1>
+                <div class="last_update">Stand: <span class="last_update_val">{{last_update_str}}</span></div>
+            </div>
 
-<div class="note">{{prefix_html}}</div>
+            <div class="note">{{prefix_html}}</div>
 
-<div id="courts_html">{{courts_html}}</div>
+            <div id="courts_html">{{courts_html}}</div>
 
-<div class="note">{{note_html}}</div>
-<div class="error"></div>
-</div>
+            <div class="note">
+                {{note_html}}
+            </div>
+            <div class="error"></div>
+        </div>
 
-<!-- <script src="{{static_path}}libs/mustache.min.js"></script> -->
-<script src="{{static_path}}js/cerror.js"></script>
-<script src="{{static_path}}ticker/cticker.js"></script>
-</body>
+        <!-- <script src="{{static_path}}libs/mustache.min.js"></script> -->
+        <script src="{{static_path}}js/cerror.js"></script>
+        <script src="{{static_path}}ticker/cticker.js"></script>
+    </body>
 </html>
