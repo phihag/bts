@@ -987,6 +987,23 @@ function _delete_match_btn_click(e) {
 		_cancel_ui_edit();
 	});
 }
+	function _finish_ui_edit(e) {
+		const match_id = e.target.getAttribute('data-match_id');
+		const match = utils.find(curt.matches, m => m._id === match_id);
+		if (match) {
+			send({
+				type: 'confirm_match_finished',
+				match_id: match_id,
+				tournament_key: match.tournament_key,
+				court_id: match.setup.court_id
+			}, function (err) {
+				if (err) {
+					return cerror.net(err);
+				}
+			});
+		}
+		_cancel_ui_edit();
+	}
 
 function ui_edit(match_id) {
 	const match = utils.find(curt.matches, m => m._id === match_id);
@@ -1059,6 +1076,13 @@ function ui_edit(match_id) {
 		'data-match_id': match_id,
 	}, ci18n('match:edit:delete'));
 	delete_btn.addEventListener('click', _delete_match_btn_click);
+
+	const finish_btn = uiu.el(buttons, 'span', {
+		'class': 'match_cancel_link vlink',
+		'data-match_id': match._id
+	}, ci18n('Confirm_Finish'));
+	finish_btn.addEventListener('click', _finish_ui_edit);
+
 	const cancel_btn = uiu.el(buttons, 'span', 'match_cancel_link vlink', ci18n('Cancel'));
 	cancel_btn.addEventListener('click', _cancel_ui_edit);
 }

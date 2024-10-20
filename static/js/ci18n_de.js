@@ -21,6 +21,7 @@ var ci18n_de = {
 	'Number:': '#:',
 	'Cancel': 'Abbrechen',
 	'Change': 'Ändern',
+	'Confirm_Finish': 'Spielende bestätigen',
 	'No umpire': 'Kein Schiedsrichter',
 	'No service judge': 'Kein Aufschlagrichter',
 	'Edit match': 'Match bearbeiten',
