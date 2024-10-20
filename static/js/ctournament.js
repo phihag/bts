@@ -1092,7 +1092,7 @@ var ctournament = (function() {
 			const tr = uiu.el(display_tbody, 'tr');
 			uiu.el(tr, 'th', {}, c.client_id);
 			uiu.el(tr, 'th', {}, c.hostname);
-			var battery_node = uiu.el(tr, 'td', {}, 'N/N"');
+			var battery_node = uiu.el(tr, 'td', {}, 'N/A');
 			set_battery_state(c.battery, battery_node);
 			createCourtSelectBox(uiu.el(tr, 'td', {}, ''), c.client_id, c.court_id);
 			createDisplaySettingsSelectBox(uiu.el(tr, 'td', {}, ''), c.client_id, c.displaysetting_id);

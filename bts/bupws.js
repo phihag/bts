@@ -769,19 +769,22 @@ async function add_display_status(app, tournament, displays, callback) {
 			if (d.client_id == ws_client_id) {
 				d.online = true;
 				d.battery = panel_ws.battery;
+				d.hostname = await determine_client_hostname(panel_ws);
+				break;
 			}
 		}
 	}
 	for (const panel_ws of all_panels) {
 		var found = false;
 		const ws_client_id = determine_client_id(panel_ws);
-		const ws_hostname = await determine_client_hostname(panel_ws);
 		for (const d of displays) {
 			if (d.client_id == ws_client_id) {
 				found = true;
+				break;
 			}
 		}
 		if (!found) {
+			const ws_hostname = await determine_client_hostname(panel_ws);
 			const client_court_displaysetting = create_display_court_displaysettings(ws_client_id, ws_hostname, panel_ws.court_id, generate_default_displaysettings_id(tournament));
 			client_court_displaysetting.online = true;
 			client_court_displaysetting.battery = panel_ws.battery;
