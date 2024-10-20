@@ -566,8 +566,8 @@ async function integrate_matches(app, tkey, btp_state, court_map, callback) {
 									return callback(err);
 								}
 								if ((tournament.tabletoperator_enabled && tournament.tabletoperator_enabled == true)) {
-									const http_api = require('./http_api');
-									http_api.reset_player_tabletoperator(app, tkey, match._id, match.end_ts);
+									const match_utils = require('./match_utils');
+									match_utils.reset_player_tabletoperator(app, tkey, match._id, match.end_ts);
 								}
 							});
 						}

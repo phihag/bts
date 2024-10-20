@@ -1,6 +1,5 @@
 ﻿'use strict';
-
-const { forEach } = require('async');
+const async = require('async');
 const serror = require('./serror');
 const utils = require('./utils');
 const admin = require('./admin');
@@ -8,6 +7,9 @@ const dns = require('dns');
 const cp = require('child_process');
 const os = require('os');
 
+const btp_manager = require('./btp_manager');
+const ticker_manager = require('./ticker_manager');
+const stournament = require('./stournament');
 const all_panels = [];
 
 const default_tournament_key = 'default';
@@ -64,6 +66,18 @@ function notify_change_ws(ws, tournament_key, court_id, ctype, val) {
 		}
 	}
 }
+function send_courts(app, ws, tournament_key) {
+	stournament.get_courts(app.db, tournament_key, function (err, courts) {
+		notify_change_ws(ws,tournament_key, ws.court_id, "courts-update", courts);
+	});
+}
+function send_error(ws, tournament_key, msg) {
+	ws.sendmsg({
+		type: 'error',
+		tournament_key,
+		msg
+	});
+}
 
 function all_matches_delivery() {
 	for (const panel_ws of all_panels) {
@@ -74,10 +88,6 @@ function all_matches_delivery() {
 }
 
 async function handle_reset_display_settings(app, ws, msg) {
-	const tournament_key = msg.tournament_key;
-	const court_id = msg.panel_settings.court_id;
-	var setting = msg.panel_settings;
-
 	const client_id = determine_client_id(ws);
 	var client_court_displaysetting = await get_display_court_displaysettings(app, client_id);
 	if (client_court_displaysetting != null) {
@@ -111,7 +121,147 @@ async function handle_persist_display_settings(app, ws, msg) {
 		client_court_displaysetting = await update_client_court_displaysetting(app, client_court_displaysetting.client_id, updatevalues);
 	}
 }
+async function handle_score_update(app, ws, msg) {
+	const match_utils = require('./match_utils');
+	const tournament_key = msg.tournament_key;
+	const score_data = msg.score;
+	const match_id = score_data.match_id;
+	
+	var match = await match_utils.fetch_match(app, tournament_key, match_id);
+	if (match == null || match.setup.now_on_court == false) {
+		send_error(ws, tournament_key, "Match not found or not on court actualy.");
+		return;
+	}
+	const update = {
+		network_score: score_data.network_score,
+		network_team1_left:score_data.network_team1_left,
+		network_team1_serving:score_data.network_team1_serving,
+		network_teams_player1_even:score_data.network_teams_player1_even,
+		presses:score_data.presses,
+		duration_ms:score_data.duration_ms,
+		end_ts:score_data.end_ts,
+		'setup.now_on_court': true,
+	};
 
+	const device_info = score_data.device;
+	if (device_info) {
+		const client_ip = ws._socket.remoteAddress;
+		device_info.client_ip = client_ip;
+	}
+
+	const finish_confirmed = score_data.finish_confirmed ? score_data.finish_confirmed : false;
+	if (finish_confirmed) {
+		update.team1_won = score_data.team1_won,
+			update.btp_winner = (update.team1_won === true) ? 1 : 2;
+		update.btp_needsync = true;
+		update["setup.now_on_court"] = false;
+		match_utils.reset_player_tabletoperator(app, tournament_key, match_id, update.end_ts);
+	}
+
+	if (score_data.shuttle_count) {
+		update.shuttle_count = score_data.shuttle_count;
+	}
+	const match_query = {
+		_id: match_id,
+		tournament_key,
+	};
+
+	const court_q = {
+		tournament_key,
+		_id: score_data.court_id,
+	};
+	const db = app.db;
+	async.waterfall([
+		cb => db.matches.update(match_query, { $set: update }, { returnUpdatedDocs: true }, (err, _, match) => cb(err, match)),
+		(match, cb) => {
+			if (match) {
+				handle_score_change(app, tournament_key, match.setup.court_id);
+				admin.notify_change(app, tournament_key, 'score', {
+					match_id,
+					network_score: update.network_score,
+					team1_won: update.team1_won,
+					shuttle_count: update.shuttle_count,
+					presses: match.presses,
+				});
+			}
+			cb(null, match);
+		},
+		(match, cb) => db.courts.findOne(court_q, (err, court) => cb(err, match, court)),
+		(match, court, cb) => {
+			if (!match) {
+				if (court.match_id === match_id) {
+					cb(null, match, court, false);
+					return;
+				}
+
+				db.courts.update(court_q, { $set: { match_id: match_id } }, {}, (err) => {
+					cb(err, match, court, true);
+				});
+			}
+			cb(null, match, court, true);
+		},
+		(match, court, changed_court, cb) => {
+			if (match && changed_court) {
+				admin.notify_change(app, tournament_key, 'court_current_match', {
+					match__id: match_id,
+					match: match,
+				});
+			}
+			cb(null, match, changed_court);
+		},
+		(match, changed_court, cb) => {
+			if (match) {
+				btp_manager.update_score(app, match);
+			}
+			cb(null, match, changed_court);
+		},
+		(match, changed_court, cb) => {
+			if (match && match.setup.highlight &&
+				match.setup.highlight == 6 &&
+				match.network_score &&
+				match.network_score.length > 0 &&
+				match.network_score[0].length > 1 &&
+				(match.network_score[0][0] > 0 || match.network_score[0][1] > 0)) {
+				match.setup.highlight = 0;
+				btp_manager.update_highlight(app, match);
+			}
+			cb(null, match, changed_court);
+		},
+		(match, changed_court, cb) => {
+			if (changed_court) {
+				ticker_manager.pushall(app, tournament_key);
+			} else {
+				if (match) {
+					ticker_manager.update_score(app, match);
+				}
+			}
+			cb(null, match, changed_court);
+		},
+		(match, changed_court, cb) => {
+			if (!match) {
+				return cb(new Error('Cannot find match ' + JSON.stringify(match)));
+			}
+			if (finish_confirmed && match.team1_won != undefined && match.team1_won != null) {
+				match_utils.call_preparation_match_on_court(app, tournament_key, match.setup.court_id, (err) => {
+
+				});
+			}
+			return cb(null, match, changed_court);
+		},
+		(match, changed_court, cb) => {
+			if (!device_info) {
+				return cb(null, match, changed_court);
+			}
+			update_device_info(app, tournament_key, device_info);
+			return cb(null, match, changed_court);
+		},
+	], function (err) {
+		if (err) {
+			send_error(ws, tournament_key, err.message);
+			return;
+		}
+	});
+}
 async function handle_device_info(app, ws, msg) {
 	const tournament_key = msg.tournament_key;
 	const device_info = msg.device;
@@ -174,6 +324,11 @@ async function handle_init(app, ws, msg) {
 	} else { 
 		matches_handler(app, ws, tournament_key, ws.court_id);
 	}
+	send_courts(app, ws, tournament_key);
+}
+
+async function send_finshed_confirmed(app, tournament_key, court_id) {
+	notify_change(tournament_key, court_id, 'confirm-match-finished', {});
 }
 
 async function initialize_client(ws, app, tournament_key, court_id, displaysetting) {
@@ -645,9 +800,11 @@ module.exports = {
 	handle_score_change,
 	handle_persist_display_settings,
 	handle_reset_display_settings,
+	handle_score_update,
 	handle_device_info,
 	update_device_info,
 	restart_panel,
+	send_finshed_confirmed,
 	change_display_mode,
 	change_default_display_mode,
 	add_display_status,

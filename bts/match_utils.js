@@ -5,15 +5,15 @@ const async = require('async');
 
 async function match_update(app, match, callback) {
 	async.waterfall([	
-						(wcb) => update_match_btp(app, match, wcb), 
-						(wcb) => update_match_db(app, match, wcb),
-						(wcb) => notify_change_match_edit(app, match, wcb),
-						(wcb) => notify_bupws(app, match, wcb),
-					],
-						(err) => {
-							return callback(err);
-						}
-					);
+			(wcb) => update_match_btp(app, match, wcb), 
+			(wcb) => update_match_db(app, match, wcb),
+			(wcb) => notify_change_match_edit(app, match, wcb),
+			(wcb) => notify_bupws(app, match, wcb),
+		],
+		(err) => {
+			return callback(err);
+		}
+	);
 }
 
 async function uncall_match(app, tournament, match, callback) {
@@ -953,6 +953,18 @@ function update_btp_courts(app, tournament_key, match, callback) {
 		return;
 	});
 }
+function reset_player_tabletoperator(app, tournament_key, match_id, end_ts) {
+	async.waterfall([
+		cb => remove_player_on_court(app, tournament_key, match_id, end_ts, cb),
+		cb => remove_tablet_on_court(app, tournament_key, match_id, end_ts, cb),
+		cb => remove_umpire_on_court(app, tournament_key, match_id, end_ts, cb),
+		cb => add_player_to_tabletoperator_list(app, tournament_key, match_id, end_ts, cb)
+	], function (err) {
+		if (err) {
+			return;
+		}
+	});
+}
 
 module.exports ={
     add_player_to_tabletoperator_list,
@@ -968,6 +980,7 @@ module.exports ={
 	set_umpire_to_standby,
 	add_preparation_call_timestamp,
 	remove_preparation_call_timestamp,
+	reset_player_tabletoperator,
 	call_preparation_match_on_court,
 	call_next_possible_match_for_preparation,
 	call_match_in_preparation

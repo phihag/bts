@@ -11,7 +11,6 @@ const serror = require('./serror');
 const stournament = require('./stournament');
 const ticker_manager = require('./ticker_manager');
 const utils = require('./utils');
-const btp_sync = require('./btp_sync');
 
 
 /**
@@ -40,6 +39,17 @@ function handle_tournament_list(app, ws, msg) {
 		}
 		ws.respond(msg, err, {tournaments});
 	});
+}
+
+function handle_confirm_match_finished(app, ws, msg) {
+	if (!msg.tournament_key) {
+		return ws.respond(msg, { message: 'Missing tournament' });
+	}
+	if (!msg.court_id) {
+		return ws.respond(msg, { message: 'Missing court' });
+	}
+	const bupws = require('./bupws');
+	bupws.send_finshed_confirmed(app, msg.tournament_key, msg.court_id);
 }
 
 function handle_tournament_edit_props(app, ws, msg) {
@@ -895,6 +905,7 @@ module.exports = {
 	handle_begin_to_play_call,
 	handle_announce_match_manually,
 	handle_btp_fetch,
+	handle_confirm_match_finished,
 	handle_normalization_add,
 	handle_normalization_remove,
 	handle_tabletoperator_add,

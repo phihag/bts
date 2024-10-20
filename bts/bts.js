@@ -96,11 +96,7 @@ function create_app(config, db) {
 	app.use('/u(:courtnum)?', shortcuts.umpire_handler);
 
 	app.use(body_parser.json());
-	app.get('/h/:tournament_key/courts', http_api.courts_handler);
-	app.get('/h/:tournament_key/matches', http_api.matches_handler);
-	app.post('/h/:tournament_key/m/:match_id/score', http_api.score_handler);
-	app.get('/h/:tournament_key/m/:match_id/info', http_api.matchinfo_handler);
-	app.get('/h/:tournament_key/logo/:logo_id', http_api.logo_handler);
+	app.get('/h/:tournament_key/C:logo_id', http_api.logo_handler);
 
 	var server = null;
 	if (config.enable_https) {
