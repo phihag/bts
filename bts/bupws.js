@@ -278,10 +278,12 @@ async function update_device_info(app, tournament_key, device_info) {
 		const client_id = determine_client_id_from_ip(device_info.client_ip);
 		const panel = fetch_panel(client_id);
 		if (panel != null) {
-			const hostname = "N/N";
+			const hostname = await determine_client_hostname(panel);
 			var display_court_displaysetting = await get_display_court_displaysettings(app, client_id);
 			if (display_court_displaysetting == null) {
-				display_court_displaysetting = create_display_court_displaysettings(client_id, hostname, null, generate_default_displaysettings_id(tournament));
+				display_court_displaysetting = create_display_court_displaysettings(client_id, hostname, panel.court_id, generate_default_displaysettings_id(tournament));
+			} else {
+				display_court_displaysetting.hostname = hostname;
 			}
 			panel.battery = device_info.battery
 			display_court_displaysetting.battery = device_info.battery
