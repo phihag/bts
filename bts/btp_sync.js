@@ -117,14 +117,18 @@ async function craft_match(app, tkey, btp_id, court_map, event, draw, btp_links,
 			}
 			if (tournament.btp_settings.check_in_per_match && teams.length > 1 && teams[0].players.length > 0) {
 				teams[0].players[0].checked_in = (bm.Status & 0b0001) > 0;
+				teams[0].players[0].check_in_per_match = true;
 				if (teams[0].players.length > 1) {
 					teams[0].players[1].checked_in = (bm.Status & 0b0010) > 0;
+					teams[0].players[1].check_in_per_match = true;
 				}
 
 				if (teams[1].players.length > 0) {
 					teams[1].players[0].checked_in = (bm.Status & 0b0100) > 0;
+					teams[1].players[0].check_in_per_match = true;
 					if (teams[1].players.length > 1) {
 						teams[1].players[1].checked_in = (bm.Status & 0b1000) > 0;
+						teams[1].players[1].check_in_per_match = true;
 					}
 				}
 			}
@@ -148,12 +152,13 @@ async function craft_match(app, tkey, btp_id, court_map, event, draw, btp_links,
 			if (bm.Official1ID) {
 				const o = get_umpire(app, tkey, officials, bm.Official1ID[0]);
 				assert(o);
-				setup.umpire_name = o.firstName + ' ' + o.surname;
+				setup.umpire = o;
+				
 			}
 			if (bm.Official2ID) {
 				const o = get_umpire(app, tkey, officials, bm.Official2ID[0]);
 				assert(o);
-				setup.service_judge_name = o.firstName + ' ' + o.surname;
+				setup.service_judge = o;
 			}
 
 			const btp_match_ids = [{
@@ -778,6 +783,7 @@ async function integrate_player_state(app, tkey, btp_state, callback) {
 									const player = cur_match.setup.teams[team_nr].players[player_nr];
 									if (ids_to_change.indexOf(id) == -1) {
 										player.checked_in = true;
+										player.check_in_per_match = false;
 										player.tablet_break_active = false;
 										ids_to_change.push(id);
 										players_to_change.push(player);
@@ -865,9 +871,9 @@ function integrate_umpires(app, tournament_key, btp_state, callback) {
 	var changed = false;
 
 	async.each(officials, (o, cb) => {
-		const firstName = (o.FirstName ? o.FirstName[0] : '');
+		const firstname = (o.FirstName ? o.FirstName[0] : '');
 		const surname = (o.Name ? o.Name[0] : '');
-		const name = (firstName + " " + surname).trim();
+		const name = (firstname + " " + surname).trim();
 		const country = (o.Country ? o.Country[0] : '');
 		const btp_id = o.ID[0];
 		if (!btp_id) {
@@ -880,12 +886,12 @@ function integrate_umpires(app, tournament_key, btp_state, callback) {
 
 			if (cur) {
 				if (cur.btp_id === btp_id &&
-					cur.firstName == firstName &&
+					cur.firstname == firstname &&
 					cur.surname == surname &&
 					cur.country === country) {
 					return cb();
 				} else {
-					app.db.umpires.update({ tournament_key, btp_id }, { $set: { btp_id, firstName, surname, name, country } }, { returnUpdatedDocs: true }, function (err, numAffected, changed_umpire) {
+					app.db.umpires.update({ tournament_key, btp_id }, { $set: { btp_id, firstname, surname, name, country } }, { returnUpdatedDocs: true }, function (err, numAffected, changed_umpire) {
 						if (err) {
 							console.error(err);
 							return;
@@ -900,7 +906,7 @@ function integrate_umpires(app, tournament_key, btp_state, callback) {
 			const u = {
 				_id: tournament_key + '_btp_' + btp_id,
 				btp_id,
-				firstName,
+				firstname,
 				surname,
 				name,
 				status: 'ready',
@@ -943,8 +949,8 @@ function calculate_match_ids_on_court(btp_state) {
 
 
 
-function update_umpire(app, tkey, umpire_name, status, last_time_on_court_ts,court_id) {
-	app.db.umpires.update({ tournament_key: tkey, name: umpire_name }, { $set: { last_time_on_court_ts: last_time_on_court_ts, status: status, court_id: court_id } }, { returnUpdatedDocs: true }, function (err, numAffected, changed_umpire) {
+function update_umpire(app, tkey, umpire, status, last_time_on_court_ts,court_id) {
+	app.db.umpires.update({ tournament_key: tkey, name: umpire.name }, { $set: { last_time_on_court_ts: last_time_on_court_ts, status: status, court_id: court_id } }, { returnUpdatedDocs: true }, function (err, numAffected, changed_umpire) {
 		if (err) {
 			console.error(err);
 			return;

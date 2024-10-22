@@ -141,6 +141,9 @@ table.striped-table {
 
 }
 
+.old {
+	position: fixed; left: 0; right: 0; top: 0; bottom: 0;
+}
 
 .main_upcoming {
 	background: #000; color: #fff;
@@ -149,16 +152,31 @@ table.striped-table {
 	font-size: 35px;
 	cursor: none;
 }
+
+.end_container {
+	height: 400px;
+}
+
+.help_me{
+	position: fixed;
+	left: 0; right: 0; top: 0; bottom: 0;
+	height: 975px;
+	background-color: red;
+	width: 50px;
+}
+
 .upcoming_table {
 	border-collapse: collapse;
+	width: 98%;
+	margin: 0 1% 0 1%;
 }
 .upcoming_table td {
-	padding-bottom: 0.3em;
-	vertical-align: top;
+	vertical-align: middle;
 
 }
 .upcoming_table td:not(:first-child) {
 	padding-left: 0.3em;
+	padding-right: 0.3em;
 	white-space: pre-wrap;
 }
 
@@ -166,6 +184,7 @@ table.striped-table {
 	background-color: #00000020;
 	display: flex;
 	flex-direction: row;
+	flex-wrap: wrap-reverse;
 	justify-content: space-around;
 	padding: 0.25em 0 0 0;
 	margin: 0 0 0.75em 0;
@@ -213,3 +232,11 @@ table.striped-table {
 	background-image: url(../icons/signal_black.svg);
 }
 
+h2 {
+	margin: 0;
+	padding-top: 15px;
+	padding-bottom: 5px;
+	font-size: 70px;
+	color: #fff;
+	text-align: center;
+}

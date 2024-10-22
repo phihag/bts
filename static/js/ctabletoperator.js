@@ -37,15 +37,24 @@ function render_tabletoperator_table_header(table) {
 function render_tabletoperator_row(tr, tabletoperator, is_fist_entry, is_last_entry) {
 	const to = tabletoperator.tabletoperator;
 	const to_td = uiu.el(tr, 'td');
-	uiu.el(to_td, 'div', 'tablet', '');
-	uiu.el(to_td, 'span', 'match_no_umpire', to[0].name);
+	const tablet_div = uiu.el(to_td, 'div', 'tablet_operator', '');
+	uiu.el(tablet_div, 'div', 'tablet', '');
+	const operators_div = uiu.el(tablet_div, 'div', 'operators');
+	const person_div = uiu.el(operators_div, 'div', 'person');
+	uiu.el(person_div, 'span', 'match_no_umpire', to[0].name);
 	if (to.length > 1) {
-		uiu.el(to_td, 'span', 'match_no_umpire', ' \u200B/ ');
-		uiu.el(to_td, 'span', 'match_no_umpire', to[1].name);
+		
+		uiu.el(person_div, 'span', 'match_no_umpire', ' \u200B/ ');
+		const person2_div = uiu.el(operators_div, 'div', 'person');
+		uiu.el(person2_div, 'span', 'match_no_umpire', to[1].name );
+
 	}
 
 	const court = curt.courts_by_id[tabletoperator.played_on_court];
-	uiu.el(tr, 'td', court ? 'court_history' : '', court ? court.num : '');
+	const court_td = uiu.el(tr, 'td', 'court_played');
+	
+	
+	uiu.el(court_td, 'div', court ? 'court_history' : '', court ? court.num : '');
 
 	if (tabletoperator.court == null) {
 		const buttonbar = uiu.el(tr, 'td');

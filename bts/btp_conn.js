@@ -216,12 +216,12 @@ class BTPConn {
 
 		async.waterfall([
 			(cb) => {
-				if (!match.setup || !match.setup.umpire_name) {
+				if (!match.setup || !match.setup.umpire || !match.setup.umpire.name) {
 					return cb(null, null, null);
 				}
 
 				this.app.db.umpires.findOne({
-					name: match.setup.umpire_name,
+					name: match.setup.umpire.name,
 					tournament_key: this.tkey,
 				}, (err, umpire) => {
 					if (err) {
@@ -229,12 +229,12 @@ class BTPConn {
 					}
 
 					const umpire_btp_id = umpire ? umpire.btp_id : null;
-					if (!match.setup.service_judge_name) {
+					if (!match.setup.service_judge || !match.setup.service_judge.name) {
 						return cb(null, umpire_btp_id, null);
 					}
 
 					this.app.db.umpires.findOne({
-						name: match.setup.service_judge_name,
+						name: match.setup.service_judge.name,
 						tournament_key: this.tkey,
 					}, (err, service_judge) => {
 						if (err) {

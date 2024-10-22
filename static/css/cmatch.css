@@ -139,13 +139,35 @@
 	text-align: right;
 	color: #666;
 }
+
 .match_team2 {
 	padding-right: 0.3em;
 }
+
+.match_team1_public,
+.match_team2_public {
+	width: 50%;
+	text-wrap: nowrap;
+}
+
+.match_team1_upcoming,
+.match_team2_upcoming {
+	width:50%;
+	text-wrap: nowrap;
+	padding: 0px !important;
+	margin: 0px !important;
+}
+
+.match_team1_upcoming > span,
+.match_team2_upcoming > span{
+	text-wrap: nowrap;
+}
+
 .match_vs {
 	color: #999;
-	padding: 0 0.5em;
-	width: 0.5em;
+	width: 1.0em;
+	text-align: center;
+	margin: 0px;
 }
 .match_team_won {
 	font-weight: bold;
@@ -154,11 +176,40 @@
 .match_score{
 	font-weight: bold;
 	padding-left: 0.2em;
+	text-wrap: nowrap;
 }
 .match_score_current {
 	font-weight: bold;
 	font-size: 1.5em;
 	padding-left: 0.3em;
+	display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    justify-content: flex-start;
+    align-items: center;
+}
+
+.no_status_public {
+	font-size: 60px;
+}
+
+.operators_public {
+	font-size: 60px;
+	font-weight: 100;
+}
+
+.umpire_name_public {
+	font-size: 60px;
+	font-weight: 100;
+}
+
+.score_public {
+	width: 550px !important;
+	max-width: 550px !important; 
+}
+
+.score_public > .match_score_current {
+	font-size: 1.82em;
 }
 
 	.match_score_current > .tablet,
@@ -275,8 +326,16 @@ match_manual_call_button,
 	background-color: #adffcb;
 }
 
+.can_check_out {
+	cursor: url('../icons/check_out.png')15 15, auto;
+}
+
 .not_checked_in {
 	background-color: #ffabab;
+}
+
+.can_check_in {
+	cursor: url('../icons/check_in.png')15 15, auto;
 }
 
 .now_playing {
@@ -311,7 +370,8 @@ match_manual_call_button,
 .service_judge,
 .no_umpire,
 .court,
-.court_history {
+.court_history,
+.court_upcoming {
 	margin: 0 0.2em -0.2em 0.2em;
 	display: inline-block;
 	width: 1.73em;
@@ -332,6 +392,10 @@ match_manual_call_button,
 	background-image: url(../icons/tablet.svg);
 }
 
+.tablet {
+	margin: -1px 0.2em -0.2em 0.2em;
+}
+
 .tablet_inline {
 	height: 1em;
 	min-height: 1em;
@@ -348,6 +412,12 @@ match_manual_call_button,
 .no_umpire,
 .match_no_umpire {
 	text-wrap: nowrap;
+}
+
+.tablet_operator {
+	display: flex;
+	flex-wrap: nowrap;
+	align-items: center;
 }
 
 .umpire {
@@ -375,7 +445,8 @@ match_manual_call_button,
 }
 
 
-.court_history {
+.court_history,
+.court_upcoming {
 	background-image: url(../icons/court_history.svg);
 	height: 1em;
 	min-height: 1em;
@@ -385,6 +456,11 @@ match_manual_call_button,
 	font-size: 1.3em;
 	margin: -0.1em 0.3em 0.1em 0.3em;
 	line-height: 100%;
+}
+
+.court_upcoming {
+	margin-left: 0;
+	margin-right: 0;
 }
 
 .highlight_0 {
@@ -417,6 +493,7 @@ match_manual_call_button,
 
 .preperation {
 	font-weight: bold;
+	text-wrap: nowrap;
 }
 
 @media print {
@@ -434,11 +511,6 @@ match_manual_call_button,
 .incomplete {
 	color: #aaaaaa;
 	font-style: italic;
-}
-
-.player {
-	color: #000000;
-	font-style: normal;
 }
 
 td.actions {
@@ -465,6 +537,8 @@ td.match_properties {
 .courts_container > table > tbody > tr > td.score {
 	width: 270px;
 }
+
+
 
 td.umpire_and_tablet{
 	width: 50px;
@@ -500,4 +574,38 @@ h3.section {
 	margin-right: 1%;
 	margin-top: 20px;
 	text-align: center;
+}
+
+.main_upcoming > div > table > tbody > .court_row:nth-of-type(even),
+.main_upcoming > div > table > tbody > tr:nth-of-type(even){
+	background-color: #222222;
+}
+
+.match_number_upcoming,
+.match_scheduled_upcoming,
+.match_event_upcoming {
+	color: #aaa;
+	text-wrap: nowrap;
+	width: 50px;
+}
+
+.court_number_upcoming {
+	width: 0px;
+}
+
+.upcoming_tbody{
+	vertical-align: middle;
+}
+
+.upcoming_tbody > tr {
+	height: 65px;
+}
+
+.upcoming_tbody > tr > td {
+	height: 100%;
+	vertical-align: inherit;
+}
+
+.complete {
+	cursor: grab;
 }

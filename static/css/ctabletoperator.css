@@ -88,12 +88,17 @@
 .unassigned_tableoperators_content {
 	height: 130px;
 	max-height: 130px;
-	width: 325px;
-	max-height: 325px;
-	overflow: auto;
 }
 
 .tabletoperator_add_custom_input {
 	width: 290px;
 }
 
+.tabletoperators_table {
+	border-collapse: collapse;
+	border: 0px solid;
+}
+
+.tabletoperators_table > tbody > tr:nth-of-type(even) {
+	background-color: #ccc;
+}

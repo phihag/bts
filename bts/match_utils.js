@@ -123,7 +123,7 @@ async function add_tabletoperators(app, tournament, match, callback) {
         if ((tournament.tabletoperator_enabled && tournament.tabletoperator_enabled == true)) {
             if (!setup.tabletoperators || setup.tabletoperators == null) {
                 const value = await fetch_tabletoperator(admin, app, tournament.key, court_id);
-                if (!setup.umpire_name || (tournament.tabletoperator_with_umpire_enabled && tournament.tabletoperator_with_umpire_enabled == true)) {
+                if (!setup.umpire || !setup.umpire.name || (tournament.tabletoperator_with_umpire_enabled && tournament.tabletoperator_with_umpire_enabled == true)) {
                     setup.tabletoperators = value;
                 }
             }
@@ -148,12 +148,12 @@ async function set_umpires_on_court(app, tournament, match, callback) {
 		return; // TODO in async we would assert both to be true
 	}
 
-	if (setup.umpire_name) {
-		update_umpire(app, tournament.key, setup.umpire_name, 'oncourt', setup.called_timestamp, court_id);
+	if (setup.umpire) {
+		update_umpire(app, tournament.key, setup.umpire, 'oncourt', setup.called_timestamp, court_id);
 	}
 
-	if (setup.service_judge_name) {
-		update_umpire(app, tournament.key, setup.service_judge_name, 'oncourt', setup.called_timestamp, court_id);
+	if (setup.service_judge) {
+		update_umpire(app, tournament.key, setup.service_judge, 'oncourt', setup.called_timestamp, court_id);
 	}
 	return callback(null);
 }
@@ -506,7 +506,7 @@ function fetch_match(app, tournament_key, match_id) {
 			if (match != null) {
 				return resolve(match)
 			} else {
-				return reject("Match cannot be fetched from DB " + match_id);
+				return reject("Match cannot be fetched from DB 111 " + match_id);
 			}
 		});
 	});
@@ -756,14 +756,14 @@ function remove_umpire_on_court(app, tournament_key, cur_match_id, end_ts, callb
 		if (err) {
 			return callback(err);
 		}
-		if (cur_match.setup.umpire_name) {
+		if (cur_match.setup.umpire) {
 		
-			update_umpire(app, tournament_key, cur_match.setup.umpire_name, 'ready', end_ts, null);
+			update_umpire(app, tournament_key, cur_match.setup.umpire, 'ready', end_ts, null);
 		}
 
-		if (cur_match.setup.service_judge_name) {
+		if (cur_match.setup.service_judge) {
 			
-			update_umpire(app, tournament_key, cur_match.setup.service_judge_name, 'ready', end_ts, null);
+			update_umpire(app, tournament_key, cur_match.setup.service_judge, 'ready', end_ts, null);
 		}
 		return callback(null);	
 
@@ -771,19 +771,19 @@ function remove_umpire_on_court(app, tournament_key, cur_match_id, end_ts, callb
 }
 
 function set_umpire_to_standby(app, tournament_key, setup) {
-	if (setup.umpire_name) {
-		update_umpire(app, tournament_key, setup.umpire_name, 'standby', null, null);
+	if (setup.umpire) {
+		update_umpire(app, tournament_key, setup.umpire, 'standby', null, null);
 	}
 
-	if (setup.service_judge_name) {
-		update_umpire(app, tournament_key, setup.service_judge_name, 'standby', null, null);
+	if (setup.service_judge) {
+		update_umpire(app, tournament_key, setup.service_judge, 'standby', null, null);
 	}
 }
 
 
 
-function update_umpire(app, tkey, umpire_name, status, last_time_on_court_ts, court_id, callback) {
-	app.db.umpires.update({ tournament_key: tkey, name: umpire_name }, { $set: { last_time_on_court_ts: last_time_on_court_ts, status: status, court_id: court_id } }, { returnUpdatedDocs: true }, function (err, numAffected, changed_umpire) {
+function update_umpire(app, tkey, umpire, status, last_time_on_court_ts, court_id, callback) {
+	app.db.umpires.update({ tournament_key: tkey, name: umpire.name }, { $set: { last_time_on_court_ts: last_time_on_court_ts, status: status, court_id: court_id } }, { returnUpdatedDocs: true }, function (err, numAffected, changed_umpire) {
 		if (err) {
 			console.error(err);
 			return;
@@ -891,7 +891,7 @@ async function call_match_in_preparation(app, tournament, match_id, setup, callb
 	const admin = require('./admin');
 
 	if (tournament.preparation_tabletoperator_setup_enabled) {
-		if (!setup.umpire_name || (tournament.tabletoperator_with_umpire_enabled && tournament.tabletoperator_with_umpire_enabled == true)) {
+		if (!setup.umpire || (tournament.tabletoperator_with_umpire_enabled && tournament.tabletoperator_with_umpire_enabled == true)) {
 			if (!setup.tabletoperators || setup.tabletoperators == null) {
 				setup.tabletoperators = await fetch_tabletoperator(admin, app, tournament_key, "prep_call");
 			}

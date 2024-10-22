@@ -108,12 +108,12 @@ async function handle_persist_display_settings(app, ws, msg) {
 	var client_court_displaysetting = await get_display_court_displaysettings(app, client_id);
 	if (client_court_displaysetting == null) {
 		setting.id = tournament_key + "_" + court_id + " _" + Date.now();
-		setting = await persist_displaysetting(app, setting);
+		setting = await persist_displaysetting(app, tournament_key, setting);
 		client_court_displaysetting = create_display_court_displaysettings(client_id, hostname, court_id, setting.id);
 		client_court_displaysetting = await persist_client_court_displaysetting(app, client_court_displaysetting);
 	} else {
 		setting.id = tournament_key + "_" + court_id + " _" + Date.now();
-		setting = await persist_displaysetting(app, setting);
+		setting = await persist_displaysetting(app, tournament_key, setting);
 		const updatevalues = {
 			court_id: court_id,
 			displaysetting_id: setting.id,
@@ -430,13 +430,14 @@ function update_client_court_displaysetting(app, client_court_displaysetting_id,
 }
 
 
-function persist_displaysetting(app, setting) {
+function persist_displaysetting(app, tournament_key, setting) {
 	setting._id = undefined;
 	return new Promise((resolve, reject) => {
 		app.db.displaysettings.insert(setting, function (err, inserted_t) {
 			if (err) {
 				reject(err);
 			}
+			admin.notify_change(app, tournament_key, 'update_display_setting', {setting: inserted_t});
 			resolve(inserted_t);
 		});
 	});
@@ -813,4 +814,6 @@ module.exports = {
 	change_display_mode,
 	change_default_display_mode,
 	add_display_status,
+	create_match_representation,
+	create_event_representation,
 };

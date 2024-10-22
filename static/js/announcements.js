@@ -111,15 +111,15 @@ function createTabletOperator(matchSetup) {
 }
 
 function createUmpire(matchSetup) {
-    if (matchSetup.umpire_name && matchSetup.umpire_name != null) {
-        return ci18n('announcements:umpire') + normalizeNames(matchSetup.umpire_name);
+    if (matchSetup.umpire && matchSetup.umpire.name && matchSetup.umpire.name != null) {
+        return ci18n('announcements:umpire') + normalizeNames(matchSetup.umpire.name);
     }
     return null;
 }
 
 function createServiceJudge(matchSetup) {
-    if (matchSetup.service_judge_name && matchSetup.service_judge_name != null) {
-        return ci18n('announcements:service_judge') + normalizeNames(matchSetup.service_judge_name);
+    if (matchSetup.serviceJudge && matchSetup.service_judge.name && matchSetup.service_judge.name != null) {
+        return ci18n('announcements:service_judge') + normalizeNames(matchSetup.service_judge.name);
     }
     return null;
 }

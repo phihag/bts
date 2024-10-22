@@ -171,7 +171,7 @@ function default_handler(rerender, special_funcs) {
 			const u = utils.find(curt.umpires, m => m._id === umpire._id);
 			if (u) {
 				u.last_time_on_court_ts = umpire.last_time_on_court_ts;
-				u.firstName = umpire.firstName;
+				u.firstname = umpire.firstname;
 				u.surname = umpire.surname;
 				u.name = umpire.name;
 				u.country = umpire.country;
@@ -194,6 +194,21 @@ function default_handler(rerender, special_funcs) {
 		case 'score':
 			change_score(c.val);
 			// Most dialogs don't show any matches, so do not rerender
+			break;
+		case 'update_display_setting':
+			const updated_setting = c.val.setting;
+			const s = utils.find(curt.displaysettings, m => m.id === updated_setting.id);
+			if(!s) {
+				curt.displaysettings.push(updated_setting);
+				curt.displaysettings.sort(utils.cmp_key('id'));
+			}
+			ctournament.update_general_displaysettings(c);
+			break;
+		case 'delete_display_setting':
+			const removed_setting_id = c.val.setting_id;
+			const rs = utils.find(curt.displaysettings, m => m.id === removed_setting_id);
+			curt.displaysettings.splice(curt.displaysettings.indexOf(rs), 1);
+			ctournament.update_general_displaysettings(c);
 			break;
 		case 'display_status_changed':
 			const display_setting = c.val.display_court_displaysetting;

@@ -16,7 +16,7 @@ var cumpires = (function() {
 			uiu.el(tr, 'td', {
 				class: 'umpires_firstname',
 				title: ci18n('umpires:btp_id', { btp_id: u.btp_id }),
-			}, u.firstName);
+			}, u.firstname);
 			uiu.el(tr, 'td', {
 				class: 'umpires_name',
 				title: ci18n('umpires:btp_id', {btp_id: u.btp_id}),

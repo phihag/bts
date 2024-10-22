@@ -159,7 +159,6 @@ var ctournament = (function() {
 	}
 	function update_match(c) {
 		const cval = c.val;
-
 		const match_id = cval.match__id;
 
 		// Find the match
@@ -194,7 +193,9 @@ var ctournament = (function() {
 			return;
 		}
 		const old_section = cmatch.calc_section(m);
-		m.network_score = cval.match.network_score;
+		if(cval.match.network_score) {
+			m.network_score = cval.match.network_score;
+		}
 		m.presses = cval.match.presses;
 		m.team1_won = cval.match.team1_won;
 		m.shuttle_count = cval.match.shuttle_count;
@@ -202,8 +203,6 @@ var ctournament = (function() {
 		m.btp_winner = cval.match.btp_winner;
 		const new_section = cmatch.calc_section(m);
 		cmatch.update_match(m, old_section, new_section);
-
-		console.log(new_section);
 
 		if (old_section != new_section || new_section == 'unassigned') {
 			uiu.qsEach('.upcoming_container', (upcoming_container) => {
@@ -274,6 +273,11 @@ var ctournament = (function() {
 		_show_render_tabletoperators();
 
 	}
+
+	function _update_all_ui_elements_edit() {
+		update_general_displaysettings(uiu.qs('.general_displaysettings'));
+	}
+
 	function _update_all_ui_elements_upcoming() {
 		cmatch.render_courts(uiu.qs('.courts_container'), 'public');
 		cmatch.render_upcoming_matches(uiu.qs('.upcoming_container'));
@@ -291,6 +295,7 @@ var ctournament = (function() {
 	function _show_render_umpires() {
 		cumpires.ui_status(uiu.qs('.umpire_container'));
 	}
+
 
 
 	function ui_btp_fetch() {
@@ -981,10 +986,15 @@ var ctournament = (function() {
 
 		
 		render_courts(main);
+
+		const general_displaysettings_div = uiu.el(main, 'div', 'general_displaysettings');
+		render_general_displaysettings(general_displaysettings_div);
 		render_displaysettings(main);
 		render_normalisation_values(uiu.el(main, 'div','normalizations_values_div'));
 	}
-	_route_single(/t\/([a-z0-9]+)\/edit$/, ui_edit);
+	_route_single(/t\/([a-z0-9]+)\/edit$/, ui_edit, change.default_handler(_update_all_ui_elements_edit, {
+		update_general_displaysettings: update_general_displaysettings,
+	}));
 
 	function render_normalisation_values(main) {
 		uiu.el(main, 'h2', {}, ci18n('tournament:edit:normalizations'));
@@ -1074,10 +1084,65 @@ var ctournament = (function() {
 		}
 	}
 
-	function render_displaysettings(main) {
-		uiu.el(main, 'h2', {}, ci18n('tournament:edit:displays'));
+	function render_general_displaysettings(main) {
+		uiu.el(main, 'h2', {}, ci18n('tournament:edit:general_displaysettings'));
+		const display_settings_table = uiu.el(main, 'table');
+		const display_settings_tbody = uiu.el(display_settings_table, 'tbody');
+		const tr = uiu.el(display_settings_tbody, 'tr');
+		uiu.el(tr, 'th', {}, ci18n('tournament:edit:displays:setting'));
+		uiu.el(tr, 'td', {}, ci18n('tournament:edit:displays:description'));
 
-		const display_table = uiu.el(main, 'table');
+		for (const s of curt.displaysettings) {
+			const tr = uiu.el(display_settings_tbody, 'tr');
+			uiu.el(tr, 'th', {}, s.id);
+			const description_td = uiu.el(tr, 'td', {}, '40" Fernseher (Platzhalter)');
+			const actions_td = uiu.el(tr, 'td', {});
+			const edit_btn = uiu.el(actions_td, 'button', {
+				'data-display-setting-id': s.id,
+			}, 'Edit');
+
+			edit_btn.addEventListener('click', (e) => {
+				const edt_btn = e.target;
+				const display_setting_id = edt_btn.getAttribute('data-display-setting-id');
+				
+			});
+
+
+			const delete_btn = uiu.el(actions_td, 'button', {
+				'data-display-setting-id': s.id,
+			}, 'Delete');
+
+
+
+			delete_btn.addEventListener('click', (e) => {
+				const del_btn = e.target;
+				const setting_id = del_btn.getAttribute('data-display-setting-id');
+
+				send({
+					type: 'delete_display_setting',
+					tournament_key: curt.key,
+					setting_id: setting_id,
+				}, err => {
+					if (err) {
+						return cerror.net(err);
+					}
+				});
+			});
+
+		}
+	}
+
+	function update_general_displaysettings(c)
+	{
+		const general_displaysettings_div = uiu.qs('.general_displaysettings')
+		general_displaysettings_div.innerHTML = '';
+		render_general_displaysettings(general_displaysettings_div);
+	}
+
+	function render_displaysettings(general_displaysettings_div) {
+		uiu.el(general_displaysettings_div, 'h2', {}, ci18n('tournament:edit:displays'));
+
+		const display_table = uiu.el(general_displaysettings_div, 'table');
 		const display_tbody = uiu.el(display_table, 'tbody');
 		const tr = uiu.el(display_tbody, 'tr');
 		uiu.el(tr, 'th', {}, ci18n('tournament:edit:displays:num'));
@@ -1349,6 +1414,7 @@ var ctournament = (function() {
 		score: update_score,
 		court_current_match: update_upcoming_current_match,
 		match_edit: update_upcoming_match,
+		update_player_status: update_player_status, 
 	}));
 
 
@@ -1533,7 +1599,7 @@ var ctournament = (function() {
 		bts_status_changed,
 		remove_normalization,
 		add_normalization,
-		
+		update_general_displaysettings,
 	};
 
 })();

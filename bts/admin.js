@@ -241,8 +241,9 @@ function _extract_setup(msg_setup) {
 		'match_name',
 		'match_num',
 		'now_on_court',
-		'umpire_name',
+		'umpire',
 		'service_judge_name',
+		'service_judge',
 		'highlight',
 		'is_doubles',
 		'is_match',
@@ -506,7 +507,7 @@ function handle_match_call_on_court(app, ws, msg) {
 					return;
 				});
 			}else {
-				return ws.respond(msg, "Match cannot be fetched from DB " + msg.match_id);
+				return ws.respond(msg, "Match cannot be fetched from DB 222 " + msg.match_id);
 			}
 		});
 	});
@@ -556,7 +557,7 @@ function handle_match_edit(app, ws, msg) {
 					return;
 				}
 
-				notify_change(app, tournament_key, 'match_edit', {match__id: msg.id, changed_match});
+				notify_change(app, tournament_key, 'match_edit', {match__id: msg.id, match: changed_match});
 				if (msg.btp_update) {
 					btp_manager.update_score(app, changed_match);
 				}
@@ -605,11 +606,13 @@ function handle_match_player_check_in (app, ws, msg) {
 		if (err) {
 			return ws.respond(msg, err);
 		}
+		
 
 		app.db.matches.findOne({tournament_key: msg.tournament_key, _id: msg.match_id}, async (err, match) => {
 			if (err) {
 				return ws.respond(msg, err);
 			}
+			
 
 			for(const team of match.setup.teams) {
 				for(const player of team.players) {
@@ -618,6 +621,8 @@ function handle_match_player_check_in (app, ws, msg) {
 					}
 				}
 			}
+
+
 
 			match_utils.match_update(app, match, (err) => {
 				ws.respond(msg, err);
@@ -722,6 +727,24 @@ function handle_reset_display(app, ws, msg) {
 	ws.respond("Angekommen: " + client_id);
 }
 
+async function async_handle_delete_display_setting(app, ws, msg) {
+	const tournament_key = msg.tournament_key;
+	const setting_id = msg.setting_id;
+	const display = await app.db.display_court_displaysettings.findOne_async({displaysetting_id:setting_id});
+	
+	if(display) {
+		ws.respond(msg, {message: `Could not delete displaysetting ${msg.setting_id} while in use`});
+		return;
+	}
+	const query_remove = {id: setting_id};
+	app.db.displaysettings.remove(query_remove, {}, (err) => {
+		notify_change(app, tournament_key, 'delete_display_setting', setting_id);
+	});
+	
+	ws.respond("Angekommen: " + setting_id);
+}
+
+
 function handle_relocate_display(app, ws, msg) {
 	const tournament_key = msg.tournament_key;
 	const client_id = msg.display_setting_id;
@@ -736,6 +759,7 @@ function handle_change_display_mode(app, ws, msg) {
 	const new_displaysettings_id = msg.new_displaysettings_id;
 	const bupws = require('./bupws');
 	bupws.change_display_mode(app, tournament_key, client_id, new_displaysettings_id);
+	notify_change(app, tournament_key, 'update_general_displaysettings', {});
 	ws.respond("Angekommen: " + client_id);
 }
 
@@ -900,6 +924,7 @@ async function async_handle_tournament_upload_logo(app, ws, msg) {
 }
 
 module.exports = {
+	async_handle_delete_display_setting,
 	async_handle_match_delete,
 	async_handle_tournament_upload_logo,
 	handle_begin_to_play_call,
