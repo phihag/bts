@@ -96,7 +96,7 @@ function create_app(config, db) {
 	app.use('/u(:courtnum)?', shortcuts.umpire_handler);
 
 	app.use(body_parser.json());
-	app.get('/h/:tournament_key/C:logo_id', http_api.logo_handler);
+	app.get('/h/:tournament_key/logo/:logo_id', http_api.logo_handler);
 
 	var server = null;
 	if (config.enable_https) {
