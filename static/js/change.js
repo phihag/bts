@@ -213,6 +213,7 @@ function default_handler(rerender, special_funcs) {
 			if (laststatus != d.online) {
 				cerror.silent('Display ' + display_setting.client_id + ' is ' + (display_setting.online ? 'online' : 'offline'));
 			}
+			ctournament.update_display(d);
 			break;
 		default:
 			cerror.silent('Unsupported change type ' + c.ctype);
