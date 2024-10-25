@@ -3,6 +3,7 @@
 const assert = require('assert');
 const path = require('path');
 const utils = require('./utils');
+const bupws = require('./bupws');
 
 function logo_handler(req, res) {
 	const {tournament_key, logo_id} = req.params;
@@ -24,6 +25,68 @@ function logo_handler(req, res) {
 	res.sendFile(fn);
 }
 
+function matchinfo_handler(req, res) {
+	const tournament_key = req.params.tournament_key;
+	const match_id = req.params.match_id;
+
+	const query = {
+		tournament_key,
+		_id: match_id,
+	};
+
+	req.app.db.fetch_all([{
+		collection: 'tournaments',
+		query: {key: tournament_key},
+	}, {
+		collection: 'matches',
+		query,
+	}], function(err, tournaments, matches) {
+		if (err) {
+			res.json({
+				status: 'error',
+				message: err.message,
+			});
+			return;
+		}
+
+		if (tournaments.length !== 1) {
+			res.json({
+				status: 'error',
+				message: 'Cannot find tournament',
+			});
+			return;
+		}
+
+		if (matches.length !== 1) {
+			res.json({
+				status: 'error',
+				message: 'Cannot find match',
+			});
+			return;
+		}
+
+		const [tournament] = tournaments;
+		const [match] = matches;
+		const event = bupws.create_event_representation(tournament);
+		const match_repr = bupws.create_match_representation(tournament, match);
+		if (match_repr.presses_json) {
+			// Parse JSON-in-JSON (for performance reasons) for nicer output
+			match_repr.presses = JSON.parse(match_repr.presses_json);
+			delete match_repr.presses_json;
+		}
+		event.matches = [match_repr];
+
+		const reply = {
+			status: 'ok',
+			event,
+		};
+		res.header('Content-Type', 'application/json');
+        res.send(JSON.stringify(reply, null, 4));
+	});
+}
+
+
 module.exports = {
-	logo_handler
+	logo_handler,
+	matchinfo_handler
 };
