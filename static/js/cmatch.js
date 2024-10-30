@@ -1158,6 +1158,14 @@ function _update_setup(setup, d) {
 	result.court_id           = d.court_id;
 	result.now_on_court       = !! d.now_on_court;
 
+	if(!d.umpire_name) {
+		delete result.umpire;
+	}
+
+	if(!d.service_judge_name) {
+		delete result.service_judge;
+	}
+
 	for (const u of curt.umpires) {
 		if (u.name === d.umpire_name) {
 			result.umpire = u;
