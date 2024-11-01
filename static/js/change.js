@@ -62,6 +62,7 @@ function default_handler(rerender, special_funcs) {
 				'is_team', 'is_nation_competition',
 				'btp_enabled', 'btp_autofetch_enabled', 'btp_readonly',
 				'ticker_enabled', 'tabletoperator_enabled', 'tabletoperator_with_state_enabled',
+				'tabletoperator_with_state_from_match_enabled',
 				'tabletoperator_winner_of_quaterfinals_enabled', 'tabletoperator_split_doubles',
 				'tabletoperator_set_break_after_tabletservice', 'tabletoperator_break_seconds',
 				'announcement_speed', 'announcement_pause_time_ms',

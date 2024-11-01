@@ -74,6 +74,7 @@ function handle_tournament_edit_props(app, ws, msg) {
 		'tabletoperator_enabled', 'tabletoperator_break_seconds',
 		'announcement_speed','announcement_pause_time_ms',
 		'tabletoperator_set_break_after_tabletservice','tabletoperator_with_state_enabled',
+		'tabletoperator_with_state_from_match_enabled',
 		'tabletoperator_winner_of_quaterfinals_enabled','tabletoperator_split_doubles',
 		'tabletoperator_use_manual_counting_boards_enabled', 'tabletoperator_with_umpire_enabled', 
 		'annoncement_include_event', 'annoncement_include_round','annoncement_include_matchnumber',
