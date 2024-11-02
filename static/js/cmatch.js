@@ -455,12 +455,12 @@ function render_match_row(tr, match, court, style, show_player_status, show_add_
 		}
 	}
 
-	if (style === 'default' || style === 'unasigned') {
+	if (style === 'default' || style === 'plain' || style === 'unasigned') {
 		const call_td = uiu.el(tr, 'td', 'call_td');
 
 		if (style === 'unasigned' && completeMatch) {
 			create_match_button(call_td, 'vlink match_preparation_call_button', 'match:preparationcall', on_announce_preparation_matchbutton_click, match._id);
-		} else if (style === 'default' && court) {
+		} else if ((style === 'default' || style === 'plain') && court) {
 			create_match_button(call_td, 'vlink match_manual_call_button', 'match:manualcall', on_announce_match_manually_button_click, match._id);
 			create_match_button(call_td, 'vlink match_begin_to_play_button', 'match:begintoplay', on_begin_to_play_button_click, match._id);
 		}
