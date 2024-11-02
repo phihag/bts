@@ -242,9 +242,7 @@ async function handle_score_update(app, ws, msg) {
 				return cb(new Error('Cannot find match ' + JSON.stringify(match)));
 			}
 			if (finish_confirmed && match.team1_won != undefined && match.team1_won != null) {
-				match_utils.call_preparation_match_on_court(app, tournament_key, match.setup.court_id, (err) => {
-
-				});
+				const next_match = match_utils.call_preparation_match_on_court(app, tournament_key, match.setup.court_id);
 			}
 			return cb(null, match, changed_court);
 		},

@@ -793,30 +793,49 @@ function update_umpire(app, tkey, umpire, status, last_time_on_court_ts, court_i
 	});
 }
 
-async function call_preparation_match_on_court(app, tournament_key, court_id, callback) {	
-	app.db.tournaments.findOne({ key: tournament_key }, async (err, tournament) => {
-		if (err) {
-			return callback("No tournament found for ");
-		}
-		if (tournament.call_preparation_matches_automatically_enabled) {
-			const match_querry = { 'tournament_key': tournament_key, 'setup.highlight': 6 };
-			app.db.matches.find(match_querry).sort({ 'setup.preparation_call_timestamp': 1 }).exec((err, matches) => {
-				if (err) {
-					return callback(msg, err);
-				}
-				if (matches && matches.length > 0) {
-					const next_match = matches[0];
-					next_match.setup.court_id = court_id;
-					next_match.setup.now_on_court = true;
-					call_match(app, tournament, next_match, callback);
+function serialized_call_preparation_match_on_court(fn) {
+	let queue = Promise.resolve();
+	return (...args) => {
+		const res = queue.then(() => fn(...args));
+		queue = res.catch(() => { });
+		return res;
+	}
+}
 
-				} else {
-					return callback("No match found to call on court.");
-				}
-			});
-		} else {
-			return callback(null);
-		}
+const call_preparation_match_on_court = serialized_call_preparation_match_on_court(call_preparation_match_on_court_async);
+
+function call_preparation_match_on_court_async(app, tournament_key, court_id) {
+	return new Promise((resolve, reject) => {
+		app.db.tournaments.findOne({ key: tournament_key }, async (err, tournament) => {
+			if (err) {
+				return reject("No tournament found for ");
+			}
+			if (tournament.call_preparation_matches_automatically_enabled) {
+				const match_querry = { 'tournament_key': tournament_key, 'setup.highlight': 6 };
+				app.db.matches.find(match_querry).sort({ 'setup.preparation_call_timestamp': 1 }).exec((err, matches) => {
+					if (err) {
+						return reject(msg, err);
+					}
+					if (matches && matches.length > 0) {
+						const next_match = matches[0];
+						next_match.setup.court_id = court_id;
+						next_match.setup.now_on_court = true;
+						call_match(app, tournament, next_match, (err) => {
+							if (err) {
+								return reject(err);
+							} else {
+								return resolve(next_match);
+							}
+						});
+
+					} else {
+						return reject("No match found to call on court.");
+					}
+				});
+			} else {
+				return reject(null);
+			}
+		});
 	});
 }
 
