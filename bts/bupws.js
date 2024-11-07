@@ -8,7 +8,9 @@ const cp = require('child_process');
 const os = require('os');
 
 const btp_manager = require('./btp_manager');
+const btp_conn = require('./btp_conn');
 const ticker_manager = require('./ticker_manager');
+const update_queue = require('./update_queue');
 const stournament = require('./stournament');
 const all_panels = [];
 
@@ -155,7 +157,8 @@ async function handle_score_update(app, ws, msg) {
 			update.btp_winner = (update.team1_won === true) ? 1 : 2;
 		update.btp_needsync = true;
 		update["setup.now_on_court"] = false;
-		match_utils.reset_player_tabletoperator(app, tournament_key, match_id, update.end_ts);
+
+		await update_queue.instance().execute(match_utils.reset_player_tabletoperator,app, tournament_key, match_id, update.end_ts);
 	}
 
 	if (score_data.shuttle_count) {
@@ -242,7 +245,7 @@ async function handle_score_update(app, ws, msg) {
 				return cb(new Error('Cannot find match ' + JSON.stringify(match)));
 			}
 			if (finish_confirmed && match.team1_won != undefined && match.team1_won != null) {
-				const next_match = match_utils.call_preparation_match_on_court(app, tournament_key, match.setup.court_id);
+				const next_match = update_queue.instance().execute(match_utils.call_preparation_match_on_court,app, tournament_key, match.setup.court_id);
 			}
 			return cb(null, match, changed_court);
 		},

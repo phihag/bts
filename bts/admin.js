@@ -7,6 +7,7 @@ const uuidv4 = require('uuid/v4');
 const {promisify} = require('util');
 
 const btp_manager = require('./btp_manager');
+const update_queue = require('./update_queue');
 const serror = require('./serror');
 const stournament = require('./stournament');
 const ticker_manager = require('./ticker_manager');
@@ -487,7 +488,6 @@ function handle_tabletoperator_add(app, ws, msg) {
 }
 
 function handle_match_call_on_court(app, ws, msg) {
-	const match_utils = require('./match_utils');
 	if (!_require_msg(ws, msg, ['tournament_key', 'court_id', 'match_id'])) {
 		return;
 	}
@@ -495,23 +495,36 @@ function handle_match_call_on_court(app, ws, msg) {
 		if (err) {
 			return ws.respond(msg, err);
 		}
-		app.db.matches.findOne({tournament_key: msg.tournament_key, _id: msg.match_id}, async (err, match) => {
+		const result = await update_queue.instance().execute(process_match,app, msg, tournament);
+		ws.respond(msg, result);
+	});
+
+}
+
+
+function process_match(app, msg, tournament) {
+	return new Promise((resolve, reject) => {
+		const match_utils = require('./match_utils');
+		app.db.matches.findOne({ tournament_key: msg.tournament_key, _id: msg.match_id }, async (err, match) => {
 			if (err) {
-				return ws.respond(msg, err);
+				reject(err);
+				return;
 			}
 			if (match != null) {
 				match.setup.court_id = msg.court_id;
 				match.setup.now_on_court = true;
 				match_utils.call_match(app, tournament, match, (err, updated_match) => {
-					ws.respond(msg, err);
-					return;
+					if (err) {
+						reject(err);
+					} else {
+						resolve(updated_match);
+					}
 				});
-			}else {
-				return ws.respond(msg, "Match cannot be fetched from DB 222 " + msg.match_id);
+			} else {
+				reject(new Error("Match cannot be fetched from DB 222 " + msg.match_id));
 			}
 		});
 	});
-
 }
 
 function handle_match_edit(app, ws, msg) {

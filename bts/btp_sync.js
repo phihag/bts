@@ -998,30 +998,38 @@ async function integrate_now_on_court(app, tkey, callback) {
 }
 
 
-function fetch(app, tkey, response, callback) {
-	let btp_state;
-	try {
-		btp_state = btp_parse.get_btp_state(response);
-	} catch (e) {
-		return callback(e);
-	}
+async function sync_btp_data(app, tkey, response) {
+	return new Promise((resolve, reject) => {
+		let btp_state;
+		try {
+			btp_state = btp_parse.get_btp_state(response);
+		} catch (e) {
+			return reject(e);
+		}
 
-	async.waterfall([
-		cb => integrate_btp_settings(app, tkey, btp_state, cb),
-		cb => integrate_player_state(app, tkey, btp_state, cb),
-		cb => integrate_umpires(app, tkey, btp_state, cb),
-		cb => integrate_courts(app, tkey, btp_state, cb),
-		(court_map, cb) => integrate_matches(app, tkey, btp_state, court_map, cb),
-		cb => integrate_now_on_court(app, tkey, cb),
-		cb => cleanup_entities(app, tkey, btp_state, cb),
-	], callback);
+		async.waterfall([
+			cb => integrate_btp_settings(app, tkey, btp_state, cb),
+			cb => integrate_player_state(app, tkey, btp_state, cb),
+			cb => integrate_umpires(app, tkey, btp_state, cb),
+			cb => integrate_courts(app, tkey, btp_state, cb),
+			(court_map, cb) => integrate_matches(app, tkey, btp_state, court_map, cb),
+			cb => integrate_now_on_court(app, tkey, cb),
+			cb => cleanup_entities(app, tkey, btp_state, cb),
+		], (err) => {
+			if (err) {
+				return reject(err);
+			} else {
+				return resolve(true);
+			}
+		});
+	});
 }
 
 module.exports = {
 	calculate_match_ids_on_court,
 	craft_match,
 	date_str,
-	fetch,
+	sync_btp_data,
 	time_str,
 	// test only
 	_integrate_umpires: integrate_umpires,

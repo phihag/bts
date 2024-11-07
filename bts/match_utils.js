@@ -793,18 +793,8 @@ function update_umpire(app, tkey, umpire, status, last_time_on_court_ts, court_i
 	});
 }
 
-function serialized_call_preparation_match_on_court(fn) {
-	let queue = Promise.resolve();
-	return (...args) => {
-		const res = queue.then(() => fn(...args));
-		queue = res.catch(() => { });
-		return res;
-	}
-}
 
-const call_preparation_match_on_court = serialized_call_preparation_match_on_court(call_preparation_match_on_court_async);
-
-function call_preparation_match_on_court_async(app, tournament_key, court_id) {
+function call_preparation_match_on_court(app, tournament_key, court_id) {
 	return new Promise((resolve, reject) => {
 		app.db.tournaments.findOne({ key: tournament_key }, async (err, tournament) => {
 			if (err) {
@@ -833,7 +823,7 @@ function call_preparation_match_on_court_async(app, tournament_key, court_id) {
 					}
 				});
 			} else {
-				return reject(null);
+				return resolve("Function call_preparation_matches_automatically_enabled disabled");
 			}
 		});
 	});

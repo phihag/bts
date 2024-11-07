@@ -7,6 +7,7 @@ const async = require('async');
 
 const btp_proto = require('./btp_proto');
 const btp_sync = require('./btp_sync');
+const update_queue = require('./update_queue');
 const serror = require('./serror');
 
 const AUTOFETCH_TIMEOUT = 30000;
@@ -14,6 +15,7 @@ const CONNECT_TIMEOUT = 5000;
 const WAIT_TIMEOUT = 10000;
 const BTP_PORT = 9901;
 const BLP_PORT = 9911;
+
 
 function send_raw_request(ip, port, raw_req, callback) {
 	assert(callback);
@@ -117,12 +119,7 @@ class BTPConn {
 	fetch() {
 		const ir = btp_proto.get_info_request(this.password);
 		this.send(ir, response => {
-			btp_sync.fetch(this.app, this.tkey, response, (err) => {
-				if (err) {
-					this.report_status('error','Synchronisations-Fehler: ' + err.stack);
-					console.error(err.stack);
-				}
-			});
+			update_queue.instance().execute(btp_sync.sync_btp_data,this.app, this.tkey, response);
 		});
 	}
 
