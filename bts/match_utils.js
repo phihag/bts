@@ -414,27 +414,28 @@ function add_player_to_tabletoperator_list(app, tournament_key, cur_match_id, en
 		if ((tournament.tabletoperator_enabled && tournament.tabletoperator_enabled == true)) {
 			app.db.matches.findOne({ 'tournament_key': tournament_key, '_id': cur_match_id }, (err, cur_match) => {
 				if (err) {
-					return reject(err);
+					return callback(err);
 				}
-				add_player_to_tabletoperator_list_by_match(app, tournament, tournament_key, cur_match, end_ts)
+				add_player_to_tabletoperator_list_by_match(app, tournament, tournament_key, cur_match, end_ts, callback)
 			});
+		} else {
+			return callback(null);
 		}
-		return callback(null);
 	});
 }
 
-function add_player_to_tabletoperator_list_by_match(app, tournament, tournament_key, cur_match, end_ts) {
+function add_player_to_tabletoperator_list_by_match(app, tournament, tournament_key, cur_match, end_ts, callback) {
 	if (cur_match.network_score) {
 		// walkovers and retirements will not be recorgnized.
 		app.db.tabletoperators.findOne({ 'tournament_key': tournament_key, 'match_id': cur_match._id }, (err, no_tabletoperator) => {
 			if (err) {
-				return reject(err);
+				return callback(err);
 			}
 			if (no_tabletoperator == null) {
 				const round = cur_match.setup.match_name;
 				var team = null;
 
-				if (tournament.tabletoperator_winner_of_quaterfinals_enabled && (round == 'VF' || round == 'QF')) { 
+				if (tournament.tabletoperator_winner_of_quaterfinals_enabled && (round == 'VF' || round == 'QF')) {
 					team = cur_match.setup.teams[cur_match.btp_winner - 1];
 				} else {
 					const index = cur_match.btp_winner % 2;
@@ -450,11 +451,11 @@ function add_player_to_tabletoperator_list_by_match(app, tournament, tournament_
 							var toinsert = player
 							if (tournament.tabletoperator_with_state_enabled && player.state) {
 								toinsert = create_team_from_player_state(player);
-							} 
+							}
 							var newTeam = {
 								players: [toinsert]
 							};
-							teams.push(newTeam); 
+							teams.push(newTeam);
 						}
 					} else {
 						var toinsert = team;
@@ -463,9 +464,10 @@ function add_player_to_tabletoperator_list_by_match(app, tournament, tournament_
 								players: [create_team_from_player_state(team.players[0])]
 							};
 						}
-						teams.push(toinsert); 
+						teams.push(toinsert);
 					}
 
+					var i = 0;
 					for (const t of teams) {
 						var tabletoperator = [];
 						t.players.forEach((player) => {
@@ -484,17 +486,25 @@ function add_player_to_tabletoperator_list_by_match(app, tournament, tournament_
 
 						app.db.tabletoperators.insert(new_tabletoperator, function (err, inserted_t) {
 							if (err) {
-								ws.respond(msg, err);
-								return;
+								return callback(err);
 							}
 							const admin = require('./admin'); // avoid dependency cycle
 							admin.notify_change(app, tournament_key, 'tabletoperator_add', { tabletoperator: inserted_t });
+							if (i == teams.length - 1) {
+								callback(null);
+							}
+							i++;
 						});
 					}
-
+				} else {
+					return callback(null);
 				}
+			} else {
+				return callback(null);
 			}
 		});
+	} else {
+		return callback(null);
 	}
 }
 function fetch_match(app, tournament_key, match_id) {
@@ -963,15 +973,18 @@ function update_btp_courts(app, tournament_key, match, callback) {
 	});
 }
 function reset_player_tabletoperator(app, tournament_key, match_id, end_ts) {
-	async.waterfall([
-		cb => remove_player_on_court(app, tournament_key, match_id, end_ts, cb),
-		cb => remove_tablet_on_court(app, tournament_key, match_id, end_ts, cb),
-		cb => remove_umpire_on_court(app, tournament_key, match_id, end_ts, cb),
-		cb => add_player_to_tabletoperator_list(app, tournament_key, match_id, end_ts, cb)
-	], function (err) {
-		if (err) {
-			return;
-		}
+	return new Promise((resolve, reject) => {
+		async.waterfall([
+			cb => remove_player_on_court(app, tournament_key, match_id, end_ts, cb),
+			cb => remove_tablet_on_court(app, tournament_key, match_id, end_ts, cb),
+			cb => remove_umpire_on_court(app, tournament_key, match_id, end_ts, cb),
+			cb => add_player_to_tabletoperator_list(app, tournament_key, match_id, end_ts, cb)
+		], function (err) {
+			if (err) {
+				return reject(err);
+			}
+			return resolve(null);
+		});
 	});
 }
 

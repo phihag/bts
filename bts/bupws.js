@@ -157,8 +157,6 @@ async function handle_score_update(app, ws, msg) {
 			update.btp_winner = (update.team1_won === true) ? 1 : 2;
 		update.btp_needsync = true;
 		update["setup.now_on_court"] = false;
-
-		await update_queue.instance().execute(match_utils.reset_player_tabletoperator,app, tournament_key, match_id, update.end_ts);
 	}
 
 	if (score_data.shuttle_count) {
@@ -188,6 +186,25 @@ async function handle_score_update(app, ws, msg) {
 				});
 			}
 			cb(null, match);
+		},
+		(match, cb) => {
+			if (match) {
+				if (finish_confirmed) {
+					update_queue.instance().execute(match_utils.reset_player_tabletoperator, app, tournament_key, match_id, update.end_ts)
+						.then(() => {
+							cb(null, match);
+						})
+						.catch((err) => {
+							console.error("Error in reset_player_tabletoperator:", err);
+							cb(null, match);
+						});
+
+				} else {
+					cb(null, match);
+				}
+			} else {
+				cb(null, match);
+			}
 		},
 		(match, cb) => db.courts.findOne(court_q, (err, court) => cb(err, match, court)),
 		(match, court, cb) => {
