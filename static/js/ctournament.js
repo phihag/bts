@@ -35,7 +35,7 @@ var ctournament = (function() {
 
 		uiu.empty(main);
 		const form = uiu.el(main, 'form');
-		uiu.el(form, 'h2', {}, ci18n('Create tournament'));
+		uiu.el(form, 'h2', 'edit', ci18n('Create tournament'));
 		const id_label = uiu.el(form, 'label', {}, ci18n('create:id:label'));
 		const key_input = uiu.el(id_label, 'input', {
 			type: 'text',
@@ -733,13 +733,13 @@ var ctournament = (function() {
 		};
 
 		const bts_fieldset = uiu.el(form, 'fieldset');
-		uiu.el(bts_fieldset, 'h2', {}, ci18n('tournament:edit:bts'));
+		uiu.el(bts_fieldset, 'h2', 'edit', ci18n('tournament:edit:bts'));
 		create_checkbox(curt, bts_fieldset, 'call_preparation_matches_automatically_enabled');
 		create_checkbox(curt, bts_fieldset, 'call_next_possible_scheduled_match_in_preparation');
 		
 		// BTP
 		const btp_fieldset = uiu.el(form, 'fieldset');
-		uiu.el(btp_fieldset, 'h2', {}, ci18n('tournament:edit:btp'));
+		uiu.el(btp_fieldset, 'h2', 'edit', ci18n('tournament:edit:btp'));
 		const btp_enabled_label = uiu.el(btp_fieldset, 'label');
 		const ba_attrs = {
 			type: 'checkbox',
@@ -814,7 +814,7 @@ var ctournament = (function() {
 
 		// Ticker
 		const ticker_fieldset = uiu.el(form, 'fieldset');
-		uiu.el(ticker_fieldset, 'h2', {}, ci18n('tournament:edit:ticker'));
+		uiu.el(ticker_fieldset, 'h2', 'edit', ci18n('tournament:edit:ticker'));
 		const ticker_enabled_label = uiu.el(ticker_fieldset, 'label');
 		const te_attrs = {
 			type: 'checkbox',
@@ -845,7 +845,7 @@ var ctournament = (function() {
 
 
 		const tablet_fieldset = uiu.el(form, 'fieldset');
-		uiu.el(tablet_fieldset, 'h2', {}, ci18n('tournament:edit:tablets'));
+		uiu.el(tablet_fieldset, 'h2', 'edit', ci18n('tournament:edit:tablets'));
 		create_checkbox(curt, tablet_fieldset, 'tabletoperator_enabled');
 		create_checkbox(curt, tablet_fieldset, 'tabletoperator_with_umpire_enabled');
 		create_checkbox(curt, tablet_fieldset, 'tabletoperator_winner_of_quaterfinals_enabled');
@@ -937,7 +937,7 @@ var ctournament = (function() {
 			uiu.el(logo_preview_container, 'div', {}, 'Court 42');
 		}
 
-		uiu.el(main, 'h2', {}, ci18n('tournament:edit:logo'));
+		uiu.el(main, 'h2', 'edit', ci18n('tournament:edit:logo'));
 		const logo_form = uiu.el(main, 'form');
 		const logo_button = uiu.el(logo_form, 'input', {
 			type: 'file',
@@ -997,7 +997,7 @@ var ctournament = (function() {
 	}));
 
 	function render_normalisation_values(main) {
-		uiu.el(main, 'h2', {}, ci18n('tournament:edit:normalizations'));
+		uiu.el(main, 'h2','edit', ci18n('tournament:edit:normalizations'));
 
 		const display_table = uiu.el(main, 'table');
 		const display_tbody = uiu.el(display_table, 'tbody');
@@ -1085,7 +1085,7 @@ var ctournament = (function() {
 	}
 
 	function render_general_displaysettings(main) {
-		uiu.el(main, 'h2', {}, ci18n('tournament:edit:general_displaysettings'));
+		uiu.el(main, 'h2',  'edit', ci18n('tournament:edit:general_displaysettings'));
 		const display_settings_table = uiu.el(main, 'table');
 		const display_settings_tbody = uiu.el(display_settings_table, 'tbody');
 		const tr = uiu.el(display_settings_tbody, 'tr');
@@ -1140,7 +1140,7 @@ var ctournament = (function() {
 	}
 
 	function render_displaysettings(general_displaysettings_div) {
-		uiu.el(general_displaysettings_div, 'h2', {}, ci18n('tournament:edit:displays'));
+		uiu.el(general_displaysettings_div, 'h2', 'edit', ci18n('tournament:edit:displays'));
 
 		const display_table = uiu.el(general_displaysettings_div, 'table');
 		const display_tbody = uiu.el(display_table, 'tbody');
@@ -1197,7 +1197,7 @@ var ctournament = (function() {
 		});
 	}
 	function render_courts(main) {
-		uiu.el(main, 'h2', {}, ci18n('tournament:edit:courts'));
+		uiu.el(main, 'h2', 'edit', ci18n('tournament:edit:courts'));
 
 		const courts_table = uiu.el(main, 'table');
 		const courts_tbody = uiu.el(courts_table, 'tbody');
