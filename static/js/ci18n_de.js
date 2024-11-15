@@ -82,6 +82,21 @@ var ci18n_de = {
 	'announcements:lang': 'de-DE',
 	'tournament:edit:add': 'Hinzufügen',
 	'tournament:edit:delete':'Löschen',
+	
+
+	'tournament:edit:tournament': 'Turnier:',
+	'tournament:edit:tournament_flow': 'Turnier-Ablauf:',
+	'tournament:edit:ticker_connection': 'Ticker-Verbindung:',
+	'tournament:edit:btp_connection': 'BTP-Verbindung:',
+	'tournament:edit:devices': 'Verbundene Geräte:',
+	'tournament:edit:calls': 'Aufrufe:',
+	'tournament:edit:location': 'Spielort:',
+	'tournament:edit': 'Einstellungen Verwalten:',
+	'tournament:edit:save': 'Speichern',
+	'tournament:edit:save_and_back': 'Speichern und zur Turnierübersicht',
+
+
+	'tournament:edit:tournament:type': 'Turnier-Typ:',
 	'tournament:edit:id': 'Turnier-ID:',
 	'tournament:edit:language': 'Sprache:',
 	'tournament:edit:language:auto': 'Nicht gesetzt (Browser-Einstellung)',

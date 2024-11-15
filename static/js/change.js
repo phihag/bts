@@ -32,6 +32,8 @@ function default_handler(rerender, special_funcs) {
 			announce([c.val.text]);
 			break;
 		case 'props': {
+			console.log(c.val);
+			
 			curt.name = c.val.name;
 			curt.is_team = c.val.is_team;
 			curt.tguid = c.val.tguid;
