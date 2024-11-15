@@ -901,7 +901,7 @@ function _extract_player_timer_state(player) {
 	s.settings.negative_timers = false;
 	s.lang = "de";
 	s.timer = {};
-	s.timer.duration = curt.btp_settings.pause_duration_ms;
+	s.timer.duration = (curt &&  curt.btp_settings && curt.btp_settings.pause_duration_ms) ? curt.btp_settings.pause_duration_ms : 0;
 	s.timer.start = (player.last_time_on_court_ts ? player.last_time_on_court_ts : false);
 	s.timer.upwards = false;
 	s.timer.exigent = false;
