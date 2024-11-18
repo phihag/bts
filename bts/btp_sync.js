@@ -702,6 +702,7 @@ function integrate_courts(app, tournament_key, btp_state, callback) {
 }
 
 function integrate_btp_settings(app, tkey, btp_state, callback) {
+	const admin = require('./admin'); // avoid dependency cycle
 
 	app.db.tournaments.findOne({ key: tkey }, (err, tournament) => {
 		if (err) return callback(err);
@@ -746,7 +747,7 @@ function integrate_btp_settings(app, tkey, btp_state, callback) {
 				if (err) {
 					return callback(err);
 				}
-
+				admin.notify_change(app, tkey, 'update_btp_settings', {btp_settings: toChange.btp_settings});
 				return callback(null);
 			});
 		} else {

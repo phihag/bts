@@ -195,6 +195,15 @@ function default_handler(rerender, special_funcs) {
 			change_score(c.val);
 			// Most dialogs don't show any matches, so do not rerender
 			break;
+		case 'update_btp_settings':
+			if(!curt.btp_settings) {
+				curt.btp_settings = {};
+			}
+			const btp_settings = c.val.btp_settings;
+			for (const [key, value] of Object.entries(btp_settings)) {
+				curt.btp_settings[key] = value;
+			}
+			break;
 		case 'update_display_setting':
 			const updated_setting = c.val.setting;
 			const s = utils.find(curt.displaysettings, m => m.id === updated_setting.id);
