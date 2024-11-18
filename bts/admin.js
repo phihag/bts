@@ -495,8 +495,12 @@ function handle_match_call_on_court(app, ws, msg) {
 		if (err) {
 			return ws.respond(msg, err);
 		}
-		const result = await update_queue.instance().execute(process_match,app, msg, tournament);
-		ws.respond(msg, result);
+
+		update_queue.instance().execute(process_match,app, msg, tournament).then(res => {
+			ws.respond(msg);
+		}).catch(err => {
+			ws.respond(msg, err);
+		});
 	});
 
 }
