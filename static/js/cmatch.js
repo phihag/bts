@@ -772,7 +772,6 @@ function update_player(match_id, player, now_on_court, show_player_status) {
 }
 
 	function remove_match_from_gui(m, old_section) {
-		
 		switch (old_section) {
 			case 'finished':
 			case 'unassigned':
@@ -792,7 +791,7 @@ function update_player(match_id, player, now_on_court, show_player_status) {
 						render_empty_court_row(match_row_el, c, 'public', false);
 					});
 				} else {
-					uiu.qsEach('.court_row[data-court_id=' + JSON.stringify(m.setup.court_id) + ']', (match_row_el) => {
+					uiu.qsEach('.court_row[data-court_id=' + JSON.stringify(old_section.slice(6, old_section.length)) + ']', (match_row_el) => {
 						const court_number = match_row_el.getElementsByClassName('court_number')[0].children[0].innerHTML;
 						const c = {	_id:m.setup.court_id,
 									num: court_number};
@@ -1330,11 +1329,17 @@ function _delete_match_btn_click(e) {
 	}
 
 function ui_edit(match_id) {
-	const match = utils.find(curt.matches, m => m._id === match_id);
+	const match = structuredClone(utils.find(curt.matches, m => m._id === match_id));
+	let old_court = structuredClone(match.setup.court_id);
 	if (!match) {
 		cerror.silent('Match ' + match_id + ' konnte nicht gefunden werden');
 		return;
 	}
+
+	if(!old_court) {
+		old_court = "not_on_court"
+	}
+
 	crouting.set('t/' + curt.key + '/m/' + match_id + '/edit', {}, _cancel_ui_edit);
 
 	cbts_utils.esc_stack_push(_cancel_ui_edit);
@@ -1383,6 +1388,7 @@ function ui_edit(match_id) {
 			type: 'match_edit',
 			id: d.match_id,
 			match,
+			old_court,
 			tournament_key: curt.key,
 			btp_update: (curt.btp_enabled && !! d.btp_update),
 		}, function match_edit_callback(err) {
@@ -1688,9 +1694,9 @@ function drop(ev) {
 			}
 		});
 
-		//for (const dropp_row of document.getElementsByClassName("droppable")) {
-		//	dropp_row.setAttribute("class", "droppable");
-		//}
+		for (const dropp_row of document.getElementsByClassName("droppable")) {
+			dropp_row.setAttribute("class", "droppable");
+		}
 	}
 }
 

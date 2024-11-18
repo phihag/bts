@@ -188,6 +188,8 @@ var ctournament = (function() {
 		}
 		const new_section = cmatch.calc_section(m);
 		cmatch.update_match(m, old_section, new_section);
+
+		return old_section;
 	}
 
 	function update_upcoming_match(c) {
@@ -375,7 +377,6 @@ var ctournament = (function() {
 
 	function change_announcements(e) {
 		let enable_announcements = document.getElementById('enable_announcements');
-		console.log(enable_announcements.checked);
 		window.localStorage.setItem('enable_announcements', enable_announcements.checked);
 	}
 

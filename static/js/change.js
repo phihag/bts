@@ -96,6 +96,7 @@ function default_handler(rerender, special_funcs) {
 			//nothing todo here
 			break;
 		case 'match_edit':
+			console.log("match_edit in change.js");
 			ctournament.update_match(c);
 			break;
 		case 'match_add':

@@ -3,12 +3,12 @@
 const assert = require('assert');
 const async = require('async');
 
-async function match_update(app, match, callback) {
+async function match_update(app, match, old_court, callback) {
 	async.waterfall([	
 			(wcb) => update_match_btp(app, match, wcb), 
 			(wcb) => update_match_db(app, match, wcb),
 			(wcb) => notify_change_match_edit(app, match, wcb),
-			(wcb) => notify_bupws(app, match, wcb),
+			(wcb) => notify_bupws(app, match, old_court, wcb),
 		],
 		(err) => {
 			return callback(err);
@@ -16,7 +16,7 @@ async function match_update(app, match, callback) {
 	);
 }
 
-async function uncall_match(app, tournament, match, callback) {
+async function uncall_match(app, tournament, match, old_court, callback) {
 	// Imports
 
 	// Requrements
@@ -28,7 +28,7 @@ async function uncall_match(app, tournament, match, callback) {
 		(wcb) => update_match_db(app, match, wcb),
 		(wcb) => update_court_db(app, match, wcb),
 		(wcb) => notify_change_match_edit(app, match, wcb),
-		(wcb) => notify_bupws(app, match, wcb),
+		(wcb) => notify_bupws(app, match, old_court, wcb),
 		(wcb) => remove_player_on_court(app, tournament.key, match._id, null, wcb),
 		(wcb) => update_btp_courts(app, tournament.key, match, wcb)],
 		(err) => {
@@ -38,7 +38,7 @@ async function uncall_match(app, tournament, match, callback) {
 }
 
 
-async function call_match(app, tournament, match, callback) {
+async function call_match(app, tournament, match, old_court, callback) {
     if (!match.setup.court_id || !match._id) {
         return; // TODO in async we would assert both to be true
     }
@@ -54,11 +54,38 @@ async function call_match(app, tournament, match, callback) {
 		(wcb) => update_court_db(app, match, wcb),
 		(wcb) => notify_change_match_edit(app, match, wcb),
 		(wcb) => notify_change_match_called_on_court(app, match, wcb),
-		(wcb) => notify_bupws(app, match, wcb),
+		(wcb) => notify_bupws(app, match, old_court, wcb),
 		(wcb) => set_player_on_court(app, tournament.key, match.setup, wcb),
 		(wcb) => set_player_on_tablet(app, tournament.key, match.setup, wcb),
 		(wcb) => update_btp_courts(app, tournament.key, match, wcb),
 		(wcb) => call_next_possible_match_for_preparation(app, tournament.key, wcb)],
+		(err) => {
+			return callback(err, match);
+		}
+	);
+}
+
+async function switch_court(app, tournament, match, old_court, callback) {
+	if (!match.setup.court_id || !match._id) {
+        return; // TODO in async we would assert both to be true
+    }
+	if (match_completly_initialized(match.setup) == false) { 
+		return callback("Match cannot be called one or more Teams are not set.");
+	}
+	async.waterfall([
+		(wcb) => add_tabletoperators(app, tournament, match, wcb),
+		(wcb) => set_umpires_on_court(app, tournament, match, wcb),
+		(wcb) => remove_highlight_preperation(match, wcb),
+		(wcb) => update_match_btp(app, match, wcb),
+		(wcb) => update_match_db(app, match, wcb),
+		(wcb) => update_court_db(app, match, wcb),
+		(wcb) => notify_change_match_edit(app, match, wcb),
+		(wcb) => notify_change_match_called_on_court(app, match, wcb),
+		(wcb) => notify_bupws(app, match, old_court, wcb),
+		(wcb) => set_player_on_court(app, tournament.key, match.setup, wcb),
+		(wcb) => set_player_on_tablet(app, tournament.key, match.setup, wcb),
+		(wcb) => update_btp_courts(app, tournament.key, match, wcb)
+		],
 		(err) => {
 			return callback(err, match);
 		}
@@ -225,10 +252,14 @@ function notify_change_match_called_on_court (app, match, callback) {
 	return callback(null); 
 }
 
-function notify_bupws(app, match, callback) {
+function notify_bupws(app, match, old_court, callback) {
 	const bupws = require('./bupws');
 
 	bupws.handle_score_change(app, match.tournament_key, match.setup.court_id);
+	
+	if(old_court) {
+		bupws.handle_score_change(app, match.tournament_key, old_court);
+	}
 
 	return callback(null);
 }
@@ -838,7 +869,7 @@ function call_preparation_match_on_court(app, tournament_key, court_id) {
 						const next_match = matches[0];
 						next_match.setup.court_id = court_id;
 						next_match.setup.now_on_court = true;
-						call_match(app, tournament, next_match, (err) => {
+						call_match(app, tournament, next_match, undefined, (err) => {
 							if (err) {
 								return reject(err);
 							} else {
@@ -866,7 +897,7 @@ async function call_next_possible_match_for_preparation(app, tournament_key, cal
 			const match_querry = { 'tournament_key': tournament_key, 'setup.state': 'scheduled' };
 			app.db.matches.find(match_querry).sort({ 'setup.scheduled_date': 1, 'setup.scheduled_time_str': 1, 'match_order': 1 }).exec((err, matches) => {
 				if (err) {
-					return callback(msg, err);
+					return callback(err);
 				}
 				if (matches && matches.length > 0) {
 					const now = new Date();
@@ -1011,6 +1042,7 @@ module.exports ={
 	call_match,
 	calc_match_set_player_on_court,
 	calc_match_set_player_on_tablet,
+	switch_court,
 	match_update,
 	uncall_match,
 	fetch_match,

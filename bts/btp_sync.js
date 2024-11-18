@@ -1006,7 +1006,7 @@ async function integrate_now_on_court(app, tkey, callback) {
 
 				const setup = match.setup;
 				if(!setup.called_timestamp) {
-					match_utils.call_match(app, tournament, match, (err) => {
+					match_utils.call_match(app, tournament, match, undefined, (err) => {
 						if (err) console.log(err);
 					});
 				}

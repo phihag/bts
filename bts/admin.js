@@ -517,7 +517,7 @@ function process_match(app, msg, tournament) {
 			if (match != null) {
 				match.setup.court_id = msg.court_id;
 				match.setup.now_on_court = true;
-				match_utils.call_match(app, tournament, match, (err, updated_match) => {
+				match_utils.call_match(app, tournament, match, undefined, (err, updated_match) => {
 					if (err) {
 						reject(err);
 					} else {
@@ -534,7 +534,7 @@ function process_match(app, msg, tournament) {
 function handle_match_edit(app, ws, msg) {
 	const match_utils = require('./match_utils');
 	
-	if (!_require_msg(ws, msg, ['tournament_key', 'id', 'match'])) {
+	if (!_require_msg(ws, msg, ['tournament_key', 'id', 'match', 'old_court'])) {
 		return;
 	}
 	const tournament_key = msg.tournament_key;
@@ -546,17 +546,26 @@ function handle_match_edit(app, ws, msg) {
 		}
 
 		if(setup.now_on_court && !setup.called_timestamp) {
-			match_utils.call_match(app, tournament, msg.match, (err, match) => {
+			match_utils.call_match(app, tournament, msg.match, msg.old_court, (err, match) => {
 				ws.respond(msg, err);
 				return;
 			});
-		} else if (!setup.now_on_court && setup.called_timestamp) {
-			match_utils.uncall_match(app, tournament, msg.match, (err) => {
+		} 
+		else if(setup.now_on_court && setup.court_id) {
+			match_utils.switch_court(app, tournament, msg.match, msg.old_court, (err, match) => {
+				ws.respond(msg, err);
+				return;
+			});
+		}
+		else if (!setup.now_on_court && setup.called_timestamp) {
+			match_utils.uncall_match(app, tournament, msg.match, msg.old_court, (err) => {
 				ws.respond(msg, err);
 				return;
 			});
 
 		} else {
+			console.log("ELSE");
+			
 			// TODO get old setup, make sure no key has been removed
 			app.db.matches.update({_id: msg.id, tournament_key}, {$set: {setup}}, {returnUpdatedDocs: true}, function(err, numAffected, changed_match) {
 				if (err) {
@@ -573,7 +582,7 @@ function handle_match_edit(app, ws, msg) {
 					ws.respond(msg, new Error(errmsg));
 					return;
 				}
-
+				console.log(changed_match);
 				notify_change(app, tournament_key, 'match_edit', {match__id: msg.id, match: changed_match});
 				if (msg.btp_update) {
 					btp_manager.update_score(app, changed_match);
