@@ -99,8 +99,15 @@ function default_handler(rerender, special_funcs) {
 			ctournament.update_match(c);
 			break;
 		case 'match_add':
-			curt.matches.push(c.val.match);
-			rerender();
+			const match_id = c.val.match__id;
+			// Find the match
+			const m = utils.find(curt.matches, m => m._id === match_id);
+			if (!m) {
+				ctournament.add_match(c);
+				curt.matches.push(c.val.match);
+			} else {
+				ctournament.add_match(c);
+			}
 			break;
 		case 'match_delete':
 			{

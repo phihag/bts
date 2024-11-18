@@ -401,11 +401,15 @@ function get_umpire(app, tkey, umpires , btp_id) {
 
 async function integrate_matches(app, tkey, btp_state, court_map, callback) {
 	const admin = require('./admin'); // avoid dependency cycle
+	const match_utils = require('./match_utils');
 	const { draws, events } = btp_state;
 
 	const match_ids_on_court = calculate_match_ids_on_court(btp_state);
 
 	const officials = await get_umpires(app, tkey);
+
+	const matches_to_add = [];
+	const matches_on_court = [];
 
 	async.each(btp_state.matches, function (bm, cb) {
 		const draw = draws.get(bm.DrawID[0]);
@@ -535,6 +539,7 @@ async function integrate_matches(app, tkey, btp_state, court_map, callback) {
 
 					if (match.setup.now_on_court === true) {
 						match.setup.state = 'oncourt';
+						matches_on_court.push(match);
 					}
 
 					for (let team_index = 0; team_index < Math.min(cur_match.setup.teams.length, match.setup.teams.length); team_index++) {
@@ -608,16 +613,9 @@ async function integrate_matches(app, tkey, btp_state, court_map, callback) {
 					return;
 				}
 
-				app.db.matches.insert(match, function(err) {
-					if (err) {
-						cb(null);
-						return;
-					}
-
-					admin.notify_change(app, tkey, 'match_add', { match });
-					cb(null)
-					return;
-				});
+				matches_to_add.push(match);
+				cb(null)
+				return;
 			}, error => {
 				cb(null);
 				return;
@@ -625,8 +623,31 @@ async function integrate_matches(app, tkey, btp_state, court_map, callback) {
 		});
 	}, (error) => {
 		if (error) {
-			console.log(error);
+			console.error(error);
 		}
+
+		matches_to_add.forEach((match_to_add) => {
+			let match = match_to_add;
+			matches_on_court.forEach((match_on_court) => {
+				const changed_match_on_court = match_utils.calc_match_set_player_on_court(match, match_on_court.setup);
+				if(changed_match_on_court != null) {
+					match = changed_match_on_court;
+				}
+				const changed_match_tablet_operator = match_utils.calc_match_set_player_on_tablet(match, match_on_court.setup);
+				if(changed_match_tablet_operator != null) {
+					match = changed_match_tablet_operator;
+				}
+			});
+
+			app.db.matches.insert(match, function(err) {
+				if (err) {
+					console.error(err);
+				}
+	
+				admin.notify_change(app, tkey, 'match_add', { match });
+			});
+		});
+		
 		callback(null);
 	});
 }
@@ -717,8 +738,6 @@ function integrate_btp_settings(app, tkey, btp_state, callback) {
 		const tournament_urn = btp_state.btp_settings.get(1008).Value[0];
 		const check_in_per_match = btp_state.btp_settings.get(1003).Value[0] ? false : true;
 		const pause_duration_ms = btp_state.btp_settings.get(1303).Value[0] * 60 * 1000;
-
-
 
 		if (tournament.btp_settings.tournament_name != tournament_name) {
 			tournament.btp_settings.tournament_name = tournament_name;

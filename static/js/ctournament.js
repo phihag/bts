@@ -157,6 +157,14 @@ var ctournament = (function() {
 		cmatch.remove_match_from_gui(m, section);
 
 	}
+
+	function add_match(c){
+		const cval = c.val;
+		const m = cval.match;
+		const new_section = cmatch.calc_section(m);
+		cmatch.add_match(m, new_section);
+	}
+
 	function update_match(c) {
 		const cval = c.val;
 		const match_id = cval.match__id;
@@ -1591,6 +1599,7 @@ var ctournament = (function() {
 		switch_tournament,
 		ui_show,
 		ui_list,
+		add_match,
 		update_match,
 		update_upcoming_match,
 		update_display,

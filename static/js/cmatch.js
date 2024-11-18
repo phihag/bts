@@ -240,6 +240,8 @@ function render_match_row(tr, match, court, style, show_player_status, show_add_
 
 	if (style === 'plain' || style === 'public') {
 		const court_number_td = uiu.el(tr, "td", 'court_number');
+		if(!court)
+			console.warn('no court');
 		uiu.el(court_number_td, "div", 'court_num', court.num);
 	}
 
@@ -802,6 +804,62 @@ function update_player(match_id, player, now_on_court, show_player_status) {
 				break;
 		}
 	}
+
+function add_match(m, section) {
+	console.log('in cmatch');
+	console.log(section);
+	
+	switch (section) {
+		case 'finished':
+			uiu.qsEach('.finished_container', (finished_container) => {
+				const tbody = finished_container.querySelector('.match_table > tbody');
+				const match_row_el = uiu.el(tbody, 'tr', {'class' : 'match highlight_' + m.setup.highlight , 'data-match_id': m._id});
+				render_match_row(match_row_el, m, null, 'default', false, true);
+				for (const child of tbody.children) {
+					const child_btp_id = child.dataset.match_id;
+					const child_match = utils.find(curt.matches, m => 'btp_'+m.btp_id === child_btp_id);
+					if(child_match) {
+						if(cmp_match_order(m, child_match) < 0) {
+							tbody.insertBefore(match_row_el, child);
+							break;
+						}
+					}
+				}
+			});
+			break;
+		case 'unassigned':
+			uiu.qsEach('.unassigned_container', (unassigned_container) => {
+				const tbody = unassigned_container.querySelector('.match_table > tbody');
+				const match_row_el = uiu.el(tbody, 'tr', {'class' : 'match highlight_' + m.setup.highlight , 'data-match_id': m._id});
+				render_match_row(match_row_el, m, null, 'unasigned', true, true);
+				for (const child of tbody.children) {
+					const child_btp_id = child.dataset.match_id;
+					const child_match = utils.find(curt.matches, m => 'btp_'+m.btp_id === child_btp_id);
+					if(child_match) {
+						if(cmp_match_order(m, child_match) < 0) {
+							tbody.insertBefore(match_row_el, child);
+							break;
+						}
+					}
+				}
+			});
+			break;
+		default:
+			const court = utils.find(curt.courts, c => c._id === m.setup.court_id);
+			console.log(court);
+			uiu.qsEach('.court_row[data-court_id=' + JSON.stringify(m.setup.court_id) + ']', (match_row_el) => {
+				match_row_el.innerHTML = "";
+				const closest = match_row_el.closest('.main_upcoming');
+				if(Boolean(closest)) {
+					render_match_row(match_row_el, m, court, 'public');
+				} else {
+					render_match_row(match_row_el, m, court, 'plain', false, false);
+				}
+			});
+			break;
+	}
+}
+
 function update_match(m, old_section, new_section) {	
 	if(old_section != new_section) {
 		remove_match_from_gui(m, old_section);
@@ -839,13 +897,14 @@ function update_match(m, old_section, new_section) {
 			});
 			break;
 		default:
+			const court = utils.find(curt.courts, c => c._id === m.setup.court_id);	
 			uiu.qsEach('.court_row[data-court_id=' + JSON.stringify(m.setup.court_id) + ']', (match_row_el) => {
 				match_row_el.innerHTML = "";
 				const closest = match_row_el.closest('.main_upcoming');
 				if(Boolean(closest)) {
-					render_match_row(match_row_el, m, null, 'public');
+					render_match_row(match_row_el, m, court, 'public');
 				} else {
-					render_match_row(match_row_el, m, null, 'plain', false, false);
+					render_match_row(match_row_el, m, court, 'plain', false, false);
 				}
 			});
 			break;
@@ -941,36 +1000,38 @@ function _extract_match_timer_state(match) {
 	return rs;
 }
 
+function cmp_match_order(m1, m2) {
+	const time_str1 = m1.setup.scheduled_time_str;
+	const time_str2 = m2.setup.scheduled_time_str;
+
+	if (time_str1 && !time_str2) {
+		return -1;
+	} else if (time_str2 && !time_str1) {
+		return 1;
+	}
+
+	const cmp1 = cbts_utils.cmp(m1.setup.scheduled_date, m2.setup.scheduled_date);
+	if (cmp1 != 0) return cmp1;
+
+	if (time_str1 === '00:00' && time_str2 !== '00:00') {
+		return 1;
+	} else if (time_str2 === '00:00' && time_str1 !== '00:00') {
+		return -1;
+	}
+
+	const cmp2 = cbts_utils.cmp(time_str1, time_str2);
+	if (cmp2 != 0) return cmp2;
+
+	if ((m1.match_order !== undefined) && (m2.match_order !== undefined)) {
+		const cmp_result = cbts_utils.cmp(m1.match_order, m2.match_order);
+		if (cmp_result != 0) return cmp_result;
+	}
+
+	return cbts_utils.cmp(m1.setup.match_num, m2.setup.match_num);
+}
+
 function prepare_render(t) {
-	t.matches.sort(function(m1, m2) {
-		const time_str1 = m1.setup.scheduled_time_str;
-		const time_str2 = m2.setup.scheduled_time_str;
-
-		if (time_str1 && !time_str2) {
-			return -1;
-		} else if (time_str2 && !time_str1) {
-			return 1;
-		}
-
-		const cmp1 = cbts_utils.cmp(m1.setup.scheduled_date, m2.setup.scheduled_date);
-		if (cmp1 != 0) return cmp1;
-
-		if (time_str1 === '00:00' && time_str2 !== '00:00') {
-			return 1;
-		} else if (time_str2 === '00:00' && time_str1 !== '00:00') {
-			return -1;
-		}
-
-		const cmp2 = cbts_utils.cmp(time_str1, time_str2);
-		if (cmp2 != 0) return cmp2;
-
-		if ((m1.match_order !== undefined) && (m2.match_order !== undefined)) {
-			const cmp_result = cbts_utils.cmp(m1.match_order, m2.match_order);
-			if (cmp_result != 0) return cmp_result;
-		}
-
-		return cbts_utils.cmp(m1.setup.match_num, m2.setup.match_num);
-	});
+	t.matches.sort((m1, m2) => {return cmp_match_order(m1, m2)});
 
 	t.courts_by_id = {};
 	for (const c of t.courts) {
@@ -2062,7 +2123,9 @@ function render_create(container) {
 }
 
 return {
+	add_match,
 	calc_section,
+	cmp_match_order,
 	prepare_render,
 	render_create,
 	render_finished,
