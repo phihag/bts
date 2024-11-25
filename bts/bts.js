@@ -1,5 +1,7 @@
 'use strict';
 
+require('./compat.js');
+
 const fs = require('fs');
 const path = require('path');
 const url = require('url');
