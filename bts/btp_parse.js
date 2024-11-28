@@ -33,7 +33,13 @@ function filter_matches(all_btp_matches, is_league) {
 		});
 	}
 
-	return all_btp_matches.filter(bm => (bm.IsMatch && bm.IsPlayable && bm.MatchNr && bm.MatchNr[0] && bm.From1));
+	return all_btp_matches.filter(bm => {
+		return (
+			bm.IsMatch &&
+			bm.IsPlayable
+			&& bm.MatchNr && (bm.MatchNr[0] !== undefined)
+			&& bm.From1);
+	});
 }
 
 // bts_players: Array of array of players participating.
