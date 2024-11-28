@@ -18,4 +18,4 @@ RUN make install-bup-dev
 ADD . .
 
 EXPOSE 4000
-CMD make run
+CMD ["make", "run"]
