@@ -10,7 +10,7 @@
 		"argparse": "^1.0.10",
 		"async": "*",
 		"body-parser": "*",
-		"express": "*",
+		"express": "4.21.2",
 		"extract-zip": "*",
 		"nedb": "*",
 		"node-xlsx": "^0.21.0",
