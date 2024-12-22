@@ -45,7 +45,7 @@ async function notify_admin_display_status_changed(app, ws, ws_online) {
 }
 
 function generate_default_displaysettings_id(tournament) {
-	return tournament.displaysettings_general ? tournament.displaysettings_general : default_displaysettings_key;
+	return (tournament && tournament.displaysettings_general) ? tournament.displaysettings_general : default_displaysettings_key;
 }
 
 function notify_change(tournament_key, court_id, ctype, val) {
