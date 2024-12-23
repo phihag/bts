@@ -919,7 +919,7 @@ function integrate_umpires(app, tournament_key, btp_state, callback) {
 						const admin = require('./admin');
 						admin.notify_change(app, tournament_key, 'umpire_updated', changed_umpire);
 					});
-					return;
+					return cb();
 				}
 			}
 
@@ -939,6 +939,7 @@ function integrate_umpires(app, tournament_key, btp_state, callback) {
 					return cb(err);
 				}
 				admin.notify_change(app, tournament_key, 'umpire_add', { umpire: inserted_umpire });
+				return cb();
 			});
 		});
 	}, err => {
