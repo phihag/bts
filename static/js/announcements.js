@@ -118,7 +118,7 @@ function createUmpire(matchSetup) {
 }
 
 function createServiceJudge(matchSetup) {
-    if (matchSetup.serviceJudge && matchSetup.service_judge.name && matchSetup.service_judge.name != null) {
+    if (matchSetup.service_judge && matchSetup.service_judge.name && matchSetup.service_judge.name != null) {
         return ci18n('announcements:service_judge') + normalizeNames(matchSetup.service_judge.name);
     }
     return null;
