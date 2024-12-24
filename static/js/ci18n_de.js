@@ -5,6 +5,10 @@ var ci18n_de = {
 
 	'Unassigned Matches': 'Nicht zugewiesene Spiele',
 	'Next Matches': 'Nächste Spiele',
+	'Current Matches': 'Laufende Spiele',
+	'Matchoverview': 'Spielübersicht',
+	'Scoreboard': 'Anzeigetafel',
+	'Umpire Panel': 'Schiedsrichter-Panel',
 	'edit tournament': 'bearbeiten',
 	'Court': 'Court',
 	'Match': 'Spiel',
@@ -138,8 +142,11 @@ var ci18n_de = {
 	'tournament:edit:tablets': 'Tablets Einstellungen:',
 	'tournament:edit:ticker': 'Ticker Einstellungen:',
 	'tournament:edit:btp': 'Badminton Turnier Planer Einstellungen:',
-
 	'tournament:edit:bts': 'Badminton Turnier Server Einstellungen:',
+	'tournament:edit:upcoming_matches_settings': 'Spielübersichts Einstellungen',
+	'tournament:edit:upcoming_matches_animation_speed': 'Animationsgeschwindigkeit beim Scrollen der Spielübersichten',
+	'tournament:edit:upcoming_matches_animation_pause': 'Animationsunterbrechung am Anfang und Ende der Seite (sec)',
+	'tournament:edit:upcoming_matches_max_count': 'Maximale Anzahl von Spielen in der Spielübersicht',
 	'tournament:edit:call_preparation_matches_automatically_enabled': 'Spiele in Vorbereitung automatisch auf freien Felden aufrufen',
 	'tournament:edit:call_next_possible_scheduled_match_in_preparation': 'Nächst mögliches Spiel automatisch in Vorbereitung aufrufen',
 	

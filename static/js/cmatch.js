@@ -3,10 +3,9 @@
 var cmatch = (function() {
 
 var has_resize_event = false;
-var scroll_timer = setTimeout(auto_scroll, 10000);
-var resize_timer = false;
-
+var scroll_timer = setTimeout(auto_scroll, 4000);
 var scroll_down = true;
+let is_paused = false;
 
 const OVERRIDE_COLORS_KEYS = ['', 'bg'];
 
@@ -28,11 +27,21 @@ function calc_section(m) {
 	return 'unassigned';
 }
 
-function auto_scroll(){
+function auto_scroll() {
+	if (is_paused) {
+		return;
+	}
+
+	const scroll_speed = parseInt(curt.upcoming_matches_animation_speed ? curt.upcoming_matches_animation_speed : 2);
+	if (scroll_speed == 0) {
+		return;
+	}
+
 	const scroll_object = document.querySelectorAll('.main_upcoming');
 	let new_top = 0;
 	let height = 0;
 	let child_higth = 0;
+	
 	scroll_object.forEach((item) =>{
 
 		let old_top = 0;
@@ -41,9 +50,9 @@ function auto_scroll(){
 		}
 
 		if(scroll_down) {
-			item.style.top = (old_top - 2)+'px';
+			item.style.top = (old_top - scroll_speed)+'px';
 		} else {
-			item.style.top = (old_top + 2)+'px';
+			item.style.top = (old_top + scroll_speed)+'px';
 		}
 
 		new_top = parseInt(item.style.top);
@@ -55,16 +64,22 @@ function auto_scroll(){
 		height = item.offsetHeight;
 	});
 
-	let scroll_interval = 1;
 	if(new_top >= 0) {
-		scroll_interval = 15000;
 		scroll_down = true;
+		pause_scroll(); 
 	} else if (height >= child_higth) {
-		scroll_interval = 15000;
 		scroll_down = false;
+		pause_scroll(); 
 	}
 
-	scroll_timer = setTimeout(auto_scroll, scroll_interval);
+	requestAnimationFrame(auto_scroll); // Verwendet eine gleichmäßige Animation
+}
+function pause_scroll() {
+	is_paused = true;
+	setTimeout(() => {
+		is_paused = false;
+		auto_scroll();
+	}, parseInt(curt.upcoming_matches_animation_pause ? curt.upcoming_matches_animation_pause : 4) * 1000);
 }
 
 function resize_table(resizable_rows, table_width_factor) {
@@ -1521,7 +1536,7 @@ function render_unassigned(container) {
 }
 
 function render_upcoming_matches(container) {
-	const UPCOMING_MATCH_COUNT = 13;
+	const UPCOMING_MATCH_COUNT = parseInt(curt.upcoming_matches_max_count ? curt.upcoming_matches_max_count : 15);
 	uiu.empty(container);
 
 	uiu.el(container, 'h2', {

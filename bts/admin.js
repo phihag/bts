@@ -68,6 +68,7 @@ function handle_tournament_edit_props(app, ws, msg) {
 		'btp_ip', 'btp_password',
 		'is_team', 'is_nation_competition',
 		'warmup', 'warmup_ready', 'warmup_start',
+		'upcoming_matches_animation_speed', 'upcoming_matches_max_count','upcoming_matches_animation_pause',
 		'ticker_enabled', 'ticker_url', 'ticker_password',
 		'language', 'dm_style', 'displaysettings_general',
 		'tabletoperator_enabled', 'tabletoperator_break_seconds',
