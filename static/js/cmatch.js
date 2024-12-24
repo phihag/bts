@@ -805,9 +805,10 @@ function update_player(match_id, player, now_on_court, show_player_status) {
 	}
 
 function add_match(m, section) {
-	console.log('in cmatch');
-	console.log(section);
+	insert_new_match_row(m, section);
+}
 	
+function insert_new_match_row(m, section) {
 	switch (section) {
 		case 'finished':
 			uiu.qsEach('.finished_container', (finished_container) => {
@@ -859,54 +860,37 @@ function add_match(m, section) {
 	}
 }
 
-function update_match(m, old_section, new_section) {	
-	if(old_section != new_section) {
-		remove_match_from_gui(m, old_section);
+function update_match_row(m, new_section) {
+	uiu.qsEach('.match[data-match_id=' + JSON.stringify(m._id) + ']', (match_row_el) => {
+		match_row_el.innerHTML = '';
+		
 		switch (new_section) {
 			case 'finished':
-				uiu.qsEach('.finished_container', (finished_container) => {
-					let tbody = finished_container.querySelector('.match_table > tbody');
-					uiu.el(tbody, 'tr', {'class' : 'match highlight_' + m.setup.highlight , 'data-match_id': m._id});
-				});
-			case 'unassigned':
-				uiu.qsEach('.unassigned_container', (unassigned_container) => {
-					let tbody = unassigned_container.querySelector('.match_table > tbody');
-					uiu.el(tbody, 'tr', {'class' : 'match highlight_' + m.setup.highlight , 'data-match_id': m._id});
-				});
-				break;
-			default:
-				break;
-		}
-	} else {
-		uiu.qsEach('.match[data-match_id=' + JSON.stringify(m._id) + ']', (match_row_el) => {
-			match_row_el.innerHTML = '';
-		});
-	}
-
-	switch (new_section) {
-		case 'finished':
-			uiu.qsEach('.finished_container > table > tbody > .match[data-match_id=' + JSON.stringify(m._id) + ']', (match_row_el) => {	
 				render_match_row(match_row_el, m, null, 'default', false, true);
-			});
-			break;
-		case 'unassigned':
-			uiu.qsEach( '.unassigned_container > table > tbody > .match[data-match_id=' + JSON.stringify(m._id) + ']', (match_row_el) => {	
+				break;
+			case 'unassigned':
 				match_row_el.setAttribute('class', 'match highlight_' + (m.setup.highlight ? m.setup.highlight : 0));
 				render_match_row(match_row_el, m, null, 'unasigned', true, true);
-			});
-			break;
-		default:
-			const court = utils.find(curt.courts, c => c._id === m.setup.court_id);	
-			uiu.qsEach('.court_row[data-court_id=' + JSON.stringify(m.setup.court_id) + ']', (match_row_el) => {
-				match_row_el.innerHTML = "";
+				break;
+			default:
+				const court = utils.find(curt.courts, c => c._id === m.setup.court_id);	
 				const closest = match_row_el.closest('.main_upcoming');
 				if(Boolean(closest)) {
 					render_match_row(match_row_el, m, court, 'public');
 				} else {
 					render_match_row(match_row_el, m, court, 'plain', false, false);
 				}
-			});
-			break;
+				break;
+		}
+	});
+}
+
+function update_match(m, old_section, new_section) {	
+	if(old_section != new_section) {
+		remove_match_from_gui(m, old_section);
+		insert_new_match_row(m, new_section);
+	} else {
+		update_match_row(m, new_section);
 	}
 }
 
