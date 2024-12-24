@@ -565,8 +565,6 @@ function handle_match_edit(app, ws, msg) {
 			});
 
 		} else {
-			console.log("ELSE");
-			
 			// TODO get old setup, make sure no key has been removed
 			app.db.matches.update({_id: msg.id, tournament_key}, {$set: {setup}}, {returnUpdatedDocs: true}, function(err, numAffected, changed_match) {
 				if (err) {
@@ -583,7 +581,6 @@ function handle_match_edit(app, ws, msg) {
 					ws.respond(msg, new Error(errmsg));
 					return;
 				}
-				console.log(changed_match);
 				notify_change(app, tournament_key, 'match_edit', {match__id: msg.id, match: changed_match});
 				if (msg.btp_update) {
 					btp_manager.update_score(app, changed_match);

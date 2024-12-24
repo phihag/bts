@@ -98,7 +98,6 @@ async function craft_match(app, tkey, btp_id, court_map, event, draw, btp_links,
 		app.db.tournaments.findOne({ key: tkey }, (err, tournament) => {
 
 			if (err) {
-				console.log("reject");
 				reject(err);
 			}
 
