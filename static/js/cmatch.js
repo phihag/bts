@@ -411,7 +411,7 @@ function render_match_row(tr, match, court, style, show_player_status, show_add_
 			
 				//auto_size(umpire_name_div, parrent_width - umpire_icon.offsetWidth - 20);
 				resizable_elements.fixed_width_elements.push(umpire_name_div);
-				resizable_elements.fixed_width.push(parrent_width - umpire_icon.offsetWidth - 20 + 'px');
+				resizable_elements.fixed_width.push(parrent_width - umpire_icon.offsetWidth - 20);
 			
 			} else if (setup.tabletoperators && setup.tabletoperators.length > 0){
 				const tablet_icon = uiu.el(score_span, 'div', 'tablet', '');
@@ -429,7 +429,7 @@ function render_match_row(tr, match, court, style, show_player_status, show_add_
 				//auto_size(operators_div, parrent_width - tablet_icon.offsetWidth - 20);
 
 				resizable_elements.fixed_width_elements.push(operators_div);
-				resizable_elements.fixed_width.push(parrent_width - tablet_icon.offsetWidth - 20 - 20 + 'px');
+				resizable_elements.fixed_width.push(parrent_width - tablet_icon.offsetWidth - 20 - 20);
 			}
 		}
 	}
