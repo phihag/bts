@@ -511,7 +511,14 @@ function get_display_setting(app, tkey, client_id, court_id, displaysetting) {
 						returnvalue.court_id = display_court_displaysetting[0].court_id;
 						returnvalue.displaymode_court_id = display_court_displaysetting[0].court_id;
 					}
-					resolve(returnvalue);
+					app.db.advertisements.find({}, function (err, advertisements) {
+						if (err) {
+							return resolve(returnvalue);
+						}
+						returnvalue.advertisements = advertisements;
+						resolve(returnvalue);
+
+					});
 				});
 			} else {
 				app.db.tournaments.findOne({ key: tkey }, async (err, tournament) => {
@@ -532,7 +539,14 @@ function get_display_setting(app, tkey, client_id, court_id, displaysetting) {
 							returnvalue.court_id = court_id;
 							returnvalue.displaymode_court_id = court_id;
 						} 
-						resolve(returnvalue);
+						app.db.advertisements.find({}, function (err, advertisements) {
+							if (err) {
+								return resolve(returnvalue);
+							}
+							returnvalue.advertisements = advertisements;
+							resolve(returnvalue);
+
+						});
 					});
 				});
 			}
