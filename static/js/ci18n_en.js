@@ -80,8 +80,8 @@ var ci18n_en = {
 	'announcements:game_for_place': 'Game for place ',
 	'announcements:voice': 'Google UK English Male',
 	'announcements:lang': 'en-EN',
-
-
+	'tournament:edit:add': 'Add',
+	'tournament:edit:delete': 'Delete',
 	'tournament:edit:id': 'Tournament id:',
 	'tournament:edit:language': 'Language:',
 	'tournament:edit:language:auto': 'Not set (browser default)',
@@ -129,6 +129,11 @@ var ci18n_en = {
 	'tournament:edit:normalizations:origin': 'Origin',
 	'tournament:edit:normalizations:replace': 'Replacement',
 	'tournament:edit:normalizations:language': 'Language',
+	'tournament:edit:advertisements': 'Advertisements',
+	'tournament:edit:advertisements:id': 'Id',
+	'tournament:edit:advertisements:url': 'URL',
+	'tournament:edit:advertisements:type': 'Type',
+	'tournament:edit:advertisements:disabled': 'Disabled',
 	'tournament:edit:general_displaysettings': 'Manaage Display Settings:',
 	'tournament:edit:displays': 'Manage Displays:',
 	'tournament:edit:displays:hostname': 'Hostname',

@@ -199,20 +199,25 @@ function handle_tournament_get(app, ws, msg) {
 				cb(err);
 			});
 		}, function (cb) {
-		stournament.get_displays(app, tournament, function (err, displays) {
-			tournament.displays = displays;
-			cb(err);
-		});
+			stournament.get_displays(app, tournament, function (err, displays) {
+				tournament.displays = displays;
+				cb(err);
+			});
 		}, function (cb) {
 			stournament.get_normalizations(app.db, tournament.key, function (err, normalizations) {
 				tournament.normalizations = normalizations;
 				cb(err);
 			});
 		}, function (cb) {
-		stournament.get_displaysettings(app.db, tournament.key, function (err, displaysettings) {
-			tournament.displaysettings = displaysettings;
-			cb(err);
-		});
+			stournament.get_advertisements(app.db, tournament.key, function (err, advertisements) {
+				tournament.advertisements = advertisements;
+				cb(err);
+			});
+		}, function (cb) {
+			stournament.get_displaysettings(app.db, tournament.key, function (err, displaysettings) {
+				tournament.displaysettings = displaysettings;
+				cb(err);
+			});
 		}], function(err) {
 			tournament.btp_status = btp_manager.get_status(tournament.key);
 			tournament.ticker_status = ticker_manager.get_status(tournament.key);
@@ -312,7 +317,6 @@ function handle_normalization_add(app, ws, msg) {
 		notify_change(app, msg.tournament_key, 'normalization_add', { normalization: inserted_normalization });
 	});
 }
-
 function handle_normalization_remove(app, ws, msg) {
 	if (!msg.tournament_key) {
 		return ws.respond(msg, { message: 'Missing tournament_key' });
@@ -328,6 +332,40 @@ function handle_normalization_remove(app, ws, msg) {
 		return;
 	});
 }
+function handle_advertisement_add(app, ws, msg) {
+	if (!msg.tournament_key) {
+		return ws.respond(msg, { message: 'Missing tournament_key' });
+	}
+
+	if (!msg.advertisement) {
+		return ws.respond(msg, { message: 'Missing required advertisement' });
+	}
+
+	app.db.advertisements.insert(msg.advertisement, function (err, inserted_advertisement) {
+		if (err) {
+			ws.respond(msg, err);
+			return;
+		}
+		notify_change(app, msg.tournament_key, 'advertisement_add', { advertisement: inserted_advertisement });
+	});
+}
+
+function handle_advertisement_remove(app, ws, msg) {
+	if (!msg.tournament_key) {
+		return ws.respond(msg, { message: 'Missing tournament_key' });
+	}
+
+	if (!msg.advertisement_id) {
+		return ws.respond(msg, { message: 'Missing required advertisement' });
+	}
+
+	const query = { _id: msg.advertisement_id };
+	app.db.advertisements.remove(query, {}, (err) => {
+		notify_change(app, msg.tournament_key, 'advertisement_removed', { advertisement_id: msg.advertisement_id });
+		return;
+	});
+}
+
 function handle_tabletoperator_move_up(app, ws, msg) {
 	if (!msg.tournament_key) {
 		return ws.respond(msg, { message: 'Missing tournament_key' });
@@ -957,6 +995,8 @@ module.exports = {
 	handle_confirm_match_finished,
 	handle_normalization_add,
 	handle_normalization_remove,
+	handle_advertisement_add,
+	handle_advertisement_remove,
 	handle_tabletoperator_add,
 	handle_tabletoperator_move_up,
 	handle_tabletoperator_move_down,

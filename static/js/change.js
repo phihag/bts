@@ -163,11 +163,14 @@ function default_handler(rerender, special_funcs) {
 		case 'normalization_add':
 			ctournament.add_normalization(c);
 			break;
-		case 'normalization_add':
-			ctournament.add_normalization(c);
-			break;
 		case 'normalization_removed':
 			ctournament.remove_normalization(c);
+			break;
+		case 'advertisement_add':
+			ctournament.add_advertisement(c);
+			break;
+		case 'advertisement_removed':
+			ctournament.remove_advertisement(c);
 			break;
 		case 'umpires_changed':
 			curt.umpires = c.val.all_umpires;

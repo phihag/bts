@@ -262,11 +262,30 @@ var ctournament = (function() {
 		}
 		update_normalization_values(c)
 	}
-
 	function update_normalization_values(c) {
-		uiu.qsEach('.normalizations_values_div',(div_el) => {
+		uiu.qsEach('.normalizations_values_div', (div_el) => {
 			div_el.innerHTML = "";
 			render_normalisation_values(div_el);
+		});
+	}
+
+	function add_advertisement(c) {
+		curt.advertisements.push(c.val.advertisement);
+		update_advertisements(c)
+	}
+
+	function remove_advertisement(c) {
+		const changed_t = utils.find(curt.advertisements, m => m._id === c.val.advertisement_id);
+		if (changed_t) {
+			curt.advertisements.splice(curt.advertisements.indexOf(changed_t), 1);
+		}
+		update_advertisements(c)
+	}
+
+	function update_advertisements(c) {
+		uiu.qsEach('.advertisements_div', (div_el) => {
+			div_el.innerHTML = "";
+			render_advertisements(div_el);
 		});
 	}
 
@@ -453,6 +472,8 @@ var ctournament = (function() {
 		match_remove: remove_match,
 		normalization_removed: remove_normalization,
 		normalization_add: add_normalization,
+		advertisement_removed: remove_advertisement,
+		advertisement_add: add_advertisement,
 		tabletoperator_add: tabletoperator_add,
 		tabletoperator_moved_up: tabletoperator_moved_up,
 		tabletoperator_moved_down: tabletoperator_moved_down,
@@ -1022,7 +1043,8 @@ var ctournament = (function() {
 		const general_displaysettings_div = uiu.el(main, 'div', 'general_displaysettings');
 		render_general_displaysettings(general_displaysettings_div);
 		render_displaysettings(main);
-		render_normalisation_values(uiu.el(main, 'div','normalizations_values_div'));
+		render_normalisation_values(uiu.el(main, 'div', 'normalizations_values_div'));
+		render_advertisements(uiu.el(main, 'div', 'advertisements_div'));
 	}
 	_route_single(/t\/([a-z0-9]+)\/edit$/, ui_edit, change.default_handler(_update_all_ui_elements_edit, {
 		update_general_displaysettings: update_general_displaysettings,
@@ -1043,7 +1065,7 @@ var ctournament = (function() {
 		create_undecorated_input("text", uiu.el(tr_input, 'td', {}), 'normalizations_replace');
 		create_undecorated_input("text", uiu.el(tr_input, 'td', {}), 'normalizations_language');
 		const actions_td = uiu.el(tr_input, 'td', {});
-		const add_btn = uiu.el(actions_td, 'button', {}, 'Add');
+		const add_btn = uiu.el(actions_td, 'button', {}, ci18n('tournament:edit:add'));
 		add_btn.addEventListener('click', function (e) {
 
 			var new_normalization = {}
@@ -1069,7 +1091,7 @@ var ctournament = (function() {
 			const actions_td = uiu.el(tr, 'td', {});
 			const delete_btn = uiu.el(actions_td, 'button', {
 				'data-normalization-id': nv._id,
-			}, 'Delete');
+			}, ci18n('tournament:edit:delete'));
 						
 			delete_btn.addEventListener('click', function (e) {
 				const del_btn = e.target;
@@ -1085,6 +1107,75 @@ var ctournament = (function() {
 				});
 			});
 		}
+	}
+
+	function render_advertisements(main) {
+		uiu.el(main, 'h2', 'edit', ci18n('tournament:edit:advertisements'));
+
+		const display_table = uiu.el(main, 'table');
+		const display_tbody = uiu.el(display_table, 'tbody');
+		const tr = uiu.el(display_tbody, 'tr');
+		uiu.el(tr, 'th', {}, ci18n('tournament:edit:advertisements:id'));
+		uiu.el(tr, 'th', {}, ci18n('tournament:edit:advertisements:url'));
+		uiu.el(tr, 'th', {}, ci18n('tournament:edit:advertisements:type'));
+		uiu.el(tr, 'th', {}, ci18n('tournament:edit:advertisements:disabled'));
+		uiu.el(tr, 'th', {}, '');
+		const tr_input = uiu.el(display_tbody, 'tr');
+		uiu.el(tr_input, 'td', {}, '');
+		create_undecorated_input("text", uiu.el(tr_input, 'td', {}), 'advertisement_url');
+		create_undecorated_input("text", uiu.el(tr_input, 'td', {}), 'advertisement_type');
+		uiu.el(tr_input, 'td', {}, '');
+		const actions_td = uiu.el(tr_input, 'td', {});
+		const add_btn = uiu.el(actions_td, 'button', {}, ci18n('tournament:edit:add'));
+		add_btn.addEventListener('click', function (e) {
+
+			var new_advertisement = {}
+			new_advertisement.id = generateGUID();
+			new_advertisement.url = document.getElementById('advertisement_url').value;
+			new_advertisement.type = document.getElementById('advertisement_type').value;
+			new_advertisement.disabled = false;
+			send({
+				type: 'advertisement_add',
+				tournament_key: curt.key,
+				advertisement: new_advertisement,
+			}, err => {
+				if (err) {
+					return cerror.net(err);
+				}
+			});
+		});
+		for (const nv of curt.advertisements) {
+			const tr = uiu.el(display_tbody, 'tr');
+			uiu.el(tr, 'td', {}, nv.id);
+			uiu.el(tr, 'td', {}, nv.url);
+			uiu.el(tr, 'td', {}, nv.type);
+			uiu.el(tr, 'td', {}, nv.disabled);
+			const actions_td = uiu.el(tr, 'td', {});
+			const delete_btn = uiu.el(actions_td, 'button', {
+				'data-advertisement-id': nv._id,
+			}, ci18n('tournament:edit:delete'));
+
+			delete_btn.addEventListener('click', function (e) {
+				const del_btn = e.target;
+				const advertisement_id = del_btn.getAttribute('data-advertisement-id');
+				send({
+					type: 'advertisement_remove',
+					tournament_key: curt.key,
+					advertisement_id: advertisement_id,
+				}, err => {
+					if (err) {
+						return cerror.net(err);
+					}
+				});
+			});
+		}
+	}
+	function generateGUID() {
+		return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (char) {
+			const random = Math.random() * 16 | 0;
+			const value = char === 'x' ? random : (random & 0x3 | 0x8);
+			return value.toString(16);
+		});
 	}
 
 	function set_battery_state(battery, node) {
@@ -1670,6 +1761,8 @@ var ctournament = (function() {
 		bts_status_changed,
 		remove_normalization,
 		add_normalization,
+		remove_advertisement,
+		add_advertisement,
 		update_general_displaysettings,
 	};
 

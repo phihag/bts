@@ -80,8 +80,8 @@ var ci18n_de = {
 	'announcements:game_for_place': 'Spiel um Platz',
 	'announcements:voice': 'Google Deutsch',
 	'announcements:lang': 'de-DE',
-	
-
+	'tournament:edit:add': 'Hinzufügen',
+	'tournament:edit:delete':'Löschen',
 	'tournament:edit:id': 'Turnier-ID:',
 	'tournament:edit:language': 'Sprache:',
 	'tournament:edit:language:auto': 'Nicht gesetzt (Browser-Einstellung)',
@@ -121,6 +121,11 @@ var ci18n_de = {
 	'tournament:edit:normalizations:origin': 'Original',
 	'tournament:edit:normalizations:replace': 'Ersetzung',
 	'tournament:edit:normalizations:language': 'Sprache',
+	'tournament:edit:advertisements': 'Werbung',
+	'tournament:edit:advertisements:id': 'Id',
+	'tournament:edit:advertisements:url': 'URL',
+	'tournament:edit:advertisements:type': 'Typ',
+	'tournament:edit:advertisements:disabled': 'Deaktiviert',
 	'tournament:edit:announcement_speed': 'Ansagegeschwindigkeit (0.8-1.3): ',
 	'tournament:edit:announcement_pause_time_ms': 'Pause zwischen Ansagen (sek): ',	
 	'tournament:edit:preparation_meetingpoint_enabled': 'Meetingpoint für Vorbereitung nutzen',
