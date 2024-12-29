@@ -54,20 +54,31 @@ function notify_change(tournament_key, court_id, ctype, val) {
 	}
 }
 
+function notify_change_broadcast(tournament_key, ctype, val) {
+	for (const panel_ws of all_panels) {
+		notify_change_send(panel_ws, tournament_key, ctype, val);
+	}
+}
+
 function notify_change_ws(ws, tournament_key, court_id, ctype, val) {
 	if (ws == null) {
 		notify_change(tournament_key, court_id, ctype, val);
 	} else { 
 		if (ws.court_id === court_id) { 
-			ws.sendmsg({
-				type: 'change',
-				tournament_key,
-				ctype,
-				val,
-			});
+			notify_change_send(ws,tournament_key, ctype, val);
 		}
 	}
 }
+
+function notify_change_send(ws,tournament_key, ctype, val) {
+	ws.sendmsg({
+		type: 'change',
+		tournament_key,
+		ctype,
+		val,
+	});
+}
+
 function send_courts(app, ws, tournament_key) {
 	stournament.get_courts(app.db, tournament_key, function (err, courts) {
 		notify_change_ws(ws,tournament_key, ws.court_id, "courts-update", courts);
@@ -349,6 +360,14 @@ async function handle_init(app, ws, msg) {
 
 async function send_finshed_confirmed(app, tournament_key, court_id) {
 	notify_change(tournament_key, court_id, 'confirm-match-finished', {});
+}
+
+async function send_advertisement_add(tournament_key, advertisement) {
+	notify_change_broadcast(tournament_key, 'advertisement_add', advertisement);
+}
+
+async function send_advertisement_remove(tournament_key, advertisement_id) {
+	notify_change_broadcast(tournament_key, 'advertisement_remove', { advertisement_id: advertisement_id });
 }
 
 async function initialize_client(ws, app, tournament_key, court_id, displaysetting) {
@@ -843,6 +862,8 @@ module.exports = {
 	update_device_info,
 	restart_panel,
 	send_finshed_confirmed,
+	send_advertisement_add,
+	send_advertisement_remove,
 	change_display_mode,
 	change_default_display_mode,
 	add_display_status,

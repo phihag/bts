@@ -347,6 +347,9 @@ function handle_advertisement_add(app, ws, msg) {
 			return;
 		}
 		notify_change(app, msg.tournament_key, 'advertisement_add', { advertisement: inserted_advertisement });
+		const bupws = require('./bupws');
+		bupws.send_advertisement_add(msg.tournament_key,inserted_advertisement);
+		return;
 	});
 }
 
@@ -362,6 +365,8 @@ function handle_advertisement_remove(app, ws, msg) {
 	const query = { _id: msg.advertisement_id };
 	app.db.advertisements.remove(query, {}, (err) => {
 		notify_change(app, msg.tournament_key, 'advertisement_removed', { advertisement_id: msg.advertisement_id });
+		const bupws = require('./bupws');
+		bupws.send_advertisement_remove(msg.tournament_key,msg.advertisement_id);
 		return;
 	});
 }
