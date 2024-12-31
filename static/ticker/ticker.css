@@ -21,9 +21,7 @@ h1 {
 	font-size: 120%;
 }
 .last_update {
-	position: absolute;
-	right: 10px;
-	top: 8px;
+	float: right;
 	font-size: 10px;
 	font-weight: bold;
 }
