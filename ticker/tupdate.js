@@ -25,6 +25,12 @@ function handle_tset(app, ws, msg) {
 	if (msg.event.tournament_name) {
 		app.config.tournament_name = msg.event.tournament_name;
 	}
+
+	if (msg.event.tournament_logo) {
+		app.config.tournament_logo = msg.event.tournament_logo;
+		app.config.tournament_logo_background_color = msg.event.tournament_logo_background_color;
+		app.config.tournament_logo_mime = msg.event.tournament_logo_mime;
+	}
 	if (msg.event.tournament_url) {
 		app.config.note_html = "Alle Spiele auf <a href=\"" + msg.event.tournament_url+"\" target='_blank'>Turnier.de</a>";
 	}

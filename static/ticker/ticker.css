@@ -9,12 +9,17 @@ html, body {
 
 .topline {
 	position: relative;
-	margin: 0.3em 0 0.5em 0;
+	align-items: center;
+	display: flex;
+	margin: 0.3em 0 0 0;
 }
 
+.tournament_logo {
+	height: 32px;
+}
 
 h1 {
-	margin: 0;
+	margin: 0 0 0 10px;
 	padding: 0;
 	font-size: inherit;
 	font-weight: bold;
