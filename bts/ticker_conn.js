@@ -195,39 +195,47 @@ class TickerConn {
 				const tournament = db_tournaments[0];
 				const tname = tournament.name;
 				const turl = "https://" + ((tournament.btp_settings && tournament.btp_settings.tournament_urn) ? tournament.btp_settings.tournament_urn : "www.turnier.de") + "/tournament" + (tournament.tguid ? "/" + tournament.tguid + "/matches" : "s/");
+				if (tournament.logo_id && tournament.logo_id != null) {
+					const file_path = path.join(utils.root_dir(), 'data', 'logos', tournament.logo_id);
+					fs.readFile(file_path)
+						.then((file_buffer) => {
+							const base64_image = file_buffer.toString('base64');
+							const filetype = tournament.logo_id.split(".")[1];
+							const mime = {
+								gif: 'image/gif',
+								png: 'image/png',
+								jpg: 'image/jpeg',
+								jpeg: 'image/jpeg',
+								svg: 'image/svg+xml',
+								webp: 'image/webp',
+							}[filetype];
 
-				const file_path = path.join(utils.root_dir(), 'data', 'logos', tournament.logo_id);
-				fs.readFile(file_path)
-					.then((file_buffer) => {
-						const base64_image = file_buffer.toString('base64');
-						const filetype = tournament.logo_id.split(".")[1];
-						const mime = {
-							gif: 'image/gif',
-							png: 'image/png',
-							jpg: 'image/jpeg',
-							jpeg: 'image/jpeg',
-							svg: 'image/svg+xml',
-							webp: 'image/webp',
-						}[filetype];
-
-						return cb(null, {
-							courts: db_courts.map(craft_court),
-							matches: interesting_matches.map(craft_match),
-							tournament_name: tname,
-							tournament_url: turl,
-							tournament_logo: base64_image,
-							tournament_logo_mime: mime,
-							tournament_logo_background_color: tournament.logo_background_color
+							return cb(null, {
+								courts: db_courts.map(craft_court),
+								matches: interesting_matches.map(craft_match),
+								tournament_name: tname,
+								tournament_url: turl,
+								tournament_logo: base64_image,
+								tournament_logo_mime: mime,
+								tournament_logo_background_color: tournament.logo_background_color
+							});
+						})
+						.catch((error) => {
+							return cb(null, {
+								courts: db_courts.map(craft_court),
+								matches: interesting_matches.map(craft_match),
+								tournament_name: tname,
+								tournament_url: turl
+							});
 						});
-					})
-					.catch((error) => {
-						return cb(null, {
-							courts: db_courts.map(craft_court),
-							matches: interesting_matches.map(craft_match),
-							tournament_name: tname,
-							tournament_url: turl
-						});
+				} else {
+					return cb(null, {
+						courts: db_courts.map(craft_court),
+						matches: interesting_matches.map(craft_match),
+						tournament_name: tname,
+						tournament_url: turl
 					});
+				}
 			} else {
 				return cb(null, {
 					courts: db_courts.map(craft_court),
