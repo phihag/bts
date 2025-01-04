@@ -61,6 +61,12 @@ function get_normalizations(db, tournament_key, callback) {
 		return callback(err, normalizations);
 	});
 }
+function get_advertisements(db, tournament_key, callback) {
+	db.advertisements.find({}, function (err, advertisements) {
+		if (err) return callback(err);
+		return callback(err, advertisements);
+	});
+}
 
 function get_displaysettings(db, tournament_key, callback) {
 	db.displaysettings.find({}, function (err, displaysettings) {
@@ -68,7 +74,6 @@ function get_displaysettings(db, tournament_key, callback) {
 		return callback(err, displaysettings);
 	});
 }
-
 
 module.exports = {
 	get_courts,
@@ -78,4 +83,5 @@ module.exports = {
 	get_displays,
 	get_normalizations,
 	get_displaysettings,
+	get_advertisements,
 };

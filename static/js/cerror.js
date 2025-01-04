@@ -23,7 +23,7 @@ var cerror = (function() {
 	}
 
 	function silent(msg) {
-		console.error(msg); // eslint-disable-line no-console
+		console.error(msg);
 		on_error(msg, undefined, undefined, undefined, new Error());
 	}
 

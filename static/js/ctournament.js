@@ -262,11 +262,30 @@ var ctournament = (function() {
 		}
 		update_normalization_values(c)
 	}
-
 	function update_normalization_values(c) {
-		uiu.qsEach('.normalizations_values_div',(div_el) => {
+		uiu.qsEach('.normalizations_values_div', (div_el) => {
 			div_el.innerHTML = "";
 			render_normalisation_values(div_el);
+		});
+	}
+
+	function add_advertisement(c) {
+		curt.advertisements.push(c.val.advertisement);
+		update_advertisements(c)
+	}
+
+	function remove_advertisement(c) {
+		const changed_t = utils.find(curt.advertisements, m => m._id === c.val.advertisement_id);
+		if (changed_t) {
+			curt.advertisements.splice(curt.advertisements.indexOf(changed_t), 1);
+		}
+		update_advertisements(c)
+	}
+
+	function update_advertisements(c) {
+		uiu.qsEach('.advertisements_div', (div_el) => {
+			div_el.innerHTML = "";
+			render_advertisements(div_el);
 		});
 	}
 
@@ -290,6 +309,14 @@ var ctournament = (function() {
 
 	function _update_all_ui_elements_upcoming() {
 		cmatch.render_courts(uiu.qs('.courts_container'), 'public');
+		cmatch.render_upcoming_matches(uiu.qs('.upcoming_container'));
+	}
+
+	function _update_all_ui_elements_current_matches() {
+		cmatch.render_courts(uiu.qs('.courts_container'), 'public');
+	}
+
+	function _update_all_ui_elements_next_matches() {
 		cmatch.render_upcoming_matches(uiu.qs('.upcoming_container'));
 	}
 
@@ -392,15 +419,21 @@ var ctournament = (function() {
 			func: ui_show,
 			'class': 'ct_name',
 		}], [{
-			label: 'Scoreboard',
+			label: ci18n('Scoreboard'),
 			href: '/bup/#btsh_e=' + encodeURIComponent(curt.key) + '&display' + bup_dm_style + bup_lang,
 		}, {
-			label: 'Umpire Panel',
+			label: ci18n('Umpire Panel'),
 			href: '/bup/#btsh_e=' + encodeURIComponent(curt.key) + bup_lang,
 		}, {
-			label: ci18n('Next Matches'),
+			label: ci18n('Matchoverview'),
 			href: '/admin/t/' + encodeURIComponent(curt.key) + '/upcoming',
-		},]);
+		}, {
+			label: ci18n('Current Matches'),
+			href: '/admin/t/' + encodeURIComponent(curt.key) + '/current_matches',
+		}, {
+			label: ci18n('Next Matches'),
+			href: '/admin/t/' + encodeURIComponent(curt.key) + '/next_matches',
+		}]);
 
 		const main = uiu.qs('.main');
 		uiu.empty(main);
@@ -439,6 +472,8 @@ var ctournament = (function() {
 		match_remove: remove_match,
 		normalization_removed: remove_normalization,
 		normalization_add: add_normalization,
+		advertisement_removed: remove_advertisement,
+		advertisement_add: add_advertisement,
 		tabletoperator_add: tabletoperator_add,
 		tabletoperator_moved_up: tabletoperator_moved_up,
 		tabletoperator_moved_down: tabletoperator_moved_down,
@@ -741,6 +776,12 @@ var ctournament = (function() {
 			}
 		};
 
+		const upcoming_fieldset = uiu.el(form, 'fieldset');
+		uiu.el(upcoming_fieldset, 'h2', 'edit', ci18n('tournament:edit:upcoming_matches_settings'));
+		create_numeric_input(curt, form, 'upcoming_matches_animation_speed', 0, 10, 2, 1);
+		create_numeric_input(curt, form, 'upcoming_matches_animation_pause', 1, 20, 4, 1);
+		create_numeric_input(curt, form, 'upcoming_matches_max_count', 10, 50, 15, 1);
+
 		const bts_fieldset = uiu.el(form, 'fieldset');
 		uiu.el(bts_fieldset, 'h2', 'edit', ci18n('tournament:edit:bts'));
 		create_checkbox(curt, bts_fieldset, 'call_preparation_matches_automatically_enabled');
@@ -900,6 +941,9 @@ var ctournament = (function() {
 				ticker_enabled: (!!data.ticker_enabled),
 				ticker_url: data.ticker_url,
 				ticker_password: data.ticker_password,
+				upcoming_matches_animation_speed: data.upcoming_matches_animation_speed,
+				upcoming_matches_max_count: data.upcoming_matches_max_count,
+				upcoming_matches_animation_pause: data.upcoming_matches_animation_pause,
 				tabletoperator_with_umpire_enabled: (!!data.tabletoperator_with_umpire_enabled),
 				tabletoperator_winner_of_quaterfinals_enabled: (!!data.tabletoperator_winner_of_quaterfinals_enabled),
 				tabletoperator_split_doubles: (!!data.tabletoperator_split_doubles),
@@ -999,7 +1043,8 @@ var ctournament = (function() {
 		const general_displaysettings_div = uiu.el(main, 'div', 'general_displaysettings');
 		render_general_displaysettings(general_displaysettings_div);
 		render_displaysettings(main);
-		render_normalisation_values(uiu.el(main, 'div','normalizations_values_div'));
+		render_normalisation_values(uiu.el(main, 'div', 'normalizations_values_div'));
+		render_advertisements(uiu.el(main, 'div', 'advertisements_div'));
 	}
 	_route_single(/t\/([a-z0-9]+)\/edit$/, ui_edit, change.default_handler(_update_all_ui_elements_edit, {
 		update_general_displaysettings: update_general_displaysettings,
@@ -1020,7 +1065,7 @@ var ctournament = (function() {
 		create_undecorated_input("text", uiu.el(tr_input, 'td', {}), 'normalizations_replace');
 		create_undecorated_input("text", uiu.el(tr_input, 'td', {}), 'normalizations_language');
 		const actions_td = uiu.el(tr_input, 'td', {});
-		const add_btn = uiu.el(actions_td, 'button', {}, 'Add');
+		const add_btn = uiu.el(actions_td, 'button', {}, ci18n('tournament:edit:add'));
 		add_btn.addEventListener('click', function (e) {
 
 			var new_normalization = {}
@@ -1046,7 +1091,7 @@ var ctournament = (function() {
 			const actions_td = uiu.el(tr, 'td', {});
 			const delete_btn = uiu.el(actions_td, 'button', {
 				'data-normalization-id': nv._id,
-			}, 'Delete');
+			}, ci18n('tournament:edit:delete'));
 						
 			delete_btn.addEventListener('click', function (e) {
 				const del_btn = e.target;
@@ -1062,6 +1107,75 @@ var ctournament = (function() {
 				});
 			});
 		}
+	}
+
+	function render_advertisements(main) {
+		uiu.el(main, 'h2', 'edit', ci18n('tournament:edit:advertisements'));
+
+		const display_table = uiu.el(main, 'table');
+		const display_tbody = uiu.el(display_table, 'tbody');
+		const tr = uiu.el(display_tbody, 'tr');
+		uiu.el(tr, 'th', {}, ci18n('tournament:edit:advertisements:id'));
+		uiu.el(tr, 'th', {}, ci18n('tournament:edit:advertisements:url'));
+		uiu.el(tr, 'th', {}, ci18n('tournament:edit:advertisements:type'));
+		uiu.el(tr, 'th', {}, ci18n('tournament:edit:advertisements:disabled'));
+		uiu.el(tr, 'th', {}, '');
+		const tr_input = uiu.el(display_tbody, 'tr');
+		uiu.el(tr_input, 'td', {}, '');
+		create_undecorated_input("text", uiu.el(tr_input, 'td', {}), 'advertisement_url');
+		create_undecorated_input("text", uiu.el(tr_input, 'td', {}), 'advertisement_type');
+		uiu.el(tr_input, 'td', {}, '');
+		const actions_td = uiu.el(tr_input, 'td', {});
+		const add_btn = uiu.el(actions_td, 'button', {}, ci18n('tournament:edit:add'));
+		add_btn.addEventListener('click', function (e) {
+
+			var new_advertisement = {}
+			new_advertisement.id = generateGUID();
+			new_advertisement.url = document.getElementById('advertisement_url').value;
+			new_advertisement.type = document.getElementById('advertisement_type').value;
+			new_advertisement.disabled = false;
+			send({
+				type: 'advertisement_add',
+				tournament_key: curt.key,
+				advertisement: new_advertisement,
+			}, err => {
+				if (err) {
+					return cerror.net(err);
+				}
+			});
+		});
+		for (const nv of curt.advertisements) {
+			const tr = uiu.el(display_tbody, 'tr');
+			uiu.el(tr, 'td', {}, nv.id);
+			uiu.el(tr, 'td', {}, nv.url);
+			uiu.el(tr, 'td', {}, nv.type);
+			uiu.el(tr, 'td', {}, nv.disabled);
+			const actions_td = uiu.el(tr, 'td', {});
+			const delete_btn = uiu.el(actions_td, 'button', {
+				'data-advertisement-id': nv._id,
+			}, ci18n('tournament:edit:delete'));
+
+			delete_btn.addEventListener('click', function (e) {
+				const del_btn = e.target;
+				const advertisement_id = del_btn.getAttribute('data-advertisement-id');
+				send({
+					type: 'advertisement_remove',
+					tournament_key: curt.key,
+					advertisement_id: advertisement_id,
+				}, err => {
+					if (err) {
+						return cerror.net(err);
+					}
+				});
+			});
+		}
+	}
+	function generateGUID() {
+		return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (char) {
+			const random = Math.random() * 16 | 0;
+			const value = char === 'x' ? random : (random & 0x3 | 0x8);
+			return value.toString(16);
+		});
 	}
 
 	function set_battery_state(battery, node) {
@@ -1401,29 +1515,67 @@ var ctournament = (function() {
 		cmatch.prepare_render(curt);
 		const courts_container = uiu.el(container, 'div', 'courts_container');
 		cmatch.render_courts(courts_container, 'public');
+		const upcoming_container = uiu.el(container, 'div', 'upcoming_container');
+		cmatch.render_upcoming_matches(upcoming_container);
+	}
 
+	function render_current_matches(container) {
+		cmatch.prepare_render(curt);
+		const courts_container = uiu.el(container, 'div', 'courts_container');
+		cmatch.render_courts(courts_container, 'public');
+	}
+
+	function render_next_matches(container) {
+		cmatch.prepare_render(curt);
 		const upcoming_container = uiu.el(container, 'div', 'upcoming_container');
 		cmatch.render_upcoming_matches(upcoming_container);
 	}
 
 	function ui_upcoming() {
-		crouting.set('t/:key/upcoming', { key: curt.key });
-		toprow.hide();
+		const main = ui_match_screens('t/:key/upcoming');
+		render_upcoming(main);
+	}
 
+	function ui_current_matches() {
+		const main = ui_match_screens('t/:key/current_matches');
+		render_current_matches(main);
+	}
+
+	function ui_next_matches() {
+		const main = ui_match_screens('t/:key/next_matches');
+		render_next_matches(main);
+	}
+
+	function ui_match_screens(route) {
+		crouting.set(route, { key: curt.key });
+		toprow.hide();
 		const main = uiu.qs('.main');
 		uiu.empty(main);
 		main.classList.add('main_upcoming');
-
-		render_upcoming(main);
 		main.addEventListener('click', () => {
 			fullscreen.toggle();
 		});
+		return main;
 	}
+
 	_route_single(/t\/([a-z0-9]+)\/upcoming/, ui_upcoming, change.default_handler(_update_all_ui_elements_upcoming, {
 		score: update_score,
 		court_current_match: update_upcoming_current_match,
 		match_edit: update_upcoming_match,
 		update_player_status: update_player_status, 
+	}));
+
+	_route_single(/t\/([a-z0-9]+)\/current_matches/, ui_current_matches, change.default_handler(_update_all_ui_elements_upcoming, {
+		score: update_score,
+		court_current_match: update_upcoming_current_match,
+		match_edit: update_upcoming_match,
+		update_player_status: update_player_status,
+	}));
+	_route_single(/t\/([a-z0-9]+)\/next_matches/, ui_next_matches, change.default_handler(_update_all_ui_elements_upcoming, {
+		score: update_score,
+		court_current_match: update_upcoming_current_match,
+		match_edit: update_upcoming_match,
+		update_player_status: update_player_status,
 	}));
 
 
@@ -1609,6 +1761,8 @@ var ctournament = (function() {
 		bts_status_changed,
 		remove_normalization,
 		add_normalization,
+		remove_advertisement,
+		add_advertisement,
 		update_general_displaysettings,
 	};
 

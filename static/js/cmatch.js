@@ -3,10 +3,9 @@
 var cmatch = (function() {
 
 var has_resize_event = false;
-var scroll_timer = setTimeout(auto_scroll, 10000);
-var resize_timer = false;
-
+var scroll_timer = setTimeout(auto_scroll, 4000);
 var scroll_down = true;
+let is_paused = false;
 
 const OVERRIDE_COLORS_KEYS = ['', 'bg'];
 
@@ -28,11 +27,21 @@ function calc_section(m) {
 	return 'unassigned';
 }
 
-function auto_scroll(){
+function auto_scroll() {
+	if (is_paused) {
+		return;
+	}
+
+	const scroll_speed = parseInt(curt.upcoming_matches_animation_speed ? curt.upcoming_matches_animation_speed : 2);
+	if (scroll_speed == 0) {
+		return;
+	}
+
 	const scroll_object = document.querySelectorAll('.main_upcoming');
 	let new_top = 0;
 	let height = 0;
 	let child_higth = 0;
+	
 	scroll_object.forEach((item) =>{
 
 		let old_top = 0;
@@ -41,9 +50,9 @@ function auto_scroll(){
 		}
 
 		if(scroll_down) {
-			item.style.top = (old_top - 2)+'px';
+			item.style.top = (old_top - scroll_speed)+'px';
 		} else {
-			item.style.top = (old_top + 2)+'px';
+			item.style.top = (old_top + scroll_speed)+'px';
 		}
 
 		new_top = parseInt(item.style.top);
@@ -55,16 +64,22 @@ function auto_scroll(){
 		height = item.offsetHeight;
 	});
 
-	let scroll_interval = 1;
 	if(new_top >= 0) {
-		scroll_interval = 15000;
 		scroll_down = true;
+		pause_scroll(); 
 	} else if (height >= child_higth) {
-		scroll_interval = 15000;
 		scroll_down = false;
+		pause_scroll(); 
 	}
 
-	scroll_timer = setTimeout(auto_scroll, scroll_interval);
+	requestAnimationFrame(auto_scroll); // Verwendet eine gleichmäßige Animation
+}
+function pause_scroll() {
+	is_paused = true;
+	setTimeout(() => {
+		is_paused = false;
+		auto_scroll();
+	}, parseInt(curt.upcoming_matches_animation_pause ? curt.upcoming_matches_animation_pause : 4) * 1000);
 }
 
 function resize_table(resizable_rows, table_width_factor) {
@@ -396,7 +411,7 @@ function render_match_row(tr, match, court, style, show_player_status, show_add_
 			
 				//auto_size(umpire_name_div, parrent_width - umpire_icon.offsetWidth - 20);
 				resizable_elements.fixed_width_elements.push(umpire_name_div);
-				resizable_elements.fixed_width.push(parrent_width - umpire_icon.offsetWidth - 20 + 'px');
+				resizable_elements.fixed_width.push(parrent_width - umpire_icon.offsetWidth - 20);
 			
 			} else if (setup.tabletoperators && setup.tabletoperators.length > 0){
 				const tablet_icon = uiu.el(score_span, 'div', 'tablet', '');
@@ -414,7 +429,7 @@ function render_match_row(tr, match, court, style, show_player_status, show_add_
 				//auto_size(operators_div, parrent_width - tablet_icon.offsetWidth - 20);
 
 				resizable_elements.fixed_width_elements.push(operators_div);
-				resizable_elements.fixed_width.push(parrent_width - tablet_icon.offsetWidth - 20 - 20 + 'px');
+				resizable_elements.fixed_width.push(parrent_width - tablet_icon.offsetWidth - 20 - 20);
 			}
 		}
 	}
@@ -805,9 +820,10 @@ function update_player(match_id, player, now_on_court, show_player_status) {
 	}
 
 function add_match(m, section) {
-	console.log('in cmatch');
-	console.log(section);
+	insert_new_match_row(m, section);
+}
 	
+function insert_new_match_row(m, section) {
 	switch (section) {
 		case 'finished':
 			uiu.qsEach('.finished_container', (finished_container) => {
@@ -859,54 +875,37 @@ function add_match(m, section) {
 	}
 }
 
-function update_match(m, old_section, new_section) {	
-	if(old_section != new_section) {
-		remove_match_from_gui(m, old_section);
+function update_match_row(m, new_section) {
+	uiu.qsEach('.match[data-match_id=' + JSON.stringify(m._id) + ']', (match_row_el) => {
+		match_row_el.innerHTML = '';
+		
 		switch (new_section) {
 			case 'finished':
-				uiu.qsEach('.finished_container', (finished_container) => {
-					let tbody = finished_container.querySelector('.match_table > tbody');
-					uiu.el(tbody, 'tr', {'class' : 'match highlight_' + m.setup.highlight , 'data-match_id': m._id});
-				});
-			case 'unassigned':
-				uiu.qsEach('.unassigned_container', (unassigned_container) => {
-					let tbody = unassigned_container.querySelector('.match_table > tbody');
-					uiu.el(tbody, 'tr', {'class' : 'match highlight_' + m.setup.highlight , 'data-match_id': m._id});
-				});
-				break;
-			default:
-				break;
-		}
-	} else {
-		uiu.qsEach('.match[data-match_id=' + JSON.stringify(m._id) + ']', (match_row_el) => {
-			match_row_el.innerHTML = '';
-		});
-	}
-
-	switch (new_section) {
-		case 'finished':
-			uiu.qsEach('.finished_container > table > tbody > .match[data-match_id=' + JSON.stringify(m._id) + ']', (match_row_el) => {	
 				render_match_row(match_row_el, m, null, 'default', false, true);
-			});
-			break;
-		case 'unassigned':
-			uiu.qsEach( '.unassigned_container > table > tbody > .match[data-match_id=' + JSON.stringify(m._id) + ']', (match_row_el) => {	
+				break;
+			case 'unassigned':
 				match_row_el.setAttribute('class', 'match highlight_' + (m.setup.highlight ? m.setup.highlight : 0));
 				render_match_row(match_row_el, m, null, 'unasigned', true, true);
-			});
-			break;
-		default:
-			const court = utils.find(curt.courts, c => c._id === m.setup.court_id);	
-			uiu.qsEach('.court_row[data-court_id=' + JSON.stringify(m.setup.court_id) + ']', (match_row_el) => {
-				match_row_el.innerHTML = "";
+				break;
+			default:
+				const court = utils.find(curt.courts, c => c._id === m.setup.court_id);	
 				const closest = match_row_el.closest('.main_upcoming');
 				if(Boolean(closest)) {
 					render_match_row(match_row_el, m, court, 'public');
 				} else {
 					render_match_row(match_row_el, m, court, 'plain', false, false);
 				}
-			});
-			break;
+				break;
+		}
+	});
+}
+
+function update_match(m, old_section, new_section) {	
+	if(old_section != new_section) {
+		remove_match_from_gui(m, old_section);
+		insert_new_match_row(m, new_section);
+	} else {
+		update_match_row(m, new_section);
 	}
 }
 
@@ -1537,7 +1536,7 @@ function render_unassigned(container) {
 }
 
 function render_upcoming_matches(container) {
-	const UPCOMING_MATCH_COUNT = 13;
+	const UPCOMING_MATCH_COUNT = parseInt(curt.upcoming_matches_max_count ? curt.upcoming_matches_max_count : 15);
 	uiu.empty(container);
 
 	uiu.el(container, 'h2', {

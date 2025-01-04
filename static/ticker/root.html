@@ -7,25 +7,19 @@
         <title>{{tournament_name_html}}</title>
     </head>
     <body id="bts-data-holder" data-error-reporting="{{error_reporting}}">
-
         <div class="main">
-
             <div class="topline">
+                <img style="background-color:{{tournament_logo_background_color_html}};" class="tournament_logo" src="data:{{tournament_logo_mime_html}};base64,{{tournament_logo_html}}" alt="{{tournament_name_html}}"/>
                 <h1>{{tournament_name_html}}</h1>
-                <div class="last_update">Stand: <span class="last_update_val">{{last_update_str}}</span></div>
             </div>
-
             <div class="note">{{prefix_html}}</div>
-
             <div id="courts_html">{{courts_html}}</div>
-
             <div class="note">
                 {{note_html}}
+                <div class="last_update">Stand: <span class="last_update_val">{{last_update_str}}</span></div>
             </div>
             <div class="error"></div>
         </div>
-
-        <!-- <script src="{{static_path}}libs/mustache.min.js"></script> -->
         <script src="{{static_path}}js/cerror.js"></script>
         <script src="{{static_path}}ticker/cticker.js"></script>
     </body>

@@ -301,54 +301,56 @@ function get_last_looser_on_court(admin, app, tkey, court_id) {
 }
 
 function calc_match_set_player_on_tablet(match, match_on_court_setup) {
-	if(match.setup.now_on_court == false) {
-		return null;
-	}
-	
-	if(!match_on_court_setup.tabletoperators || match_on_court_setup.tabletoperators.length <1) {
-		return null;
-	}
-	
-	let tablet_operatorns_btp_ids = [match_on_court_setup.tabletoperators[0].btp_id];
+	return new Promise((resolve) => {
+		if(match.setup.now_on_court == false) {
+			resolve(null);
+		}
+		
+		if(!match_on_court_setup.tabletoperators || match_on_court_setup.tabletoperators.length <1) {
+			resolve(null);
+		}
+		
+		let tablet_operatorns_btp_ids = [match_on_court_setup.tabletoperators[0].btp_id];
 
-	if(match_on_court_setup.tabletoperators.length > 1) {
-		tablet_operatorns_btp_ids.push(match_on_court_setup.tabletoperators[1].btp_id);
-	}
+		if(match_on_court_setup.tabletoperators.length > 1) {
+			tablet_operatorns_btp_ids.push(match_on_court_setup.tabletoperators[1].btp_id);
+		}
 
-	let change = false;
-	
-	if (match.setup.teams[0].players.length > 0 && tablet_operatorns_btp_ids.includes(match.setup.teams[0].players[0].btp_id)) {
-		match.setup.teams[0].players[0].now_tablet_on_court = match_on_court_setup.court_id;
-		match.setup.teams[0].players[0].checked_in = false;
-		change = true;
-	}
+		let change = false;
+		
+		if (match.setup.teams[0].players.length > 0 && tablet_operatorns_btp_ids.includes(match.setup.teams[0].players[0].btp_id)) {
+			match.setup.teams[0].players[0].now_tablet_on_court = match_on_court_setup.court_id;
+			match.setup.teams[0].players[0].checked_in = false;
+			change = true;
+		}
 
-	if (match.setup.teams[0].players.length > 1 && tablet_operatorns_btp_ids.includes(match.setup.teams[0].players[1].btp_id)) {
-		match.setup.teams[0].players[1].now_tablet_on_court = match_on_court_setup.court_id;
-		match.setup.teams[0].players[1].checked_in = false;
-		change = true;
-	}
+		if (match.setup.teams[0].players.length > 1 && tablet_operatorns_btp_ids.includes(match.setup.teams[0].players[1].btp_id)) {
+			match.setup.teams[0].players[1].now_tablet_on_court = match_on_court_setup.court_id;
+			match.setup.teams[0].players[1].checked_in = false;
+			change = true;
+		}
 
-	if (match.setup.teams[1].players.length > 0 && tablet_operatorns_btp_ids.includes(match.setup.teams[1].players[0].btp_id)) {
-		match.setup.teams[1].players[0].now_tablet_on_court = match_on_court_setup.court_id;
-		match.setup.teams[1].players[0].checked_in = false;
-		change = true;
-	}
+		if (match.setup.teams[1].players.length > 0 && tablet_operatorns_btp_ids.includes(match.setup.teams[1].players[0].btp_id)) {
+			match.setup.teams[1].players[0].now_tablet_on_court = match_on_court_setup.court_id;
+			match.setup.teams[1].players[0].checked_in = false;
+			change = true;
+		}
 
-	if (match.setup.teams[1].players.length > 1 && tablet_operatorns_btp_ids.includes(match.setup.teams[1].players[1].btp_id)) {
-		match.setup.teams[1].players[1].now_tablet_on_court = match_on_court_setup.court_id;
-		match.setup.teams[1].players[1].checked_in = false;
-		change = true;
-	}
+		if (match.setup.teams[1].players.length > 1 && tablet_operatorns_btp_ids.includes(match.setup.teams[1].players[1].btp_id)) {
+			match.setup.teams[1].players[1].now_tablet_on_court = match_on_court_setup.court_id;
+			match.setup.teams[1].players[1].checked_in = false;
+			change = true;
+		}
 
-	if (change) {
-		return match;
-	}
+		if (change) {
+			resolve(match);
+		}
 
-	return null;
+		resolve(null);
+	});
 }
 
-function set_player_on_tablet (app, tkey, match_on_court_setup, callback) {	
+async function set_player_on_tablet (app, tkey, match_on_court_setup, callback) {	
 	
 	if(!match_on_court_setup.tabletoperators || match_on_court_setup.tabletoperators.length == 0) {
 		return callback(null);
@@ -361,7 +363,7 @@ function set_player_on_tablet (app, tkey, match_on_court_setup, callback) {
 		}
 
 		async.each(matches, async (match, cb) => {
-			const changed_match = calc_match_set_player_on_tablet(match, match_on_court_setup)
+			const changed_match = await calc_match_set_player_on_tablet(match, match_on_court_setup)
 			if (changed_match != null) {
 				const setup = changed_match.setup;
 				const match_q = {_id: changed_match._id};
@@ -379,57 +381,59 @@ function set_player_on_tablet (app, tkey, match_on_court_setup, callback) {
 }
 
 function calc_match_set_player_on_court(match, match_on_court_setup) {
-	if(match.setup.now_on_court == false) {
-		return null;
-	}
-	
-	let on_court_btp_ids = [match_on_court_setup.teams[0].players[0].btp_id, 
-							   match_on_court_setup.teams[1].players[0].btp_id];
+	return new Promise((resolve) => {
+		if(match.setup.now_on_court == false) {
+			resolve(null);
+		}
+		
+		let on_court_btp_ids = [match_on_court_setup.teams[0].players[0].btp_id, 
+								match_on_court_setup.teams[1].players[0].btp_id];
 
-	if(match_on_court_setup.teams[0].players.length > 1) {
-		on_court_btp_ids.push(match_on_court_setup.teams[0].players[1].btp_id);
-	}
-	
-	if(match_on_court_setup.teams[1].players.length > 1) {
-		on_court_btp_ids.push(match_on_court_setup.teams[1].players[1].btp_id);
-	}
+		if(match_on_court_setup.teams[0].players.length > 1) {
+			on_court_btp_ids.push(match_on_court_setup.teams[0].players[1].btp_id);
+		}
+		
+		if(match_on_court_setup.teams[1].players.length > 1) {
+			on_court_btp_ids.push(match_on_court_setup.teams[1].players[1].btp_id);
+		}
 
-	let change = false;
-	
-	if (match.setup.teams[0].players.length > 0 && on_court_btp_ids.includes(match.setup.teams[0].players[0].btp_id)) {
-		match.setup.teams[0].players[0].now_playing_on_court = match_on_court_setup.court_id;
-		match.setup.teams[0].players[0].tablet_break_active = false;
-		match.setup.state = 'blocked';
-		change = true;
-	}
+		let change = false;
+		
+		if (match.setup.teams[0].players.length > 0 && on_court_btp_ids.includes(match.setup.teams[0].players[0].btp_id)) {
+			match.setup.teams[0].players[0].now_playing_on_court = match_on_court_setup.court_id;
+			match.setup.teams[0].players[0].tablet_break_active = false;
+			match.setup.state = 'blocked';
+			change = true;
+		}
 
-	if (match.setup.teams[0].players.length > 1 && on_court_btp_ids.includes(match.setup.teams[0].players[1].btp_id)) {
-		match.setup.teams[0].players[1].now_playing_on_court = match_on_court_setup.court_id;
-		match.setup.teams[0].players[1].tablet_break_active = false;
-		match.setup.state = 'blocked';
-		change = true;
-	}
+		if (match.setup.teams[0].players.length > 1 && on_court_btp_ids.includes(match.setup.teams[0].players[1].btp_id)) {
+			match.setup.teams[0].players[1].now_playing_on_court = match_on_court_setup.court_id;
+			match.setup.teams[0].players[1].tablet_break_active = false;
+			match.setup.state = 'blocked';
+			change = true;
+		}
 
-	if (match.setup.teams[1].players.length > 0 && on_court_btp_ids.includes(match.setup.teams[1].players[0].btp_id)) {
-		match.setup.teams[1].players[0].now_playing_on_court = match_on_court_setup.court_id;
-		match.setup.teams[1].players[0].tablet_break_active = false;
-		match.setup.state = 'blocked';
-		change = true;
-	}
+		if (match.setup.teams[1].players.length > 0 && on_court_btp_ids.includes(match.setup.teams[1].players[0].btp_id)) {
+			match.setup.teams[1].players[0].now_playing_on_court = match_on_court_setup.court_id;
+			match.setup.teams[1].players[0].tablet_break_active = false;
+			match.setup.state = 'blocked';
+			change = true;
+		}
 
-	if (match.setup.teams[1].players.length > 1 && on_court_btp_ids.includes(match.setup.teams[1].players[1].btp_id)) {
-		match.setup.teams[1].players[1].now_playing_on_court = match_on_court_setup.court_id;
-		match.setup.teams[1].players[1].tablet_break_active = false;
-		match.setup.state = 'blocked';
-		change = true;
-	}
-	if (change) {
-		return match;
-	}
-	return null;
+		if (match.setup.teams[1].players.length > 1 && on_court_btp_ids.includes(match.setup.teams[1].players[1].btp_id)) {
+			match.setup.teams[1].players[1].now_playing_on_court = match_on_court_setup.court_id;
+			match.setup.teams[1].players[1].tablet_break_active = false;
+			match.setup.state = 'blocked';
+			change = true;
+		}
+		if (change) {
+			resolve(match);
+		}
+		resolve(null);
+	});
 }
 
-function set_player_on_court (app, tkey, match_on_court_setup, callback) {	
+async function set_player_on_court (app, tkey, match_on_court_setup, callback) {	
 	const admin = require('./admin'); // avoid dependency cycle	
 	app.db.matches.find({'tournament_key': tkey}, async (err, matches) => {
 		if (err) {
@@ -437,7 +441,7 @@ function set_player_on_court (app, tkey, match_on_court_setup, callback) {
 		}
 
 		async.each(matches, async (match) => {
-			const changed_match = calc_match_set_player_on_court(match, match_on_court_setup);
+			const changed_match = await calc_match_set_player_on_court(match, match_on_court_setup);
 			if (changed_match != null) {
 				const setup = changed_match.setup;
 				const match_q = {_id: changed_match._id};

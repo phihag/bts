@@ -68,6 +68,7 @@ function handle_tournament_edit_props(app, ws, msg) {
 		'btp_ip', 'btp_password',
 		'is_team', 'is_nation_competition',
 		'warmup', 'warmup_ready', 'warmup_start',
+		'upcoming_matches_animation_speed', 'upcoming_matches_max_count','upcoming_matches_animation_pause',
 		'ticker_enabled', 'ticker_url', 'ticker_password',
 		'language', 'dm_style', 'displaysettings_general',
 		'tabletoperator_enabled', 'tabletoperator_break_seconds',
@@ -198,20 +199,25 @@ function handle_tournament_get(app, ws, msg) {
 				cb(err);
 			});
 		}, function (cb) {
-		stournament.get_displays(app, tournament, function (err, displays) {
-			tournament.displays = displays;
-			cb(err);
-		});
+			stournament.get_displays(app, tournament, function (err, displays) {
+				tournament.displays = displays;
+				cb(err);
+			});
 		}, function (cb) {
 			stournament.get_normalizations(app.db, tournament.key, function (err, normalizations) {
 				tournament.normalizations = normalizations;
 				cb(err);
 			});
 		}, function (cb) {
-		stournament.get_displaysettings(app.db, tournament.key, function (err, displaysettings) {
-			tournament.displaysettings = displaysettings;
-			cb(err);
-		});
+			stournament.get_advertisements(app.db, tournament.key, function (err, advertisements) {
+				tournament.advertisements = advertisements;
+				cb(err);
+			});
+		}, function (cb) {
+			stournament.get_displaysettings(app.db, tournament.key, function (err, displaysettings) {
+				tournament.displaysettings = displaysettings;
+				cb(err);
+			});
 		}], function(err) {
 			tournament.btp_status = btp_manager.get_status(tournament.key);
 			tournament.ticker_status = ticker_manager.get_status(tournament.key);
@@ -311,7 +317,6 @@ function handle_normalization_add(app, ws, msg) {
 		notify_change(app, msg.tournament_key, 'normalization_add', { normalization: inserted_normalization });
 	});
 }
-
 function handle_normalization_remove(app, ws, msg) {
 	if (!msg.tournament_key) {
 		return ws.respond(msg, { message: 'Missing tournament_key' });
@@ -327,6 +332,45 @@ function handle_normalization_remove(app, ws, msg) {
 		return;
 	});
 }
+function handle_advertisement_add(app, ws, msg) {
+	if (!msg.tournament_key) {
+		return ws.respond(msg, { message: 'Missing tournament_key' });
+	}
+
+	if (!msg.advertisement) {
+		return ws.respond(msg, { message: 'Missing required advertisement' });
+	}
+
+	app.db.advertisements.insert(msg.advertisement, function (err, inserted_advertisement) {
+		if (err) {
+			ws.respond(msg, err);
+			return;
+		}
+		notify_change(app, msg.tournament_key, 'advertisement_add', { advertisement: inserted_advertisement });
+		const bupws = require('./bupws');
+		bupws.send_advertisement_add(msg.tournament_key,inserted_advertisement);
+		return;
+	});
+}
+
+function handle_advertisement_remove(app, ws, msg) {
+	if (!msg.tournament_key) {
+		return ws.respond(msg, { message: 'Missing tournament_key' });
+	}
+
+	if (!msg.advertisement_id) {
+		return ws.respond(msg, { message: 'Missing required advertisement' });
+	}
+
+	const query = { _id: msg.advertisement_id };
+	app.db.advertisements.remove(query, {}, (err) => {
+		notify_change(app, msg.tournament_key, 'advertisement_removed', { advertisement_id: msg.advertisement_id });
+		const bupws = require('./bupws');
+		bupws.send_advertisement_remove(msg.tournament_key,msg.advertisement_id);
+		return;
+	});
+}
+
 function handle_tabletoperator_move_up(app, ws, msg) {
 	if (!msg.tournament_key) {
 		return ws.respond(msg, { message: 'Missing tournament_key' });
@@ -564,8 +608,6 @@ function handle_match_edit(app, ws, msg) {
 			});
 
 		} else {
-			console.log("ELSE");
-			
 			// TODO get old setup, make sure no key has been removed
 			app.db.matches.update({_id: msg.id, tournament_key}, {$set: {setup}}, {returnUpdatedDocs: true}, function(err, numAffected, changed_match) {
 				if (err) {
@@ -582,7 +624,6 @@ function handle_match_edit(app, ws, msg) {
 					ws.respond(msg, new Error(errmsg));
 					return;
 				}
-				console.log(changed_match);
 				notify_change(app, tournament_key, 'match_edit', {match__id: msg.id, match: changed_match});
 				if (msg.btp_update) {
 					btp_manager.update_score(app, changed_match);
@@ -959,6 +1000,8 @@ module.exports = {
 	handle_confirm_match_finished,
 	handle_normalization_add,
 	handle_normalization_remove,
+	handle_advertisement_add,
+	handle_advertisement_remove,
 	handle_tabletoperator_add,
 	handle_tabletoperator_move_up,
 	handle_tabletoperator_move_down,
