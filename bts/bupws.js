@@ -637,6 +637,7 @@ function matches_handler(app, ws, tournament_key, court_id) {
 			if (!court_id) {
 		        matches = matches.filter(m => m.setup.now_on_court);
 		    }
+			matches = matches.filter(m => m.setup.state == 'oncourt' || m.setup.state == 'finished');
 
 		    db_courts.sort(utils.cmp_key('num'));
 		    const courts = db_courts.map(function (dc) {
