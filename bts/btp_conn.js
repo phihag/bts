@@ -110,16 +110,16 @@ class BTPConn {
 
 			this.pushall();
 			if (this.enabled_autofetch) {
-				this.fetch();
+				update_queue.instance().execute(this.fetch, this);
 			}
-			this.schedule_fetch();
 		});
 	}
 
-	fetch() {
-		const ir = btp_proto.get_info_request(this.password);
-		this.send(ir, response => {
-			update_queue.instance().execute(btp_sync.sync_btp_data,this.app, this.tkey, response);
+	fetch(connection) {
+		const ir = btp_proto.get_info_request(connection.password);
+		connection.send(ir, response => {
+			btp_sync.sync_btp_data(connection.app, connection.tkey, response);
+			connection.schedule_fetch();
 		});
 	}
 
@@ -132,8 +132,7 @@ class BTPConn {
 		}
 
 		this.autofetch_timeout = setTimeout(() => {
-			this.fetch();
-			this.schedule_fetch();
+			update_queue.instance().execute(this.fetch, this);
 		}, AUTOFETCH_TIMEOUT);
 	}
 
