@@ -32,7 +32,7 @@ function auto_scroll() {
 		return;
 	}
 
-	const scroll_speed = parseInt(curt.upcoming_matches_animation_speed ? curt.upcoming_matches_animation_speed : 2);
+	const scroll_speed = parseInt((curt && curt.upcoming_matches_animation_speed) ? curt.upcoming_matches_animation_speed : 2);
 	if (scroll_speed == 0) {
 		return;
 	}
@@ -79,7 +79,7 @@ function pause_scroll() {
 	setTimeout(() => {
 		is_paused = false;
 		auto_scroll();
-	}, parseInt(curt.upcoming_matches_animation_pause ? curt.upcoming_matches_animation_pause : 4) * 1000);
+	}, parseInt((curt && curt.upcoming_matches_animation_pause) ? curt.upcoming_matches_animation_pause : 4) * 1000);
 }
 
 function resize_table(resizable_rows, table_width_factor) {

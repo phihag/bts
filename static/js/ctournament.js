@@ -896,9 +896,9 @@ var ctournament = (function() {
 			uiu.el(upcoming_div, 'h2', 'edit', ci18n('tournament:edit:upcoming_matches_settings'));
 
 			const upcoming_fieldset = uiu.el(upcoming_div, 'fieldset');
-			create_numeric_input(curt, upcoming_fieldset, 'upcoming_matches_animation_speed', 0, 10, 2, 1);
-			create_numeric_input(curt, upcoming_fieldset, 'upcoming_matches_animation_pause', 1, 20, 4, 1);
-			create_numeric_input(curt, upcoming_fieldset, 'upcoming_matches_max_count', 10, 50, 15, 1);
+			input.upcoming_animation_speed = create_numeric_input(curt, upcoming_fieldset, 'upcoming_matches_animation_speed', 0, 10, 2, 1);
+			input.upcoming_animation_pause = create_numeric_input(curt, upcoming_fieldset, 'upcoming_matches_animation_pause', 1, 20, 4, 1);
+			input.upcoming_matches_max_count = create_numeric_input(curt, upcoming_fieldset, 'upcoming_matches_max_count', 10, 50, 15, 1);
 		}
 		
 		
@@ -1059,22 +1059,27 @@ var ctournament = (function() {
 			const save_btn = uiu.el(save_div, 'button', {
 				role: 'button',
 			}, ci18n('tournament:edit:save'));
-			save_btn.addEventListener('click', send_props(input, (err) => {
-				if (err) {
-					return cerror.net(err);
-				}
-			}));
+			save_btn.addEventListener('click', () => {
+				send_props(input, (err) => {
+					if (err) {
+						cerror.net(err); // Fehlerbehandlung
+					}
+				});
+			});
 
 			const save_and_back_btn = uiu.el(save_div, 'button', {
 				role: 'button',
 			}, ci18n('tournament:edit:save_and_back'));
-			save_and_back_btn.addEventListener('click', send_props(input, (err) => {
-				if (err) {
-					return cerror.net(err);
-				}
+			save_and_back_btn.addEventListener('click', () => {
+				send_props(input, (err) => {
+					if (err) {
+						cerror.net(err); // Fehlerbehandlung
+					}
 
-				ui_show();
-			}));
+					ui_show();
+				});
+			});
+			
 				
 				
 			/*	
@@ -1138,6 +1143,8 @@ var ctournament = (function() {
 	}));
 
 	function send_props(input, callback) {
+		console.log("send_props()");
+		
 		const props = {
 			name : input.name.value,
 			tguid: input.tguid.value,
@@ -1158,9 +1165,9 @@ var ctournament = (function() {
 			ticker_enabled: input.ticker_enabled.checked,
 			ticker_url: input.ticker_url.value,
 			ticker_password: input.ticker_password.value,
-			upcoming_matches_animation_speed: data.upcoming_matches_animation_speed,
-			upcoming_matches_max_count: data.upcoming_matches_max_count,
-			upcoming_matches_animation_pause: data.upcoming_matches_animation_pause,
+			upcoming_matches_animation_speed: input.upcoming_animation_speed.value,
+			upcoming_matches_max_count: input.upcoming_matches_max_count.value,
+			upcoming_matches_animation_pause: input.upcoming_animation_pause.value,
 			tabletoperator_enabled: input.tabletoperator_enabled.checked,
 			tabletoperator_with_umpire_enabled: input.tabletoperator_with_umpire_enabled.checked,
 			tabletoperator_winner_of_quaterfinals_enabled: input.tabletoperator_winner_of_quaterfinals_enabled.checked,
@@ -1356,17 +1363,15 @@ var ctournament = (function() {
 
 		for (const s of curt.displaysettings) {
 			const tr = uiu.el(display_settings_tbody, 'tr');
-			uiu.el(tr, 'th', {}, s.id);
-			const description_td = uiu.el(tr, 'td', {}, '40" Fernseher (Platzhalter)');
+			uiu.el(tr, 'th', {}, s.description ||s.id);
+			const description_td = uiu.el(tr, 'td', {}, s.devicemode + (s.devicemode == 'display' ? ' (' + s.displaymode_style + ')' : ''));
 			const actions_td = uiu.el(tr, 'td', {});
 			const edit_btn = uiu.el(actions_td, 'button', {
-				'data-display-setting-id': s.id,
+				'data-display_setting_id': s.id,
 			}, 'Edit');
 
-			edit_btn.addEventListener('click', (e) => {
-				const edt_btn = e.target;
-				const display_setting_id = edt_btn.getAttribute('data-display-setting-id');
-				
+			edit_btn.addEventListener('click', (e) => {				
+				on_edit_display_setting_button_click(e);
 			});
 
 
@@ -1394,11 +1399,352 @@ var ctournament = (function() {
 		}
 	}
 
+	function _cancel_ui_edit_display_setting() {
+		const dlg = document.querySelector('.display_setting_edit_dialog');
+		if (!dlg) {
+			return; // Already cancelled
+		}
+		cbts_utils.esc_stack_pop();
+		uiu.remove(dlg);
+	
+		crouting.set('t/:key/edit/', { key: curt.key });
+	}
+
+	function on_edit_display_setting_button_click(e) {
+		const btn = e.target;
+		const display_setting_id = btn.getAttribute('data-display_setting_id');
+		console.log(display_setting_id);
+		ui_edit_display_setting(display_setting_id);
+	}
+
+	function ui_edit_display_setting(display_setting_id) {
+		console.log(display_setting_id);
+		console.log(curt);
+		const display_setting = structuredClone(utils.find(curt.displaysettings, d => d.id === display_setting_id));
+		console.log(display_setting);
+
+		crouting.set('t/' + curt.key + '/edit/s/' + display_setting_id, {}, _cancel_ui_edit_display_setting);
+
+		cbts_utils.esc_stack_push(_cancel_ui_edit_display_setting);
+
+		const body = uiu.qs('body');
+		const dialog_bg = uiu.el(body, 'div', 'dialog_bg display_setting_edit_dialog', {
+		 	'data-display_setting_id': display_setting_id,
+		});
+		const dialog = uiu.el(dialog_bg, 'div', 'dialog');
+
+		uiu.el(dialog, 'h3', {}, ci18n('Edit display setting'));
+
+		const form = uiu.el(dialog, 'form');
+		uiu.el(form, 'input', {
+			type: 'hidden',
+			name: 'display_setting_id',
+			value: display_setting_id,
+		});
+		render_edit_display_setting(form, display_setting);
+
+		const buttons = uiu.el(form, 'div', {
+			style: 'margin-top: 2em;',
+		});
+
+		const btn = uiu.el(buttons, 'button', {
+			'class': 'match_save_button',
+			role: 'submit',
+		}, ci18n('Change'));
+
+		form_utils.onsubmit(form, function(d) {
+			console.log(d);
+			const displaysetting = create_displaysettings_object(d);
+			console.log(displaysetting);
+
+			send({
+				type: 'edit_display_setting',
+				tournament_key: curt.key,
+				displaysetting: displaysetting,
+			}, err => {
+				if (err) {
+					return cerror.net(err);
+				}
+				console.log("call _cancel_ui_edit_display_setting()");
+				_cancel_ui_edit_display_setting();
+			});
+		});
+
+		const cancel_btn = uiu.el(buttons, 'span', 'match_cancel_link vlink', ci18n('Cancel'));
+		cancel_btn.addEventListener('click', _cancel_ui_edit_display_setting);
+	}
+	crouting.register(/t\/([a-z0-9]+)\/edit\/s\/([-a-zA-Z0-9_ ]+)$/, function(m) {
+		ctournament.switch_tournament(m[1], function() {
+			ui_edit_display_setting(m[2]);
+		});
+	}, change.default_handler(() => {
+		const dlg = uiu.qs('.display_setting_edit_dialog');
+		const display_setting_id = dlg.getAttribute('data-display_setting_id');
+		ui_edit_display_setting(display_setting_id);
+	}));
+
+	function render_edit_display_setting(form, display_setting) {
+	
+		const edit_display_setting_container = uiu.el(form, 'div', 'edit_display_setting_container');
+		const id_div = uiu.el(edit_display_setting_container, 'div');
+		uiu.el(id_div, 'span', 'display_setting_id', ci18n('display_setting:id'));
+		uiu.el(id_div, 'input', {
+			type: 'text',
+			name: 'display_setting_id',
+			size: 24,
+			required: 'required',
+			value: display_setting.id || '',
+			tabindex: 1,
+			disabled: 'disabled',
+		});
+
+
+		const description_div = uiu.el(edit_display_setting_container, 'div');
+		uiu.el(description_div, 'span', 'display_setting_description', 'Description:');
+		uiu.el(description_div, 'input', {
+			type: 'text',
+			name: 'display_setting_description',
+			placeholder: ci18n('e.g. MX O55'),
+			size: 18,
+			value: display_setting.description || '',
+			tabindex: 2,
+		});
+
+		const ALL_DEVICE_MODES = [
+			'umpire',
+			'display'
+		];
+		render_drop_down(edit_display_setting_container, ci18n('display_setting:devicemode'), 'devicemode', ALL_DEVICE_MODES, display_setting.devicemode || '');
+		render_drop_down(edit_display_setting_container, ci18n('display_setting:style'), 'displaymode_style', displaymode.ALL_STYLES, display_setting.displaymode_style || '');
+		render_check_box(edit_display_setting_container, ci18n('display_setting:show_pause'), 'd_show_pause', display_setting.d_show_pause);
+		render_check_box(edit_display_setting_container, ci18n('display_setting:show_court_number'), 'd_show_court_number', display_setting.d_show_court_number);
+		render_check_box(edit_display_setting_container, ci18n('display_setting:show_competition'), 'd_show_competition', display_setting.d_show_competition);
+		render_check_box(edit_display_setting_container, ci18n('display_setting:show_round'), 'd_show_round', display_setting.d_show_round);
+		render_check_box(edit_display_setting_container, ci18n('display_setting:show_middle_name'), 'd_show_middle_name', display_setting.d_show_middle_name);
+		render_check_box(edit_display_setting_container, ci18n('display_setting:show_doubles_receiving'), 'd_show_doubles_receiving', display_setting.d_show_doubles_receiving);
+		
+		const select_color_div = uiu.el(edit_display_setting_container, 'div', { style: 'display: block' });
+		const select_color_label = uiu.el(select_color_div, 'label', {}, ci18n('display_setting:colors'));
+		render_select_color(select_color_label, 'd_c0', display_setting.d_c0);
+		render_select_color(select_color_label, 'd_c1', display_setting.d_c1);
+		render_select_color(select_color_label, 'd_cb0', display_setting.d_cb0);
+		render_select_color(select_color_label, 'd_cb1', display_setting.d_cb1);
+		render_select_color(select_color_label, 'd_cbg', display_setting.d_cbg);
+		render_select_color(select_color_label, 'd_cbg2', display_setting.d_cbg2);
+		render_select_color(select_color_label, 'd_cbg3', display_setting.d_cbg3);
+		render_select_color(select_color_label, 'd_cbg4', display_setting.d_cbg4);
+		render_select_color(select_color_label, 'd_cfg', display_setting.d_cfg);
+		render_select_color(select_color_label, 'd_cfg2', display_setting.d_cfg2);
+		render_select_color(select_color_label, 'd_cfg3', display_setting.d_cfg3);
+		render_select_color(select_color_label, 'd_cfg4', display_setting.d_cfg4);
+		render_select_color(select_color_label, 'd_cfgdark', display_setting.d_cfgdark);
+		render_select_color(select_color_label, 'd_cexpt', display_setting.d_cexpt);
+		render_select_color(select_color_label, 'd_ct', display_setting.d_ct);
+		render_select_color(select_color_label, 'd_cborder', display_setting.d_cborder);
+		render_select_color(select_color_label, 'd_cserv', display_setting.d_cserv);
+		render_select_color(select_color_label, 'd_cserv2', display_setting.d_cserv2);
+		render_select_color(select_color_label, 'd_crecv', display_setting.d_crecv);
+		render_select_color(select_color_label, 'd_ctim_blue', display_setting.d_ctim_blue);
+		render_select_color(select_color_label, 'd_ctim_active', display_setting.d_ctim_active);
+		render_check_box(edit_display_setting_container, ci18n('display_setting:use_team_colors'), 'd_team_colors', display_setting.d_team_colors);
+		render_select_number(edit_display_setting_container, ci18n('display_setting:scale'), 'd_scale', display_setting.d_scale, 20, 500);
+
+		const ALL_BUP_LANGUAGES = [
+			ci18n('display_setting:language_automatic'),
+			ci18n('display_setting:language_en'),
+			ci18n('display_setting:language_de'),
+			ci18n('display_setting:language_de-AT'),
+			ci18n('display_setting:language_de-CH'),
+			ci18n('display_setting:language_fr-CH'),
+			ci18n('display_setting:language_nl-BE'),
+		]
+
+		const SHORT_BUP_LANGUAGES = [
+			'auto',
+			'en',
+			'de',
+			'de-AT',
+			'de-CH',
+			'fr-CH',
+			'nl-BE'
+		]
+
+		// let current_language = '';
+
+		// for (const [i, value] of SHORT_BUP_LANGUAGES.entries()) {
+		// 	if ((display_setting.language || '') == value) {
+		// 		current_language = ALL_BUP_LANGUAGES[i];
+		// 		break;
+		// 	}
+		// }
+
+		render_drop_down(edit_display_setting_container, ci18n('display_setting:language'), 'language', SHORT_BUP_LANGUAGES, display_setting.language, ALL_BUP_LANGUAGES);
+
+
+		const ALL_ASK_FULLSCREAN_MODES = [
+			'always',
+			'auto',
+			'never',
+		];
+		render_drop_down(edit_display_setting_container, ci18n('display_setting:fullscreen_ask'), 'fullscreen_ask', ALL_ASK_FULLSCREAN_MODES, display_setting.fullscreen_ask || '');
+
+
+		const ALL_ANNOUNCEMENT_MODES = [
+			'none',
+			'all',
+			'except-first',
+		];
+		render_drop_down(edit_display_setting_container, ci18n('display_setting:show_announcements'), 'show_announcements', ALL_ANNOUNCEMENT_MODES, display_setting.show_announcements || '');
+
+		render_select_number(edit_display_setting_container, ci18n('display_setting:scale'), 'd_scale', display_setting.d_scale, 20, 500);
+		render_select_number(edit_display_setting_container, ci18n('display_setting:button_block_timeout'), 'button_block_timeout', display_setting.button_block_timeout, 0, 5000);
+		
+		render_check_box(edit_display_setting_container, ci18n('display_setting:negative_timers'), 'negative_timers', display_setting.negative_timers);
+		render_check_box(edit_display_setting_container, ci18n('display_setting:shuttle_counter'), 'shuttle_counter', display_setting.shuttle_counter);
+		render_check_box(edit_display_setting_container, ci18n('display_setting:editmode_doubleclick'), 'editmode_doubleclick', display_setting.editmode_doubleclick);
+
+		const ALL_CLICK_MODES = [
+			'auto',
+			'click',
+			'touchstart',
+			'touchend',
+		];
+		render_drop_down(edit_display_setting_container, ci18n('display_setting:click_mode'), 'click_mode', ALL_CLICK_MODES, display_setting.click_mode || '');
+		
+		const ALL_STYLE_MODES = [
+			'default',
+			'complete',
+			'clean',
+			'focus',
+			'hidden',
+		];
+		render_drop_down(edit_display_setting_container, ci18n('display_setting:settings_style'), 'style', ALL_STYLE_MODES, display_setting.settings_style || '');
+		render_select_number(edit_display_setting_container, ci18n('display_setting:network_timeout'), 'network_timeout', display_setting.network_timeout, 1, 600000);
+		render_select_number(edit_display_setting_container, ci18n('display_setting:network_update_interval'), 'network_update_interval', display_setting.network_update_interval, 1, 600000);
+	}
+
+	function render_drop_down(container, label_text, select_name, values, curval, labels) {
+		if(!labels) {
+			labels = values;
+		}
+		
+		const div = uiu.el(container, 'div');
+		uiu.el(div, 'span', 'label', label_text);
+		const select = uiu.el(div, 'select', {
+			name: select_name,
+			size: 1,
+		});
+		uiu.empty(select);
+		for (const [i, s] of values.entries()) {
+			const attrs = {
+				value: s,
+				label: labels[i] || s,
+			};
+			if (s === curval) {
+				attrs.selected = 'selected';
+			}
+			uiu.el(select, 'option', attrs, s);
+		}
+	}
+
+	function render_check_box(container, label_text, checkbox_name, is_checked) {
+		const div = uiu.el(container, 'div');
+		const label = uiu.el(div, 'label');
+		const attrs = {
+			type: 'checkbox',
+			name: checkbox_name,
+		};
+
+		if (is_checked) {
+			attrs.checked = 'checked';
+		}
+
+		uiu.el(label, 'input', attrs);
+		uiu.el(label, 'span', 'display_setting_label', label_text);
+	}
+
+	function render_select_color(container, field_name, value) {
+		const input = uiu.el(container, 'input', {
+			type: 'color',
+			name: field_name,
+			value: value || '#000000',
+		});
+	}
+
+	function render_select_number(container, label_text, input_name, value, min_value, max_value) {
+		const div = uiu.el(container, 'div');
+		const label = uiu.el(div, 'span', 'label', label_text);
+		uiu.el(label, 'input', {
+			type: 'number',
+			name: input_name,
+			min: min_value || 0,
+			max: max_value || 0,
+			value: value || 0,
+		});
+	} 
+
+	function create_displaysettings_object(d) {
+		const displaysetting  = {
+			id: d.display_setting_id,
+			description: d.display_setting_description || '',
+			devicemode: d.devicemode || 'display',
+			displaymode_style: d.displaymode_style || 'tournamentcourt',
+			d_show_pause: d.d_show_pause == 'on' ? true : false,
+			d_show_court_number: d.d_show_court_number == 'on' ? true : false,
+			d_show_competition: d.d_show_competition == 'on' ? true : false,
+			d_show_round: d.d_show_round == 'on' ? true : false,
+			d_show_middle_name: d.d_show_middle_name == 'on' ? true : false,
+			d_show_doubles_receiving: d.d_show_doubles_receiving == 'on' ? true : false,
+			d_c0: d.d_c0 || '#50e87d',
+			d_c1: d.d_c1 || '#f76a23',
+			d_cb0: d.d_cb0 || '#000000',
+			d_cb1: d.d_cb1 || '#000000',
+			d_cbg: d.d_cbg || '#000000',
+			d_cbg2: d.d_cbg2 || '#d9d9d9',
+			d_cbg3: d.d_cbg3 || '#252525',
+			d_cbg4: d.d_cbg4 || '#404040',
+			d_cfg: d.d_cfg || '#ffffff',
+			d_cfg2: d.d_cfg2 || '#aaaaaa',
+			d_cfg3: d.d_cfg3 || '#cccccc',
+			d_cfg4: d.d_cfg4 || '#000000',
+			d_cfgdark: d.d_cfgdark || '#000000',
+			d_cexpt: d.d_cexpt || '#000000',
+			d_ct: d.d_ct || '#80ff00',
+			d_cborder: d.d_cborder || '#444444',
+			d_cserv: d.d_cserv || '#fff200',
+			d_cserv2: d.d_cserv2 || '#dba766',
+			d_crecv: d.d_crecv || '#707676',
+			d_ctim_blue: d.d_ctim_blue || '#0070c0',
+			d_ctim_active: d.d_ctim_active || '#ffc000',
+			d_team_colors: d.d_team_colors == 'on' ? true : false,
+			d_scale: d.d_scale || '100',
+			fullscreen_ask: d.fullscreen_ask || 'auto',
+			show_announcements: d.show_announcements || 'all', 
+			button_block_timeout: d.button_block_timeout || '100',
+			negative_timers: d.negative_timers == 'on' ? true : false,
+			shuttle_counter: d.shuttle_counter == 'on' ? true : false,
+			editmode_doubleclick: d.editmode_doubleclick == 'on' ? true : false,
+			click_mode: d.click_mode || 'auto',
+			style: d.style || 'complete',
+			network_timeout: d.network_timeout || '10000',
+			network_update_interval: d.network_update_interval || '10000',
+			language: d.language || 'auto',
+		}
+
+		//
+
+		return displaysetting;
+	}
+
 	function update_general_displaysettings(c)
 	{
-		const general_displaysettings_div = uiu.qs('.general_displaysettings')
-		general_displaysettings_div.innerHTML = '';
-		render_general_displaysettings(general_displaysettings_div);
+		//const general_displaysettings_div = uiu.qs('.general_displaysettings');
+		const general_displaysettings_div = document.querySelector(".general_displaysettings");
+		if(general_displaysettings_div) {
+			general_displaysettings_div.innerHTML = '';
+			console.log(general_displaysettings_div);
+			render_general_displaysettings(general_displaysettings_div);
+		}
 	}
 
 	function render_displaysettings(general_displaysettings_div) {
@@ -1644,6 +1990,7 @@ var ctournament = (function() {
 			const attrs = {
 				'data-display-setting-id': selected_id,
 				value: item.id,
+				label: item.description,
 			}
 			if ((selected_id === item.id)) {
 				attrs.selected = 'selected';
@@ -1936,6 +2283,7 @@ if ((typeof module !== 'undefined') && (typeof require !== 'undefined')) {
 	var utils = require('../bup/bup/js/utils.js');
 	var save_file = require('../bup/bup/js/save_file.js');
 	var timezones = require('./timezones.js');
+	var displaymode = require('../bup/js/displaymode');
 
 	var JSZip = null; // External library
 

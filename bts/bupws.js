@@ -38,6 +38,7 @@ async function notify_admin_display_status_changed(app, ws, ws_online) {
 		var display_court_displaysetting = await get_display_court_displaysettings(app, client_id);
 		if (display_court_displaysetting == null) {
 			display_court_displaysetting = create_display_court_displaysettings(client_id, hostname, null, generate_default_displaysettings_id(tournament));
+			display_court_displaysetting = await persist_client_court_displaysetting(app, display_court_displaysetting);
 		}
 		display_court_displaysetting.online = ws_online;
 		admin.notify_change(app, default_tournament_key, 'display_status_changed', {'display_court_displaysetting': display_court_displaysetting });	

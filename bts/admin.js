@@ -794,6 +794,23 @@ function handle_reset_display(app, ws, msg) {
 	ws.respond("Angekommen: " + client_id);
 }
 
+function handle_edit_display_setting(app, ws, msg) {
+	if (!_require_msg(ws, msg, ['tournament_key', 'displaysetting'])) {
+		return;
+	}
+	const querry = {id : msg.displaysetting.id};
+	const displaysetting = msg.displaysetting;
+
+	//{_id: msg.id, tournament_key}, {$set: {setup}}, {returnUpdatedDocs: true}, function(err, numAffected, changed_match)
+	app.db.displaysettings.update(querry, {$set: displaysetting}, {returnUpdatedDocs: true}, (err, numAffected, changed_setting) => {
+		console.log(err);
+		console.log(numAffected);
+		console.log(changed_setting);
+	});
+
+	ws.respond(msg);
+}
+
 async function async_handle_delete_display_setting(app, ws, msg) {
 	const tournament_key = msg.tournament_key;
 	const setting_id = msg.setting_id;
@@ -820,6 +837,7 @@ function handle_relocate_display(app, ws, msg) {
 	bupws.restart_panel(app, tournament_key, client_id, new_court_id);
 	ws.respond("Angekommen: " + client_id);
 }
+
 function handle_change_display_mode(app, ws, msg) {
 	const tournament_key = msg.tournament_key;
 	const client_id = msg.display_setting_id;
@@ -991,6 +1009,7 @@ async function async_handle_tournament_upload_logo(app, ws, msg) {
 }
 
 module.exports = {
+	handle_edit_display_setting,
 	async_handle_delete_display_setting,
 	async_handle_match_delete,
 	async_handle_tournament_upload_logo,

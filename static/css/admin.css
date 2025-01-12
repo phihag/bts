@@ -46,6 +46,13 @@ h3 {
 	margin: 20px 0 10px 0;
 }
 
+button {
+	margin-right: 5px;
+	margin-left: 5px;
+	margin-top: 2px;
+	margin-bottom: 2px;
+}
+
 .connecting {
 	position: fixed;
 	top: 45%;
