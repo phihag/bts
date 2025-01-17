@@ -19,6 +19,7 @@ function announcePreparationMatch(matchSetup) {
     if(!(window.localStorage.getItem('enable_announcements') === 'true')) {
         return;
     }
+    const field = createFieldPreparationAnnouncement(matchSetup);
     var preparation = createPreparationAnnouncement();
     var matchNumber = createMatchNumberAnnouncement(matchSetup);
     var eventName = createEventAnnouncement(matchSetup);
@@ -31,7 +32,7 @@ function announcePreparationMatch(matchSetup) {
     if (curt.preparation_meetingpoint_enabled) {
         lastPart = createMeetingPointAnnouncement();
     }
-    announce([preparation, matchNumber, eventName, round, teams, umpire, serviceJudge, tabletOperator, lastPart]);
+    announce([preparation, field, matchNumber, eventName, round, teams, umpire, serviceJudge, tabletOperator, lastPart]);
 }
 function announceSecondCallTeamOne(matchSetup) {
     if(!(window.localStorage.getItem('enable_announcements') === 'true')) {
@@ -243,6 +244,15 @@ function createFieldAnnouncement(matchSetup) {
     if (matchSetup.court_id) {
         var court = matchSetup.court_id.split("_")[1];
         return ci18n('announcements:on_court') + court + "!";
+    } else {
+        return "";
+    }
+
+}
+function createFieldPreparationAnnouncement(matchSetup) {
+    if (matchSetup.court_id) {
+        var court = matchSetup.court_id.split("_")[1];
+        return ci18n('announcements:for_court') + court + "!";
     } else {
         return "";
     }

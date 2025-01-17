@@ -63,6 +63,7 @@ var ci18n_de = {
 	'announcements:preparation': 'In Vorbereitung:',
 	'announcements:meetingpoint': 'Treffen am Meetingpoint!',
 	'announcements:on_court': 'Auf Spielfeld ',
+	'announcements:for_court': 'Für Spielfeld ',
 	'announcements:match_number': 'Spiel Nummer ',
 	'announcements:boys_singles': 'Jungeneinzel',
 	'announcements:boys_doubles': 'Jungendoppel',

@@ -63,6 +63,7 @@ var ci18n_en = {
 	'announcements:preparation': 'In preparation:',
 	'announcements:meetingpoint': 'Come to the meetingpoint!',
 	'announcements:on_court': 'On Court ',
+	'announcements:for_court': 'For Court ',
 	'announcements:match_number': 'Match number ',
 	'announcements:boys_singles': 'Boys singles',
 	'announcements:boys_doubles': 'Boys double',
