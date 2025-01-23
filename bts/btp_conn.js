@@ -116,6 +116,12 @@ class BTPConn {
 	}
 
 	fetch(connection) {
+		// In case of fetch() is called by btp_manager without connection 
+		if (!connection) {
+			update_queue.instance().execute(this.fetch, this);
+			return;
+		}
+
 		const ir = btp_proto.get_info_request(connection.password);
 		connection.send(ir, response => {
 			btp_sync.sync_btp_data(connection.app, connection.tkey, response);
