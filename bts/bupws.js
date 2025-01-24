@@ -202,6 +202,7 @@ async function handle_score_update(app, ws, msg) {
 		(match, cb) => {
 			if (match) {
 				if (finish_confirmed) {
+					btp_manager.update_score(app, match);
 					update_queue.instance().execute(match_utils.reset_player_tabletoperator, app, tournament_key, match_id, update.end_ts)
 						.then(() => {
 							cb(null, match);
@@ -238,12 +239,6 @@ async function handle_score_update(app, ws, msg) {
 					match__id: match_id,
 					match: match,
 				});
-			}
-			cb(null, match, changed_court);
-		},
-		(match, changed_court, cb) => {
-			if (match) {
-				btp_manager.update_score(app, match);
 			}
 			cb(null, match, changed_court);
 		},
