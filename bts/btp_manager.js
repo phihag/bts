@@ -33,7 +33,7 @@ function fetch(tkey) {
 		return;
 	}
 
-	conn.fetch();
+	conn.sync_data();
 }
 
 function update_score(app, match) {

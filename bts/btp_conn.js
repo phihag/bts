@@ -110,25 +110,25 @@ class BTPConn {
 
 			this.pushall();
 			if (this.enabled_autofetch) {
-				update_queue.instance().execute(this.fetch, this);
+				update_queue.instance().execute(this.fetch, this,true);
 			}
 		});
 	}
 
-	async fetch(connection) {
+	sync_data() {
+		update_queue.instance().execute(this.fetch, this, false);
+	}
 
-		//if (!connection) {
-		//	update_queue.instance().execute(this.fetch, this);
-		//	return;
-		//}
-
+	async fetch(connection, reschedule_fetch ) {
 		return new Promise((resolve, reject) => {
 			try {
 				const ir = btp_proto.get_info_request(connection.password);
 				connection.send(ir, async (response) => {
 					try {
 						const value = await btp_sync.sync_btp_data(connection.app, connection.tkey, response);
-						connection.schedule_fetch();
+						if (reschedule_fetch == true) { 
+							connection.schedule_fetch();
+						}
 						resolve(value);
 					} catch (innerError) {
 						reject(innerError);
@@ -149,7 +149,7 @@ class BTPConn {
 		}
 
 		this.autofetch_timeout = setTimeout(() => {
-			update_queue.instance().execute(this.fetch, this);
+			update_queue.instance().execute(this.fetch,this,true);
 		}, AUTOFETCH_TIMEOUT);
 	}
 
