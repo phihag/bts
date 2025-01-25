@@ -509,7 +509,7 @@ function add_player_to_tabletoperator_list_by_match(app, tournament, tournament_
 				}
 
 				if (tournament.tabletoperator_with_state_from_match_enabled) {
-					return;
+					return callback(null);
 				}
 
 				if (team && typeof team.players !== 'undefined') {
