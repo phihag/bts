@@ -40,7 +40,7 @@ async function uncall_match(app, tournament, match, old_court, callback) {
 
 async function call_match(app, tournament, match, old_court, callback) {
     if (!match.setup.court_id || !match._id) {
-        return; // TODO in async we would assert both to be true
+		return callback("Match cannot be called court_id or _id not given.");
     }
 	if (match_completly_initialized(match.setup) == false) { 
 		return callback("Match cannot be called one or more Teams are not set.");
@@ -67,10 +67,10 @@ async function call_match(app, tournament, match, old_court, callback) {
 
 async function switch_court(app, tournament, match, old_court, callback) {
 	if (!match.setup.court_id || !match._id) {
-        return; // TODO in async we would assert both to be true
+		return callback("Match cannot be switched to another court: court_id or _id not given.");
     }
 	if (match_completly_initialized(match.setup) == false) { 
-		return callback("Match cannot be called one or more Teams are not set.");
+		return callback("Match cannot be switched to another court: one or more Teams are not set.");
 	}
 	async.waterfall([
 		(wcb) => add_tabletoperators(app, tournament, match, wcb),
@@ -141,7 +141,7 @@ async function add_tabletoperators(app, tournament, match, callback) {
     const match_id = match._id;
 
     if (!court_id || !match_id) {
-        return; // TODO in async we would assert both to be true
+		return callback(null);
     }
 
 	const setup = match.setup;
@@ -185,7 +185,7 @@ async function set_umpires_on_court(app, tournament, match, callback) {
 	const setup = match.setup;
 	const court_id = setup.court_id;
 	if (!court_id) {
-		return; // TODO in async we would assert both to be true
+		return callback(null);
 	}
 
 	if (setup.umpire) {
@@ -864,10 +864,11 @@ function update_umpire(app, tkey, umpire, status, last_time_on_court_ts, court_i
 	app.db.umpires.update({ tournament_key: tkey, name: umpire.name }, { $set: { last_time_on_court_ts: last_time_on_court_ts, status: status, court_id: court_id } }, { returnUpdatedDocs: true }, function (err, numAffected, changed_umpire) {
 		if (err) {
 			console.error(err);
-			return;
+			return callback(err);
 		}
 		const admin = require('./admin');
 		admin.notify_change(app, tkey, 'umpire_updated', changed_umpire);
+		return callback(null);
 	});
 }
 

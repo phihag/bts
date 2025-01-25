@@ -931,7 +931,7 @@ function integrate_umpires(app, tournament_key, btp_state, callback) {
 					app.db.umpires.update({ tournament_key, btp_id }, { $set: { btp_id, firstname, surname, name, country } }, { returnUpdatedDocs: true }, function (err, numAffected, changed_umpire) {
 						if (err) {
 							console.error(err);
-							return;
+							return cb(err);
 						}
 						const admin = require('./admin');
 						admin.notify_change(app, tournament_key, 'umpire_updated', changed_umpire);
