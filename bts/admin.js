@@ -65,7 +65,7 @@ function handle_tournament_edit_props(app, ws, msg) {
 	const props = utils.pluck(msg.props, [
 		'name','tguid',
 		'btp_enabled', 'btp_autofetch_enabled', 'btp_readonly',
-		'btp_ip', 'btp_password',
+		'btp_ip', 'btp_password','btp_autofetch_timeout_intervall',
 		'is_team', 'is_nation_competition',
 		'warmup', 'warmup_ready', 'warmup_start',
 		'upcoming_matches_animation_speed', 'upcoming_matches_max_count','upcoming_matches_animation_pause',

@@ -71,7 +71,7 @@ function send_request(ip, port, xml_req, timeZone, callback) {
 
 
 class BTPConn {
-	constructor(app, ip, password, tkey, enabled_autofetch, readonly, is_team, timeZone) {
+	constructor(app, ip, password, tkey, enabled_autofetch, readonly, is_team, timeZone, autofetch_timeout_intervall) {
 		this.app = app;
 		this.last_status = 'Activated';
 		this.ip = ip;
@@ -83,6 +83,7 @@ class BTPConn {
 		this.autofetch_timeout = null;
 		this.readonly = readonly;
 		this.is_team = is_team;
+		this.autofetch_timeout_intervall = autofetch_timeout_intervall ? autofetch_timeout_intervall : AUTOFETCH_TIMEOUT;
 		this.connect();
 	}
 
@@ -121,15 +122,19 @@ class BTPConn {
 
 	async fetch(connection, reschedule_fetch ) {
 		return new Promise((resolve, reject) => {
-			try {
+			try {			
 				const ir = btp_proto.get_info_request(connection.password);
 				connection.send(ir, async (response) => {
 					try {
-						const value = await btp_sync.sync_btp_data(connection.app, connection.tkey, response);
-						if (reschedule_fetch == true) { 
-							connection.schedule_fetch();
+						if (response && response != null) {
+							const value = await btp_sync.sync_btp_data(connection.app, connection.tkey, response);
+							if (reschedule_fetch == true) {
+								connection.schedule_fetch();
+							}
+							resolve(value);
+						} else {
+							resolve(null);
 						}
-						resolve(value);
 					} catch (innerError) {
 						reject(innerError);
 					}
@@ -147,10 +152,9 @@ class BTPConn {
 		if (!this.enabled_autofetch) {
 			return;
 		}
-
 		this.autofetch_timeout = setTimeout(() => {
 			update_queue.instance().execute(this.fetch,this,true);
-		}, AUTOFETCH_TIMEOUT);
+		}, this.autofetch_timeout_intervall);
 	}
 
 	terminate() {
@@ -159,16 +163,14 @@ class BTPConn {
 	}
 
 	send(xml_req, success_cb) {
-		if (this.terminated) return;
-
+		if (this.terminated) return success_cb(null);
 		const port = this.is_team ? BLP_PORT : BTP_PORT;
 		send_request(this.ip, port, xml_req, this.timeZone, (err, response) => {
 			if (err) {
 				this.report_status('error', 'Connection error: ' + err.message);
 				this.schedule_reconnect();
-				return;
+				return success_cb(null);
 			}
-
 			success_cb(response);
 		});
 	}

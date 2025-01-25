@@ -139,6 +139,7 @@ var ci18n_en = {
 	'tournament:edit:warmup_start': 'Game starts after seconds:',
 	'tournament:edit:btp:enabled': 'Enable BTP synchronization',
 	'tournament:edit:btp:autofetch_enabled': 'Automatic synchronization',
+	'tournament:edit:btp_autofetch_timeout_intervall': 'Synchronization intervall (ms)',
 	'tournament:edit:btp:readonly': 'Read only',
 	'tournament:edit:btp:ip': 'IP address:',
 	'tournament:edit:btp:password': 'BTP password:',

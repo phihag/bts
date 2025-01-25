@@ -711,6 +711,11 @@ var ctournament = (function() {
 			if (curt.btp_readonly) {
 				bro_attrs.checked = 'checked';
 			}
+			if (!curt['btp_autofetch_timeout_intervall']) {
+				curt['btp_autofetch_timeout_intervall'] = 30000;
+			}
+			input.btp_autofetch_timeout_intervall = create_input(curt, "number", btp_connection_div, 'btp_autofetch_timeout_intervall')
+
 			input.btp_readonly = uiu.el(btp_readonly_label, 'input', bro_attrs);
 			uiu.el(btp_readonly_label, 'span', {}, ci18n('tournament:edit:btp:readonly'));
 
@@ -1097,6 +1102,7 @@ var ctournament = (function() {
 					btp_ip: input.btp_ip.value,
 					btp_password: input.btp_password.value,
 					btp_timezone: input.btp_timezone.value,
+					btp_autofetch_timeout_intervall: input.btp_autofetch_timeout_intervall.value,
 					dm_style: input.dm_style.value,
 					displaysettings_general: input.displaysettings_general.value,
 					warmup: input.warmup.value,
@@ -1155,6 +1161,7 @@ var ctournament = (function() {
 			is_nation_competition: input.is_nation_competition.checked,
 			btp_enabled: input.btp_enabled.checked,
 			btp_autofetch_enabled: input.btp_autofetch_enabled.checked,
+			btp_autofetch_timeout_intervall: input.btp_autofetch_timeout_intervall.value,
 			btp_readonly: input.btp_readonly.checked,
 			btp_ip: input.btp_ip.value,
 			btp_password: input.btp_password.value,

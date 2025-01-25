@@ -39,6 +39,7 @@ function default_handler(rerender, special_funcs) {
 			curt.tguid = c.val.tguid;
 			curt.is_nation_competition = c.val.is_nation_competition;
 			curt.btp_timezone = c.val.btp_timezone;
+			curt.btp_autofetch_timeout_intervall = c.val.btp_autofetch_timeout_intervall;
 			curt.warmup = c.val.warmup;
 			curt.warmup_ready = c.val.warmup_ready;
 			curt.warmup_start = c.val.warmup_start;
