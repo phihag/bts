@@ -860,15 +860,15 @@ function set_umpire_to_standby(app, tournament_key, setup) {
 
 
 
-function update_umpire(app, tkey, umpire, status, last_time_on_court_ts, court_id, callback) {
+function update_umpire(app, tkey, umpire, status, last_time_on_court_ts, court_id) {
 	app.db.umpires.update({ tournament_key: tkey, name: umpire.name }, { $set: { last_time_on_court_ts: last_time_on_court_ts, status: status, court_id: court_id } }, { returnUpdatedDocs: true }, function (err, numAffected, changed_umpire) {
 		if (err) {
 			console.error(err);
-			return callback(err);
+			return;
 		}
 		const admin = require('./admin');
 		admin.notify_change(app, tkey, 'umpire_updated', changed_umpire);
-		return callback(null);
+		return;
 	});
 }
 
