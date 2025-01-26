@@ -94,15 +94,13 @@ class BTPConn {
 
 		this.report_status('connecting','Try to establish connection to BTP.');
 		this.send(btp_proto.login_request(this.password), response => {
-			if (!response.Action || !response.Action[0] || !response.Action[0].ID[0] || (response.Action[0].ID[0] !== 'REPLY')) {
+			if (!response || response == null || !response.Action || !response.Action[0] || !response.Action[0].ID[0] || (response.Action[0].ID[0] !== 'REPLY')) {
 				this.report_status('error','Invalid reply to login request');
-				this.schedule_reconnect();
 				return;
 			}
 
 			if (response.Action[0].Result[0] !== 1) {
 				this.report_status('error', 'Invalid password');
-				this.schedule_reconnect();
 				return;
 			}
 
