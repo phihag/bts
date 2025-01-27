@@ -1188,7 +1188,7 @@ var ctournament = (function() {
 			tabletoperator_break_seconds: input.tabletoperator_break_seconds.value,
 			annoncement_include_event: input.annoncement_include_event.checked,
 			annoncement_include_round: input.annoncement_include_round.checked,
-			annoncement_include_matchnumber: input.annoncement_include_matchnumber.checkt,
+			annoncement_include_matchnumber: input.annoncement_include_matchnumber.checked,
 			announcement_speed: input.announcement_speed.value,
 			announcement_pause_time_ms: input.announcement_pause_time_ms.value,
 			preparation_meetingpoint_enabled: input.preparation_meetingpoint_enabled.checked,
