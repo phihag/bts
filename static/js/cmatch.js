@@ -1010,8 +1010,10 @@ function cmp_match_order(m1, m2) {
 
 	const cmp1 = cbts_utils.cmp(m1.setup.scheduled_date, m2.setup.scheduled_date);
 	if (cmp1 != 0) return cmp1;
-
-	if (time_str1 === '00:00' && time_str2 !== '00:00') {
+	
+	if (time_str1 === '00:00' && time_str2 === '00:00') {
+		return cbts_utils.cmp(m1.setup.match_num, m2.setup.match_num);
+	} else if (time_str1 === '00:00' && time_str2 !== '00:00') {
 		return 1;
 	} else if (time_str2 === '00:00' && time_str1 !== '00:00') {
 		return -1;
