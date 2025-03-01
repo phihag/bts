@@ -1,5 +1,7 @@
 'use strict';
 
+var devices = {}; // device ID => data
+
 function handle(/*app, ws*/) {
 	// TODO do something
 }
