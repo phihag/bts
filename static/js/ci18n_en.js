@@ -51,6 +51,7 @@ var ci18n_en = {
 'tournament:edit:courts': 'Courts:',
 'tournament:edit:dm_style': 'Default display style:',
 'tournament:edit:only_now_on_court': 'Matches have to be dragged onto court',
+'tournament:edit:counting': 'Scoring system:',
 'tournament:edit:btp:enabled': 'Enable BTP synchronization',
 'tournament:edit:btp:autofetch_enabled': 'Automatic synchronization',
 'tournament:edit:btp:readonly': 'Read only',

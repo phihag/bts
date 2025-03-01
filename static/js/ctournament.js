@@ -360,6 +360,36 @@ function ui_edit() {
 	uiu.el(only_now_on_court_label, 'input', attrs);
 	uiu.el(only_now_on_court_label, 'span', {}, ci18n('tournament:edit:only_now_on_court'));
 
+	// Scoring system
+	const counting_label = uiu.el(form, 'label');
+	uiu.el(counting_label, 'span', {}, ci18n('tournament:edit:counting'));
+	const counting_select = uiu.el(counting_label, 'select', {
+		name: 'counting',
+	});
+	const ALL_COUNTING_OPTIONS = [
+		'3x21',
+		'5x11_15',
+		'5x11_15^90',
+		'5x11_15~NLA',
+		'5x11/3',
+		'5x11_11',
+		'3x11_15',
+		'3x15_18',
+		'2x21+11',
+		'1x21',
+		'1x11_15',
+	];
+	for (const value of ALL_COUNTING_OPTIONS) {
+		const option_attrs = {
+			value,
+		};
+		if (value === curt.counting) {
+			option_attrs.selected = 'selected';
+		}
+		// TODO include bup i18n, get translation from (`settings:counting|${value}`);
+		uiu.el(counting_select, 'option', option_attrs, value);
+	}
+
 	// BTP
 	const btp_fieldset = uiu.el(form, 'fieldset');
 	const btp_enabled_label = uiu.el(btp_fieldset, 'label');
@@ -479,6 +509,7 @@ function ui_edit() {
 			btp_ip: data.btp_ip,
 			btp_password: data.btp_password,
 			btp_timezone: data.btp_timezone,
+			counting: data.counting,
 			dm_style: data.dm_style,
 			ticker_enabled: (!! data.ticker_enabled),
 			ticker_url: data.ticker_url,
