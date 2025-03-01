@@ -9,8 +9,8 @@
 	"dependencies": {
 		"argparse": "^1.0.10",
 		"async": "*",
-		"body-parser": "*",
-		"express": "*",
+		"body-parser": "1.19.2",
+		"express": "4.17.3",
 		"extract-zip": "*",
 		"nedb": "*",
 		"node-xlsx": "^0.21.0",
