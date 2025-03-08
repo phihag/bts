@@ -164,6 +164,9 @@ function matches_handler(req, res) {
 			if (dc.match_id) {
 				res.match_id = 'bts_' + dc.match_id;
 			}
+			if (dc.called_timestamp) {
+				res.called_timestamp = dc.called_timestamp;
+			}
 			return res;
 		});
 
