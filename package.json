@@ -21,7 +21,7 @@
 		"text-encoding": "^0.7.0",
 		"uuid": "^3.3.2",
 		"ws": "*",
-		"xmldom": "*"
+		"xmldom": "0.5.0"
 	},
 	"devDependencies": {
 		"acorn": "^6.1.1",
