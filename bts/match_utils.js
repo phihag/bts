@@ -40,7 +40,7 @@ async function uncall_match(app, tournament, match, old_court, callback) {
 
 async function call_match(app, tournament, match, old_court, callback) {
     if (!match.setup.court_id || !match._id) {
-        return; // TODO in async we would assert both to be true
+		return callback("Match cannot be called court_id or _id not given.");
     }
 	if (match_completly_initialized(match.setup) == false) { 
 		return callback("Match cannot be called one or more Teams are not set.");
@@ -67,10 +67,10 @@ async function call_match(app, tournament, match, old_court, callback) {
 
 async function switch_court(app, tournament, match, old_court, callback) {
 	if (!match.setup.court_id || !match._id) {
-        return; // TODO in async we would assert both to be true
+		return callback("Match cannot be switched to another court: court_id or _id not given.");
     }
 	if (match_completly_initialized(match.setup) == false) { 
-		return callback("Match cannot be called one or more Teams are not set.");
+		return callback("Match cannot be switched to another court: one or more Teams are not set.");
 	}
 	async.waterfall([
 		(wcb) => add_tabletoperators(app, tournament, match, wcb),
@@ -141,7 +141,7 @@ async function add_tabletoperators(app, tournament, match, callback) {
     const match_id = match._id;
 
     if (!court_id || !match_id) {
-        return; // TODO in async we would assert both to be true
+		return callback(null);
     }
 
 	const setup = match.setup;
@@ -149,7 +149,20 @@ async function add_tabletoperators(app, tournament, match, callback) {
 	try {
         if ((tournament.tabletoperator_enabled && tournament.tabletoperator_enabled == true)) {
             if (!setup.tabletoperators || setup.tabletoperators == null) {
-                const value = await fetch_tabletoperator(admin, app, tournament.key, court_id);
+                
+				const fetch_result = await fetch_tabletoperator(admin, app, tournament.key, court_id);
+				let value = [];
+				if (tournament.tabletoperator_with_state_from_match_enabled && typeof(fetch_result) == "undefined") {
+					value.push({
+						asian_name: false,
+						name: setup.teams[0].players[0].state,
+						firstname: "",
+						lastname: "",
+						btp_id: -1});
+				} else {
+					value = fetch_result;
+				}
+
                 if (!setup.umpire || !setup.umpire.name || (tournament.tabletoperator_with_umpire_enabled && tournament.tabletoperator_with_umpire_enabled == true)) {
                     setup.tabletoperators = value;
                 }
@@ -172,7 +185,7 @@ async function set_umpires_on_court(app, tournament, match, callback) {
 	const setup = match.setup;
 	const court_id = setup.court_id;
 	if (!court_id) {
-		return; // TODO in async we would assert both to be true
+		return callback(null);
 	}
 
 	if (setup.umpire) {
@@ -495,7 +508,9 @@ function add_player_to_tabletoperator_list_by_match(app, tournament, tournament_
 					team = cur_match.setup.teams[index];
 				}
 
-				// TODO: 'tabletoperator_with_state_enabled'
+				if (tournament.tabletoperator_with_state_from_match_enabled) {
+					return callback(null);
+				}
 
 				if (team && typeof team.players !== 'undefined') {
 					var teams = [];
@@ -845,7 +860,7 @@ function set_umpire_to_standby(app, tournament_key, setup) {
 
 
 
-function update_umpire(app, tkey, umpire, status, last_time_on_court_ts, court_id, callback) {
+function update_umpire(app, tkey, umpire, status, last_time_on_court_ts, court_id) {
 	app.db.umpires.update({ tournament_key: tkey, name: umpire.name }, { $set: { last_time_on_court_ts: last_time_on_court_ts, status: status, court_id: court_id } }, { returnUpdatedDocs: true }, function (err, numAffected, changed_umpire) {
 		if (err) {
 			console.error(err);
@@ -853,6 +868,7 @@ function update_umpire(app, tkey, umpire, status, last_time_on_court_ts, court_i
 		}
 		const admin = require('./admin');
 		admin.notify_change(app, tkey, 'umpire_updated', changed_umpire);
+		return;
 	});
 }
 

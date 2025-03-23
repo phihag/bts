@@ -43,7 +43,14 @@ h1 {
 	margin: 0;
 }
 h3 {
-	margin: 0;
+	margin: 20px 0 10px 0;
+}
+
+button {
+	margin-right: 5px;
+	margin-left: 5px;
+	margin-top: 2px;
+	margin-bottom: 2px;
 }
 
 .connecting {
@@ -105,14 +112,56 @@ a:hover {
 	padding: 0;
 	border: none;
 }
+
 .tournament_settings > label,
-.tournament_settings fieldset > label {
-	display: block;
+.tournament_settings fieldset > label ,
+.tournament_settings > .settings > label,
+.tournament_settings fieldset > .settings > label {
+	display: flex;
+	align-items: center;
 }
+
 .tournament_settings > label > span,
-.tournament_settings fieldset > label > span {
+.tournament_settings fieldset > label > span,
+.tournament_settings > .settings > label > span,
+.tournament_settings fieldset > .settings > label > span {
 	display: inline-block;
-	min-width: 5em;
+	width: 400px;
+	min-width: fit-content;
+}
+
+.tournament_settings > label > input[type=text],
+.tournament_settings fieldset > label > input[type=text],
+.tournament_settings > .settings > label > input[type=text],
+.tournament_settings fieldset > .settings > label > input[type=text],
+.tournament_settings > label > input[type=number],
+.tournament_settings fieldset > label > input[type=number],
+.tournament_settings > .settings > label > input[type=number],
+.tournament_settings fieldset > .settings > label > input[type=number]  {
+	flex-grow: 1;
+}
+
+.tournament_settings > label > select,
+.tournament_settings fieldset > label > select,
+.tournament_settings > .settings > label > select,
+.tournament_settings fieldset > .settings > label > select {
+	flex-grow: 1;
+}
+
+
+
+.tournament_settings {
+	display: block;
+	columns: 920px 6;
+}
+
+.settings {
+	display: inline-block;
+	background-color: #ddd;
+	width: 900px;
+	padding: 10px;
+	border-radius: 10px;
+	margin: 10px;
 }
 
 .dialog_bg {
@@ -241,11 +290,11 @@ h2 {
 	text-align: center;
 }
 
-	h2.edit {
-		margin: 0;
-		padding-top: 20px;
-		padding-bottom: 10px;
-		font-size: 25px;
-		color: black;
-		text-align: left;
-	}
+h2.edit {
+	margin: 10px 0 20px 0;
+	padding-top: 0px;
+	padding-bottom: 0px;
+	font-size: 25px;
+	color: black;
+	text-align: left;
+}

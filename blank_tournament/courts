@@ -1,0 +1,9 @@
+{"_id":"default_1","tournament_key":"default","btp_id":9,"num":1,"name":"1","match_id":"btp_default_U17 MD_545"}
+{"_id":"default_2","tournament_key":"default","btp_id":10,"num":2,"name":"2","match_id":"btp_default_U19 JE_654"}
+{"_id":"default_3","tournament_key":"default","btp_id":11,"num":3,"name":"3","match_id":"btp_default_U19 JE_649"}
+{"_id":"default_4","tournament_key":"default","btp_id":12,"num":4,"name":"4","match_id":"btp_default_U19 ME_715"}
+{"_id":"default_5","tournament_key":"default","btp_id":13,"num":5,"name":"5","match_id":"btp_default_U17 JD_467"}
+{"_id":"default_6","tournament_key":"default","btp_id":14,"num":6,"name":"6","match_id":"btp_default_U17 JD_469"}
+{"_id":"default_7","tournament_key":"default","btp_id":15,"num":7,"name":"7","match_id":"btp_default_U17 JE_13"}
+{"_id":"default_8","tournament_key":"default","btp_id":16,"num":8,"name":"8","match_id":"btp_default_U19 JE_653"}
+{"$$indexCreated":{"fieldName":"tournament_key","unique":false,"sparse":false}}

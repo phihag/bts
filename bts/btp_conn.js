@@ -71,7 +71,7 @@ function send_request(ip, port, xml_req, timeZone, callback) {
 
 
 class BTPConn {
-	constructor(app, ip, password, tkey, enabled_autofetch, readonly, is_team, timeZone) {
+	constructor(app, ip, password, tkey, enabled_autofetch, readonly, is_team, timeZone, autofetch_timeout_intervall) {
 		this.app = app;
 		this.last_status = 'Activated';
 		this.ip = ip;
@@ -83,6 +83,7 @@ class BTPConn {
 		this.autofetch_timeout = null;
 		this.readonly = readonly;
 		this.is_team = is_team;
+		this.autofetch_timeout_intervall = autofetch_timeout_intervall ? autofetch_timeout_intervall : AUTOFETCH_TIMEOUT;
 		this.connect();
 	}
 
@@ -93,15 +94,13 @@ class BTPConn {
 
 		this.report_status('connecting','Try to establish connection to BTP.');
 		this.send(btp_proto.login_request(this.password), response => {
-			if (!response.Action || !response.Action[0] || !response.Action[0].ID[0] || (response.Action[0].ID[0] !== 'REPLY')) {
+			if (!response || response == null || !response.Action || !response.Action[0] || !response.Action[0].ID[0] || (response.Action[0].ID[0] !== 'REPLY')) {
 				this.report_status('error','Invalid reply to login request');
-				this.schedule_reconnect();
 				return;
 			}
 
 			if (response.Action[0].Result[0] !== 1) {
 				this.report_status('error', 'Invalid password');
-				this.schedule_reconnect();
 				return;
 			}
 
@@ -110,16 +109,37 @@ class BTPConn {
 
 			this.pushall();
 			if (this.enabled_autofetch) {
-				this.fetch();
+				update_queue.instance().execute(this.fetch, this,true);
 			}
-			this.schedule_fetch();
 		});
 	}
 
-	fetch() {
-		const ir = btp_proto.get_info_request(this.password);
-		this.send(ir, response => {
-			update_queue.instance().execute(btp_sync.sync_btp_data,this.app, this.tkey, response);
+	sync_data() {
+		update_queue.instance().execute(this.fetch, this, false);
+	}
+
+	async fetch(connection, reschedule_fetch ) {
+		return new Promise((resolve, reject) => {
+			try {			
+				const ir = btp_proto.get_info_request(connection.password);
+				connection.send(ir, async (response) => {
+					try {
+						if (response && response != null) {
+							const value = await btp_sync.sync_btp_data(connection.app, connection.tkey, response);
+							if (reschedule_fetch == true) {
+								connection.schedule_fetch();
+							}
+							resolve(value);
+						} else {
+							resolve(null);
+						}
+					} catch (innerError) {
+						reject(innerError);
+					}
+				});
+			} catch (e) {
+				reject(e);
+			}
 		});
 	}
 
@@ -130,11 +150,9 @@ class BTPConn {
 		if (!this.enabled_autofetch) {
 			return;
 		}
-
 		this.autofetch_timeout = setTimeout(() => {
-			this.fetch();
-			this.schedule_fetch();
-		}, AUTOFETCH_TIMEOUT);
+			update_queue.instance().execute(this.fetch,this,true);
+		}, this.autofetch_timeout_intervall);
 	}
 
 	terminate() {
@@ -143,16 +161,14 @@ class BTPConn {
 	}
 
 	send(xml_req, success_cb) {
-		if (this.terminated) return;
-
+		if (this.terminated) return success_cb(null);
 		const port = this.is_team ? BLP_PORT : BTP_PORT;
 		send_request(this.ip, port, xml_req, this.timeZone, (err, response) => {
 			if (err) {
 				this.report_status('error', 'Connection error: ' + err.message);
 				this.schedule_reconnect();
-				return;
+				return success_cb(null);
 			}
-
 			success_cb(response);
 		});
 	}

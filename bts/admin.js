@@ -65,7 +65,7 @@ function handle_tournament_edit_props(app, ws, msg) {
 	const props = utils.pluck(msg.props, [
 		'name','tguid',
 		'btp_enabled', 'btp_autofetch_enabled', 'btp_readonly',
-		'btp_ip', 'btp_password',
+		'btp_ip', 'btp_password','btp_autofetch_timeout_intervall',
 		'is_team', 'is_nation_competition',
 		'warmup', 'warmup_ready', 'warmup_start',
 		'upcoming_matches_animation_speed', 'upcoming_matches_max_count','upcoming_matches_animation_pause',
@@ -74,6 +74,7 @@ function handle_tournament_edit_props(app, ws, msg) {
 		'tabletoperator_enabled', 'tabletoperator_break_seconds',
 		'announcement_speed','announcement_pause_time_ms',
 		'tabletoperator_set_break_after_tabletservice','tabletoperator_with_state_enabled',
+		'tabletoperator_with_state_from_match_enabled',
 		'tabletoperator_winner_of_quaterfinals_enabled','tabletoperator_split_doubles',
 		'tabletoperator_use_manual_counting_boards_enabled', 'tabletoperator_with_umpire_enabled', 
 		'annoncement_include_event', 'annoncement_include_round','annoncement_include_matchnumber',
@@ -794,6 +795,23 @@ function handle_reset_display(app, ws, msg) {
 	ws.respond("Angekommen: " + client_id);
 }
 
+function handle_edit_display_setting(app, ws, msg) {
+	if (!_require_msg(ws, msg, ['tournament_key', 'displaysetting'])) {
+		return;
+	}
+	const querry = {id : msg.displaysetting.id};
+	const displaysetting = msg.displaysetting;
+
+	//{_id: msg.id, tournament_key}, {$set: {setup}}, {returnUpdatedDocs: true}, function(err, numAffected, changed_match)
+	app.db.displaysettings.update(querry, {$set: displaysetting}, {returnUpdatedDocs: true}, (err, numAffected, changed_setting) => {
+		console.log(err);
+		console.log(numAffected);
+		console.log(changed_setting);
+	});
+
+	ws.respond(msg);
+}
+
 async function async_handle_delete_display_setting(app, ws, msg) {
 	const tournament_key = msg.tournament_key;
 	const setting_id = msg.setting_id;
@@ -820,6 +838,7 @@ function handle_relocate_display(app, ws, msg) {
 	bupws.restart_panel(app, tournament_key, client_id, new_court_id);
 	ws.respond("Angekommen: " + client_id);
 }
+
 function handle_change_display_mode(app, ws, msg) {
 	const tournament_key = msg.tournament_key;
 	const client_id = msg.display_setting_id;
@@ -991,6 +1010,7 @@ async function async_handle_tournament_upload_logo(app, ws, msg) {
 }
 
 module.exports = {
+	handle_edit_display_setting,
 	async_handle_delete_display_setting,
 	async_handle_match_delete,
 	async_handle_tournament_upload_logo,

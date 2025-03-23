@@ -22,7 +22,7 @@ function reconfigure(app, t) {
 		app,
 		t.btp_ip, t.btp_password, t.key,
 		t.btp_autofetch_enabled, t.btp_readonly,
-		t.is_team, t.btp_timezone);
+		t.is_team, t.btp_timezone, t.btp_autofetch_timeout_intervall);
 	conns_by_tkey.set(t.key, conn);
 }
 
@@ -33,7 +33,7 @@ function fetch(tkey) {
 		return;
 	}
 
-	conn.fetch();
+	conn.sync_data();
 }
 
 function update_score(app, match) {

@@ -32,11 +32,14 @@ function default_handler(rerender, special_funcs) {
 			announce([c.val.text]);
 			break;
 		case 'props': {
+			console.log(c.val);
+			
 			curt.name = c.val.name;
 			curt.is_team = c.val.is_team;
 			curt.tguid = c.val.tguid;
 			curt.is_nation_competition = c.val.is_nation_competition;
 			curt.btp_timezone = c.val.btp_timezone;
+			curt.btp_autofetch_timeout_intervall = c.val.btp_autofetch_timeout_intervall;
 			curt.warmup = c.val.warmup;
 			curt.warmup_ready = c.val.warmup_ready;
 			curt.warmup_start = c.val.warmup_start;
@@ -60,6 +63,7 @@ function default_handler(rerender, special_funcs) {
 				'is_team', 'is_nation_competition',
 				'btp_enabled', 'btp_autofetch_enabled', 'btp_readonly',
 				'ticker_enabled', 'tabletoperator_enabled', 'tabletoperator_with_state_enabled',
+				'tabletoperator_with_state_from_match_enabled',
 				'tabletoperator_winner_of_quaterfinals_enabled', 'tabletoperator_split_doubles',
 				'tabletoperator_set_break_after_tabletservice', 'tabletoperator_break_seconds',
 				'announcement_speed', 'announcement_pause_time_ms',

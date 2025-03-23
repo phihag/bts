@@ -3,9 +3,10 @@ const async = require('async');
 const serror = require('./serror');
 const utils = require('./utils');
 const admin = require('./admin');
-const dns = require('dns');
-const cp = require('child_process');
-const os = require('os');
+const cp = require("child_process");
+const os = require("os");
+const dns = require("dns");
+const net = require("net");
 
 const btp_manager = require('./btp_manager');
 const btp_conn = require('./btp_conn');
@@ -38,6 +39,7 @@ async function notify_admin_display_status_changed(app, ws, ws_online) {
 		var display_court_displaysetting = await get_display_court_displaysettings(app, client_id);
 		if (display_court_displaysetting == null) {
 			display_court_displaysetting = create_display_court_displaysettings(client_id, hostname, null, generate_default_displaysettings_id(tournament));
+			display_court_displaysetting = await persist_client_court_displaysetting(app, display_court_displaysetting);
 		}
 		display_court_displaysetting.online = ws_online;
 		admin.notify_change(app, default_tournament_key, 'display_status_changed', {'display_court_displaysetting': display_court_displaysetting });	
@@ -201,6 +203,7 @@ async function handle_score_update(app, ws, msg) {
 		(match, cb) => {
 			if (match) {
 				if (finish_confirmed) {
+					btp_manager.update_score(app, match);
 					update_queue.instance().execute(match_utils.reset_player_tabletoperator, app, tournament_key, match_id, update.end_ts)
 						.then(() => {
 							cb(null, match);
@@ -237,12 +240,6 @@ async function handle_score_update(app, ws, msg) {
 					match__id: match_id,
 					match: match,
 				});
-			}
-			cb(null, match, changed_court);
-		},
-		(match, changed_court, cb) => {
-			if (match) {
-				btp_manager.update_score(app, match);
 			}
 			cb(null, match, changed_court);
 		},
@@ -386,46 +383,77 @@ async function initialize_client(ws, app, tournament_key, court_id, displaysetti
 }
 
 function getComputerName() {
-	switch (process.platform) {
-	  case "win32":
-		return process.env.COMPUTERNAME;
-	  case "darwin":
-		return cp.execSync("scutil --get ComputerName").toString().trim();
-	  case "linux":
-		const prettyname = cp.execSync("hostnamectl --pretty").toString().trim();
-		return prettyname === "" ? os.hostname() : prettyname;
-	  default:
+	try {
+		switch (process.platform) {
+			case "win32":
+				return process.env.COMPUTERNAME || os.hostname();
+			case "darwin":
+				return cp.execSync("scutil --get ComputerName").toString().trim();
+			case "linux":
+				const prettyname = cp.execSync("hostnamectl --pretty").toString().trim();
+				return prettyname || os.hostname();
+			default:
+				return os.hostname();
+		}
+	} catch (err) {
+		console.error("Error getting computer name:", err);
 		return os.hostname();
 	}
-  }
+}
 
 async function determine_client_hostname(ws) {
-	return new Promise((resolve, reject)=> {
-		if(!ws.hostname) {
-			const remote_adress_seqments_v6 = ws._socket.remoteAddress.split(':');
-			const ip_v4 = remote_adress_seqments_v6[remote_adress_seqments_v6.length - 1];
-		
-			// catch ip for localhost
-			if(ip_v4 == '127.0.0.1') {
-				ws.hostname = getComputerName();
-				resolve(ws.hostname);
-				return;
-			}
-			dns.reverse(ip_v4, (err, hostnames) => {
-				if (err) {
-					resolve("N/N")
-				}
-				if (hostnames && hostnames.length >= 1) {
-					ws.hostname = hostnames[0].split('.')[0];
-				}
-				resolve(ws.hostname);
-			});
-		} 
-		else {
-			resolve(ws.hostname);
+	if (ws.hostname) {
+		return ws.hostname;
+	}
+
+	const remoteAddress = ws._socket.remoteAddress;
+
+	// Verifizieren, ob die Adresse gültig ist
+	if (net.isIPv4(remoteAddress)) {
+		// Lokale IP-Adressen abfangen
+		if (remoteAddress === "127.0.0.1") {
+			console.log("Localhost");
+			ws.hostname = getComputerName();
+			return ws.hostname;
 		}
-	});
+
+		// Rückwärtssuche für IPv4
+		try {
+			const hostnames = await new Promise((resolve, reject) => {
+				dns.reverse(remoteAddress, (err, hostnames) => {
+					if (err) reject(err);
+					else resolve(hostnames);
+				});
+			});
+
+			if (hostnames && hostnames.length > 0) {
+				ws.hostname = hostnames[0].split(".")[0];
+			} else {
+				ws.hostname = "N/N";
+			}
+		} catch (err) {
+			console.error("DNS reverse lookup failed:", err);
+			ws.hostname = "N/N";
+		}
+
+		return ws.hostname;
+	} else if (net.isIPv6(remoteAddress)) {
+		// IPv6-Adresse prüfen (z. B. `::1` für localhost)
+		if (remoteAddress === "::1") {
+			ws.hostname = getComputerName();
+			return ws.hostname;
+		}
+
+		// Bei IPv6 keine spezielle Verarbeitung (z. B. Reverse-Lookup)
+		ws.hostname = remoteAddress;
+		return ws.hostname;
+	} else {
+		console.error("Invalid IP address:", remoteAddress);
+		ws.hostname = "N/N";
+		return ws.hostname;
+	}
 }
+
 
 function determine_client_id(ws) {
 	if (!ws.client_id) {
@@ -637,6 +665,7 @@ function matches_handler(app, ws, tournament_key, court_id) {
 			if (!court_id) {
 		        matches = matches.filter(m => m.setup.now_on_court);
 		    }
+			matches = matches.filter(m => m.setup.state == 'oncourt' || m.setup.state == 'finished' || m.setup.state == 'blocked');
 
 		    db_courts.sort(utils.cmp_key('num'));
 		    const courts = db_courts.map(function (dc) {
