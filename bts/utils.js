@@ -43,6 +43,9 @@ function cmp_key(key) {
 	return function(o1, o2) {
 		const v1 = o1[key];
 		const v2 = o2[key];
+		if(!isNaN(Number(v1) && !isNaN(v2))) {
+			return cmp(Number(v1), Number(v2));
+		}
 		return cmp(v1, v2);
 	};
 }

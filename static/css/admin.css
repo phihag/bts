@@ -298,3 +298,42 @@ h2.edit {
 	color: black;
 	text-align: left;
 }
+
+.settings table > tbody > tr {
+	background-color: #bbb;
+}
+
+.settings table > tbody > tr:nth-of-type(even) {
+	background-color: #ccc;
+}
+
+.settings .online {
+	background-color: #97e6b4;
+}
+
+.settings table > tbody > .online:nth-of-type(even) {
+	background-color: #adffcb;
+}
+
+.settings .wait_for_done {
+	background-color: #dfe197;
+}
+
+.settings table > tbody > .wait_for_done:nth-of-type(even) {
+	background-color: #fcffad;
+}
+
+
+.settings .offline {
+	background-color: #e69797
+}
+
+.settings table > tbody > .offline:nth-of-type(even) {
+	background-color: #ffadad;
+}
+
+.settings table {
+	border:none;
+	border-spacing: 0;
+	width: 100%;
+}

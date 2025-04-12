@@ -88,6 +88,9 @@ function default_handler(rerender, special_funcs) {
 				el.value = curt.ticker_password;
 			});
 			break;}
+		case 'court_current_match':
+			//nothing to do here
+			break;
 		case 'tabletoperator_add':
 			//nothing to do here
 			break;
@@ -101,7 +104,6 @@ function default_handler(rerender, special_funcs) {
 			//nothing todo here
 			break;
 		case 'match_edit':
-			console.log("match_edit in change.js");
 			ctournament.update_match(c);
 			break;
 		case 'match_add':
@@ -237,7 +239,7 @@ function default_handler(rerender, special_funcs) {
 			break;
 		case 'display_status_changed':
 			const display_setting = c.val.display_court_displaysetting;
-			const d = utils.find(curt.displays, m => m.client_id === display_setting.client_id);
+			var d = utils.find(curt.displays, m => m.client_id === display_setting.client_id);
 			var laststatus = false;
 			if (!d) {
 				curt.displays[curt.displays.length] = display_setting;
@@ -254,6 +256,25 @@ function default_handler(rerender, special_funcs) {
 				cerror.silent('Display ' + display_setting.client_id + ' is ' + (display_setting.online ? 'online' : 'offline'));
 			}
 			ctournament.update_display(d);
+			break;
+		case 'delete_display':
+			const client_id = c.val.client_id;
+			const display = utils.find(curt.displays, m => m.client_id === client_id);
+			utils.remove(curt.displays, display);
+			ctournament.delete_display(c);
+			break;
+		case 'display_wait_for_done':
+			var d = utils.find(curt.displays, m => m.client_id === c.val.client_id);
+			d.wait_for_done = true;
+			d.wait_for_ctype = c.val.ctype;
+			ctournament.update_display(d);
+			break;
+		case 'display_is_done':
+			var d = utils.find(curt.displays, m => m.client_id === c.val.client_id);
+			if(d.wait_for_done && d.wait_for_ctype == c.val.ctype) {
+				d.wait_for_done = false;
+				ctournament.update_display(d);
+			}
 			break;
 		default:
 			cerror.silent('Unsupported change type ' + c.ctype);

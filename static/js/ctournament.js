@@ -559,8 +559,8 @@ var ctournament = (function() {
 			}, (err) => {
 				if (err) {
 					return cerror.net(err);
-				}
-				input.closest('form').reset();
+				}`
+				input.closest('form').reset();`
 			});
 		};
 		reader.onerror = (e) => {
@@ -1369,7 +1369,8 @@ var ctournament = (function() {
 		const display_settings_tbody = uiu.el(display_settings_table, 'tbody');
 		const tr = uiu.el(display_settings_tbody, 'tr');
 		uiu.el(tr, 'th', {}, ci18n('tournament:edit:displays:setting'));
-		uiu.el(tr, 'td', {}, ci18n('tournament:edit:displays:description'));
+		uiu.el(tr, 'th', {}, ci18n('tournament:edit:displays:description'));
+		uiu.el(tr, 'th', {}, "");
 
 		for (const s of curt.displaysettings) {
 			const tr = uiu.el(display_settings_tbody, 'tr');
@@ -1423,15 +1424,15 @@ var ctournament = (function() {
 	function on_edit_display_setting_button_click(e) {
 		const btn = e.target;
 		const display_setting_id = btn.getAttribute('data-display_setting_id');
-		console.log(display_setting_id);
+		//console.log(display_setting_id);
 		ui_edit_display_setting(display_setting_id);
 	}
 
 	function ui_edit_display_setting(display_setting_id) {
-		console.log(display_setting_id);
-		console.log(curt);
+		//console.log(display_setting_id);
+		//console.log(curt);
 		const display_setting = structuredClone(utils.find(curt.displaysettings, d => d.id === display_setting_id));
-		console.log(display_setting);
+		//console.log(display_setting);
 
 		crouting.set('t/' + curt.key + '/edit/s/' + display_setting_id, {}, _cancel_ui_edit_display_setting);
 
@@ -1463,9 +1464,9 @@ var ctournament = (function() {
 		}, ci18n('Change'));
 
 		form_utils.onsubmit(form, function(d) {
-			console.log(d);
+			//console.log(d);
 			const displaysetting = create_displaysettings_object(d);
-			console.log(displaysetting);
+			//console.log(displaysetting);
 
 			send({
 				type: 'edit_display_setting',
@@ -1761,7 +1762,7 @@ var ctournament = (function() {
 		uiu.el(general_displaysettings_div, 'h3', 'edit', ci18n('tournament:edit:displays'));
 
 		const display_table = uiu.el(general_displaysettings_div, 'table');
-		const display_tbody = uiu.el(display_table, 'tbody');
+		const display_tbody = uiu.el(display_table, 'tbody', 'display_tbody');
 		const tr = uiu.el(display_tbody, 'tr');
 		uiu.el(tr, 'th', {}, ci18n('tournament:edit:displays:num'));
 		uiu.el(tr, 'th', {}, ci18n('tournament:edit:displays:hostname'));
@@ -1769,6 +1770,8 @@ var ctournament = (function() {
 		uiu.el(tr, 'th', {}, ci18n('tournament:edit:displays:court'));
 		uiu.el(tr, 'th', {}, ci18n('tournament:edit:displays:setting'));
 		uiu.el(tr, 'th', {}, ci18n('tournament:edit:displays:onlinestatus'));
+		uiu.el(tr, 'th', {}, "");
+		uiu.el(tr, 'th', {}, "");
 		
 
 		for (const display of curt.displays) {
@@ -1778,13 +1781,40 @@ var ctournament = (function() {
 	}
 
 	function update_display(display) {
-		uiu.qsEach('[data-display_id=' + JSON.stringify(display.client_id) + ']', function (display_tr) {
-			display_tr.innerHTML = '';
-			render_display(display_tr, display);
-		});
+		// Do this function only if the Display view (in on edit) is open
+		if(!document.querySelectorAll('.display_tbody').length) {
+			return;
+		}
+		
+		var nodes = document.querySelectorAll('[data-display_id=' + JSON.stringify(display.client_id) + ']');
+		if(nodes.length > 0) {
+			uiu.qsEach('[data-display_id=' + JSON.stringify(display.client_id) + ']', function (display_tr) {
+				display_tr.innerHTML = '';
+				render_display(display_tr, display);
+			});
+		}
+		else {
+			new_display(display);
+		}
 	}
 
+	function new_display(display) {
+		const display_tbody = document.querySelector(".display_tbody");
+		const tr = uiu.el(display_tbody, 'tr', { 'data-display_id': display.client_id });
+		render_display(tr, display);
+
+		for (const child of display_tbody.children) {
+			const child_id = child.dataset.display_id;
+			if(child_id && Number(child_id) > Number(display.client_id))
+			{
+				display_tbody.insertBefore(tr, child);
+			}
+		}
+	}
+
+
 	function render_display(tr, display) {
+		tr.setAttribute('class', (!display.online) ? 'offline' : (display.wait_for_done ? 'wait_for_done' : 'online'));
 		uiu.el(tr, 'th', {}, display.client_id);
 		uiu.el(tr, 'th', {}, display.hostname);
 		var battery_node = uiu.el(tr, 'td', {}, 'N/A');
@@ -1794,19 +1824,40 @@ var ctournament = (function() {
 		uiu.el(tr, 'td', {}, (!display.online) ? 'offline' : 'online');
 		const actions_td = uiu.el(tr, 'td', {});
 		const reset_btn = uiu.el(actions_td, 'button', {
-			'data-display-setting-id': display.client_id,
+			'data-display-client-id': display.client_id,
 		}, 'Restart');
 
 		if (!display.online) {
 			reset_btn.setAttribute('disabled', 'disabled');
 		}
 		reset_btn.addEventListener('click', function (e) {
-			const del_btn = e.target;
-			const display_setting_id = del_btn.getAttribute('data-display-setting-id');
+			const rst_btn = e.target;
+			const display_client_id = rst_btn.getAttribute('data-display-client-id');
 			send({
-				type: 'reset_display',
+				type: 'display_reset',
 				tournament_key: curt.key,
-				display_setting_id: display_setting_id,
+				display_client_id: display_client_id,
+			}, err => {
+				if (err) {
+					return cerror.net(err);
+				}
+			});
+		});
+
+		const delete_td = uiu.el(tr, 'td', {});
+		const delete_btn = uiu.el(delete_td, 'button', {
+			'data-display-client-id': display.client_id,
+		}, 'Delete');
+		if (display.online) {
+			delete_btn.setAttribute('disabled', 'disabled');
+		}
+		delete_btn.addEventListener('click', function (e) {
+			const del_btn = e.target;
+			const display_client_id = del_btn.getAttribute('data-display-client-id');
+			send({
+				type: 'display_delete',
+				tournament_key: curt.key,
+				display_client_id: display_client_id,
 			}, err => {
 				if (err) {
 					return cerror.net(err);
@@ -1814,6 +1865,14 @@ var ctournament = (function() {
 			});
 		});
 	}
+
+	function delete_display(c) {
+		uiu.qsEach('[data-display_id=' + JSON.stringify(c.val) + ']', function (display_tr) {
+			display_tr.parentNode.removeChild(display_tr);
+		});
+	}
+
+
 	function render_courts(main) {
 		uiu.el(main, 'h2', 'edit', ci18n('tournament:edit:courts'));
 
@@ -2262,6 +2321,7 @@ var ctournament = (function() {
 		remove_advertisement,
 		add_advertisement,
 		update_general_displaysettings,
+		delete_display,
 	};
 
 })();

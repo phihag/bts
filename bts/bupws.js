@@ -50,29 +50,30 @@ function generate_default_displaysettings_id(tournament) {
 	return (tournament && tournament.displaysettings_general) ? tournament.displaysettings_general : default_displaysettings_key;
 }
 
-function notify_change(tournament_key, court_id, ctype, val) {
+function notify_change(app, tournament_key, court_id, ctype, val) {
 	for (const panel_ws of all_panels) {
-		notify_change_ws(panel_ws, tournament_key, court_id, ctype, val);
+		notify_change_ws(app, panel_ws, tournament_key, court_id, ctype, val);
 	}
 }
 
-function notify_change_broadcast(tournament_key, ctype, val) {
+function notify_change_broadcast(app, tournament_key, ctype, val) {
 	for (const panel_ws of all_panels) {
-		notify_change_send(panel_ws, tournament_key, ctype, val);
+		notify_change_send(app, panel_ws, tournament_key, ctype, val);
 	}
 }
 
-function notify_change_ws(ws, tournament_key, court_id, ctype, val) {
+function notify_change_ws(app, ws, tournament_key, court_id, ctype, val) {
 	if (ws == null) {
-		notify_change(tournament_key, court_id, ctype, val);
+		notify_change(app, tournament_key, court_id, ctype, val);
 	} else { 
 		if (ws.court_id === court_id) { 
-			notify_change_send(ws,tournament_key, ctype, val);
+			notify_change_send(app, ws, tournament_key, ctype, val);
 		}
 	}
 }
 
-function notify_change_send(ws,tournament_key, ctype, val) {
+function notify_change_send(app, ws, tournament_key, ctype, val) {
+	admin.notify_change(app, tournament_key, 'display_wait_for_done', {'ctype': ctype, 'val' : val, 'client_id': ws.client_id});
 	ws.sendmsg({
 		type: 'change',
 		tournament_key,
@@ -83,7 +84,7 @@ function notify_change_send(ws,tournament_key, ctype, val) {
 
 function send_courts(app, ws, tournament_key) {
 	stournament.get_courts(app.db, tournament_key, function (err, courts) {
-		notify_change_ws(ws,tournament_key, ws.court_id, "courts-update", courts);
+		notify_change_ws(app, ws,tournament_key, ws.court_id, "courts-update", courts);
 	});
 }
 function send_error(ws, tournament_key, msg) {
@@ -356,15 +357,15 @@ async function handle_init(app, ws, msg) {
 }
 
 async function send_finshed_confirmed(app, tournament_key, court_id) {
-	notify_change(tournament_key, court_id, 'confirm-match-finished', {});
+	notify_change(app, tournament_key, court_id, 'confirm-match-finished', {});
 }
 
-async function send_advertisement_add(tournament_key, advertisement) {
-	notify_change_broadcast(tournament_key, 'advertisement_add', advertisement);
+async function send_advertisement_add(app, tournament_key, advertisement) {
+	notify_change_broadcast(app, tournament_key, 'advertisement_add', advertisement);
 }
 
-async function send_advertisement_remove(tournament_key, advertisement_id) {
-	notify_change_broadcast(tournament_key, 'advertisement_remove', { advertisement_id: advertisement_id });
+async function send_advertisement_remove(app, tournament_key, advertisement_id) {
+	notify_change_broadcast(app, tournament_key, 'advertisement_remove', { advertisement_id: advertisement_id });
 }
 
 async function initialize_client(ws, app, tournament_key, court_id, displaysetting) {
@@ -375,8 +376,8 @@ async function initialize_client(ws, app, tournament_key, court_id, displaysetti
 		if (display_setting != null) {
 			ws.court_id = display_setting.court_id;
 			court_id = display_setting.court_id;
-			notify_change_ws(ws, tournament_key, court_id, "settings-update", display_setting);
-			notify_change_ws(ws, tournament_key, court_id, "settings-update", display_setting);
+			notify_change_ws(app, ws, tournament_key, court_id, "settings-update", display_setting);
+			notify_change_ws(app, ws, tournament_key, court_id, "settings-update", display_setting);
 		}
 	}
 	matches_handler(app, ws, tournament_key, ws.court_id);
@@ -401,18 +402,48 @@ function getComputerName() {
 	}
 }
 
+function extractIPv4FromMappedIPv6(ip) {
+	const match = ip.match(/^::ffff:(\d+\.\d+\.\d+\.\d+)$/);
+	return match ? match[1] : null;
+}
+
 async function determine_client_hostname(ws) {
 	if (ws.hostname) {
 		return ws.hostname;
 	}
 
 	const remoteAddress = ws._socket.remoteAddress;
+	const mappedIPv4 = extractIPv4FromMappedIPv6(remoteAddress);
+
+	if (mappedIPv4) {
+		// Hier behandeln wir es wie ein echtes IPv4
+		if (mappedIPv4 === "127.0.0.1") {
+			ws.hostname = getComputerName();
+			return ws.hostname;
+		}
+
+		try {
+			const hostnames = await new Promise((resolve, reject) => {
+				dns.reverse(mappedIPv4, (err, hostnames) => {
+					if (err) reject(err);
+					else resolve(hostnames);
+				});
+			});
+
+			ws.hostname = hostnames?.[0]?.split(".")[0] || "N/N";
+		} catch (err) {
+			console.error("DNS reverse lookup failed:", err);
+			ws.hostname = "N/N";
+		}
+
+		return ws.hostname;
+	}
+
 
 	// Verifizieren, ob die Adresse gültig ist
 	if (net.isIPv4(remoteAddress)) {
 		// Lokale IP-Adressen abfangen
 		if (remoteAddress === "127.0.0.1") {
-			console.log("Localhost");
 			ws.hostname = getComputerName();
 			return ws.hostname;
 		}
@@ -562,7 +593,9 @@ function get_display_setting(app, tkey, client_id, court_id, displaysetting) {
 						if (err) {
 							return resolve(returnvalue);
 						}
-						returnvalue.advertisements = advertisements;
+						if(returnvalue) {
+							returnvalue.advertisements = advertisements;
+						}
 						resolve(returnvalue);
 
 					});
@@ -599,6 +632,10 @@ function get_display_setting(app, tkey, client_id, court_id, displaysetting) {
 			}
 		});
 	});
+}
+
+function handle_command_done(app, ws, msg) {
+	admin.notify_change(app, msg.tournament_key, 'display_is_done', {'ctype': msg.wait_for_command.ctype, 'val' : msg.wait_for_command.val, 'client_id': ws.client_id});
 }
 
 function handle_score_change(app, tournament_key, court_id) {
@@ -690,7 +727,7 @@ function matches_handler(app, ws, tournament_key, court_id) {
 				status: 'ok',
 				event,
 			};
-			notify_change_ws(ws, tournament_key, court_id, "score-update", reply)
+			notify_change_ws(app, ws, tournament_key, court_id, "score-update", reply)
 		}		
 	});
 }
@@ -883,6 +920,7 @@ module.exports = {
 	on_connect,
 	notify_change,
 	handle_init,
+	handle_command_done,
 	handle_score_change,
 	handle_persist_display_settings,
 	handle_reset_display_settings,
