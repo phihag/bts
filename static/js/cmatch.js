@@ -129,6 +129,17 @@ function render_match_row(tr, match, court, style) {
 		}, calc_score_str(match));
 	}
 	if (style === 'default' || style === 'plain') {
+		const duration_mins = match.duration_ms ? Math.floor(match.duration_ms / 60000) : 0;
+		const duration_td = uiu.el(tr, 'td', 'match_duration_mins');
+		uiu.el(duration_td, 'span', {
+			'class': (
+				'match_duration_mins_display' +
+				(duration_mins ? ' match_duration_mins_display_active' : '')
+			),
+			'data-match_id': match._id,
+		}, duration_mins || '');
+	}
+	if (style === 'default' || style === 'plain') {
 		const shuttle_td = uiu.el(tr, 'td', 'match_shuttle_count');
 		uiu.el(shuttle_td, 'span', {
 			'class': (
