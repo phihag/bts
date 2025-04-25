@@ -407,6 +407,7 @@ function extractIPv4FromMappedIPv6(ip) {
 	return match ? match[1] : null;
 }
 
+/*
 async function determine_client_hostname(ws) {
 	if (ws.hostname) {
 		return ws.hostname;
@@ -483,6 +484,94 @@ async function determine_client_hostname(ws) {
 		ws.hostname = "N/N";
 		return ws.hostname;
 	}
+}*/
+
+async function determine_client_hostname(ws) {
+	if (ws.hostname) {
+		return ws.hostname;
+	}
+
+	let remoteAddress = ws._socket.remoteAddress;
+	let ipv4 = extractIPv4FromMappedIPv6(remoteAddress);
+	let ip = ipv4 || remoteAddress;
+
+	// Lokale Adressen behandeln
+	if (ip === "127.0.0.1") {
+		ws.hostname = getComputerName();
+		return ws.hostname;
+	}
+
+	// Bei ungültiger IP
+	if (!net.isIP(ip)) {
+		console.error("Invalid IP address:", remoteAddress);
+		ws.hostname = "N/N";
+		return ws.hostname;
+	}
+
+	// 1. Falls IPv4 verfügbar → versuchen Reverse-Lookup
+	if (ipv4) {
+		try {
+			const hostnames = await dnsReverseWithTimeout(ipv4, 3000);
+			ws.hostname = hostnames?.[0]?.split(".")[0] || ipv4;
+			return ws.hostname;
+		} catch (err) {
+			if (err.code !== 'ENOTFOUND') {
+				console.error("IPv4 DNS reverse lookup failed:", err);
+			}
+			// IPv4 Lookup fehlgeschlagen → weiter mit IPv6 versuchen
+			ip = remoteAddress; // original IPv6 verwenden
+		}
+	}
+
+	// 2. Jetzt IPv6 Reverse-Lookup versuchen
+	if (net.isIPv6(ip)) {
+		if (ip === "::1") {
+			ws.hostname = getComputerName();
+			return ws.hostname;
+		}
+
+		try {
+			const hostnames = await dnsReverseWithTimeout(ip, 3000);
+			ws.hostname = hostnames?.[0]?.split(".")[0] || ipv4 || ip;
+			return ws.hostname;
+		} catch (err) {
+			if (err.code !== 'ENOTFOUND') {
+				console.error("IPv6 DNS reverse lookup failed:", err);
+			}
+			// 3. Fallback: IPv4-Adresse als Text
+			ws.hostname = ipv4 || ip;
+			return ws.hostname;
+		}
+	}
+
+	// Sollte nicht vorkommen, aber falls doch:
+	ws.hostname = ipv4 || ip;
+	return ws.hostname;
+}
+
+// Hilfsfunktion: extrahiert IPv4 aus gemapptem IPv6, z.B. ::ffff:192.168.0.1 => 192.168.0.1
+function extractIPv4FromMappedIPv6(address) {
+	if (typeof address !== "string") return null;
+	const match = address.match(/^::ffff:(\d+\.\d+\.\d+\.\d+)$/);
+	return match ? match[1] : null;
+}
+
+// Hilfsfunktion: DNS-Reverse mit Timeout
+function dnsReverseWithTimeout(ip, timeoutMs) {
+	return new Promise((resolve, reject) => {
+		const timer = setTimeout(() => {
+			reject(new Error("DNS reverse lookup timeout"));
+		}, timeoutMs);
+
+		dns.reverse(ip, (err, hostnames) => {
+			clearTimeout(timer);
+			if (err) {
+				reject(err);
+			} else {
+				resolve(hostnames);
+			}
+		});
+	});
 }
 
 

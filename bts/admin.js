@@ -114,6 +114,37 @@ function handle_tournament_edit_props(app, ws, msg) {
 	});
 }
 
+
+function handle_tournament_edit_logo(app, ws, msg) {
+	if (! msg.key) {
+		return ws.respond(msg, {message: 'Missing key'});
+	}
+	if (! msg.props) {
+		return ws.respond(msg, {message: 'Missing props'});
+	}
+
+	const key = msg.key;
+	const props = utils.pluck(msg.props, [
+		'logo_background_color', 'logo_foreground_color']);
+
+	app.db.tournaments.findOne({ key }, async (err, tournament) => {
+		if (err || !tournament) {
+			ws.respond(msg, err);
+			return;
+		}
+		app.db.tournaments.update({ key }, { $set: props }, { returnUpdatedDocs: true }, function (err) {
+			if (err) {
+				ws.respond(msg, err);
+				return;
+			}
+
+			notify_change(app, key, 'logo_changed', {logo_foreground_color : props.logo_foreground_color, logo_background_color: props.logo_background_color});
+
+			ws.respond(msg, err);
+		});
+	});
+}
+
 function handle_courts_add(app, ws, msg) {
 	if (! msg.tournament_key) {
 		return ws.respond(msg, {message: 'Missing tournament_key'});
@@ -140,6 +171,65 @@ function handle_courts_add(app, ws, msg) {
 			notify_change(app, tournament_key, 'courts_changed', {all_courts});
 			ws.respond(msg, err, {});
 		});
+	});
+}
+
+function handle_court_edit(app, ws, msg) {
+	if (!_require_msg(ws, msg, ['tournament_key', 'court_id'])) {
+		return;
+	}
+
+	const tournament_key = msg.tournament_key;
+	const court_id = msg.court_id;
+
+	const query = {
+		tournament_key,
+		_id: court_id,
+	};
+
+	app.db.courts.findOne(query, async (err, court) => {
+		if (err || !court) {
+			ws.respond(msg, err);
+			return;
+		}
+		const is_active = (msg.is_active != undefined ? msg.is_active : court.is_active);
+		app.db.courts.update(query, { $set: {is_active} }, {}, (err) => {
+			if(err) {
+				ws.respond(msg, err);
+				return;
+			}
+
+			notify_change(app, msg.tournament_key, 'court_changed', {court_id, is_active});
+			ws.respond(msg);
+			return;
+		});
+	});
+}
+
+function handle_location_changed(app, ws, msg) {
+	if (!_require_msg(ws, msg, ['tournament_key', 'location_id', 'highlight', 'preperation_addition', 'meetingpoint_announcement'])) {
+		return;
+	}
+	const location_id = msg.location_id;
+	console.log(location_id);
+	const preperation_addition = msg.preperation_addition;
+	const meetingpoint_announcement = msg.meetingpoint_announcement;
+	const highlight = msg.highlight;
+
+	const query = {
+		tournament_key: msg.tournament_key,
+		_id: msg.location_id,
+	};
+
+	app.db.locations.update(query, { $set: {highlight, preperation_addition, meetingpoint_announcement} }, {}, (err) => {
+		if(err) {
+			ws.respond(msg, err);
+			return;
+		}
+
+		notify_change(app, msg.tournament_key, 'location_changed', {location_id, highlight, preperation_addition, meetingpoint_announcement});
+		ws.respond(msg);
+		return;
 	});
 }
 
@@ -180,6 +270,12 @@ function handle_tournament_get(app, ws, msg) {
 			{ }
 		},
 		function(cb) {
+			stournament.get_locations(app.db, tournament.key, function(err, locations) {
+
+				tournament.locations = locations;
+				cb(err);
+			});
+		}, function(cb) {
 			stournament.get_courts(app.db, tournament.key, function(err, courts) {
 				tournament.courts = courts;
 				cb(err);
@@ -692,7 +788,7 @@ function handle_match_player_check_in (app, ws, msg) {
 
 
 
-			match_utils.match_update(app, match, (err) => {
+			match_utils.match_update(app, match, undefined, (err) => {
 				ws.respond(msg, err);
 				return;
 			});
@@ -821,17 +917,32 @@ function handle_edit_display_setting(app, ws, msg) {
 	if (!_require_msg(ws, msg, ['tournament_key', 'displaysetting'])) {
 		return;
 	}
+	const bupws = require('./bupws');
 	const querry = {id : msg.displaysetting.id};
 	const displaysetting = msg.displaysetting;
+	const tournament_key = msg.tournament_key;
 
-	//{_id: msg.id, tournament_key}, {$set: {setup}}, {returnUpdatedDocs: true}, function(err, numAffected, changed_match)
 	app.db.displaysettings.update(querry, {$set: displaysetting}, {returnUpdatedDocs: true}, (err, numAffected, changed_setting) => {
-		console.log(err);
-		console.log(numAffected);
-		console.log(changed_setting);
+
 	});
 
-	ws.respond(msg);
+	notify_change(app, msg.tournament_key, 'update_display_setting', {setting: displaysetting});
+
+	app.db.display_court_displaysettings.find({}, function(err, all_displays) {
+		if (err) {
+			return ws.respond(msg, err);
+		}
+
+		const updated_displays = all_displays.filter(
+			m => (m.displaysetting_id  == displaysetting.id)
+		);
+
+		updated_displays.forEach((display) => {
+			bupws.change_display_mode(app, tournament_key, display.client_id, displaysetting.id);
+		});
+
+		ws.respond(msg);	
+	});
 }
 
 async function async_handle_delete_display_setting(app, ws, msg) {
@@ -867,7 +978,6 @@ function handle_change_display_mode(app, ws, msg) {
 	const new_displaysettings_id = msg.new_displaysettings_id;
 	const bupws = require('./bupws');
 	bupws.change_display_mode(app, tournament_key, client_id, new_displaysettings_id);
-	notify_change(app, tournament_key, 'update_general_displaysettings', {});
 	ws.respond(msg);
 }
 
@@ -981,7 +1091,7 @@ function on_close(app, ws) {
 }
 
 async function async_handle_tournament_upload_logo(app, ws, msg) {
-	if (!_require_msg(ws, msg, ['tournament_key', 'data_url'])) {
+	if (!_require_msg(ws, msg, ['tournament_key', 'data_url', 'name'])) {
 		return;
 	}
 
@@ -1016,12 +1126,62 @@ async function async_handle_tournament_upload_logo(app, ws, msg) {
 	const buf = Buffer.from(logo_b64, 'base64');
 	const logo_id = uuidv4() + '.' + ext;
 	await promisify(fs.writeFile)(path.join(utils.root_dir(), 'data', 'logos', logo_id), buf);
+	const logo_name = msg.name;
 
 	const [_, updated_tournament] = await app.db.tournaments.update_async( // eslint-disable-line no-unused-vars
 		{key: msg.tournament_key},
-		{$set: {logo_id}},
+		{$set: {logo_id, logo_name}},
 		{returnUpdatedDocs: true});
-	notify_change(app, msg.tournament_key, 'props', updated_tournament);
+	notify_change(app, msg.tournament_key, 'logo_changed', {logo_id, logo_name});
+
+	return ws.respond(msg, null, {});
+}
+
+async function async_handle_tournament_upload_location_logo(app, ws, msg) {
+	if (!_require_msg(ws, msg, ['tournament_key', 'data_url', 'name', 'location_id'])) {
+		return;
+	}
+
+	const tournament = await app.db.tournaments.findOne_async({
+		key: msg.tournament_key,
+	});
+	if (!tournament) {
+		ws.respond(msg, {message: `Could not find tournament ${msg.tournament_key}`});
+		return;
+	}
+
+	const m = /^data:(image\/[a-z+]+)(?:;base64)?,([A-Za-z0-9+/=]+)$/.exec(msg.data_url);
+	if (!m) {
+		ws.respond(msg, {message: `Invalid base64 URI, starts with ${msg.data_url.slice(0, 80)}`});
+		return;
+	}
+	const mime_type = m[1];
+	const logo_b64 = m[2];
+
+	const ext = {
+		'image/gif': 'gif',
+		'image/png': 'png',
+		'image/jpeg': 'jpg',
+		'image/svg+xml': 'svg',
+		'image/webp': 'webp',
+	}[mime_type];
+	if (!ext) {
+		ws.respond(msg, {message: `Unsupported mime type ${mime_type}`});
+		return;
+	}
+
+	const buf = Buffer.from(logo_b64, 'base64');
+	const logo_id = uuidv4() + '.' + ext;
+	await promisify(fs.writeFile)(path.join(utils.root_dir(), 'data', 'logos', logo_id), buf);
+	const logo_name = msg.name;
+	const location_id = msg.location_id;
+	const tournament_key = msg.tournament_key
+
+	const [_, updated_tournament] = await app.db.locations.update_async( // eslint-disable-line no-unused-vars
+		{tournament_key, _id: location_id},
+		{$set: {logo_id, logo_name}},
+		{returnUpdatedDocs: true});
+	notify_change(app, msg.tournament_key, 'location_logo_changed', {location_id, logo_id, logo_name});
 
 	return ws.respond(msg, null, {});
 }
@@ -1031,6 +1191,7 @@ module.exports = {
 	async_handle_delete_display_setting,
 	async_handle_match_delete,
 	async_handle_tournament_upload_logo,
+	async_handle_tournament_upload_location_logo,
 	handle_begin_to_play_call,
 	handle_announce_match_manually,
 	handle_btp_fetch,
@@ -1046,6 +1207,8 @@ module.exports = {
 	handle_fetch_allscoresheets_data,
 	handle_create_tournament,
 	handle_courts_add,
+	handle_court_edit,
+	handle_location_changed,
 	handle_match_add,
 	handle_match_edit,
 	handle_match_call_on_court,
@@ -1062,6 +1225,7 @@ module.exports = {
 	handle_tournament_get,
 	handle_tournament_list,
 	handle_tournament_edit_props,
+	handle_tournament_edit_logo,
 	handle_display_delete,
 	handle_display_reset,
 	handle_relocate_display,

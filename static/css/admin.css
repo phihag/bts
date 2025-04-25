@@ -337,3 +337,58 @@ h2.edit {
 	border-spacing: 0;
 	width: 100%;
 }
+
+.edit_display_setting_container{
+	text-align: left;
+}
+
+.edit_display_setting_container > div{
+	margin: 10px;
+	display: flex;
+	flex-direction: row;
+	justify-content: space-between;
+}
+.edit_display_setting_container > div > input[type=text]{
+	width: 400px;
+}
+
+.edit_display_setting_container > div > input{
+	width: 200px;
+}
+
+.edit_display_setting_container > div > select{
+	width: 300px;
+}
+
+
+#meetingpoint_announcement{
+	width: -webkit-fill-available;
+	resize: vertical;
+	min-height: 5.0em;
+	height: 5.0em;
+}
+
+
+#preperation_addition{
+	width: -webkit-fill-available;;
+	resize: vertical;
+	min-height: 5.0em;
+	height: 5.0em;
+}
+
+.courts_table{
+	text-align: center;
+}
+
+
+.icon_td {
+	text-align: center;
+}
+
+.upload_filename_location{
+	font-style: italic;
+    color: #555;
+    max-width: 150px;
+    inline-size: 150px;
+    overflow-wrap: break-word;
+}

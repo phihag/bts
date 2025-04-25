@@ -812,8 +812,10 @@ function reset_tabletoperator_settings_at_player(app, tkey, tournament, player, 
 	const btp_manager = require('./btp_manager');
 
 	player.now_tablet_on_court = false;
-	if (tournament.tabletoperator_set_break_after_tabletservice) {
-		var offset = 0;
+	const now = Date.now();
+	if (tournament.tabletoperator_set_break_after_tabletservice && 
+		(now + (parseInt(tournament.tabletoperator_break_seconds) * 1000)) >=  player.last_time_on_court_ts + tournament.btp_settings.pause_duration_ms) {
+		var offset = 0;		
 		if (tournament.tabletoperator_break_seconds) {
 			offset = (parseInt(tournament.tabletoperator_break_seconds) * 1000) - tournament.btp_settings.pause_duration_ms;
 		}
@@ -823,7 +825,11 @@ function reset_tabletoperator_settings_at_player(app, tkey, tournament, player, 
 		btp_manager.update_players(app, tkey, [player]);
 		
 	} else {
-		player.checked_in = true;
+		if (player.last_time_on_court_ts) {
+			if ((now - player.last_time_on_court_ts) > tournament.btp_settings.pause_duration_ms) {
+				player.checked_in = true;
+			}
+		}
 		player.tablet_break_active = false;
 		btp_manager.update_players(app, tkey, [player]);
 	}

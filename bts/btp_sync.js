@@ -18,7 +18,7 @@ function date_str(dt) {
 	return utils.pad(dt.year, 2, '0') + '-' + utils.pad(dt.month, 2, '0') + '-' + utils.pad(dt.day, 2, '0');
 }
 
-async function craft_match(app, tkey, btp_id, court_map, event, draw, btp_links, officials, bm, match_ids_on_court, match_types, is_league) {
+async function craft_match(app, tkey, btp_id, court_map, event, draw, btp_links, officials, clubs, districts, bm, match_ids_on_court, match_types, is_league) {
 	return new Promise((resolve, reject) => {
 
 		const gtid = event.GameTypeID[0];
@@ -26,9 +26,51 @@ async function craft_match(app, tkey, btp_id, court_map, event, draw, btp_links,
 
 		const scheduled_time_str = (bm.PlannedTime ? time_str(bm.PlannedTime[0]) : undefined);
 		const scheduled_date = (bm.PlannedTime ? date_str(bm.PlannedTime[0]) : undefined);
-		const match_name = (bm.RoundName && bm.RoundName[0] ? bm.RoundName[0] : undefined);
-		const event_name = (event.Name[0] === draw.Name[0]) ? draw.Name[0] : event.Name[0] + ' - ' + draw.Name[0];
-		const teams = _craft_teams(bm);
+		var match_name = (bm.RoundName && bm.RoundName[0] ? bm.RoundName[0] : undefined);
+		var event_name = event.Name[0];
+		const teams = _craft_teams(bm, clubs, districts);
+
+		const rounds = new Map();
+		rounds.set("Finale", [ 1,  2]);
+		rounds.set("3/4",    [ 3,  4]);
+		rounds.set("5/6",    [ 5,  6]);
+		rounds.set("7/8",    [ 7,  8]);
+		rounds.set("9/10",   [ 9, 10]);
+		rounds.set("11/12",  [11, 12]);
+		rounds.set("13/14",  [13, 14]);
+		rounds.set("15/16",  [15, 16]);
+		rounds.set("17/18",  [17, 18]);
+		rounds.set("19/20",  [19, 20]);
+		rounds.set("21/22",  [21, 22]);
+		rounds.set("23/24",  [23, 24]);
+		rounds.set("25/26",  [25, 26]);
+		rounds.set("27/28",  [27, 28]);
+		rounds.set("29/30",  [29, 30]);
+		rounds.set("31/32",  [31, 32]);
+		rounds.set("HF",     [ 1,  4]);
+		rounds.set("5/8",    [ 5,  8]);
+		rounds.set("9/12",   [ 9, 12]);
+		rounds.set("13/16",  [13, 16]);
+		rounds.set("17/20",  [17, 20]);
+		rounds.set("21/24",  [21, 24]);
+		rounds.set("25/28",  [25, 28]);
+		rounds.set("29/32",  [29, 32]); 
+		rounds.set("VF",     [ 1,  8]);
+		rounds.set("9/16",   [ 9, 16]);
+		rounds.set("17/24",  [17, 24]);
+		rounds.set("25/32",  [25, 32]);
+		rounds.set("R16",    [ 1, 16]);
+		rounds.set("17/32",  [17, 32]);
+		rounds.set("R32",    [ 1, 32]);
+
+		if(match_name && draw.Position[0] > 1 && rounds.get(match_name)) {
+			const best_place = rounds.get(match_name)[0] + draw.Position[0] - 1;
+			const lowes_place = rounds.get(match_name)[1] + draw.Position[0] - 1;
+
+			match_name = best_place + "/" + lowes_place;
+		} else {
+			event_name = (event.Name[0] === draw.Name[0]) ? draw.Name[0] : event.Name[0] + ' - ' + draw.Name[0];
+		}
 
 		const btp_player_ids = [];
 
@@ -246,35 +288,64 @@ function _craft_team(par) {
 			pres.checked_in = p.CheckedIn[0];
 		}
 
-		if (p.State) {
-			switch (p.State[0]) {
-				case 'NIS': {
-					pres.state = "Niedersachsen";
+		const club = this.clubs.get(p.ClubID[0]);
+		const district = this.districts.get(club.DistrictID[0]);
+		const state_by_district = district.Name[0].split("-")[0];
+
+		var state = (state_by_district ? state_by_district : (p.State && p.Satate.length > 0 ? p.State[0] : undefined));
+		if (state) {
+			switch (state) {
+				case 'BAW' : {
+					pres.state = "Baden-Württemberg";
 					break;
-				} case 'SLH': {
-					pres.state = "Schleswig-Holstein";
+				} case 'BAY' : {
+					pres.state = "Bayern";
+					break;
+				} case 'BBB': {
+					pres.state = "Berlin-Brandenburg";
 					break;
 				} case 'BRE': {
 					pres.state = "Bremen";
 					break;
-				} case 'BBB': {
-					pres.state = "Berlin Brandenburg";
-					break;
-				} case 'SAH': {
-					pres.state = "Sachsen Anhalt";
-					break;
 				} case 'HAM': {
 					pres.state = "Hamburg";
 					break;
+				}  case 'HES': {
+					pres.state = "Hessen";
+					break;
 				} case 'MVP': {
-					pres.state = "Mecklenburg Vorpommern";
+					pres.state = "Mecklenburg-Vorpommern";
+					break;
+				} case 'NIS': {
+					pres.state = "Niedersachsen";
 					break;
 				} case 'NRW': {
-					pres.state = "Nordrhein Westfalen";
+					pres.state = "Nordrhein-Westfalen";
 					break;
-				}
+				} case 'RHP': {
+					pres.state = "Rheinhessen-Pfalz";
+					break;
+				} case 'RHL': {
+					pres.state = "Rheinland";
+					break;
+				} case 'SAA': {
+					pres.state = "Saarland";
+					break;
+				} case 'SAC': {
+					pres.state = "Sachsen";
+					break;
+				} case 'SAH': {
+					pres.state = "Sachsen-Anhalt";
+					break;
+				} case 'SLH': {
+					pres.state = "Schleswig-Holstein";
+					break;
+				} case 'THÜ': {
+					pres.state = "Thüringen";
+					break;
+				} 
 				default:
-					pres.state = p.State[0]
+					pres.state = state
 			}
 		}
 		fix_player(pres);
@@ -294,9 +365,12 @@ function _craft_team(par) {
 	return tres;
 }
 
-function _craft_teams(bm) {
+function _craft_teams(bm, clubs, districts) {
 	assert(bm.bts_players);
-	return bm.bts_players.map(_craft_team);
+	assert(clubs);
+	assert(districts);
+
+	return bm.bts_players.map(_craft_team, {clubs: clubs, districts: districts});
 }
 
 function _parse_score(bm) {
@@ -408,8 +482,11 @@ async function integrate_matches(app, tkey, btp_state, court_map, callback) {
 	const officials = await get_umpires(app, tkey);
 
 	const matches_to_add = [];
+	const matches_player_changed = [];
 	const matches_on_court = [];
 	const matches_incomplete = [];
+	const clubs = btp_state.clubs;
+	const districts = btp_state.districts;
 
 	async.each(btp_state.matches, function (bm, cb) {
 		const draw = draws.get(bm.DrawID[0]);
@@ -440,7 +517,7 @@ async function integrate_matches(app, tkey, btp_state, court_map, callback) {
 				return;
 			}
 
-			craft_match(app, tkey, btp_id, court_map, event, draw, btp_state.links, officials, bm, match_ids_on_court).then(match => {
+			craft_match(app, tkey, btp_id, court_map, event, draw, btp_state.links, officials, clubs, districts, bm, match_ids_on_court).then(match => {
 
 				
 				match.setup.state = 'unscheduled';
@@ -558,10 +635,19 @@ async function integrate_matches(app, tkey, btp_state, court_map, callback) {
 					// equals checked_in changed and check if it was the only change
 					let only_change_check_in = false;
 					let result_enterd_in_btp = false;
+					let match_player_changed = false;
 
 					for (let team_index = 0; team_index < Math.min(cur_match.setup.teams.length, match.setup.teams.length); team_index++) {
+						if(cur_match.setup.teams[team_index].players.length < match.setup.teams[team_index].players.length){
+							for (let player_index = 0; player_index < match.setup.teams[team_index].players.length; player_index++) {
+								match_player_changed = true;
+							}
+						}
 						for (let player_index = 0; player_index < Math.min(cur_match.setup.teams[team_index].players.length, match.setup.teams[team_index].players.length); player_index++) {
 							cur_match.setup.teams[team_index].players[player_index].checked_in = match.setup.teams[team_index].players[player_index].checked_in;
+							if(match.setup.teams[team_index].players[player_index].btp_id != cur_match.setup.teams[team_index].players[player_index].btp_id) {
+								match_player_changed = true;
+							}
 						}
 					}
 
@@ -585,6 +671,10 @@ async function integrate_matches(app, tkey, btp_state, court_map, callback) {
 
 					if (utils.plucked_deep_equal(match, cur_match, Object.keys(match), true)) {
 						only_change_check_in = true;
+					}
+
+					if(match_player_changed) {
+						matches_player_changed.push(match);
 					}
 
 					app.db.matches.update({ _id: cur_match._id }, { $set: match }, {}, (err) => {
@@ -626,6 +716,19 @@ async function integrate_matches(app, tkey, btp_state, court_map, callback) {
 			console.error(error);
 		}
 
+		matches_player_changed.forEach(async (match_player_changed) => {
+			let match = match_player_changed;
+			matches_on_court.forEach(async (match_on_court) => {
+				const changed_match_on_court = await match_utils.calc_match_set_player_on_court(match, match_on_court.setup);
+				if(changed_match_on_court != null) {
+					match = changed_match_on_court;
+				}
+				const changed_match_tablet_operator = await match_utils.calc_match_set_player_on_tablet(match, match_on_court.setup);
+				if(changed_match_tablet_operator != null) {
+					match = changed_match_tablet_operator;
+				}
+			});
+		});
 
 		matches_to_add.forEach(async (match_to_add) => {
 			let match = match_to_add;
@@ -667,6 +770,118 @@ async function integrate_matches(app, tkey, btp_state, court_map, callback) {
 	});
 }
 
+
+function integrate_locations(app, tournament_key, btp_state, callback) {
+	const admin = require('./admin'); // avoid dependency cycle
+	const stournament = require('./stournament'); // avoid dependency cycle
+
+	const locations = Array.from(btp_state.locations.values());
+	const res = new Map();
+	var changed = false;
+
+	async.eachSeries(locations, (l, cb) => {
+		const btp_id = l.ID[0];
+		const name = l.Name[0];
+		const address = (l.Address1 ? l.Address1[0] : "");
+		const postal_code = (l.PostalCode ? l.PostalCode[0] : "");
+		const city = (l.City ? l.City[0] : "");
+		const state = (l.State ? l.State[0] : "");
+		const country = (l.Country ? l.Country[0] : "");
+		const preperation_addition = "";
+		const meetingpoint_announcement = "";
+
+		const query = {
+			tournament_key,
+			btp_id,
+			name,
+			address,
+			postal_code,
+			city,
+			state,
+			country,
+		};
+
+
+
+
+		app.db.locations.findOne(query, (err, cur_location) => {
+			if (err) return cb(err);
+			if (cur_location) {
+				return cb();
+			}
+
+			const alt_query = {
+				tournament_key,
+				btp_id,
+			};
+
+
+
+
+
+
+
+			app.db.locations.findOne(alt_query, async (err, cur_location) => {
+				if (err) return cb(err);
+
+				if (cur_location) {
+
+					//ADD BTP ID
+					app.db.locations.update(alt_query, { $set: { btp_id, name, address, postal_code, city, state, country, preperation_addition, meetingpoint_announcement} }, {}, (err) => cb(err));
+					return;
+				}
+
+				const highlights = ['highlight_0', 'highlight_1', 'highlight_2', 'highlight_3', 'highlight_4', 'highlight_5', 'highlight_6'];
+				let highlight = null;
+
+				for (let i = highlights.length - 1; i >= 0; i--) {
+					const test = await app.db.locations.findOne_async({ tournament_key, highlight: highlights[i] });
+
+					if (!test) {
+						highlight = highlights[i];
+						break;
+					}
+				}
+
+				const location = {
+					_id: tournament_key + '_' + btp_id,
+					tournament_key,
+					btp_id,
+					name,
+					address,
+					postal_code,
+					city,
+					state,
+					country,
+					preperation_addition,
+					meetingpoint_announcement,
+					highlight,
+				};
+
+				changed = true;
+				app.db.locations.insert(location, (err) => cb(err));
+			});
+		}); 
+
+	}, (err) => {
+		if (err) {
+			return callback(err);
+		}
+
+		if (changed) {
+			stournament.get_locations(app.db, tournament_key, function (err, all_locations) {
+				admin.notify_change(app, tournament_key, 'location_changed', { all_locations });
+				callback(err);
+			});
+		} else {
+			callback(err);
+		}
+	});
+}
+
+
+
+
 // Returns a map btp_court_id => court._id
 function integrate_courts(app, tournament_key, btp_state, callback) {
 	const admin = require('./admin'); // avoid dependency cycle
@@ -675,10 +890,10 @@ function integrate_courts(app, tournament_key, btp_state, callback) {
 	const courts = Array.from(btp_state.courts.values());
 	const res = new Map();
 	var changed = false;
-
 	async.each(courts, (c, cb) => {
 		const btp_id = c.ID[0];
 		const name = c.Name[0];
+		const location_id = tournament_key + "_" + c.LocationID[0];
 		let num = parseInt(name, 10) || btp_id;
 		const m = /^Court\s*([0-9]+)$/.exec(name);
 		if (m) {
@@ -688,10 +903,11 @@ function integrate_courts(app, tournament_key, btp_state, callback) {
 			btp_id,
 			name,
 			num,
+			location_id,
 			tournament_key,
 		};
 
-		app.db.courts.findOne(query, (err, cur_court) => {
+		app.db.courts.findOne(query, async (err, cur_court) => {
 			if (err) return cb(err);
 			if (cur_court) {
 				res.set(btp_id, cur_court._id);
@@ -708,14 +924,17 @@ function integrate_courts(app, tournament_key, btp_state, callback) {
 				btp_id,
 				num,
 				name,
+				location_id,
+				is_active : true,
 			};
+
 			res.set(btp_id, court._id);
 			app.db.courts.findOne(alt_query, (err, cur_court) => {
 				if (err) return cb(err);
 
 				if (cur_court) {
 					// Add BTP ID
-					app.db.courts.update(alt_query, { $set: { btp_id } }, {}, (err) => cb(err));
+					app.db.courts.update(alt_query, { $set: { btp_id, location_id } }, {}, (err) => cb(err));
 					return;
 				}
 
@@ -1049,6 +1268,7 @@ async function sync_btp_data(app, tkey, response) {
 			cb => integrate_btp_settings(app, tkey, btp_state, cb),
 			cb => integrate_player_state(app, tkey, btp_state, cb),
 			cb => integrate_umpires(app, tkey, btp_state, cb),
+			cb => integrate_locations(app, tkey, btp_state, cb),
 			cb => integrate_courts(app, tkey, btp_state, cb),
 			(court_map, cb) => integrate_matches(app, tkey, btp_state, court_map, cb),
 			cb => integrate_now_on_court(app, tkey, cb),

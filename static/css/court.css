@@ -1,10 +1,10 @@
-.court_num {
+.court_num,
+.court_inactive {
 	display: inline-block;
 	background-size: cover;
 	opacity: 1;
 	color: #fff;
 	text-align: center;
-	background-image: url(../icons/court.svg);
 	height: 1.0em;
 	min-height: 1.0em;
 	width: 1.50em;
@@ -19,32 +19,39 @@
    	1px -1px 3px #000,
    -1px 1px 3px #000,
 	1px 1px 3px #000;
-	margin: -0.0em 0.0em 0.05em 0.0em;
 	line-height: 100%;
+	cursor: pointer;
 }
+
+.court_num {
+	background-image: url(../icons/court.svg);
+	margin: -0.0em 0.0em 0.05em 0.0em;
+}
+
+.court_inactive {
+	background-image: url(../icons/court_inactive.svg);
+	margin: -0.0em 0.0em -3.2px 0.0em;
+}
+
+.court_num:hover,
+.court_inactive:hover {
+	opacity: 0.5;
+}
+
 .main_upcoming > div > .match_table > tbody > .court_row > .court_number > .court_num , 
 .main_upcoming > div > .match_table > tbody > .court_row > .court_num {
-	display: inline-block;
-	background-size: cover;
-	opacity: 1;
-	color: #fff;
-	text-align: center;
-	background-image: url(../icons/court.svg);
-	height: 1.0em;
-	min-height: 1.0em;
-	width: 1.2em;
-	min-width: 1.2em;
-	font-weight: 900;
-	font-size: 1.8em;
-	-webkit-text-stroke-width: 1px;
-	-webkit-text-stroke-color: black;
-	text-shadow:
-	3px 3px 3px #000,
-   -1px -1px 3px #000,  
-   	1px -1px 3px #000,
-   -1px 1px 3px #000,
-	1px 1px 3px #000;
-	margin: -0.0em 0.0em 0.05em 0.0em;
 	line-height: 100%;
 	padding: 0.1em 0.2em 0em 0.2em;
+	width: 80px;
+	min-width: 80px;
+	cursor: none;
+}
+
+.main_upcoming > div > .match_table > tbody > .court_row > .court_number > .court_inactive , 
+.main_upcoming > div > .match_table > tbody > .court_row > .court_inactive {
+	line-height: 100%;
+	padding: 0.1em 0.2em 0em 0.2em;
+	width: 80px;
+	min-width: 80px;
+	cursor: none;
 }

@@ -4,6 +4,18 @@
 
 const utils = require('./utils');
 
+function get_locations(db, tournament_key, callback) {
+	db.locations.find({tournament_key}, function(err, locations) {
+		if (err) return callback(err);
+
+		locations.sort(function(l1, l2) {
+			return utils.natcmp(('' + l1.btp_id), ('' + l2.btp_id));
+		});
+		return callback(err, locations);
+	});
+}
+
+
 function get_courts(db, tournament_key, callback) {
 	db.courts.find({tournament_key}, function(err, courts) {
 		if (err) return callback(err);
@@ -76,6 +88,7 @@ function get_displaysettings(db, tournament_key, callback) {
 }
 
 module.exports = {
+	get_locations,
 	get_courts,
 	get_matches,
 	get_umpires,

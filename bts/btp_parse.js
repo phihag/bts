@@ -179,7 +179,10 @@ function get_btp_state(response) {
 	const all_btp_draws = btp_t.Draws ? btp_t.Draws[0].Draw : [];
 	const all_btp_officials = btp_t.Officials ? btp_t.Officials[0].Official : [];
 	const all_btp_courts = btp_t.Courts ? btp_t.Courts[0].Court : [];
+	const all_btp_locations = btp_t.Locations ? btp_t.Locations[0].Location : [];
 	const all_btp_settings = btp_t.Settings ? btp_t.Settings[0].Setting : [];
+	const all_btp_clubs = btp_t.Clubs ? btp_t.Clubs[0].Club : [];
+	const all_btp_districts = btp_t.Districts ? btp_t.Districts[0].District : [];
 
 	const on_court_match_ids = new Set();
 	for (const c of all_btp_courts) {
@@ -212,6 +215,9 @@ function get_btp_state(response) {
 	const players = utils.make_index(all_btp_players, p => p.ID[0]);
 	const officials = utils.make_index(all_btp_officials, o => o.ID[0]);
 	const courts = utils.make_index(all_btp_courts, c => c.ID[0]);
+	const locations = utils.make_index(all_btp_locations, l => l.ID[0]);
+	const clubs = utils.make_index(all_btp_clubs, c => c.ID[0]);
+	const districts = utils.make_index(all_btp_districts,d => d.ID[0]);
 	const btp_settings = utils.make_index(all_btp_settings, s =>s.ID[0]);
 
 	for (const bm of matches) {
@@ -219,6 +225,7 @@ function get_btp_state(response) {
 	}
 	return {
 		courts,
+		locations,
 		draws,
 		events,
 		matches,
@@ -228,6 +235,8 @@ function get_btp_state(response) {
 		match_types: new Map(Object.entries(MATCH_TYPES)),
 		team_matches,
 		teams,
+		clubs,
+		districts,
 		// Testing only
 		_matches_by_pid: matches_by_pid,
 		btp_settings
