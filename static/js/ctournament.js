@@ -1281,8 +1281,8 @@ var ctournament = (function() {
 				src: '/h/' + encodeURIComponent(curt.key) + '/logo/' + curt.logo_id,
 				name: 'logo_preview_img'
 			});
-			uiu.el(logo_preview_container, 'div', {}, 'Court 42');
 		}
+		uiu.el(logo_preview_container, 'div', {}, 'Court 42');
 
 		const logo_form = uiu.el(main, 'form', 'logo_form');
 		const logo_button_id = 'logo_upload_input';
@@ -1932,7 +1932,7 @@ var ctournament = (function() {
 		uiu.el(tr, 'th', {}, 'Meetingpoint durchsage');
 		uiu.el(tr, 'th', {}, 'In Vorbereitung Icon');
 		uiu.el(tr, 'th', {}, '');
-		
+
 		let highlight_in_use = [];
 		for (const l of curt.locations) {
 			if(l.highlight) {
@@ -1940,22 +1940,19 @@ var ctournament = (function() {
 			}
 		}
 
-		
 		for (const l of curt.locations) {
 			const tr = uiu.el(locations_tbody, 'tr');
 			const name_th = uiu.el(tr, 'th', {});
 			uiu.el(name_th, 'div', {}, l.name);
 
-			console.log(highlight_in_use);
-			const content = ['highlight_1', 'highlight_2', 'highlight_3', 'highlight_4', 'highlight_5', 'highlight_6'];
+			const content = [1, 2, 3, 4, 5, 6];
 			const selected = l.highlight;
-			const select_color = uiu.el(name_th, 'select', {id: 'select_highlight', class: selected, 'data-location_id': l._id});
-			for (const item of content) {
-				//if(!highlight_in_use.includes(item) || selected === item) {
+			const select_color = uiu.el(name_th, 'select', {id: 'select_highlight', class: 'highlight_' + selected, 'data-location_id': l._id});
+			for (const item of content) {			
 					const attrs = {
 						'data-display-setting-id': item,
 						value: item,
-						class: item,
+						class: 'highlight_' + item,
 						style: (highlight_in_use.includes(item) && selected !== item) ? 'display:none;' : '',
 					}
 					if ((selected === item)) {
@@ -1989,8 +1986,8 @@ var ctournament = (function() {
 			});
 			const icon_td = uiu.el(tr, 'td', 'icon_td');
 			uiu.el(icon_td, 'img', {
-				style: l.logo_id != null ? 'height: 40px;' : 'display: none;',
-				src: '/h/' + encodeURIComponent(curt.key) + '/logo/' + (l.logo_id ? l.logo_id : ''),
+				style: 'height: 40px;',
+				src: l.logo_id ? '/h/' + encodeURIComponent(curt.key) + '/logo/' + l.logo_id : '/static/icons/preperation.svg',
 				name: 'location_logo_img',
 				'data-location_id': l._id
 			});
@@ -2001,7 +1998,7 @@ var ctournament = (function() {
 			const filename_display = uiu.el(logo_form, 'div', {
 				class: 'upload_filename_location',
 				'data-location_id': l._id,
-			}, l.logo_name ? l.logo_name : 'Noch keine Datei ausgewählt');
+			}, l.logo_name ? l.logo_name : 'preperation.svg');
 
 			const custom_label = uiu.el(logo_form, 'label', {
 				for: logo_button_id,
@@ -2067,7 +2064,6 @@ var ctournament = (function() {
 			case 'edit':
 				const location_logo_img = document.querySelector(`[name="location_logo_img"][data-location_id="${location_id}"]`);
 				location_logo_img.setAttribute('src', '/h/' + encodeURIComponent(curt.key) + '/logo/' + logo_id);
-				location_logo_img.style = 'height: 40px;';
 				const filename_display = document.querySelector(`.upload_filename_location[data-location_id="${location_id}"]`);
 				filename_display.textContent = logo_name;
 				break;
@@ -2078,15 +2074,17 @@ var ctournament = (function() {
 	}
 
 	function send_location_to_admin(parent, location_id) {
-		const highlight = parent.querySelector("#select_highlight").value;
+		const highlight = parseInt(parent.querySelector("#select_highlight").value, 10);
 		const preperation_addition = parent.querySelector("#preperation_addition").value;
 		const meetingpoint_announcement = parent.querySelector("#meetingpoint_announcement").value;
+
+		console.log(highlight);
 
 		send({
 			type: 'location_changed',
 			tournament_key: curt.key,
 			location_id,
-			highlight,
+			highlight: highlight,
 			preperation_addition,
 			meetingpoint_announcement,
 		}, function (err, response) {

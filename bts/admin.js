@@ -216,20 +216,60 @@ function handle_location_changed(app, ws, msg) {
 	const meetingpoint_announcement = msg.meetingpoint_announcement;
 	const highlight = msg.highlight;
 
+	console.log(highlight);
+
 	const query = {
 		tournament_key: msg.tournament_key,
 		_id: msg.location_id,
 	};
 
-	app.db.locations.update(query, { $set: {highlight, preperation_addition, meetingpoint_announcement} }, {}, (err) => {
+	app.db.locations.findOne(query, async (err, old_location) => {
 		if(err) {
 			ws.respond(msg, err);
 			return;
 		}
 
-		notify_change(app, msg.tournament_key, 'location_changed', {location_id, highlight, preperation_addition, meetingpoint_announcement});
-		ws.respond(msg);
-		return;
+		app.db.locations.update(query, { $set: {highlight, preperation_addition, meetingpoint_announcement} }, {}, (err) => {
+			if(err) {
+				ws.respond(msg, err);
+				return;
+			}
+
+			notify_change(app, msg.tournament_key, 'location_changed', {location_id, highlight, preperation_addition, meetingpoint_announcement});
+			notify_change(app, msg.tournament_key, 'location_highlight_changed', {old_location_highlight: old_location.highlight, new_location_highlight: highlight});
+			
+
+			const match_querry = {
+				tournament_key: msg.tournament_key,
+				'setup.highlight': old_location.highlight,
+			};
+			app.db.matches.update(
+				match_querry,
+				{ $set: { 'setup.highlight': highlight } },
+				{ multi: true, returnUpdatedDocs: true },
+				(err, numAffected, affectedDocs) => {
+					if (err) {
+						ws.respond(msg, err);
+						return;
+					}
+			
+					const btp_manager = require('./btp_manager');
+			
+					// Wenn mehrere Matches aktualisiert wurden:
+					if (Array.isArray(affectedDocs)) {
+						for (const match of affectedDocs) {
+							btp_manager.update_highlight(app, match);
+						}
+					} else if (affectedDocs) {
+						// Falls nur ein Match betroffen war
+						btp_manager.update_highlight(app, affectedDocs);
+					}
+			
+					ws.respond(msg);
+					return;
+				}
+			);
+		});
 	});
 }
 
@@ -721,6 +761,9 @@ function handle_match_edit(app, ws, msg) {
 					ws.respond(msg, new Error(errmsg));
 					return;
 				}
+
+				console.waarn('WARN: Hier ');
+
 				notify_change(app, tournament_key, 'match_edit', {match__id: msg.id, match: changed_match});
 				if (msg.btp_update) {
 					btp_manager.update_score(app, changed_match);
@@ -738,7 +781,7 @@ function handle_match_preparation_call(app, ws, msg) {
 
 	const match_utils = require('./match_utils');
 
-	if (!_require_msg(ws, msg, ['tournament_key', 'id', 'setup'])) {
+	if (!_require_msg(ws, msg, ['tournament_key', 'match_id', 'location_id', 'setup'])) {
 		return;
 	}
 	if (match_utils.match_completly_initialized(msg.setup) == false) {
@@ -752,7 +795,7 @@ function handle_match_preparation_call(app, ws, msg) {
 		}
 
 		const setup = _extract_setup(msg.setup);
-		match_utils.call_match_in_preparation(app, tournament, msg.id, setup, (err) => {
+		match_utils.call_match_in_preparation(app, tournament, msg.match_id, msg.location_id, setup, (err) => {
 			ws.respond(msg, err);
 			return;
 		});

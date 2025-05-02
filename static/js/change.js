@@ -157,14 +157,30 @@ function default_handler(rerender, special_funcs) {
 			break; 
 		case 'location_changed':
 			const l = utils.find(curt.locations, l => l._id === c.val.location_id);
-			console.log(l);
-			
 			if(l) {
 				l.highlight = c.val.highlight;
 				l.preperation_addition = c.val.preperation_addition;
 				l.meetingpoint_announcement = c.val.meetingpoint_announcement;
 			}
 			ctournament.update_location(c.val.location_id, c.val.highlight, c.val.preperation_addition, c.val.meetingpoint_announcement);
+			break;
+		case 'location_highlight_changed':
+			const old_location_highlight = c.val.old_location_highlight;
+			const new_location_highlight = c.val.new_location_highlight;
+
+			curt.matches.forEach((match) => {
+				console.log(match.setup.state);
+				console.log(match.setup.highlight);
+
+				console.log(old_location_highlight);
+				console.log(new_location_highlight);
+				if(match.setup.highlight == old_location_highlight && match.setup.state === 'preparation'){
+					match.setup.highlight = new_location_highlight;
+					c.val = { match__id: match._id, match}
+					ctournament.update_match(c);
+					ctournament.update_upcoming_match(c);
+				}
+			});
 			break;
 		case 'location_logo_changed':
 			const loc = utils.find(curt.locations, loc => loc._id === c.val.location_id);

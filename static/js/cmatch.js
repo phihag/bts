@@ -497,7 +497,10 @@ function render_match_row(tr, match, court, style, show_player_status, show_add_
 		const call_td = uiu.el(tr, 'td', 'call_td');
 
 		if (style === 'unasigned' && completeMatch) {
-			create_match_button(call_td, 'vlink match_preparation_call_button', 'match:preparationcall', on_announce_preparation_matchbutton_click, match._id);
+			const locations = curt.locations;
+			locations.forEach((l)=> {
+				create_match_prepparation_button(call_td, 'vlink match_preparation_call_button', 'match:preparationcall', on_announce_preparation_matchbutton_click, match._id, l);
+			});
 		} else if ((style === 'default' || style === 'plain') && court) {
 			create_match_button(call_td, 'vlink match_manual_call_button', 'match:manualcall', on_announce_match_manually_button_click, match._id);
 			create_match_button(call_td, 'vlink match_begin_to_play_button', 'match:begintoplay', on_begin_to_play_button_click, match._id);
@@ -547,6 +550,26 @@ function create_match_button(targetEl, cssClass, title, listener, matchId,) {
 	});
 	btn.addEventListener('click', listener);
 }
+
+function create_match_prepparation_button(targetEl, cssClass, title, listener, matchId, location){
+	const btn = uiu.el(targetEl, 'div', {
+		'class': cssClass,
+		'title': ci18n(title) + (location.preperation_addition ? ' ' + location.preperation_addition : ''),
+		'data-match_id': matchId,
+		'data-location_id': location._id,
+	});
+
+	uiu.el(btn, 'img', {
+		style: 'height: 1.2em; margin-top: 0.2em;',
+		src: location.logo_id ? '/h/' + encodeURIComponent(curt.key) + '/logo/' + location.logo_id : '/static/icons/preperation.svg',
+		name: 'location_logo_img',
+		'data-match_id': matchId,
+		'data-location_id': location._id
+	});
+
+	btn.addEventListener('click', listener);
+}
+
 function update_match_score(m) {
 	uiu.qsEach('.match_score[data-match_id=' + JSON.stringify(m._id) + ']', function(score_el) {
 		uiu.text(score_el, calc_score_str(m));
@@ -1064,7 +1087,7 @@ function _extract_preparation_timer_state(match) {
 	s.timer.start = (match.setup.preparation_call_timestamp ? match.setup.preparation_call_timestamp : false);
 	s.timer.upwards = true;
 	s.timer.exigent = false;
-	s.bgColor = "#C56BFF";
+	s.bgColor = "#00000033";
 	return s;
 }
 
@@ -1134,10 +1157,12 @@ function on_scoresheet_button_click(e) {
 }
 function on_announce_preparation_matchbutton_click(e) {
 	const match = fetchMatchFromEvent(e);
-	if (match != null) {
+	const location = fetchLocationFromEvent(e);
+	if (match != null && location != null) {
 		send({
 			type: 'match_preparation_call',
-			id: match._id,
+			match_id: match._id,
+			location_id : location._id,
 			tournament_key: match.tournament_key,
 			setup: match.setup,
 		}, function (err) {
@@ -1268,6 +1293,17 @@ function fetchMatchFromEvent(e) {
 		return null;
 	} else {
 		return match;
+	}
+}
+function fetchLocationFromEvent(e) {
+	const btn = e.target;
+	const location_id = btn.getAttribute('data-location_id');
+	const location = utils.find(curt.locations, l => l._id === location_id);
+	if (!location) {
+		cerror.silent('Location ' + location_id + ' konnte nicht gefunden werden');
+		return null;
+	} else {
+		return location;
 	}
 }
 function _nation_team_name(nat0, nat1) {

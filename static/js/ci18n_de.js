@@ -62,7 +62,7 @@ var ci18n_de = {
 	'announcements:umpire': 'Schiedsrichter:',
 	'announcements:service_judge': 'Aufschlagrichter:',
 	'announcements:and': ' und ',
-	'announcements:preparation': 'In Vorbereitung:',
+	'announcements:preparation': 'In Vorbereitung',
 	'announcements:meetingpoint': 'Treffen am Meetingpoint!',
 	'announcements:on_court': 'Auf Spielfeld ',
 	'announcements:for_court': 'Für Spielfeld ',

@@ -20,7 +20,7 @@ function announcePreparationMatch(matchSetup) {
         return;
     }
     const field = createFieldPreparationAnnouncement(matchSetup);
-    var preparation = createPreparationAnnouncement();
+    var preparation = createPreparationAnnouncement(matchSetup);
     var matchNumber = createMatchNumberAnnouncement(matchSetup);
     var eventName = createEventAnnouncement(matchSetup);
     var round = createRoundAnnouncement(matchSetup);
@@ -30,7 +30,7 @@ function announcePreparationMatch(matchSetup) {
     const tabletOperator = createTabletOperator(matchSetup);
     var lastPart = preparation;
     if (curt.preparation_meetingpoint_enabled) {
-        lastPart = createMeetingPointAnnouncement();
+        lastPart = createMeetingPointAnnouncement(matchSetup);
     }
     announce([preparation, field, matchNumber, eventName, round, teams, umpire, serviceJudge, tabletOperator, lastPart]);
 }
@@ -259,12 +259,27 @@ function createFieldPreparationAnnouncement(matchSetup) {
 
 }
 
-function createPreparationAnnouncement() {
-    return ci18n('announcements:preparation');
+function createPreparationAnnouncement(matchSetup) {
+    let addition = "";
+    if(matchSetup.preparation_location_id) {
+        const l = utils.find(curt.locations, l => l._id === matchSetup.preparation_location_id);
+        if(l) {
+            addition = ' ' + l.preperation_addition;
+        }
+    }
+    return ci18n('announcements:preparation') + addition;
 }
 
-function createMeetingPointAnnouncement() {
-    return ci18n('announcements:meetingpoint');
+function createMeetingPointAnnouncement(matchSetup) {
+    let result = ci18n('announcements:meetingpoint');
+    if(matchSetup.preparation_location_id) {
+        const l = utils.find(curt.locations, l => l._id === matchSetup.preparation_location_id);
+        if(l) {
+            result = l.meetingpoint_announcement;
+        }
+    }
+    
+    return result;
 }
 
 function announce(callArray) {

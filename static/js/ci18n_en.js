@@ -62,7 +62,7 @@ var ci18n_en = {
 	'announcements:umpire': 'Umpire:',
 	'announcements:service_judge': 'Servicejudge:',
 	'announcements:and': ' and ',
-	'announcements:preparation': 'In preparation:',
+	'announcements:preparation': 'In preparation',
 	'announcements:meetingpoint': 'Come to the meetingpoint!',
 	'announcements:on_court': 'On Court ',
 	'announcements:for_court': 'For Court ',
