@@ -1239,6 +1239,12 @@ async function integrate_now_on_court(app, tkey, callback) {
 					match_utils.call_match(app, tournament, match, undefined, (err) => {
 						if (err) console.log(err);
 					});
+				} else {
+					const query = {
+						tournament_key: tkey,
+						_id: court_id,
+					};
+					app.db.courts.update(query, {$set: {match_id}});
 				}
 			}));
 			callback(null);

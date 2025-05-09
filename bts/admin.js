@@ -211,12 +211,9 @@ function handle_location_changed(app, ws, msg) {
 		return;
 	}
 	const location_id = msg.location_id;
-	console.log(location_id);
 	const preperation_addition = msg.preperation_addition;
 	const meetingpoint_announcement = msg.meetingpoint_announcement;
 	const highlight = msg.highlight;
-
-	console.log(highlight);
 
 	const query = {
 		tournament_key: msg.tournament_key,
@@ -762,8 +759,6 @@ function handle_match_edit(app, ws, msg) {
 					return;
 				}
 
-				console.waarn('WARN: Hier ');
-
 				notify_change(app, tournament_key, 'match_edit', {match__id: msg.id, match: changed_match});
 				if (msg.btp_update) {
 					btp_manager.update_score(app, changed_match);
@@ -949,8 +944,6 @@ function handle_display_reset(app, ws, msg) {
 	const tournament_key = msg.tournament_key;
 	const client_id = msg.display_client_id;
 	const bupws = require('./bupws');
-
-	console.log("Try to reset: " + client_id);
 
 	bupws.restart_panel(app, tournament_key, client_id);
 	ws.respond(msg);

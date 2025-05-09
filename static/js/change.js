@@ -169,11 +169,6 @@ function default_handler(rerender, special_funcs) {
 			const new_location_highlight = c.val.new_location_highlight;
 
 			curt.matches.forEach((match) => {
-				console.log(match.setup.state);
-				console.log(match.setup.highlight);
-
-				console.log(old_location_highlight);
-				console.log(new_location_highlight);
 				if(match.setup.highlight == old_location_highlight && match.setup.state === 'preparation'){
 					match.setup.highlight = new_location_highlight;
 					c.val = { match__id: match._id, match}

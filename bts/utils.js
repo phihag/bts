@@ -140,7 +140,6 @@ function plucked_deep_equal(x, y, keys) {
 	for (var i = 0;i < keys.length;i++) {
 		var k = keys[i];
 		if (! deep_equal(x[k], y[k])) {
-			console.log(k + ' is not equal');
 			return false;
 		}
 	}

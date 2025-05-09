@@ -122,7 +122,6 @@ function add_preparation_call_timestamp(db, tournament_key, setup, location_id) 
 		stournament.get_locations(db, tournament_key, (err, all_locations) => {
 			for (const location of all_locations) {
 				if (location._id == location_id) {
-					console.log(location);
 					setup.highlight = location.highlight;
 					setup.preparation_location_id = location_id;
 					setup.preparation_call_timestamp = Date.now();
@@ -1001,8 +1000,6 @@ async function call_match_in_preparation(app, tournament, match_id, location_id,
 	const admin = require('./admin');
 
 	await add_preparation_call_timestamp(app.db, tournament_key, setup, location_id);
-
-	console.log(setup);
 
 	if (tournament.preparation_tabletoperator_setup_enabled) {
 		if (!setup.umpire || (tournament.tabletoperator_with_umpire_enabled && tournament.tabletoperator_with_umpire_enabled == true)) {

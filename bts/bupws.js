@@ -143,7 +143,11 @@ async function handle_score_update(app, ws, msg) {
 	const score_data = msg.score;
 	const match_id = score_data.match_id;
 	
-	var match = await match_utils.fetch_match(app, tournament_key, match_id);
+	try{
+		var match = await match_utils.fetch_match(app, tournament_key, match_id);
+	} catch {
+		var match = null;
+	}
 	if (match == null || match.setup.now_on_court == false) {
 		send_error(ws, tournament_key, "Match not found or not on court actualy.");
 		return;
@@ -368,15 +372,14 @@ async function send_advertisement_remove(app, tournament_key, advertisement_id) 
 	notify_change_broadcast(app, tournament_key, 'advertisement_remove', { advertisement_id: advertisement_id });
 }
 
-async function initialize_client(ws, app, tournament_key, court_id, displaysetting) {
+async function initialize_client(ws, app, tournament_key, court_id, displaysetting_id) {
 	const client_id = determine_client_id(ws);
 	const hostname = await determine_client_hostname(ws);
 	if (client_id) {
-		let display_setting = await get_display_setting(app, tournament_key, client_id, court_id, displaysetting)
+		let display_setting = await get_display_setting(app, tournament_key, client_id, court_id, displaysetting_id)
 		if (display_setting != null) {
 			ws.court_id = display_setting.court_id;
 			court_id = display_setting.court_id;
-			notify_change_ws(app, ws, tournament_key, court_id, "settings-update", display_setting);
 			notify_change_ws(app, ws, tournament_key, court_id, "settings-update", display_setting);
 		}
 	}
@@ -406,85 +409,6 @@ function extractIPv4FromMappedIPv6(ip) {
 	const match = ip.match(/^::ffff:(\d+\.\d+\.\d+\.\d+)$/);
 	return match ? match[1] : null;
 }
-
-/*
-async function determine_client_hostname(ws) {
-	if (ws.hostname) {
-		return ws.hostname;
-	}
-
-	const remoteAddress = ws._socket.remoteAddress;
-	const mappedIPv4 = extractIPv4FromMappedIPv6(remoteAddress);
-
-	if (mappedIPv4) {
-		// Hier behandeln wir es wie ein echtes IPv4
-		if (mappedIPv4 === "127.0.0.1") {
-			ws.hostname = getComputerName();
-			return ws.hostname;
-		}
-
-		try {
-			const hostnames = await new Promise((resolve, reject) => {
-				dns.reverse(mappedIPv4, (err, hostnames) => {
-					if (err) reject(err);
-					else resolve(hostnames);
-				});
-			});
-
-			ws.hostname = hostnames?.[0]?.split(".")[0] || "N/N";
-		} catch (err) {
-			console.error("DNS reverse lookup failed:", err);
-			ws.hostname = "N/N";
-		}
-
-		return ws.hostname;
-	}
-
-
-	// Verifizieren, ob die Adresse gültig ist
-	if (net.isIPv4(remoteAddress)) {
-		// Lokale IP-Adressen abfangen
-		if (remoteAddress === "127.0.0.1") {
-			ws.hostname = getComputerName();
-			return ws.hostname;
-		}
-
-		// Rückwärtssuche für IPv4
-		try {
-			const hostnames = await new Promise((resolve, reject) => {
-				dns.reverse(remoteAddress, (err, hostnames) => {
-					if (err) reject(err);
-					else resolve(hostnames);
-				});
-			});
-
-			if (hostnames && hostnames.length > 0) {
-				ws.hostname = hostnames[0].split(".")[0];
-			} else {
-				ws.hostname = "N/N";
-			}
-		} catch (err) {
-			console.error("DNS reverse lookup failed:", err);
-			ws.hostname = "N/N";
-		}
-
-		return ws.hostname;
-	} else if (net.isIPv6(remoteAddress)) {
-		// IPv6-Adresse prüfen (z. B. `::1` für localhost)
-		if (remoteAddress === "::1") {
-			ws.hostname = getComputerName();
-			return ws.hostname;
-		}
-
-		// Bei IPv6 keine spezielle Verarbeitung (z. B. Reverse-Lookup)
-		ws.hostname = remoteAddress;
-		return ws.hostname;
-	} else {
-		console.error("Invalid IP address:", remoteAddress);
-		ws.hostname = "N/N";
-		return ws.hostname;
-	}
-}*/
 
 async function determine_client_hostname(ws) {
 	if (ws.hostname) {
@@ -956,14 +880,14 @@ async function change_default_display_mode(app, tournament, old_displaysettings_
 
 
 
-function reinitialize_panel(app, tournament_key, client_id, new_court_id, displaysetting) {
+function reinitialize_panel(app, tournament_key, client_id, new_court_id, displaysetting_id) {
 	for (const panel_ws of all_panels) {
 		const ws_client_id = determine_client_id(panel_ws);
 		if (client_id == ws_client_id) {
 			if (new_court_id != null) {
 				panel_ws.court_id = new_court_id;
 			}
-			initialize_client(panel_ws, app, tournament_key, panel_ws.court_id, displaysetting);
+			initialize_client(panel_ws, app, tournament_key, panel_ws.court_id, displaysetting_id);
 			return true;
 		}
 	}

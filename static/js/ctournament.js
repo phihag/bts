@@ -1032,8 +1032,6 @@ var ctournament = (function() {
 	}));
 
 	function send_props(input, callback) {
-		console.log("send_props()");
-		
 		const props = {
 			name : input.name.value,
 			tguid: input.tguid.value,
@@ -1362,7 +1360,6 @@ var ctournament = (function() {
 				fg_col_input.value = curt.logo_foreground_color;
 				const logo_preview_img = logo_preview_container.querySelector('[name="logo_preview_img"]');
 				logo_preview_img.setAttribute('src', '/h/' + encodeURIComponent(curt.key) + '/logo/' + curt.logo_id);
-				console.log(logo_preview_img);
 				const filename_display = document.querySelector('#upload_filename');
 				filename_display.textContent = curt.logo_name ? curt.logo_name : 'Noch keine Datei ausgewählt';
 				break;
@@ -1448,7 +1445,6 @@ var ctournament = (function() {
 
 	function ui_edit_display_setting(display_setting_id) {
 		const display_setting = structuredClone(utils.find(curt.displaysettings, d => d.id === display_setting_id));
-
 		crouting.set('t/' + curt.key + '/edit/s/' + display_setting_id, {}, _cancel_ui_edit_display_setting);
 
 		cbts_utils.esc_stack_push(_cancel_ui_edit_display_setting);
@@ -1507,7 +1503,6 @@ var ctournament = (function() {
 	}));
 
 	function render_edit_display_setting(form, display_setting) {
-	
 		const edit_display_setting_container = uiu.el(form, 'div', 'edit_display_setting_container');
 		const id_div = uiu.el(edit_display_setting_container, 'div');
 		uiu.el(id_div, 'span', 'display_setting_id', ci18n('display_setting:id'));
@@ -1651,7 +1646,8 @@ var ctournament = (function() {
 			'focus',
 			'hidden',
 		];
-		render_drop_down(edit_display_setting_container, ci18n('display_setting:settings_style'), 'style', calculated_style, ALL_STYLE_MODES, display_setting.settings_style || '');
+
+		render_drop_down(edit_display_setting_container, ci18n('display_setting:settings_style'), 'style', calculated_style, ALL_STYLE_MODES, display_setting.style || '');
 		render_select_number(edit_display_setting_container, ci18n('display_setting:network_timeout'), 'network_timeout', true, display_setting.network_timeout, 1, 600000);
 		render_select_number(edit_display_setting_container, ci18n('display_setting:network_update_interval'), 'network_update_interval', true, display_setting.network_update_interval, 1, 600000);
 	}
@@ -1964,7 +1960,6 @@ var ctournament = (function() {
 
 			select_color.addEventListener('change', (e) => {
 				e.target.classList = [e.target.value];
-				console.log(e.target.getAttribute('data-location-id'));
 				send_location_to_admin(e.target.parentNode.parentNode, e.target.getAttribute('data-location_id'));
 			});
 				
@@ -2077,8 +2072,6 @@ var ctournament = (function() {
 		const highlight = parseInt(parent.querySelector("#select_highlight").value, 10);
 		const preperation_addition = parent.querySelector("#preperation_addition").value;
 		const meetingpoint_announcement = parent.querySelector("#meetingpoint_announcement").value;
-
-		console.log(highlight);
 
 		send({
 			type: 'location_changed',
