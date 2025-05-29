@@ -54,7 +54,7 @@ function handle_tournament_edit_props(app, ws, msg) {
 		'name',
 		'btp_enabled', 'btp_autofetch_enabled', 'btp_readonly',
 		'btp_ip', 'btp_password',
-		'is_team', 'is_nation_competition', 'only_now_on_court',
+		'is_team', 'is_nation_competition', 'only_now_on_court', 'counting',
 		'ticker_enabled', 'ticker_url', 'ticker_password',
 		'language', 'dm_style',
 		'logo_background_color', 'logo_foreground_color']);
