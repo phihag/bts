@@ -81,7 +81,7 @@ async function main() {
 		metavar: 'PORT',
 		help: (
 			'The port of the BTP server.' +
-			` Defaults to automatic (${btp_conn.BLP_PORT} for BTP, ${btp_conn.BLP_PORT} for CP)`),
+			` Defaults to automatic (${btp_conn.BTP_PORT} for BTP, ${btp_conn.BLP_PORT} for CP)`),
 	});
 	parser.addArgument(['-p', '--password'], {
 		metavar: 'PASSWORD',
