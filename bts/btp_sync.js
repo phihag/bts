@@ -245,7 +245,8 @@ function integrate_courts(app, tournament_key, btp_state, callback) {
 	async.each(courts, (c, cb) => {
 		const btp_id = c.ID[0];
 		const name = c.Name[0];
-		let num = parseInt(name, 10) || btp_id;
+		const num_m = /[0-9]+/.exec(name);
+		let num = num_m ? parseInt(num_m[0]) : (parseInt(name, 10) || btp_id);
 		const m = /^Court\s*([0-9]+)$/.exec(name);
 		if (m) {
 			num = parseInt(m[1]);
