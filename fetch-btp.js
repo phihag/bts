@@ -187,7 +187,7 @@ async function main() {
 			parser.error('Need target IP (use --ip 1.2.3.4)');
 			return;
 		}
-		const port = args.port || args.league ? btp_conn.BLP_PORT : btp_conn.BTP_PORT;
+		const port = parseInt(args.port || (args.league ? btp_conn.BLP_PORT : btp_conn.BTP_PORT));
 		const xml_request = btp_proto.get_info_request(args.password);
 		const raw_request = btp_proto.encode(xml_request);
 
