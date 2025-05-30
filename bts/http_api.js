@@ -44,6 +44,9 @@ function create_match_representation(tournament, match) {
 	setup.match_id = 'bts_' + match._id;
 	setup.team_competition = tournament.is_team;
 	setup.nation_competition = tournament.is_nation_competition;
+	if (tournament.counting) {
+		setup.counting = tournament.counting;
+	}
 	for (const t of setup.teams) {
 		if (!t.players) continue;
 
