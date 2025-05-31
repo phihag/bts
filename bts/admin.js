@@ -155,6 +155,7 @@ function handle_create_tournament(app, ws, msg) {
 
 	const t = {
 		key: msg.key,
+		only_now_on_court: true,
 	};
 
 	app.db.tournaments.insert(t, function(err) {
