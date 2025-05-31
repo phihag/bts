@@ -273,6 +273,7 @@ function _make_setup(d) {
 		match_num: parseInt(d.match_num),
 		match_name: d.match_name,
 		scheduled_time_str: d.scheduled_time_str,
+		scheduled_date: d.scheduled_date,
 		event_name: d.event_name,
 		umpire_name: d.umpire_name,
 		service_judge_name: d.service_judge_name,
@@ -641,7 +642,7 @@ function render_edit(form, match) {
 		name: 'scheduled_date',
 		pattern: '^[0-9]{4,}-(?:0[0-9]|10|11|12)-(?:[012][0-9]|30|31)$',
 		title: 'Date in ISO8601 format, e.g. 2020-05-30',
-		size: 6,
+		style: 'width: 10ch;',
 		value: setup.scheduled_date || '',
 		tabindex: 2,
 	});
