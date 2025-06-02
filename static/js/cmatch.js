@@ -205,6 +205,7 @@ function render_match_row(tr, match, court, style, show_player_status, show_add_
 		return;
 	}
 
+
 	if (!court && match.setup.court_id) {
 		court = curt.courts_by_id[match.setup.court_id];
 	}
@@ -253,9 +254,24 @@ function render_match_row(tr, match, court, style, show_player_status, show_add_
 		const court_number_td = uiu.el(tr, 'td','court_number');
 		if(court) {
 			uiu.el(court_number_td, 'span', 'court_history', court.num);
+		} else if (match.setup.location_id){
+			const location = utils.find(curt.locations, l => l._id === match.setup.location_id);
+			uiu.el(court_number_td, 'span', 'location', "[" + location.short_name + "]");
+		} 
+
+		if(match.setup.location_id) {
+			tr.setAttribute('data-location_id', match.setup.location_id);
+		} else {
+			tr.removeAttribute('data-location_id');
 		}
-		//uiu.el(tr, 'td', court ? 'court_history' : 'empty_court', court ? court.num : '');
+
+		if (match.setup.location_id && !(window.localStorage.getItem('show_location_courts_' + match.setup.location_id) === 'true')) {
+			tr.classList.add('do_not_show');
+		} else {
+			tr.classList.remove('do_not_show');
+		}
 	}
+
 
 	if (style === 'plain') {
 		const court_number_td = uiu.el(tr, "td", 'court_number');
@@ -499,7 +515,9 @@ function render_match_row(tr, match, court, style, show_player_status, show_add_
 		if (style === 'unasigned' && completeMatch) {
 			const locations = curt.locations;
 			locations.forEach((l)=> {
-				create_match_prepparation_button(call_td, 'vlink match_preparation_call_button', 'match:preparationcall', on_announce_preparation_matchbutton_click, match._id, l);
+				if(window.localStorage.getItem('show_location_courts_' + l._id) === 'true') {
+					create_match_prepparation_button(call_td, 'vlink match_preparation_call_button', 'match:preparationcall', on_announce_preparation_matchbutton_click, match._id, l);
+				}
 			});
 		} else if ((style === 'default' || style === 'plain') && court) {
 			create_match_button(call_td, 'vlink match_manual_call_button', 'match:manualcall', on_announce_match_manually_button_click, match._id);
@@ -697,6 +715,9 @@ function render_players_el(parentNode, setup, team_id, match, show_player_status
 	}
 
 	if (team.players.length > 0) {
+		if(team.entry_status !== "<none>"){
+			uiu.el(parentNode, 'span', {}, team.entry_status);
+		}
 		render_player_el(parentNode, team.players[0], match._id, setup.now_on_court, show_player_status, style, team.players.length > 1 ? true : false);
 	} else {
 
@@ -1045,7 +1066,7 @@ function create_timer(timer_state, parent, default_color, exigent_color) {
 		} else {
 			tobj.timeout = null;
 			el.style.display = "none";
-			if(!curt.btp_settings.check_in_per_match) {
+			if(!curt.btp_settings.check_in_per_match && parent.querySelector('div.tablet_inline') === null) {
 				parent.classList.remove("not_checked_in");
 				parent.classList.add("checked_in");
 			}
@@ -1707,7 +1728,7 @@ function render_courts(container, style) {
 		const expected_section = 'court_' + c._id;
 		const court_matches = curt.matches.filter(m => calc_section(m) === expected_section);
 
-		const tr = uiu.el(tbody, 'tr', {class:"court_row", "data-court_id":c._id} );
+		const tr = uiu.el(tbody, 'tr', {class:"court_row", "data-court_id":c._id, "data-location_id":c.location_id} );
 		const rowspan = Math.max(1, court_matches.length);
 		//uiu.el(tr, 'th', {
 		//	'class': 'court_num',
@@ -1729,11 +1750,28 @@ function render_courts(container, style) {
 				i++;
 			}
 		}
+
+		if(!(window.localStorage.getItem('show_location_courts_' + c.location_id) === 'true')) {
+			tr.classList.add('do_not_show');
+		}
 	}
 
 	if(style === 'public') {
 		resize_table(resizable_rows, 0.98);
 	}
+}
+
+function update_tables(location_id, enabled) {
+	// Alle Elemente mit dem passenden data-location_id Attribut finden
+	const elements = document.querySelectorAll(`[data-location_id="${location_id}"]`);
+
+	elements.forEach(el => {
+		if (enabled === true) {
+			el.classList.remove('do_not_show');
+		} else {
+			el.classList.add('do_not_show');
+		}
+	});
 }
 
 function render_empty_court_row(tr, court, style, is_droppable) {
@@ -2340,7 +2378,8 @@ return {
 	update_match,
 	remove_match_from_gui,
 	update_players,
-	create_timer
+	create_timer,
+	update_tables
 };
 
 })();

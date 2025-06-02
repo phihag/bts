@@ -4,6 +4,17 @@
 	margin: 10px 0px 10px 0px; 
 }
 
+.announce_button {
+	font-size: 100%;
+	padding: 9px 20px;
+	margin: 10px 0px 10px 0px; 
+}
+
+.announcements_btn_container {
+	display: flex;
+	justify-content: space-around;
+}
+
 .match_num {
 	text-align: right;
 	padding: 0 0.3em 0 0.3em;
@@ -601,6 +612,14 @@ h3.section {
 .main_upcoming > div > table > tbody > .court_row:nth-of-type(even),
 .main_upcoming > div > table > tbody > tr:nth-of-type(even){
 	background-color: #222222;
+}
+
+.do_not_show {
+	display: none;
+}
+
+.location {
+	color: #00000066;
 }
 
 .match_number_upcoming,

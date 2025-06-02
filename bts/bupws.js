@@ -152,6 +152,10 @@ async function handle_score_update(app, ws, msg) {
 		send_error(ws, tournament_key, "Match not found or not on court actualy.");
 		return;
 	}
+
+	console.log(match);
+	console.log(match.setup.teams);
+
 	const update = {
 		network_score: score_data.network_score,
 		network_team1_left:score_data.network_team1_left,

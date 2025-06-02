@@ -357,11 +357,43 @@ var ctournament = (function() {
 		});
 	}
 
+	// function render_announcement_formular(target) {
+	// 	const announcements = uiu.el(target, 'div', 'announcements_container');
+	// 	const heading = uiu.el(announcements, 'h3', {}, 'Freie Ansage');
+	// 	const form = uiu.el(announcements, 'form');
+	// 	uiu.el(form, 'textarea', {
+	// 		type: 'textarea',
+	// 		id: 'custom_announcement',
+	// 		name: 'custom_announcement',
+	// 		cols: '50',
+	// 		rows: '4',
+	// 		maxlength: '175'
+	// 	});
+	// 	const btp_fetch_btn = uiu.el(form, 'button', {
+	// 		'class': 'match_save_button',
+	// 		role: 'submit',
+	// 	}, 'Ansage abspielen');
+	// 	form_utils.onsubmit(form, function (d) {
+	// 		//announce([d.custom_announcement]);
+	// 		send({
+	// 			type: 'free_announce',
+	// 			tournament_key: curt.key,
+	// 			text: d.custom_announcement,
+	// 		}, function (err) {
+	// 			if (err) {
+	// 				return cerror.net(err);
+	// 			}
+	// 		});
+	// 	});
+	// }
+
 	function render_announcement_formular(target) {
 		const announcements = uiu.el(target, 'div', 'announcements_container');
-		const heading = uiu.el(announcements, 'h3', {}, 'Freie Ansage');
+		uiu.el(announcements, 'h3', {}, 'Freie Ansage');
+	
 		const form = uiu.el(announcements, 'form');
-		uiu.el(form, 'textarea', {
+	
+		const textarea = uiu.el(form, 'textarea', {
 			type: 'textarea',
 			id: 'custom_announcement',
 			name: 'custom_announcement',
@@ -369,16 +401,41 @@ var ctournament = (function() {
 			rows: '4',
 			maxlength: '175'
 		});
-		const btp_fetch_btn = uiu.el(form, 'button', {
-			'class': 'match_save_button',
-			role: 'submit',
-		}, 'Ansage abspielen');
+	
+		const btn_container = uiu.el(form, 'div', 'announcements_btn_container');
+
+		// Button: Lokal Abspielen
+		const local_btn = uiu.el(btn_container, 'button', {
+			type: 'button',
+			class: 'announce_button',
+			id: 'local_announce_btn'
+		}, 'Lokal Abspielen');
+	
+		// Button: Remote Abspielen
+		const remote_btn = uiu.el(btn_container, 'button', {
+			type: 'submit',
+			class: 'announce_button',
+			id: 'remote_announce_btn'
+		}, 'Remote Abspielen');
+	
+		// Lokales Abspielen (z. B. mit deiner announce-Funktion)
+		local_btn.addEventListener('click', function () {
+			const text = textarea.value.trim();
+			if (!text) return;
+	
+			// Lokale Ansage abspielen
+			announce([text], true);  // ← Diese Funktion muss bei dir lokal definiert sein
+		});
+	
+		// Remote Abspielen
 		form_utils.onsubmit(form, function (d) {
-			//announce([d.custom_announcement]);
+			const text = d.custom_announcement?.trim();
+			if (!text) return;
+	
 			send({
 				type: 'free_announce',
 				tournament_key: curt.key,
-				text: d.custom_announcement,
+				text: text,
 			}, function (err) {
 				if (err) {
 					return cerror.net(err);
@@ -387,26 +444,129 @@ var ctournament = (function() {
 		});
 	}
 
-	function render_enable_announcement(target) {
-		const announcements = uiu.el(target, 'div', 'enable_announcements_container');
-		const heading = uiu.el(announcements, 'h3', {}, 'Ansagen auf diesem Gerät');
-		const form = uiu.el(announcements, 'form');
-		const enable_announcements = uiu.el(form, 'input', {
-			type: 'checkbox',
-			id: 'enable_announcements',
-			name: 'enable_announcements'
+	// function render_enable_announcement(target) {
+	// 	const announcements = uiu.el(target, 'div', 'enable_announcements_container');
+	// 	const heading = uiu.el(announcements, 'h3', {}, 'Ansagen auf diesem Gerät');
+	// 	const form = uiu.el(announcements, 'form');
+	// 	const enable_announcements = uiu.el(form, 'input', {
+	// 		type: 'checkbox',
+	// 		id: 'enable_announcements',
+	// 		name: 'enable_announcements'
+	// 	});
+
+	// 	enable_announcements.checked = (window.localStorage.getItem('enable_announcements') === 'true');
+	// 	uiu.el(form, 'label', { for: 'enable_announcements' }, 'aktiv');
+	// 	enable_announcements.addEventListener('change', change_announcements);
+	// }
+
+	// function change_announcements(e) {
+	// 	let enable_announcements = document.getElementById('enable_announcements');
+	// 	window.localStorage.setItem('enable_announcements', enable_announcements.checked);
+	// }
+
+	function render_enable_announcements(target, locations) {
+		const container = uiu.el(target, 'div', 'enable_announcements_container');
+		uiu.el(container, 'h3', {}, 'Ansagen auf diesem Gerät');
+	
+		locations.forEach(loc => {
+			{
+				const form = uiu.el(container, 'form');
+		
+				const checkboxId = `enable_announcement_calls_${loc._id}`;
+				const checkbox = uiu.el(form, 'input', {
+					type: 'checkbox',
+					id: checkboxId,
+					name: checkboxId
+				});
+		
+				// Initialer Zustand aus localStorage
+				checkbox.checked = (window.localStorage.getItem(checkboxId) === 'true');
+		
+				// Label anzeigen mit dem Location-Namen
+				uiu.el(form, 'label', { for: checkboxId }, (loc.name || 'Unbenannte Location') + " (Spielaufruf)");
+		
+				// Event Listener zum Speichern in localStorage
+				checkbox.addEventListener('change', function () {
+					window.localStorage.setItem(checkboxId, checkbox.checked);
+				});
+			}
+			{
+				const form = uiu.el(container, 'form');
+		
+				const checkboxId = `enable_announcement_preperations_${loc._id}`;
+				const checkbox = uiu.el(form, 'input', {
+					type: 'checkbox',
+					id: checkboxId,
+					name: checkboxId
+				});
+		
+				// Initialer Zustand aus localStorage
+				checkbox.checked = (window.localStorage.getItem(checkboxId) === 'true');
+		
+				// Label anzeigen mit dem Location-Namen
+				uiu.el(form, 'label', { for: checkboxId }, (loc.name || 'Unbenannte Location') + " (in Vorbereitung)");
+		
+				// Event Listener zum Speichern in localStorage
+				checkbox.addEventListener('change', function () {
+					window.localStorage.setItem(checkboxId, checkbox.checked);
+				});
+			}
 		});
 
-		enable_announcements.checked = (window.localStorage.getItem('enable_announcements') === 'true');
-		uiu.el(form, 'label', { for: 'enable_announcements' }, 'aktiv');
-		enable_announcements.addEventListener('change', change_announcements);
+		{
+			const form = uiu.el(container, 'form');
+	
+			const checkboxId = 'enable_free_announcements';
+			const checkbox = uiu.el(form, 'input', {
+				type: 'checkbox',
+				id: checkboxId,
+				name: checkboxId
+			});
+	
+			// Initialer Zustand aus localStorage
+			checkbox.checked = (window.localStorage.getItem(checkboxId) === 'true');
+	
+			// Label anzeigen mit dem Location-Namen
+			uiu.el(form, 'label', { for: checkboxId }, 'Freie Remote Ansagen');
+	
+			// Event Listener zum Speichern in localStorage
+			checkbox.addEventListener('change', function () {
+				window.localStorage.setItem(checkboxId, checkbox.checked);
+			});
+		}
 	}
 
-	function change_announcements(e) {
-		let enable_announcements = document.getElementById('enable_announcements');
-		window.localStorage.setItem('enable_announcements', enable_announcements.checked);
+	function render_enable_location_courts(target, locations) {
+		const container = uiu.el(target, 'div', 'enable_announcements_container');
+		uiu.el(container, 'h3', {}, 'Zeige Felder');
+	
+		locations.forEach(loc => {
+			const form = uiu.el(container, 'form');
+	
+			const checkboxId = `show_location_courts_${loc._id}`;
+			const checkbox = uiu.el(form, 'input', {
+				type: 'checkbox',
+				id: checkboxId,
+				name: checkboxId
+			});
+	
+			// Initialer Zustand aus localStorage oder Default auf true
+			const storedValue = window.localStorage.getItem(checkboxId);
+			checkbox.checked = (storedValue === null) ? true : (storedValue === 'true');
+	
+			// Label anzeigen mit dem Location-Namen
+			uiu.el(form, 'label', { for: checkboxId }, loc.name + " ["+ loc.short_name +"]" || 'Unbenannte Location');
+	
+			// Event Listener zum Speichern in localStorage und Aufruf mit Parametern
+			checkbox.addEventListener('change', function () {
+				window.localStorage.setItem(checkboxId, checkbox.checked);
+				cmatch.update_tables(loc._id, checkbox.checked);
+			});
+	
+			// Gleich initial einmal aufrufen, damit der Sichtbarkeitszustand korrekt gesetzt ist
+			cmatch.update_tables(loc._id, checkbox.checked);
+		});
 	}
-
 	function ui_show() {
 		crouting.set('t/:key/', { key: curt.key });
 		const bup_lang = ((curt.language && curt.language !== 'auto') ? '&lang=' + encodeURIComponent(curt.language) : '');
@@ -444,10 +604,14 @@ var ctournament = (function() {
 		uiu.el(meta_div, 'div', 'umpire_container');
 		render_announcement_formular(meta_div);
 
+
+		render_enable_announcements(meta_div, curt.locations);
+
+
 		const meta_right_div = uiu.el(meta_div, 'div', 'metadata_right_container');
 
-		render_enable_announcement(meta_right_div);
-
+		render_enable_location_courts(meta_right_div, curt.locations);
+		
 		render_settings(meta_right_div);
 		
 		cmatch.prepare_render(curt);

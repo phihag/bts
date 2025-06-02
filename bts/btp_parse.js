@@ -39,7 +39,11 @@ function filter_matches(all_btp_matches, is_league) {
 // bts_players: Array of array of players participating.
 //              Only for matches, not individual players
 // bts_winners: Array of players who have won this match.
-function _calc_match_players(matches_by_pid, entries, players, bm, is_league) {
+function _calc_match_players(matches_by_pid, entries, stage_entries, draws, players, bm, is_league) {
+	const draw = draws.get(bm.DrawID[0]);
+	const stage_id = draw.StageID[0];
+	let entry_status = "<none>";
+
 	if (bm.bts_winners) {
 		return;
 	}
@@ -50,12 +54,46 @@ function _calc_match_players(matches_by_pid, entries, players, bm, is_league) {
 			throw new Error('Cannot find entry ' + bm.EntryID[0]);
 		}
 
+		for (const [key, value] of stage_entries) {
+		    if (value.StageID[0] === stage_id && value.EntryID[0] === bm.EntryID[0]) {
+		        //console.log(`Gefunden: Key = ${key}, Value =`, value);
+				switch (value.Status[0]){
+					case 108:
+						entry_status = "DNS";
+						break;
+					case 109:
+						entry_status = "WDN";
+						break;
+
+
+				}
+		        break;
+		    }
+		}
+
+
 		const p1 = players.get(e.Player1ID[0]);
 		assert(p1);
+
+		if(!p1.entries) {
+			p1.entries = new Map([[draw.ID[0], "<none>"]]);
+		}
+
+		if(entry_status != "<none>") {
+			p1.entries.set(draw.ID[0], entry_status);
+		}
+
 		const res = [p1];
 		if (e.Player2ID) {
 			const p2 = players.get(e.Player2ID[0]);
 			assert(p2);
+			if(!p2.entries) {
+				p2.entries = new Map([[draw.ID[0], "<none>"]]);
+			}
+	
+			if(entry_status != "<none>") {
+				p2.entries.set(draw.ID[0], entry_status);
+			}
 			res.push(p2);
 		}
 		bm.bts_winners = res;
@@ -67,6 +105,7 @@ function _calc_match_players(matches_by_pid, entries, players, bm, is_league) {
 
 	// Normal match
 	let p1ar, p2ar;
+	let p1es, p2es;
 	if (is_league) {
 		if (!bm.Team1Player1ID) return;
 
@@ -88,17 +127,20 @@ function _calc_match_players(matches_by_pid, entries, players, bm, is_league) {
 		assert(bm.From1[0]);
 		const m1 = matches_by_pid.get(bm.DrawID[0] + '_' + bm.From1[0], is_league);
 		assert(m1);
-		_calc_match_players(matches_by_pid, entries, players, m1);
+		_calc_match_players(matches_by_pid, entries, stage_entries, draws, players, m1);
 		p1ar = m1.bts_winners;
 		assert(bm.From2);
 		assert(bm.From2[0]);
 		const m2 = matches_by_pid.get(bm.DrawID[0] + '_' + bm.From2[0], is_league);
 		assert(m2);
-		_calc_match_players(matches_by_pid, entries, players, m2, is_league);
+		_calc_match_players(matches_by_pid, entries, stage_entries, draws, players, m2, is_league);
 		p2ar = m2.bts_winners;
+
 	}
 
 	bm.bts_players = [p1ar, p2ar];
+	bm.bts_players_entry_status = [p1es, p2es];
+
 	if (p1ar && p2ar) {
 		bm.bts_complete = true;
 		if (bm.Winner) {
@@ -174,6 +216,7 @@ function get_btp_state(response) {
 
 	const matches_by_pid = utils.make_index(all_btp_matches, bm => _calc_match_id(bm, is_league));
 	const all_btp_entries = btp_t.Entries ? btp_t.Entries[0].Entry : [];
+	const all_btp_stage_entries = btp_t.StageEntries ? btp_t.StageEntries[0].StageEntry : [];
 	const all_btp_events = btp_t.Events ? btp_t.Events[0].Event : [];
 	const all_btp_players = btp_t.Players ? btp_t.Players[0].Player : [];
 	const all_btp_draws = btp_t.Draws ? btp_t.Draws[0].Draw : [];
@@ -194,6 +237,7 @@ function get_btp_state(response) {
 	}
 
 	const entries = utils.make_index(all_btp_entries, e => e.ID[0]);
+	const stage_entries = utils.make_index(all_btp_stage_entries, s => s.ID[0]);
 	const events = utils.make_index(all_btp_events, e => e.ID[0]);
 	const draws = utils.make_index(all_btp_draws, d => d.ID[0]);
 
@@ -221,7 +265,7 @@ function get_btp_state(response) {
 	const btp_settings = utils.make_index(all_btp_settings, s =>s.ID[0]);
 
 	for (const bm of matches) {
-		_calc_match_players(matches_by_pid, entries, players, bm, is_league);
+		_calc_match_players(matches_by_pid, entries, stage_entries, draws, players, bm, is_league);
 	}
 	return {
 		courts,

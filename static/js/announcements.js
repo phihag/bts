@@ -1,7 +1,16 @@
-
+function getLocationID(matchSetup) {
+    let location = null;
+    if(matchSetup.court_id) {
+        const court = utils.find(curt.courts, c => c._id === matchSetup.court_id);
+        location = utils.find(curt.locations, l => l._id === court.location_id);
+    } else if (matchSetup.preparation_location_id) {
+        location = utils.find(curt.locations, l => l._id === matchSetup.preparation_location_id);
+    }
+    return location._id;
+}
 
 function announceNewMatch(matchSetup) {
-    if(!(window.localStorage.getItem('enable_announcements') === 'true')) {
+    if(!(window.localStorage.getItem('enable_announcement_calls_' + getLocationID(matchSetup)) === 'true')) {
         return;
     }
     const field = createFieldAnnouncement(matchSetup);
@@ -16,7 +25,7 @@ function announceNewMatch(matchSetup) {
 }
 
 function announcePreparationMatch(matchSetup) {
-    if(!(window.localStorage.getItem('enable_announcements') === 'true')) {
+    if(!(window.localStorage.getItem('enable_announcement_preperations_' + getLocationID(matchSetup)) === 'true')) {
         return;
     }
     const field = createFieldPreparationAnnouncement(matchSetup);
@@ -35,21 +44,21 @@ function announcePreparationMatch(matchSetup) {
     announce([preparation, field, matchNumber, eventName, round, teams, umpire, serviceJudge, tabletOperator, lastPart]);
 }
 function announceSecondCallTeamOne(matchSetup) {
-    if(!(window.localStorage.getItem('enable_announcements') === 'true')) {
+    if(!(window.localStorage.getItem('enable_announcement_calls_' + getLocationID(matchSetup)) === 'true')) {
         return;
     }
     announceSecondCall(matchSetup, matchSetup.teams[0]);
 }
 
 function announceSecondCallTeamTwo(matchSetup) {
-    if(!(window.localStorage.getItem('enable_announcements') === 'true')) {
+    if(!(window.localStorage.getItem('enable_announcement_calls_' + getLocationID(matchSetup)) === 'true')) {
         return;
     }
     announceSecondCall(matchSetup, matchSetup.teams[1]);
 }
 
 function announceSecondCallTabletoperator(matchSetup) {
-    if (!(window.localStorage.getItem('enable_announcements') === 'true')) {
+    if (!(window.localStorage.getItem('enable_announcement_calls_' + getLocationID(matchSetup)) === 'true')) {
         return;
     }
     const tabletOperatorCall = createTabletOperator(matchSetup);;
@@ -59,7 +68,7 @@ function announceSecondCallTabletoperator(matchSetup) {
     }
 }
 function announceSecondCallUmpire(matchSetup) {
-    if (!(window.localStorage.getItem('enable_announcements') === 'true')) {
+    if (!(window.localStorage.getItem('enable_announcement_calls_' + getLocationID(matchSetup)) === 'true')) {
         return;
     }
     const umpireCall = createUmpire(matchSetup);;
@@ -69,7 +78,7 @@ function announceSecondCallUmpire(matchSetup) {
     }
 }
 function announceSecondCallServiceJudge(matchSetup) {
-    if (!(window.localStorage.getItem('enable_announcements') === 'true')) {
+    if (!(window.localStorage.getItem('enable_announcement_calls_' + getLocationID(matchSetup)) === 'true')) {
         return;
     }
     const servicejudgeCall = createServiceJudge(matchSetup);;
@@ -81,7 +90,7 @@ function announceSecondCallServiceJudge(matchSetup) {
 
 
 function announceSecondCall(matchSetup, team) {
-    if(!(window.localStorage.getItem('enable_announcements') === 'true')) {
+    if(!(window.localStorage.getItem('enable_announcement_calls_' + getLocationID(matchSetup)) === 'true')) {
         return;
     }
     var secondCall = createSecondCallAnnouncement() + createSingleTeam(team.players);
@@ -89,7 +98,7 @@ function announceSecondCall(matchSetup, team) {
     announce([secondCall, field]);
 }
 function announceBeginnToPlay(matchSetup, team) {
-    if(!(window.localStorage.getItem('enable_announcements') === 'true')) {
+    if(!(window.localStorage.getItem('enable_announcement_calls_' + getLocationID(matchSetup)) === 'true')) {
         return;
     }
     announce([createFieldAnnouncement(matchSetup) + ci18n('announcements:begin_to_play')]);
@@ -282,8 +291,8 @@ function createMeetingPointAnnouncement(matchSetup) {
     return result;
 }
 
-function announce(callArray) {
-    if(!(window.localStorage.getItem('enable_announcements') === 'true')) {
+function announce(callArray, local) {
+    if(!(window.localStorage.getItem('enable_free_announcements') === 'true') && !local) {
         return;
     }
     
