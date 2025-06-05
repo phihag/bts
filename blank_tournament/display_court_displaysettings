@@ -1,28 +1,19 @@
-{"client_id":"253","court_id":"default_2","displaysetting_id":"default","_id":"M3VrcixFrRE51rMY"}
-{"client_id":"130","court_id":"default_5","displaysetting_id":"default","_id":"M3VrcixFrRE52rMY"}
-{"client_id":"101","court_id":"default_3","displaysetting_id":"nur_spieler","_id":"bSSxTeYudRTkf1Ni"}
-{"client_id":"102","court_id":"default_2","displaysetting_id":"default","_id":"bSSxTeYudRTkf2Ni"}
-{"client_id":"103","court_id":"default_3","displaysetting_id":"nur_spieler","_id":"bSSxTeYudRTkf3Ni"}
-{"client_id":"104","court_id":"default_3","displaysetting_id":"default","_id":"bSSxTeYudRTkf4Ni"}
-{"client_id":"105","court_id":"default_4","displaysetting_id":"nur_spieler","_id":"bSSxTeYudRTkf5Ni"}
-{"client_id":"106","court_id":"default_5","displaysetting_id":"default","_id":"bSSxTeYudRTkf6Ni"}
-{"client_id":"107","court_id":"default_5","displaysetting_id":"default","_id":"bSSxTeYudRTkf7Ni"}
-{"client_id":"108","court_id":"default_6","displaysetting_id":"default","_id":"bSSxTeYudRTkf8Ni"}
-{"client_id":"109","court_id":"default_7","displaysetting_id":"default","_id":"bSSxTeYudRTkf9Ni"}
-{"client_id":"110","court_id":"default_8","displaysetting_id":"default","_id":"bSSxTeYudRTkg1Ni"}
-{"client_id":"111","court_id":"default_3","displaysetting_id":"default","_id":"bSSxTeYudRTkg2Ni"}
-{"client_id":"112","court_id":"default_4","displaysetting_id":"default","_id":"bSSxTeYudRTkg3Ni"}
-{"client_id":"113","court_id":"default_5","displaysetting_id":"default","_id":"bSSxTeYudRTkg4Ni"}
-{"client_id":"114","court_id":"default_6","displaysetting_id":"default","_id":"bSSxTeYudRTkg5Ni"}
-{"client_id":"120","court_id":"default_7","displaysetting_id":"default","_id":"bSSxTeYudRTkg6Ni"}
-{"client_id":"121","court_id":"default_8","displaysetting_id":"default","_id":"bSSxTeYudRTkg7Ni"}
-{"client_id":"130","court_id":"default_8","displaysetting_id":"default","_id":"bSSxTeYudRTkg8Ni"}
-{"client_id":"131","court_id":"default_1","displaysetting_id":"default","_id":"bSSxTeYudRTkg9Ni"}
-{"client_id":"132","court_id":"default_2","displaysetting_id":"default","_id":"bSSxTeYudRTkh1Ni"}
-{"client_id":"133","court_id":"default_3","displaysetting_id":"default","_id":"bSSxTeYudRTkh2Ni"}
-{"client_id":"134","court_id":"default_4","displaysetting_id":"default","_id":"bSSxTeYudRTkh3Ni"}
-{"client_id":"135","court_id":"default_5","displaysetting_id":"default","_id":"bSSxTeYudRTkh4Ni"}
-{"client_id":"136","court_id":"default_6","displaysetting_id":"default","_id":"bSSxTeYudRTkh5Ni"}
-{"client_id":"137","court_id":"default_7","displaysetting_id":"default","_id":"bSSxTeYudRTkh6Ni"}
-{"client_id":"138","court_id":"default_8","displaysetting_id":"default","_id":"bSSxTeYudRTkh7Ni"}
-{"client_id":"139","court_id":"default_9","displaysetting_id":"default","_id":"bSSxTeYudRTkh8Ni"}
+{"client_id":"201","hostname":"Android-5","court_id":"default_1","displaysetting_id":"default_1 _1746279411442","_id":"4fOwaXIid6Aby102"}
+{"client_id":"163","hostname":"display03","court_id":"default_3","displaysetting_id":"default_1 _1746279411442","_id":"58ko1WCwNVgeXZez"}
+{"client_id":"209","hostname":"Tablet09","court_id":null,"displaysetting_id":"default_1 _1746279411442","_id":"AjeZXlFDktXuGuDV"}
+{"client_id":"162","hostname":"display02","court_id":"default_2","displaysetting_id":"default_1 _1746279411442","_id":"Ar4cbZOWOnexWqbT"}
+{"client_id":"168","hostname":"display08","court_id":"default_8","displaysetting_id":"default_1 _1746279411442","_id":"FqQdFy0ZZhrjz5jy"}
+{"client_id":"166","hostname":"display06","court_id":"default_6","displaysetting_id":"default_1 _1746279411442","_id":"G0kDkTUNLlfHIBxU"}
+{"client_id":"211","hostname":"Tablet11","court_id":null,"displaysetting_id":"default_1 _1746279411442","_id":"J0JXHgZh9tJbQHML"}
+{"client_id":"161","hostname":"display01","court_id":"default_1","displaysetting_id":"default_1 _1746279411442","_id":"KAm9UyBesxxEQwCH"}
+{"client_id":"204","hostname":"Android-2","court_id":"default_4","displaysetting_id":"default_1 _1746279411442","_id":"LruIunhfT22Pif01"}
+{"client_id":"203","hostname":"Android","court_id":"default_3","displaysetting_id":"default_1 _1746279411442","_id":"O7GfGFfRtWP0bZ9E"}
+{"client_id":"207","hostname":"Tablet07","court_id":"default_7","displaysetting_id":"default_1 _1746279411442","_id":"T0uPyYbLu7ZEbwTE"}
+{"client_id":"212","hostname":"Tablet12","court_id":null,"displaysetting_id":"default_1 _1746279411442","_id":"X6DKVYegQLVFQulX"}
+{"client_id":"202","hostname":"Android","court_id":"default_2","displaysetting_id":"default_1 _1746279411442","_id":"XR8v0Vgyrd0uI7Gb"}
+{"client_id":"210","hostname":"Tablet10","court_id":null,"displaysetting_id":"default_1 _1746279411442","_id":"iKUjQjaauJzh45me"}
+{"client_id":"164","hostname":"display04","court_id":"default_4","displaysetting_id":"default_1 _1746279411442","_id":"jBEO6pSWvkOFvsKV"}
+{"client_id":"206","hostname":"Android-3","court_id":"default_6","displaysetting_id":"default_1 _1746279411442","_id":"o7pbXdlGLU8HYxtQ"}
+{"client_id":"205","hostname":"Android-4","court_id":"default_5","displaysetting_id":"default_1 _1746279411442","_id":"qDVxBuPVBF0tTUXp"}
+{"client_id":"165","hostname":"display05","court_id":"default_5","displaysetting_id":"default_1 _1746279411442","_id":"qFktmzgZP4RLWyBC"}
+{"client_id":"208","hostname":"Tablet08","court_id":"default_8","displaysetting_id":"default_1 _1746279411442","_id":"uw6f1RQOLqBPCVOI"}
