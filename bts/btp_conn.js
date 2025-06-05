@@ -331,7 +331,7 @@ class BTPConn {
 		const req = btp_proto.update_players_request(players, this.key_unicode, this.password);
 		this.send(req, response => {
 			const results = response.Action[0].Result;
-			const rescode = results ? results[0] : 'no-result';
+			const rescode = (results && results.length > 0) ? results[0] : 'no-result';
 			if (rescode === 1) {
 
 			} else {

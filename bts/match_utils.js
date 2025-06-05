@@ -115,10 +115,26 @@ function remove_called_timestamp(match, callback) {
 	return callback(null);
 }
 
-function add_preparation_call_timestamp(setup) {
-	setup.highlight = 6;
-	setup.preparation_call_timestamp = Date.now();
-	setup.state = 'preparartion';
+function add_preparation_call_timestamp(db, tournament_key, setup, location_id) {
+	return new Promise((resolve) => {
+		const stournament = require('./stournament');
+		
+		stournament.get_locations(db, tournament_key, (err, all_locations) => {
+			for (const location of all_locations) {
+				if (location._id == location_id) {
+					setup.highlight = location.highlight;
+					setup.preparation_location_id = location_id;
+					setup.preparation_call_timestamp = Date.now();
+					setup.state = 'preparation';
+					resolve(setup);
+					return;
+				}
+			}
+			serror.silent("Can't call a match in preparation for location ' + location_id.");
+			setup.highlight = 0;
+			resolve(setup);
+		});
+	});
 }
 
 function remove_preparation_call_timestamp(setup) {
@@ -812,8 +828,10 @@ function reset_tabletoperator_settings_at_player(app, tkey, tournament, player, 
 	const btp_manager = require('./btp_manager');
 
 	player.now_tablet_on_court = false;
-	if (tournament.tabletoperator_set_break_after_tabletservice) {
-		var offset = 0;
+	const now = Date.now();
+	if (tournament.tabletoperator_set_break_after_tabletservice && 
+		(now + (parseInt(tournament.tabletoperator_break_seconds) * 1000)) >=  player.last_time_on_court_ts + tournament.btp_settings.pause_duration_ms) {
+		var offset = 0;		
 		if (tournament.tabletoperator_break_seconds) {
 			offset = (parseInt(tournament.tabletoperator_break_seconds) * 1000) - tournament.btp_settings.pause_duration_ms;
 		}
@@ -823,7 +841,11 @@ function reset_tabletoperator_settings_at_player(app, tkey, tournament, player, 
 		btp_manager.update_players(app, tkey, [player]);
 		
 	} else {
-		player.checked_in = true;
+		if (player.last_time_on_court_ts) {
+			if ((now - player.last_time_on_court_ts) > tournament.btp_settings.pause_duration_ms) {
+				player.checked_in = true;
+			}
+		}
 		player.tablet_break_active = false;
 		btp_manager.update_players(app, tkey, [player]);
 	}
@@ -958,7 +980,7 @@ async function call_next_possible_match_for_preparation(app, tournament_key, cal
 							}
 						}
 						if (possible) {
-							call_match_in_preparation(app, tournament,match._id, match.setup, callback);
+							call_match_in_preparation(app, tournament,match._id, null, match.setup, callback);
 							break;
 						}
 					}
@@ -973,10 +995,11 @@ async function call_next_possible_match_for_preparation(app, tournament_key, cal
 }
 
 
-async function call_match_in_preparation(app, tournament, match_id, setup, callback) {
-	add_preparation_call_timestamp(setup);
+async function call_match_in_preparation(app, tournament, match_id, location_id, setup, callback) {
 	const tournament_key = tournament.key;
 	const admin = require('./admin');
+
+	await add_preparation_call_timestamp(app.db, tournament_key, setup, location_id);
 
 	if (tournament.preparation_tabletoperator_setup_enabled) {
 		if (!setup.umpire || (tournament.tabletoperator_with_umpire_enabled && tournament.tabletoperator_with_umpire_enabled == true)) {
@@ -1000,7 +1023,7 @@ async function call_match_in_preparation(app, tournament, match_id, setup, callb
 				
 			return callback(new Error(errmsg));
 		}
-		admin.notify_change(app, tournament_key, 'match_preparation_call', { match__id: match_id, match: changed_match });
+		admin.notify_change(app, tournament_key, 'match_preparation_call', { match__id: match_id, match: changed_match});
 		const btp_manager = require('./btp_manager');
 		btp_manager.update_highlight(app, changed_match);
 		return callback (null);

@@ -4,6 +4,17 @@
 	margin: 10px 0px 10px 0px; 
 }
 
+.announce_button {
+	font-size: 100%;
+	padding: 9px 20px;
+	margin: 10px 0px 10px 0px; 
+}
+
+.announcements_btn_container {
+	display: flex;
+	justify-content: space-around;
+}
+
 .match_num {
 	text-align: right;
 	padding: 0 0.3em 0 0.3em;
@@ -32,11 +43,10 @@
 }
 
 .match_preparation_call_button {
-	height: 1.2em;
-    min-height: 1em;
-    width: 1.4em;
+	height: 100%;
+    width: auto;
     margin: 0 0 -0.1em 0.3em;
-	background-image: url(../icons/preperation.svg);
+	/*background-image: url(../icons/preperation.svg);*/
 }
 .match_manual_call_button {
 	height: 1.5em;
@@ -67,6 +77,14 @@
 	background-image: url(../icons/rawinfo.svg);
 }
 
+.match_timer > .match_confirm_button {
+    min-height: 1.6em;
+    background-size: cover;
+    background-color: #00000000;
+    width: 2.3em;
+    background-image: url(../icons/confirm_match.svg);
+}
+
 .edit_match_container {
 	text-align: left;
 }
@@ -83,7 +101,8 @@
 .match_preparation_call_button:hover,
 .match_begin_to_play_button:hover,
 .match_manual_call_button:hover,
-.match_scoresheet_button:hover {
+.match_scoresheet_button:hover,
+.match_confirm_button:hover {
 	opacity: 0.5;
 }
 
@@ -106,6 +125,16 @@
 
 .match_table > tbody > tr:nth-of-type(even):hover > td {
 	background-color: #00000030;
+}
+
+.match_table > tbody > tr > td.inactive {
+	
+	background-color: #00000040;
+}
+
+.match_table > tbody > tr:nth-of-type(even) > td.inactive {
+	
+	background-color: #00000050;
 }
 
 .match_table > tbody > tr > td.droppable_active {
@@ -231,7 +260,7 @@
 	/*cursor: none;*/
 }
 
-.match_timer > div {
+.match_timer > .timer {
 	font-size: 1.2em;
 	font-weight: 900;
     background-color: #111111;
@@ -496,6 +525,10 @@ match_manual_call_button,
 	text-wrap: nowrap;
 }
 
+th > select {
+	width: 70px;
+}
+
 @media print {
 	.toprow,
 	.main,
@@ -579,6 +612,14 @@ h3.section {
 .main_upcoming > div > table > tbody > .court_row:nth-of-type(even),
 .main_upcoming > div > table > tbody > tr:nth-of-type(even){
 	background-color: #222222;
+}
+
+.do_not_show {
+	display: none;
+}
+
+.location {
+	color: #00000066;
 }
 
 .match_number_upcoming,

@@ -22,9 +22,6 @@ function ui_to_stats() {
 	uiu.el(main, 'h2', {}, ci18n('to_stats:header'));
 	uiu.el(main, 'h3', {}, curt.name || curt.key);
 
-	// TODO add dates + location here
-	console.log(curt.matches)
-
 	const table = uiu.el(main, 'table', 'table-outlined');
 	const thead = uiu.el(table, 'thead');
 	const thead_tr = uiu.el(thead, 'tr');

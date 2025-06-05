@@ -298,3 +298,97 @@ h2.edit {
 	color: black;
 	text-align: left;
 }
+
+.settings table > tbody > tr {
+	background-color: #bbb;
+}
+
+.settings table > tbody > tr:nth-of-type(even) {
+	background-color: #ccc;
+}
+
+.settings .online {
+	background-color: #97e6b4;
+}
+
+.settings table > tbody > .online:nth-of-type(even) {
+	background-color: #adffcb;
+}
+
+.settings .wait_for_done {
+	background-color: #dfe197;
+}
+
+.settings table > tbody > .wait_for_done:nth-of-type(even) {
+	background-color: #fcffad;
+}
+
+
+.settings .offline {
+	background-color: #e69797
+}
+
+.settings table > tbody > .offline:nth-of-type(even) {
+	background-color: #ffadad;
+}
+
+.settings table {
+	border:none;
+	border-spacing: 0;
+	width: 100%;
+}
+
+.edit_display_setting_container{
+	text-align: left;
+}
+
+.edit_display_setting_container > div{
+	margin: 10px;
+	display: flex;
+	flex-direction: row;
+	justify-content: space-between;
+}
+.edit_display_setting_container > div > input[type=text]{
+	width: 400px;
+}
+
+.edit_display_setting_container > div > input{
+	width: 200px;
+}
+
+.edit_display_setting_container > div > select{
+	width: 300px;
+}
+
+
+#meetingpoint_announcement{
+	width: -webkit-fill-available;
+	resize: vertical;
+	min-height: 5.0em;
+	height: 5.0em;
+}
+
+
+#preperation_addition{
+	width: -webkit-fill-available;;
+	resize: vertical;
+	min-height: 5.0em;
+	height: 5.0em;
+}
+
+.courts_table{
+	text-align: center;
+}
+
+
+.icon_td {
+	text-align: center;
+}
+
+.upload_filename_location{
+	font-style: italic;
+    color: #555;
+    max-width: 150px;
+    inline-size: 150px;
+    overflow-wrap: break-word;
+}

@@ -11,6 +11,7 @@ const utils = require('./utils');
 
 const TABLES = [
 	'courts',
+	'locations',
 	'event',
 	'matches',
 	'tournaments',
@@ -61,6 +62,8 @@ function init(callback) {
 
 function prepare(db, callback) {
 	db.courts.ensureIndex({fieldName: 'tournament_key', unique: false});
+	db.locations.ensureIndex({fieldName: 'tournament_key', unique: false});
+	db.locations.ensureIndex({fieldName: 'location_id', unique: false});
 	db.matches.ensureIndex({fieldName: 'court_id', unique: false});
 	db.matches.ensureIndex({fieldName: 'tournament_key', unique: false});
 	db.matches.ensureIndex({fieldName: 'event_key', unique: false});

@@ -357,11 +357,43 @@ var ctournament = (function() {
 		});
 	}
 
+	// function render_announcement_formular(target) {
+	// 	const announcements = uiu.el(target, 'div', 'announcements_container');
+	// 	const heading = uiu.el(announcements, 'h3', {}, 'Freie Ansage');
+	// 	const form = uiu.el(announcements, 'form');
+	// 	uiu.el(form, 'textarea', {
+	// 		type: 'textarea',
+	// 		id: 'custom_announcement',
+	// 		name: 'custom_announcement',
+	// 		cols: '50',
+	// 		rows: '4',
+	// 		maxlength: '175'
+	// 	});
+	// 	const btp_fetch_btn = uiu.el(form, 'button', {
+	// 		'class': 'match_save_button',
+	// 		role: 'submit',
+	// 	}, 'Ansage abspielen');
+	// 	form_utils.onsubmit(form, function (d) {
+	// 		//announce([d.custom_announcement]);
+	// 		send({
+	// 			type: 'free_announce',
+	// 			tournament_key: curt.key,
+	// 			text: d.custom_announcement,
+	// 		}, function (err) {
+	// 			if (err) {
+	// 				return cerror.net(err);
+	// 			}
+	// 		});
+	// 	});
+	// }
+
 	function render_announcement_formular(target) {
 		const announcements = uiu.el(target, 'div', 'announcements_container');
-		const heading = uiu.el(announcements, 'h3', {}, 'Freie Ansage');
+		uiu.el(announcements, 'h3', {}, 'Freie Ansage');
+	
 		const form = uiu.el(announcements, 'form');
-		uiu.el(form, 'textarea', {
+	
+		const textarea = uiu.el(form, 'textarea', {
 			type: 'textarea',
 			id: 'custom_announcement',
 			name: 'custom_announcement',
@@ -369,16 +401,41 @@ var ctournament = (function() {
 			rows: '4',
 			maxlength: '175'
 		});
-		const btp_fetch_btn = uiu.el(form, 'button', {
-			'class': 'match_save_button',
-			role: 'submit',
-		}, 'Ansage abspielen');
+	
+		const btn_container = uiu.el(form, 'div', 'announcements_btn_container');
+
+		// Button: Lokal Abspielen
+		const local_btn = uiu.el(btn_container, 'button', {
+			type: 'button',
+			class: 'announce_button',
+			id: 'local_announce_btn'
+		}, 'Lokal Abspielen');
+	
+		// Button: Remote Abspielen
+		const remote_btn = uiu.el(btn_container, 'button', {
+			type: 'submit',
+			class: 'announce_button',
+			id: 'remote_announce_btn'
+		}, 'Remote Abspielen');
+	
+		// Lokales Abspielen (z. B. mit deiner announce-Funktion)
+		local_btn.addEventListener('click', function () {
+			const text = textarea.value.trim();
+			if (!text) return;
+	
+			// Lokale Ansage abspielen
+			announce([text], true);  // ← Diese Funktion muss bei dir lokal definiert sein
+		});
+	
+		// Remote Abspielen
 		form_utils.onsubmit(form, function (d) {
-			//announce([d.custom_announcement]);
+			const text = d.custom_announcement?.trim();
+			if (!text) return;
+	
 			send({
 				type: 'free_announce',
 				tournament_key: curt.key,
-				text: d.custom_announcement,
+				text: text,
 			}, function (err) {
 				if (err) {
 					return cerror.net(err);
@@ -387,26 +444,129 @@ var ctournament = (function() {
 		});
 	}
 
-	function render_enable_announcement(target) {
-		const announcements = uiu.el(target, 'div', 'enable_announcements_container');
-		const heading = uiu.el(announcements, 'h3', {}, 'Ansagen auf diesem Gerät');
-		const form = uiu.el(announcements, 'form');
-		const enable_announcements = uiu.el(form, 'input', {
-			type: 'checkbox',
-			id: 'enable_announcements',
-			name: 'enable_announcements'
+	// function render_enable_announcement(target) {
+	// 	const announcements = uiu.el(target, 'div', 'enable_announcements_container');
+	// 	const heading = uiu.el(announcements, 'h3', {}, 'Ansagen auf diesem Gerät');
+	// 	const form = uiu.el(announcements, 'form');
+	// 	const enable_announcements = uiu.el(form, 'input', {
+	// 		type: 'checkbox',
+	// 		id: 'enable_announcements',
+	// 		name: 'enable_announcements'
+	// 	});
+
+	// 	enable_announcements.checked = (window.localStorage.getItem('enable_announcements') === 'true');
+	// 	uiu.el(form, 'label', { for: 'enable_announcements' }, 'aktiv');
+	// 	enable_announcements.addEventListener('change', change_announcements);
+	// }
+
+	// function change_announcements(e) {
+	// 	let enable_announcements = document.getElementById('enable_announcements');
+	// 	window.localStorage.setItem('enable_announcements', enable_announcements.checked);
+	// }
+
+	function render_enable_announcements(target, locations) {
+		const container = uiu.el(target, 'div', 'enable_announcements_container');
+		uiu.el(container, 'h3', {}, 'Ansagen auf diesem Gerät');
+	
+		locations.forEach(loc => {
+			{
+				const form = uiu.el(container, 'form');
+		
+				const checkboxId = `enable_announcement_calls_${loc._id}`;
+				const checkbox = uiu.el(form, 'input', {
+					type: 'checkbox',
+					id: checkboxId,
+					name: checkboxId
+				});
+		
+				// Initialer Zustand aus localStorage
+				checkbox.checked = (window.localStorage.getItem(checkboxId) === 'true');
+		
+				// Label anzeigen mit dem Location-Namen
+				uiu.el(form, 'label', { for: checkboxId }, (loc.name || 'Unbenannte Location') + " (Spielaufruf)");
+		
+				// Event Listener zum Speichern in localStorage
+				checkbox.addEventListener('change', function () {
+					window.localStorage.setItem(checkboxId, checkbox.checked);
+				});
+			}
+			{
+				const form = uiu.el(container, 'form');
+		
+				const checkboxId = `enable_announcement_preperations_${loc._id}`;
+				const checkbox = uiu.el(form, 'input', {
+					type: 'checkbox',
+					id: checkboxId,
+					name: checkboxId
+				});
+		
+				// Initialer Zustand aus localStorage
+				checkbox.checked = (window.localStorage.getItem(checkboxId) === 'true');
+		
+				// Label anzeigen mit dem Location-Namen
+				uiu.el(form, 'label', { for: checkboxId }, (loc.name || 'Unbenannte Location') + " (in Vorbereitung)");
+		
+				// Event Listener zum Speichern in localStorage
+				checkbox.addEventListener('change', function () {
+					window.localStorage.setItem(checkboxId, checkbox.checked);
+				});
+			}
 		});
 
-		enable_announcements.checked = (window.localStorage.getItem('enable_announcements') === 'true');
-		uiu.el(form, 'label', { for: 'enable_announcements' }, 'aktiv');
-		enable_announcements.addEventListener('change', change_announcements);
+		{
+			const form = uiu.el(container, 'form');
+	
+			const checkboxId = 'enable_free_announcements';
+			const checkbox = uiu.el(form, 'input', {
+				type: 'checkbox',
+				id: checkboxId,
+				name: checkboxId
+			});
+	
+			// Initialer Zustand aus localStorage
+			checkbox.checked = (window.localStorage.getItem(checkboxId) === 'true');
+	
+			// Label anzeigen mit dem Location-Namen
+			uiu.el(form, 'label', { for: checkboxId }, 'Freie Remote Ansagen');
+	
+			// Event Listener zum Speichern in localStorage
+			checkbox.addEventListener('change', function () {
+				window.localStorage.setItem(checkboxId, checkbox.checked);
+			});
+		}
 	}
 
-	function change_announcements(e) {
-		let enable_announcements = document.getElementById('enable_announcements');
-		window.localStorage.setItem('enable_announcements', enable_announcements.checked);
+	function render_enable_location_courts(target, locations) {
+		const container = uiu.el(target, 'div', 'enable_announcements_container');
+		uiu.el(container, 'h3', {}, 'Zeige Felder');
+	
+		locations.forEach(loc => {
+			const form = uiu.el(container, 'form');
+	
+			const checkboxId = `show_location_courts_${loc._id}`;
+			const checkbox = uiu.el(form, 'input', {
+				type: 'checkbox',
+				id: checkboxId,
+				name: checkboxId
+			});
+	
+			// Initialer Zustand aus localStorage oder Default auf true
+			const storedValue = window.localStorage.getItem(checkboxId);
+			checkbox.checked = (storedValue === null) ? true : (storedValue === 'true');
+	
+			// Label anzeigen mit dem Location-Namen
+			uiu.el(form, 'label', { for: checkboxId }, loc.name + " ["+ loc.short_name +"]" || 'Unbenannte Location');
+	
+			// Event Listener zum Speichern in localStorage und Aufruf mit Parametern
+			checkbox.addEventListener('change', function () {
+				window.localStorage.setItem(checkboxId, checkbox.checked);
+				cmatch.update_tables(loc._id, checkbox.checked);
+			});
+	
+			// Gleich initial einmal aufrufen, damit der Sichtbarkeitszustand korrekt gesetzt ist
+			cmatch.update_tables(loc._id, checkbox.checked);
+		});
 	}
-
 	function ui_show() {
 		crouting.set('t/:key/', { key: curt.key });
 		const bup_lang = ((curt.language && curt.language !== 'auto') ? '&lang=' + encodeURIComponent(curt.language) : '');
@@ -444,10 +604,14 @@ var ctournament = (function() {
 		uiu.el(meta_div, 'div', 'umpire_container');
 		render_announcement_formular(meta_div);
 
+
+		render_enable_announcements(meta_div, curt.locations);
+
+
 		const meta_right_div = uiu.el(meta_div, 'div', 'metadata_right_container');
 
-		render_enable_announcement(meta_right_div);
-
+		render_enable_location_courts(meta_right_div, curt.locations);
+		
 		render_settings(meta_right_div);
 		
 		cmatch.prepare_render(curt);
@@ -556,11 +720,12 @@ var ctournament = (function() {
 				type: 'tournament_upload_logo',
 				tournament_key: curt.key,
 				data_url: reader.result,
+				name: e.target.files[0].name,
 			}, (err) => {
 				if (err) {
 					return cerror.net(err);
-				}
-				input.closest('form').reset();
+				}`
+				input.closest('form').reset();`
 			});
 		};
 		reader.onerror = (e) => {
@@ -913,68 +1078,7 @@ var ctournament = (function() {
 			const devices_div = uiu.el(form, 'div', 'settings');
 			uiu.el(devices_div, 'h2', 'edit', ci18n('tournament:edit:devices'));
 			
-			uiu.el(devices_div, 'h3', 'edit', ci18n('tournament:edit:logo'));
-			const logo_preview_container = uiu.el(devices_div, 'div', {
-				style: (
-					'position:relative;text-align:center;' +
-					'height: 432px; width: 768px; font-size: 70px;' +
-					'background:' + (curt.logo_background_color || '#000000') + ';' +
-					'color:' + (curt.logo_foreground_color || '#aaaaaa') + ';'
-				),
-			});
-			if (curt.logo_id) {
-				uiu.el(logo_preview_container, 'img', {
-					style: 'height: 320px;',
-					src: '/h/' + encodeURIComponent(curt.key) + '/logo/' + curt.logo_id,
-				});
-				uiu.el(logo_preview_container, 'div', {}, 'Court 42');
-			}
-
-			const logo_form = uiu.el(devices_div, 'form');
-			const logo_button = uiu.el(logo_form, 'input', {
-				type: 'file',
-				accept: 'image/*',
-			});
-			logo_button.addEventListener('change', _upload_logo);
-			const logo_colors_container = uiu.el(logo_form, 'div', { style: 'display: block' });
-			const bg_col_label = uiu.el(logo_colors_container, 'label', {}, ci18n('tournament:edit:logo:background'));
-			const logo_background_color_input = uiu.el(bg_col_label, 'input', {
-				type: 'color',
-				name: 'logo_background_color',
-				value: curt.logo_background_color || '#000000',
-			});
-			logo_background_color_input.addEventListener('change', (e) => {
-				send({
-					type: 'tournament_edit_props',
-					key: curt.key,
-					props: {
-						logo_background_color: e.target.value,
-					},
-				}, function (err) {
-					if (err) {
-						return cerror.net(err);
-					}
-				});
-			});
-			const fg_col_label = uiu.el(logo_colors_container, 'label', {}, ci18n('tournament:edit:logo:foreground'));
-			const fg_col_input = uiu.el(fg_col_label, 'input', {
-				type: 'color',
-				name: 'logo_foreground_color',
-				value: curt.logo_foreground_color || '#aaaaaa',
-			});
-			fg_col_input.addEventListener('change', (e) => {
-				send({
-					type: 'tournament_edit_props',
-					key: curt.key,
-					props: {
-						logo_foreground_color: e.target.value,
-					},
-				}, function (err) {
-					if (err) {
-						return cerror.net(err);
-					}
-				});
-			});
+			render_logo_preview(devices_div);
 
 			const default_display_fieldset = uiu.el(devices_div, 'fieldset');
 			// Default display
@@ -1019,7 +1123,7 @@ var ctournament = (function() {
 		// location-div##################################################################################
 		{
 			const location_div = uiu.el(form, 'div', 'settings');
-			uiu.el(location_div, 'h2', 'edit', ci18n('tournament:edit:location'));
+			render_locations(location_div);
 			render_courts(location_div);
 		}
 
@@ -1085,65 +1189,6 @@ var ctournament = (function() {
 					ui_show();
 				});
 			});
-			
-				
-				
-			/*	
-				() => {
-				const props = {
-					name : input.name.value,
-					tguid: input.tguid.value,
-					language: input.language.value,
-					is_team: input.is_team.checked,
-					is_nation_competition: input.is_nation_competition.checked,
-					btp_enabled: input.btp_enabled.checked,
-					btp_autofetch_enabled: input.btp_autofetch_enabled.checked,
-					btp_readonly: input.btp_readonly.checked,
-					btp_ip: input.btp_ip.value,
-					btp_password: input.btp_password.value,
-					btp_timezone: input.btp_timezone.value,
-					btp_autofetch_timeout_intervall: input.btp_autofetch_timeout_intervall.value,
-					dm_style: input.dm_style.value,
-					displaysettings_general: input.displaysettings_general.value,
-					warmup: input.warmup.value,
-					warmup_ready: input.warmup_ready.value,
-					warmup_start: input.warmup_start.value,
-					ticker_enabled: input.ticker_enabled.checked,
-					ticker_url: input.ticker_url.value,
-					ticker_password: input.ticker_password.value,
-					tabletoperator_enabled: input.tabletoperator_enabled.checked,
-					tabletoperator_with_umpire_enabled: input.tabletoperator_with_umpire_enabled.checked,
-					tabletoperator_winner_of_quaterfinals_enabled: input.tabletoperator_winner_of_quaterfinals_enabled.checked,
-					tabletoperator_split_doubles: input.tabletoperator_split_doubles.checked,
-					tabletoperator_with_state_enabled: input.tabletoperator_with_state_enabled.checked,
-					tabletoperator_with_state_from_match_enabled: input.tabletoperator_with_state_from_match_enabled.checked,
-					tabletoperator_set_break_after_tabletservice: input.tabletoperator_set_break_after_tabletservice.checked,
-					tabletoperator_use_manual_counting_boards_enabled: input.tabletoperator_use_manual_counting_boards_enabled.checked,
-					tabletoperator_break_seconds: input.tabletoperator_break_seconds.value,
-					annoncement_include_event: input.annoncement_include_event.checked,
-					annoncement_include_round: input.annoncement_include_round.checked,
-					annoncement_include_matchnumber: input.annoncement_include_matchnumber.checkt,
-					announcement_speed: input.announcement_speed.value,
-					announcement_pause_time_ms: input.announcement_pause_time_ms.value,
-					preparation_meetingpoint_enabled: input.preparation_meetingpoint_enabled.checked,
-					preparation_tabletoperator_setup_enabled: input.preparation_tabletoperator_setup_enabled.checked,
-					call_preparation_matches_automatically_enabled: input.call_preparation_matches_automatically_enabled.checked,
-					call_next_possible_scheduled_match_in_preparation: input.call_next_possible_scheduled_match_in_preparation.checked
-				}
-
-				send({
-					type: 'tournament_edit_props',
-					key: curt.key,
-					props: props,
-				}, function (err) {
-					if (err) {
-						return cerror.net(err);
-					}
-					ui_show();
-				});
-
-			});
-			*/
 		}		
 	}
 	_route_single(/t\/([a-z0-9]+)\/edit$/, ui_edit, change.default_handler(_update_all_ui_elements_edit, {
@@ -1151,8 +1196,6 @@ var ctournament = (function() {
 	}));
 
 	function send_props(input, callback) {
-		console.log("send_props()");
-		
 		const props = {
 			name : input.name.value,
 			tguid: input.tguid.value,
@@ -1219,7 +1262,27 @@ var ctournament = (function() {
 		const tr_input = uiu.el(display_tbody, 'tr');
 		create_undecorated_input("text", uiu.el(tr_input, 'td', {}), 'normalizations_origin');
 		create_undecorated_input("text", uiu.el(tr_input, 'td', {}), 'normalizations_replace');
-		create_undecorated_input("text", uiu.el(tr_input, 'td', {}), 'normalizations_language');
+
+		// Tournament language selection
+		const language_td = uiu.el(tr_input, 'td');
+		const language_select = uiu.el(language_td, 'select', {
+		 	name: 'language',
+		 	required: 'required',
+			name: 'normalizations_language',
+			id: 'normalizations_language',
+		});
+		const all_langs = ci18n.get_all_languages();
+		for (const l of all_langs) {
+			const l_attrs = {
+		 		value: l['announcements:lang'],
+		 	};
+		 	if (l._code === curt.language) {
+		 		l_attrs.selected = 'selected';
+		 	}
+		 	uiu.el(language_select, 'option', l_attrs, l._name);
+		}
+
+		//create_undecorated_input("text", uiu.el(tr_input, 'td', {}), 'normalizations_language');
 		const actions_td = uiu.el(tr_input, 'td', {});
 		const add_btn = uiu.el(actions_td, 'button', {}, ci18n('tournament:edit:add'));
 		add_btn.addEventListener('click', function (e) {
@@ -1363,50 +1426,168 @@ var ctournament = (function() {
 		}
 	}
 
+	function render_logo_preview(main) {
+		uiu.el(main, 'h3', 'edit', ci18n('tournament:edit:logo'));
+		const logo_preview_container = uiu.el(main, 'div', {
+			style: (
+				'position:relative;text-align:center;' +
+				'height: 432px; width: 768px; font-size: 70px;' +
+				'background:' + (curt.logo_background_color || '#000000') + ';' +
+				'color:' + (curt.logo_foreground_color || '#aaaaaa') + ';'
+			),
+			name: "logo_preview",
+		});
+		if (curt.logo_id) {
+			uiu.el(logo_preview_container, 'img', {
+				style: 'height: 320px;',
+				src: '/h/' + encodeURIComponent(curt.key) + '/logo/' + curt.logo_id,
+				name: 'logo_preview_img'
+			});
+		}
+		uiu.el(logo_preview_container, 'div', {}, 'Court 42');
+
+		const logo_form = uiu.el(main, 'form', 'logo_form');
+		const logo_button_id = 'logo_upload_input';
+
+		const custom_label = uiu.el(logo_form, 'label', {
+			for: logo_button_id,
+			style: (
+				'display:inline-block;padding:3px 8px;cursor:pointer; border:1px solid;' +
+				'background:#eeeeee;color:black;border-radius:4px;margin:10px;'
+			),
+		}, 'Logo auswählen');
+
+		const filename_display = uiu.el(logo_form, 'span', {
+			id: 'upload_filename',
+			style: 'font-style: italic; color: #555;',
+		}, curt.logo_name ? curt.logo_name : 'Noch keine Datei ausgewählt');
+
+		const logo_button = uiu.el(logo_form, 'input', {
+			id: logo_button_id,
+			type: 'file',
+			accept: 'image/*',
+			style: 'display:none;',
+		});
+		logo_button.addEventListener('change', (e) => {
+			_upload_logo(e);
+		});
+		const logo_colors_container = uiu.el(logo_form, 'div', { style: 'display: block' });
+		const bg_col_label = uiu.el(logo_colors_container, 'label', {}, ci18n('tournament:edit:logo:background'));
+		const logo_background_color_input = uiu.el(bg_col_label, 'input', {
+			type: 'color',
+			name: 'logo_background_color',
+			value: curt.logo_background_color || '#000000',
+		});
+		logo_background_color_input.addEventListener('input', (e) => {
+			send({
+				type: 'tournament_edit_logo',
+				key: curt.key,
+				props: {
+					logo_background_color: e.target.value,
+				},
+			}, function (err) {
+				if (err) {
+					return cerror.net(err);
+				}
+			});
+		});
+		const fg_col_label = uiu.el(logo_colors_container, 'label', {}, ci18n('tournament:edit:logo:foreground'));
+		const fg_col_input = uiu.el(fg_col_label, 'input', {
+			type: 'color',
+			name: 'logo_foreground_color',
+			value: curt.logo_foreground_color || '#aaaaaa',
+		});
+		fg_col_input.addEventListener('input', (e) => {
+			send({
+				type: 'tournament_edit_logo',
+				key: curt.key,
+				props: {
+					logo_foreground_color: e.target.value,
+				},
+			}, function (err) {
+				if (err) {
+					return cerror.net(err);
+				}
+			});
+		});
+	}
+
+	function update_logo() {
+		switch (get_admin_subpage()){
+			case 'edit':
+				const logo_preview_container = document.querySelector('[name="logo_preview"]');
+				logo_preview_container.style.background = curt.logo_background_color;
+				logo_preview_container.style.color = curt.logo_foreground_color;
+				let logo_background_color_input = document.querySelector('[name="logo_background_color"]');
+				logo_background_color_input.value = curt.logo_background_color;
+				let fg_col_input = document.querySelector('[name="logo_foreground_color"]');
+				fg_col_input.value = curt.logo_foreground_color;
+				const logo_preview_img = logo_preview_container.querySelector('[name="logo_preview_img"]');
+				logo_preview_img.setAttribute('src', '/h/' + encodeURIComponent(curt.key) + '/logo/' + curt.logo_id);
+				const filename_display = document.querySelector('#upload_filename');
+				filename_display.textContent = curt.logo_name ? curt.logo_name : 'Noch keine Datei ausgewählt';
+				break;
+			default:
+				break;
+		}
+		return;
+	}
+
 	function render_general_displaysettings(main) {
+		let used_configs = new Set();
+		curt.displays.forEach((d) => {
+			used_configs.add(d.displaysetting_id);
+		});
+		
 		uiu.el(main, 'h3',  'edit', ci18n('tournament:edit:general_displaysettings'));
 		const display_settings_table = uiu.el(main, 'table');
 		const display_settings_tbody = uiu.el(display_settings_table, 'tbody');
 		const tr = uiu.el(display_settings_tbody, 'tr');
 		uiu.el(tr, 'th', {}, ci18n('tournament:edit:displays:setting'));
-		uiu.el(tr, 'td', {}, ci18n('tournament:edit:displays:description'));
+		uiu.el(tr, 'th', {}, ci18n('tournament:edit:displays:description'));
+		uiu.el(tr, 'th', {}, "");
 
 		for (const s of curt.displaysettings) {
-			const tr = uiu.el(display_settings_tbody, 'tr');
-			uiu.el(tr, 'th', {}, s.description ||s.id);
-			const description_td = uiu.el(tr, 'td', {}, s.devicemode + (s.devicemode == 'display' ? ' (' + s.displaymode_style + ')' : ''));
-			const actions_td = uiu.el(tr, 'td', {});
-			const edit_btn = uiu.el(actions_td, 'button', {
-				'data-display_setting_id': s.id,
-			}, 'Edit');
-
-			edit_btn.addEventListener('click', (e) => {				
-				on_edit_display_setting_button_click(e);
-			});
-
-
-			const delete_btn = uiu.el(actions_td, 'button', {
-				'data-display-setting-id': s.id,
-			}, 'Delete');
-
-
-
-			delete_btn.addEventListener('click', (e) => {
-				const del_btn = e.target;
-				const setting_id = del_btn.getAttribute('data-display-setting-id');
-
-				send({
-					type: 'delete_display_setting',
-					tournament_key: curt.key,
-					setting_id: setting_id,
-				}, err => {
-					if (err) {
-						return cerror.net(err);
-					}
-				});
-			});
-
+			const tr = uiu.el(display_settings_tbody, 'tr', { 'data-displaysetting_id': s.id });
+			render_general_displaysetting_line(tr, s, used_configs);
 		}
+	}
+
+	function render_general_displaysetting_line(parrent, s, used_configs) {		
+		uiu.el(parrent, 'th', {}, s.description ||s.id);
+		const description_td = uiu.el(parrent, 'td', {}, s.devicemode + (s.devicemode == 'display' ? ' (' + s.displaymode_style + ')' : ''));
+		const actions_td = uiu.el(parrent, 'td', {});
+		const edit_btn = uiu.el(actions_td, 'button', {
+			'data-display_setting_id': s.id,
+		}, 'Edit');
+
+		edit_btn.addEventListener('click', (e) => {				
+			on_edit_display_setting_button_click(e);
+		});
+
+
+		const delete_btn = uiu.el(actions_td, 'button', {
+			'data-display-setting-id': s.id,
+		}, 'Delete');
+
+		if (used_configs.has(s.id)) {
+			delete_btn.setAttribute('disabled', 'disabled');
+		}
+
+		delete_btn.addEventListener('click', (e) => {
+			const del_btn = e.target;
+			const setting_id = del_btn.getAttribute('data-display-setting-id');
+
+			send({
+				type: 'delete_display_setting',
+				tournament_key: curt.key,
+				setting_id: setting_id,
+			}, err => {
+				if (err) {
+					return cerror.net(err);
+				}
+			});
+		});
 	}
 
 	function _cancel_ui_edit_display_setting() {
@@ -1417,22 +1598,17 @@ var ctournament = (function() {
 		cbts_utils.esc_stack_pop();
 		uiu.remove(dlg);
 	
-		crouting.set('t/:key/edit/', { key: curt.key });
+		ui_edit();
 	}
 
 	function on_edit_display_setting_button_click(e) {
 		const btn = e.target;
 		const display_setting_id = btn.getAttribute('data-display_setting_id');
-		console.log(display_setting_id);
 		ui_edit_display_setting(display_setting_id);
 	}
 
 	function ui_edit_display_setting(display_setting_id) {
-		console.log(display_setting_id);
-		console.log(curt);
 		const display_setting = structuredClone(utils.find(curt.displaysettings, d => d.id === display_setting_id));
-		console.log(display_setting);
-
 		crouting.set('t/' + curt.key + '/edit/s/' + display_setting_id, {}, _cancel_ui_edit_display_setting);
 
 		cbts_utils.esc_stack_push(_cancel_ui_edit_display_setting);
@@ -1463,9 +1639,7 @@ var ctournament = (function() {
 		}, ci18n('Change'));
 
 		form_utils.onsubmit(form, function(d) {
-			console.log(d);
 			const displaysetting = create_displaysettings_object(d);
-			console.log(displaysetting);
 
 			send({
 				type: 'edit_display_setting',
@@ -1475,7 +1649,6 @@ var ctournament = (function() {
 				if (err) {
 					return cerror.net(err);
 				}
-				console.log("call _cancel_ui_edit_display_setting()");
 				_cancel_ui_edit_display_setting();
 			});
 		});
@@ -1494,7 +1667,6 @@ var ctournament = (function() {
 	}));
 
 	function render_edit_display_setting(form, display_setting) {
-	
 		const edit_display_setting_container = uiu.el(form, 'div', 'edit_display_setting_container');
 		const id_div = uiu.el(edit_display_setting_container, 'div');
 		uiu.el(id_div, 'span', 'display_setting_id', ci18n('display_setting:id'));
@@ -1524,40 +1696,51 @@ var ctournament = (function() {
 			'umpire',
 			'display'
 		];
-		render_drop_down(edit_display_setting_container, ci18n('display_setting:devicemode'), 'devicemode', ALL_DEVICE_MODES, display_setting.devicemode || '');
-		render_drop_down(edit_display_setting_container, ci18n('display_setting:style'), 'displaymode_style', displaymode.ALL_STYLES, display_setting.displaymode_style || '');
-		render_check_box(edit_display_setting_container, ci18n('display_setting:show_pause'), 'd_show_pause', display_setting.d_show_pause);
-		render_check_box(edit_display_setting_container, ci18n('display_setting:show_court_number'), 'd_show_court_number', display_setting.d_show_court_number);
-		render_check_box(edit_display_setting_container, ci18n('display_setting:show_competition'), 'd_show_competition', display_setting.d_show_competition);
-		render_check_box(edit_display_setting_container, ci18n('display_setting:show_round'), 'd_show_round', display_setting.d_show_round);
-		render_check_box(edit_display_setting_container, ci18n('display_setting:show_middle_name'), 'd_show_middle_name', display_setting.d_show_middle_name);
-		render_check_box(edit_display_setting_container, ci18n('display_setting:show_doubles_receiving'), 'd_show_doubles_receiving', display_setting.d_show_doubles_receiving);
+
+
+		const calculated_style = (display_setting.devicemode === 'umpire' ? 'umpire' : display_setting.displaymode_style);
+
+
+		render_drop_down(edit_display_setting_container, ci18n('display_setting:devicemode'), 'devicemode', true, ALL_DEVICE_MODES, display_setting.devicemode || '');
+		const displaystyle_select = render_drop_down(edit_display_setting_container, ci18n('display_setting:style'), 'displaymode_style', (display_setting.devicemode === 'umpire' ? 'umpire' : true), displaymode.ALL_STYLES, display_setting.displaymode_style || '');
+		
+		displaystyle_select.addEventListener('change', (e) => {
+			const style = e.target;
+			update_edit_display_setting(style.value);
+		});
+		
+		render_check_box(edit_display_setting_container, ci18n('display_setting:show_pause'), 'show_pause', calculated_style, display_setting.d_show_pause);
+		render_check_box(edit_display_setting_container, ci18n('display_setting:show_court_number'), 'show_court_number', calculated_style, display_setting.d_show_court_number);
+		render_check_box(edit_display_setting_container, ci18n('display_setting:show_competition'), 'show_competition', calculated_style, display_setting.d_show_competition);
+		render_check_box(edit_display_setting_container, ci18n('display_setting:show_round'), 'show_round', calculated_style, display_setting.d_show_round);
+		render_check_box(edit_display_setting_container, ci18n('display_setting:show_middle_name'), 'show_middle_name', calculated_style, display_setting.d_show_middle_name);
+		render_check_box(edit_display_setting_container, ci18n('display_setting:show_doubles_receiving'), 'show_doubles_receiving', calculated_style, display_setting.d_show_doubles_receiving);
 		
 		const select_color_div = uiu.el(edit_display_setting_container, 'div', { style: 'display: block' });
 		const select_color_label = uiu.el(select_color_div, 'label', {}, ci18n('display_setting:colors'));
-		render_select_color(select_color_label, 'd_c0', display_setting.d_c0);
-		render_select_color(select_color_label, 'd_c1', display_setting.d_c1);
-		render_select_color(select_color_label, 'd_cb0', display_setting.d_cb0);
-		render_select_color(select_color_label, 'd_cb1', display_setting.d_cb1);
-		render_select_color(select_color_label, 'd_cbg', display_setting.d_cbg);
-		render_select_color(select_color_label, 'd_cbg2', display_setting.d_cbg2);
-		render_select_color(select_color_label, 'd_cbg3', display_setting.d_cbg3);
-		render_select_color(select_color_label, 'd_cbg4', display_setting.d_cbg4);
-		render_select_color(select_color_label, 'd_cfg', display_setting.d_cfg);
-		render_select_color(select_color_label, 'd_cfg2', display_setting.d_cfg2);
-		render_select_color(select_color_label, 'd_cfg3', display_setting.d_cfg3);
-		render_select_color(select_color_label, 'd_cfg4', display_setting.d_cfg4);
-		render_select_color(select_color_label, 'd_cfgdark', display_setting.d_cfgdark);
-		render_select_color(select_color_label, 'd_cexpt', display_setting.d_cexpt);
-		render_select_color(select_color_label, 'd_ct', display_setting.d_ct);
-		render_select_color(select_color_label, 'd_cborder', display_setting.d_cborder);
-		render_select_color(select_color_label, 'd_cserv', display_setting.d_cserv);
-		render_select_color(select_color_label, 'd_cserv2', display_setting.d_cserv2);
-		render_select_color(select_color_label, 'd_crecv', display_setting.d_crecv);
-		render_select_color(select_color_label, 'd_ctim_blue', display_setting.d_ctim_blue);
-		render_select_color(select_color_label, 'd_ctim_active', display_setting.d_ctim_active);
-		render_check_box(edit_display_setting_container, ci18n('display_setting:use_team_colors'), 'd_team_colors', display_setting.d_team_colors);
-		render_select_number(edit_display_setting_container, ci18n('display_setting:scale'), 'd_scale', display_setting.d_scale, 20, 500);
+		render_select_color(select_color_label, 'c0', calculated_style, display_setting.d_c0);
+		render_select_color(select_color_label, 'c1', calculated_style, display_setting.d_c1);
+		render_select_color(select_color_label, 'cb0', calculated_style, display_setting.d_cb0);
+		render_select_color(select_color_label, 'cb1', calculated_style, display_setting.d_cb1);
+		render_select_color(select_color_label, 'cbg', calculated_style, display_setting.d_cbg);
+		render_select_color(select_color_label, 'cbg2', calculated_style, display_setting.d_cbg2);
+		render_select_color(select_color_label, 'cbg3', calculated_style, display_setting.d_cbg3);
+		render_select_color(select_color_label, 'cbg4', calculated_style, display_setting.d_cbg4);
+		render_select_color(select_color_label, 'cfg', calculated_style, display_setting.d_cfg);
+		render_select_color(select_color_label, 'cfg2', calculated_style, display_setting.d_cfg2);
+		render_select_color(select_color_label, 'cfg3', calculated_style, display_setting.d_cfg3);
+		render_select_color(select_color_label, 'cfg4', calculated_style, display_setting.d_cfg4);
+		render_select_color(select_color_label, 'cfgdark', calculated_style, display_setting.d_cfgdark);
+		render_select_color(select_color_label, 'cexp', calculated_style, display_setting.d_cexp);
+		render_select_color(select_color_label, 'ct', calculated_style, display_setting.d_ct);
+		render_select_color(select_color_label, 'cborder', calculated_style, display_setting.d_cborder);
+		render_select_color(select_color_label, 'cserv', calculated_style, display_setting.d_cserv);
+		render_select_color(select_color_label, 'cserv2', calculated_style, display_setting.d_cserv2);
+		render_select_color(select_color_label, 'crecv', calculated_style, display_setting.d_crecv);
+		render_select_color(select_color_label, 'ctim_blue', calculated_style, display_setting.d_ctim_blue);
+		render_select_color(select_color_label, 'ctim_active', calculated_style, display_setting.d_ctim_active);
+		render_check_box(edit_display_setting_container, ci18n('display_setting:use_team_colors'), 'team_colors', calculated_style, display_setting.d_team_colors);
+		render_select_number(edit_display_setting_container, ci18n('display_setting:scale'), 'scale', calculated_style, display_setting.d_scale, 20, 500);
 
 		const ALL_BUP_LANGUAGES = [
 			ci18n('display_setting:language_automatic'),
@@ -1588,7 +1771,7 @@ var ctournament = (function() {
 		// 	}
 		// }
 
-		render_drop_down(edit_display_setting_container, ci18n('display_setting:language'), 'language', SHORT_BUP_LANGUAGES, display_setting.language, ALL_BUP_LANGUAGES);
+		render_drop_down(edit_display_setting_container, ci18n('display_setting:language'), 'language', true, SHORT_BUP_LANGUAGES, display_setting.language, ALL_BUP_LANGUAGES);
 
 
 		const ALL_ASK_FULLSCREAN_MODES = [
@@ -1596,7 +1779,7 @@ var ctournament = (function() {
 			'auto',
 			'never',
 		];
-		render_drop_down(edit_display_setting_container, ci18n('display_setting:fullscreen_ask'), 'fullscreen_ask', ALL_ASK_FULLSCREAN_MODES, display_setting.fullscreen_ask || '');
+		render_drop_down(edit_display_setting_container, ci18n('display_setting:fullscreen_ask'), 'fullscreen_ask', true, ALL_ASK_FULLSCREAN_MODES, display_setting.fullscreen_ask || '');
 
 
 		const ALL_ANNOUNCEMENT_MODES = [
@@ -1604,14 +1787,13 @@ var ctournament = (function() {
 			'all',
 			'except-first',
 		];
-		render_drop_down(edit_display_setting_container, ci18n('display_setting:show_announcements'), 'show_announcements', ALL_ANNOUNCEMENT_MODES, display_setting.show_announcements || '');
+		render_drop_down(edit_display_setting_container, ci18n('display_setting:show_announcements'), 'show_announcements', calculated_style, ALL_ANNOUNCEMENT_MODES, display_setting.show_announcements || '');
 
-		render_select_number(edit_display_setting_container, ci18n('display_setting:scale'), 'd_scale', display_setting.d_scale, 20, 500);
-		render_select_number(edit_display_setting_container, ci18n('display_setting:button_block_timeout'), 'button_block_timeout', display_setting.button_block_timeout, 0, 5000);
+		render_select_number(edit_display_setting_container, ci18n('display_setting:button_block_timeout'), 'button_block_timeout', calculated_style, display_setting.button_block_timeout, 0, 5000);
 		
-		render_check_box(edit_display_setting_container, ci18n('display_setting:negative_timers'), 'negative_timers', display_setting.negative_timers);
-		render_check_box(edit_display_setting_container, ci18n('display_setting:shuttle_counter'), 'shuttle_counter', display_setting.shuttle_counter);
-		render_check_box(edit_display_setting_container, ci18n('display_setting:editmode_doubleclick'), 'editmode_doubleclick', display_setting.editmode_doubleclick);
+		render_check_box(edit_display_setting_container, ci18n('display_setting:negative_timers'), 'negative_timers', calculated_style, display_setting.negative_timers);
+		render_check_box(edit_display_setting_container, ci18n('display_setting:shuttle_counter'), 'shuttle_counter', calculated_style, display_setting.shuttle_counter);
+		render_check_box(edit_display_setting_container, ci18n('display_setting:editmode_doubleclick'), 'editmode_doubleclick', calculated_style, display_setting.editmode_doubleclick);
 
 		const ALL_CLICK_MODES = [
 			'auto',
@@ -1619,7 +1801,7 @@ var ctournament = (function() {
 			'touchstart',
 			'touchend',
 		];
-		render_drop_down(edit_display_setting_container, ci18n('display_setting:click_mode'), 'click_mode', ALL_CLICK_MODES, display_setting.click_mode || '');
+		render_drop_down(edit_display_setting_container, ci18n('display_setting:click_mode'), 'click_mode', calculated_style, ALL_CLICK_MODES, display_setting.click_mode || '');
 		
 		const ALL_STYLE_MODES = [
 			'default',
@@ -1628,17 +1810,18 @@ var ctournament = (function() {
 			'focus',
 			'hidden',
 		];
-		render_drop_down(edit_display_setting_container, ci18n('display_setting:settings_style'), 'style', ALL_STYLE_MODES, display_setting.settings_style || '');
-		render_select_number(edit_display_setting_container, ci18n('display_setting:network_timeout'), 'network_timeout', display_setting.network_timeout, 1, 600000);
-		render_select_number(edit_display_setting_container, ci18n('display_setting:network_update_interval'), 'network_update_interval', display_setting.network_update_interval, 1, 600000);
+
+		render_drop_down(edit_display_setting_container, ci18n('display_setting:settings_style'), 'style', calculated_style, ALL_STYLE_MODES, display_setting.style || '');
+		render_select_number(edit_display_setting_container, ci18n('display_setting:network_timeout'), 'network_timeout', true, display_setting.network_timeout, 1, 600000);
+		render_select_number(edit_display_setting_container, ci18n('display_setting:network_update_interval'), 'network_update_interval', true, display_setting.network_update_interval, 1, 600000);
 	}
 
-	function render_drop_down(container, label_text, select_name, values, curval, labels) {
+	function render_drop_down(container, label_text, select_name, displaystyle, values, curval, labels) {
 		if(!labels) {
 			labels = values;
 		}
 		
-		const div = uiu.el(container, 'div');
+		const div = uiu.el(container, 'div', {field_name: select_name});
 		uiu.el(div, 'span', 'label', label_text);
 		const select = uiu.el(div, 'select', {
 			name: select_name,
@@ -1655,10 +1838,14 @@ var ctournament = (function() {
 			}
 			uiu.el(select, 'option', attrs, s);
 		}
+
+		uiu.visible(div, (displaystyle === true || displaymode.option_applies(displaystyle, select_name)));
+
+		return select;
 	}
 
-	function render_check_box(container, label_text, checkbox_name, is_checked) {
-		const div = uiu.el(container, 'div');
+	function render_check_box(container, label_text, checkbox_name, displaystyle, is_checked) {
+		const div = uiu.el(container, 'div', {field_name: checkbox_name});
 		const label = uiu.el(div, 'label');
 		const attrs = {
 			type: 'checkbox',
@@ -1671,26 +1858,34 @@ var ctournament = (function() {
 
 		uiu.el(label, 'input', attrs);
 		uiu.el(label, 'span', 'display_setting_label', label_text);
+
+		uiu.visible(div, (displaystyle === true || displaymode.option_applies(displaystyle, checkbox_name)));
 	}
 
-	function render_select_color(container, field_name, value) {
+	function render_select_color(container, field_name, displaystyle, value) {
 		const input = uiu.el(container, 'input', {
 			type: 'color',
 			name: field_name,
+			title: field_name,
+			field_name: field_name,
 			value: value || '#000000',
 		});
+
+		uiu.visible(input, (displaystyle === true ||displaymode.option_applies(displaystyle, field_name)));
 	}
 
-	function render_select_number(container, label_text, input_name, value, min_value, max_value) {
-		const div = uiu.el(container, 'div');
+	function render_select_number(container, label_text, input_name, displaystyle, value, min_value, max_value) {
+		const div = uiu.el(container, 'div', {field_name: input_name});
 		const label = uiu.el(div, 'span', 'label', label_text);
-		uiu.el(label, 'input', {
+		uiu.el(div, 'input', {
 			type: 'number',
 			name: input_name,
 			min: min_value || 0,
 			max: max_value || 0,
 			value: value || 0,
 		});
+
+		uiu.visible(div, (displaystyle === true ||displaymode.option_applies(displaystyle, input_name)));
 	} 
 
 	function create_displaysettings_object(d) {
@@ -1699,35 +1894,35 @@ var ctournament = (function() {
 			description: d.display_setting_description || '',
 			devicemode: d.devicemode || 'display',
 			displaymode_style: d.displaymode_style || 'tournamentcourt',
-			d_show_pause: d.d_show_pause == 'on' ? true : false,
-			d_show_court_number: d.d_show_court_number == 'on' ? true : false,
-			d_show_competition: d.d_show_competition == 'on' ? true : false,
-			d_show_round: d.d_show_round == 'on' ? true : false,
-			d_show_middle_name: d.d_show_middle_name == 'on' ? true : false,
-			d_show_doubles_receiving: d.d_show_doubles_receiving == 'on' ? true : false,
-			d_c0: d.d_c0 || '#50e87d',
-			d_c1: d.d_c1 || '#f76a23',
-			d_cb0: d.d_cb0 || '#000000',
-			d_cb1: d.d_cb1 || '#000000',
-			d_cbg: d.d_cbg || '#000000',
-			d_cbg2: d.d_cbg2 || '#d9d9d9',
-			d_cbg3: d.d_cbg3 || '#252525',
-			d_cbg4: d.d_cbg4 || '#404040',
-			d_cfg: d.d_cfg || '#ffffff',
-			d_cfg2: d.d_cfg2 || '#aaaaaa',
-			d_cfg3: d.d_cfg3 || '#cccccc',
-			d_cfg4: d.d_cfg4 || '#000000',
-			d_cfgdark: d.d_cfgdark || '#000000',
-			d_cexpt: d.d_cexpt || '#000000',
-			d_ct: d.d_ct || '#80ff00',
-			d_cborder: d.d_cborder || '#444444',
-			d_cserv: d.d_cserv || '#fff200',
-			d_cserv2: d.d_cserv2 || '#dba766',
-			d_crecv: d.d_crecv || '#707676',
-			d_ctim_blue: d.d_ctim_blue || '#0070c0',
-			d_ctim_active: d.d_ctim_active || '#ffc000',
-			d_team_colors: d.d_team_colors == 'on' ? true : false,
-			d_scale: d.d_scale || '100',
+			d_show_pause: d.show_pause == 'on' ? true : false,
+			d_show_court_number: d.show_court_number == 'on' ? true : false,
+			d_show_competition: d.show_competition == 'on' ? true : false,
+			d_show_round: d.show_round == 'on' ? true : false,
+			d_show_middle_name: d.show_middle_name == 'on' ? true : false,
+			d_show_doubles_receiving: d.show_doubles_receiving == 'on' ? true : false,
+			d_c0: d.c0 || '#50e87d',
+			d_c1: d.c1 || '#f76a23',
+			d_cb0: d.cb0 || '#000000',
+			d_cb1: d.cb1 || '#000000',
+			d_cbg: d.cbg || '#000000',
+			d_cbg2: d.cbg2 || '#d9d9d9',
+			d_cbg3: d.cbg3 || '#252525',
+			d_cbg4: d.cbg4 || '#404040',
+			d_cfg: d.cfg || '#ffffff',
+			d_cfg2: d.cfg2 || '#aaaaaa',
+			d_cfg3: d.cfg3 || '#cccccc',
+			d_cfg4: d.cfg4 || '#000000',
+			d_cfgdark: d.cfgdark || '#000000',
+			d_cexp: d.cexp || '#000000',
+			d_ct: d.ct || '#80ff00',
+			d_cborder: d.cborder || '#444444',
+			d_cserv: d.cserv || '#fff200',
+			d_cserv2: d.cserv2 || '#dba766',
+			d_crecv: d.crecv || '#707676',
+			d_ctim_blue: d.ctim_blue || '#0070c0',
+			d_ctim_active: d.ctim_active || '#ffc000',
+			d_team_colors: d.team_colors == 'on' ? true : false,
+			d_scale: d.scale || '100',
 			fullscreen_ask: d.fullscreen_ask || 'auto',
 			show_announcements: d.show_announcements || 'all', 
 			button_block_timeout: d.button_block_timeout || '100',
@@ -1746,13 +1941,26 @@ var ctournament = (function() {
 		return displaysetting;
 	}
 
-	function update_general_displaysettings(c)
+	function update_edit_display_setting(displaystyle)
 	{
+		const names = [ 'show_pause', 'show_court_number', 'show_competition', 'show_round', 'show_middle_name', 'show_doubles_receiving', 
+						'c0', 'c1', 'cb0', 'cb1', 'cbg', 'cbg2', 'cbg3', 'cbg4', 'cfg', 'cfg2', 'cfg3', 'cfg4', 'cfgdark', 'cexp', 'ct', 
+						'cborder', 'cserv', 'cserv2', 'crecv', 'ctim_blue', 'ctim_active', 'team_colors', 'scale',
+						'show_announcements', 'button_block_timeout', 'negative_timers', 'shuttle_counter', 'editmode_doubleclick', 
+						'click_mode', 'style', 'language'];
+		
+		names.forEach((field_name) => {
+			const update = uiu.qs('[field_name='+field_name+']');
+			uiu.visible(update, (displaystyle === true || displaymode.option_applies(displaystyle, field_name)));
+		});
+	}
+
+	function update_general_displaysettings(c)
+	{	
 		//const general_displaysettings_div = uiu.qs('.general_displaysettings');
 		const general_displaysettings_div = document.querySelector(".general_displaysettings");
 		if(general_displaysettings_div) {
 			general_displaysettings_div.innerHTML = '';
-			console.log(general_displaysettings_div);
 			render_general_displaysettings(general_displaysettings_div);
 		}
 	}
@@ -1761,7 +1969,7 @@ var ctournament = (function() {
 		uiu.el(general_displaysettings_div, 'h3', 'edit', ci18n('tournament:edit:displays'));
 
 		const display_table = uiu.el(general_displaysettings_div, 'table');
-		const display_tbody = uiu.el(display_table, 'tbody');
+		const display_tbody = uiu.el(display_table, 'tbody', 'display_tbody');
 		const tr = uiu.el(display_tbody, 'tr');
 		uiu.el(tr, 'th', {}, ci18n('tournament:edit:displays:num'));
 		uiu.el(tr, 'th', {}, ci18n('tournament:edit:displays:hostname'));
@@ -1769,6 +1977,8 @@ var ctournament = (function() {
 		uiu.el(tr, 'th', {}, ci18n('tournament:edit:displays:court'));
 		uiu.el(tr, 'th', {}, ci18n('tournament:edit:displays:setting'));
 		uiu.el(tr, 'th', {}, ci18n('tournament:edit:displays:onlinestatus'));
+		uiu.el(tr, 'th', {}, "");
+		uiu.el(tr, 'th', {}, "");
 		
 
 		for (const display of curt.displays) {
@@ -1778,13 +1988,40 @@ var ctournament = (function() {
 	}
 
 	function update_display(display) {
-		uiu.qsEach('[data-display_id=' + JSON.stringify(display.client_id) + ']', function (display_tr) {
-			display_tr.innerHTML = '';
-			render_display(display_tr, display);
-		});
+		// Do this function only if the Display view (in on edit) is open
+		if(!document.querySelectorAll('.display_tbody').length) {
+			return;
+		}
+		
+		var nodes = document.querySelectorAll('[data-display_id=' + JSON.stringify(display.client_id) + ']');
+		if(nodes.length > 0) {
+			uiu.qsEach('[data-display_id=' + JSON.stringify(display.client_id) + ']', function (display_tr) {
+				display_tr.innerHTML = '';
+				render_display(display_tr, display);
+			});
+		}
+		else {
+			new_display(display);
+		}
 	}
 
+	function new_display(display) {
+		const display_tbody = document.querySelector(".display_tbody");
+		const tr = uiu.el(display_tbody, 'tr', { 'data-display_id': display.client_id });
+		render_display(tr, display);
+
+		for (const child of display_tbody.children) {
+			const child_id = child.dataset.display_id;
+			if(child_id && Number(child_id) > Number(display.client_id))
+			{
+				display_tbody.insertBefore(tr, child);
+			}
+		}
+	}
+
+
 	function render_display(tr, display) {
+		tr.setAttribute('class', (!display.online) ? 'offline' : (display.wait_for_done ? 'wait_for_done' : 'online'));
 		uiu.el(tr, 'th', {}, display.client_id);
 		uiu.el(tr, 'th', {}, display.hostname);
 		var battery_node = uiu.el(tr, 'td', {}, 'N/A');
@@ -1794,19 +2031,40 @@ var ctournament = (function() {
 		uiu.el(tr, 'td', {}, (!display.online) ? 'offline' : 'online');
 		const actions_td = uiu.el(tr, 'td', {});
 		const reset_btn = uiu.el(actions_td, 'button', {
-			'data-display-setting-id': display.client_id,
+			'data-display-client-id': display.client_id,
 		}, 'Restart');
 
 		if (!display.online) {
 			reset_btn.setAttribute('disabled', 'disabled');
 		}
 		reset_btn.addEventListener('click', function (e) {
-			const del_btn = e.target;
-			const display_setting_id = del_btn.getAttribute('data-display-setting-id');
+			const rst_btn = e.target;
+			const display_client_id = rst_btn.getAttribute('data-display-client-id');
 			send({
-				type: 'reset_display',
+				type: 'display_reset',
 				tournament_key: curt.key,
-				display_setting_id: display_setting_id,
+				display_client_id: display_client_id,
+			}, err => {
+				if (err) {
+					return cerror.net(err);
+				}
+			});
+		});
+
+		const delete_td = uiu.el(tr, 'td', {});
+		const delete_btn = uiu.el(delete_td, 'button', {
+			'data-display-client-id': display.client_id,
+		}, 'Delete');
+		if (display.online) {
+			delete_btn.setAttribute('disabled', 'disabled');
+		}
+		delete_btn.addEventListener('click', function (e) {
+			const del_btn = e.target;
+			const display_client_id = del_btn.getAttribute('data-display-client-id');
+			send({
+				type: 'display_delete',
+				tournament_key: curt.key,
+				display_client_id: display_client_id,
 			}, err => {
 				if (err) {
 					return cerror.net(err);
@@ -1814,15 +2072,244 @@ var ctournament = (function() {
 			});
 		});
 	}
+
+	function delete_display(c) {
+		uiu.qsEach('[data-display_id=' + JSON.stringify(c.val) + ']', function (display_tr) {
+			display_tr.parentNode.removeChild(display_tr);
+		});
+	}
+
+	function render_locations(main) {
+		const location_div = uiu.el(main, 'div', 'locations_div');
+		uiu.el(location_div, 'h2', 'edit', ci18n('tournament:edit:location'));
+
+		const locations_table = uiu.el(location_div, 'table', 'locations_table');
+		const locations_tbody = uiu.el(locations_table, 'tbody');
+
+		const tr = uiu.el(locations_tbody, 'tr');
+		uiu.el(tr, 'th', {}, ci18n('tournament:edit:location'));
+		uiu.el(tr, 'th', {}, 'In Vorbereitungd Ergänzung');
+		uiu.el(tr, 'th', {}, 'Meetingpoint durchsage');
+		uiu.el(tr, 'th', {}, 'In Vorbereitung Icon');
+		uiu.el(tr, 'th', {}, '');
+
+		let highlight_in_use = [];
+		for (const l of curt.locations) {
+			if(l.highlight) {
+				highlight_in_use.push(l.highlight);
+			}
+		}
+
+		for (const l of curt.locations) {
+			const tr = uiu.el(locations_tbody, 'tr');
+			const name_th = uiu.el(tr, 'th', {});
+			uiu.el(name_th, 'div', {}, l.name);
+
+			const content = [1, 2, 3, 4, 5, 6];
+			const selected = l.highlight;
+			const select_color = uiu.el(name_th, 'select', {id: 'select_highlight', class: 'highlight_' + selected, 'data-location_id': l._id});
+			for (const item of content) {			
+					const attrs = {
+						'data-display-setting-id': item,
+						value: item,
+						class: 'highlight_' + item,
+						style: (highlight_in_use.includes(item) && selected !== item) ? 'display:none;' : '',
+					}
+					if ((selected === item)) {
+						attrs.selected = 'selected';
+					}
+					uiu.el(select_color, 'option', attrs);
+				//}
+			}
+
+			select_color.addEventListener('change', (e) => {
+				e.target.classList = [e.target.value];
+				send_location_to_admin(e.target.parentNode.parentNode, e.target.getAttribute('data-location_id'));
+			});
+				
+			const preperation_td = uiu.el(tr, 'td', {});
+			const preperation_input = create_textarea_input("textarea", preperation_td, 'preperation_addition');
+			preperation_input.value = l.preperation_addition;
+			preperation_input.setAttribute('data-location-id', l._id);
+			preperation_input.setAttribute('maxlength', 175);
+			preperation_input.addEventListener('focusout', (e) => {
+				send_location_to_admin(e.target.parentNode.parentNode, e.target.getAttribute('data-location-id'));
+			});
+			const meetinpoint_td = uiu.el(tr, 'td', {});
+			const meetingpoint_input = create_textarea_input("textarea", meetinpoint_td, 'meetingpoint_announcement');
+			meetingpoint_input.value = l.meetingpoint_announcement;
+			meetingpoint_input.setAttribute('data-location-id', l._id);
+			meetingpoint_input.setAttribute('maxlength', 175);
+			meetingpoint_input.addEventListener('focusout', (e) => {
+				send_location_to_admin(e.target.parentNode.parentNode, e.target.getAttribute('data-location-id'));
+			});
+			const icon_td = uiu.el(tr, 'td', 'icon_td');
+			uiu.el(icon_td, 'img', {
+				style: 'height: 40px;',
+				src: l.logo_id ? '/h/' + encodeURIComponent(curt.key) + '/logo/' + l.logo_id : '/static/icons/preperation.svg',
+				name: 'location_logo_img',
+				'data-location_id': l._id
+			});
+
+			const logo_form = uiu.el(icon_td, 'form', 'logo_form');
+			const logo_button_id = l._id +'_logo_upload_input';
+
+			const filename_display = uiu.el(logo_form, 'div', {
+				class: 'upload_filename_location',
+				'data-location_id': l._id,
+			}, l.logo_name ? l.logo_name : 'preperation.svg');
+
+			const custom_label = uiu.el(logo_form, 'label', {
+				for: logo_button_id,
+				style: (
+					'display:inline-block;padding:3px 8px;cursor:pointer; border:1px solid;' +
+					'background:#eeeeee;color:black;border-radius:4px;margin:5px;font-size:small;'
+				),
+			}, 'ändern');
+
+			const logo_button = uiu.el(logo_form, 'input', {
+				id: logo_button_id,
+				type: 'file',
+				accept: 'image/*',
+				style: 'display:none;',
+				'data-location_id': l._id, 
+			});
+			logo_button.addEventListener('change', (e) => {
+				_upload_location_logo(e);
+			});
+
+			const actions_td = uiu.el(tr, 'td', {});
+			const del_btn = uiu.el(actions_td, 'button', {
+				'data-location-id': l._id,
+			}, 'Delete');
+			del_btn.addEventListener('click', function (e) {
+				const del_btn = e.target;
+				const location_id = del_btn.getAttribute('data-location-id');
+				if (confirm('Do you really want to delete ' + location_id + '? (Will not do anything yet!)')) {
+					debug.log('TODO: would now delete court');
+				}
+			});
+		}
+	}
+
+	function _upload_location_logo(e) {
+		const input = e.target;
+		const location_id = e.target.getAttribute('data-location_id');
+		if (!input.files.length) return;
+
+		const reader = new FileReader();
+		reader.readAsDataURL(input.files[0]);
+		reader.onload = () => {
+			send({
+				type: 'tournament_upload_location_logo',
+				tournament_key: curt.key,
+				data_url: reader.result,
+				name: e.target.files[0].name,
+				location_id
+			}, (err) => {
+				if (err) {
+					return cerror.net(err);
+				}`
+				input.closest('form').reset();`
+			});
+		};
+		reader.onerror = (e) => {
+			alert('Failed to upload: ' + e);
+		};
+	}
+
+	function update_location_logo(location_id, logo_id, logo_name) {
+		switch (get_admin_subpage()){
+			case 'edit':
+				const location_logo_img = document.querySelector(`[name="location_logo_img"][data-location_id="${location_id}"]`);
+				location_logo_img.setAttribute('src', '/h/' + encodeURIComponent(curt.key) + '/logo/' + logo_id);
+				const filename_display = document.querySelector(`.upload_filename_location[data-location_id="${location_id}"]`);
+				filename_display.textContent = logo_name;
+				break;
+			default:
+				break;
+		}
+		return;
+	}
+
+	function send_location_to_admin(parent, location_id) {
+		const highlight = parseInt(parent.querySelector("#select_highlight").value, 10);
+		const preperation_addition = parent.querySelector("#preperation_addition").value;
+		const meetingpoint_announcement = parent.querySelector("#meetingpoint_announcement").value;
+
+		send({
+			type: 'location_changed',
+			tournament_key: curt.key,
+			location_id,
+			highlight: highlight,
+			preperation_addition,
+			meetingpoint_announcement,
+		}, function (err, response) {
+			if (err) {
+				return cerror.net(err);
+			}
+		});
+	}
+
+	function update_location(location_id, highlight, preperation_addition, meetingpoint_announcement) {
+		switch (get_admin_subpage()){
+			case 'edit':
+				const locations_table = document.querySelector('.locations_table');
+				const location_div = locations_table.parentElement;
+				location_div.innerHTML="";
+				render_locations(location_div);
+
+				break;
+			default:
+				break;
+		}
+		return;
+	};
+
 	function render_courts(main) {
 		uiu.el(main, 'h2', 'edit', ci18n('tournament:edit:courts'));
 
-		const courts_table = uiu.el(main, 'table');
+		const courts_table = uiu.el(main, 'table', 'courts_table');
 		const courts_tbody = uiu.el(courts_table, 'tbody');
+		const tr = uiu.el(courts_tbody, 'tr');
+		uiu.el(tr, 'th', {}, 'Spielort');
+		uiu.el(tr, 'th', {}, 'Nummer');
+		//uiu.el(tr, 'th', {}, 'Name');
+		uiu.el(tr, 'th', {}, 'Aktiv');
+		uiu.el(tr, 'th', {}, 'Schiedsrichter');
+		uiu.el(tr, 'th', {}, 'Aufschlagrichter');
+		uiu.el(tr, 'th', {}, '');
+		
+		var l = {_id : ''};
+
 		for (const c of curt.courts) {
 			const tr = uiu.el(courts_tbody, 'tr');
+			if(l._id != c.location_id) {
+				l = utils.find(curt.locations, l => l._id === c.location_id);
+			}
+
+			uiu.el(tr, 'th', {}, l.name);
 			uiu.el(tr, 'th', {}, c.num);
-			uiu.el(tr, 'td', {}, c.name || '');
+			//uiu.el(tr, 'td', {}, c.name || '');
+			const active_td = uiu.el(tr, 'td', {});
+			const active_cb = create_simple_checkbox(active_td, {'name' : 'active_cb', 'data-court-id': c._id,}, c.is_active);
+			active_cb.addEventListener('change', (e) => {
+				const court_id = e.target.getAttribute('data-court-id');
+				send({
+					type: 'court_edit',
+					tournament_key: curt.key,
+					is_active: e.target.checked,
+					court_id: court_id,
+				}, err => {
+					if (err) {
+						return cerror.net(err);
+					}
+				});
+			});
+			const umpire_td = uiu.el(tr, 'td', {});
+			const umpire_cb = create_simple_checkbox(umpire_td, {'name' : 'umpire_cb', 'data-court-id': c._id, 'disabled': true,}, true);
+			const service_judge_td = uiu.el(tr, 'td', {});
+			const service_judge_cb = create_simple_checkbox(service_judge_td, {'name' : 'service_judge_cb', 'data-court-id': c._id, 'disabled': true,}, true);
 			const actions_td = uiu.el(tr, 'td', {});
 			const del_btn = uiu.el(actions_td, 'button', {
 				'data-court-id': c._id,
@@ -1838,39 +2325,28 @@ var ctournament = (function() {
 
 		const nums = curt.courts.map(c => parseInt(c.num));
 		const maxnum = Math.max(0, Math.max.apply(null, nums));
+	}
 
-		const courts_add_form = uiu.el(main, 'form');
-		uiu.el(courts_add_form, 'input', {
-			type: 'number',
-			name: 'count',
-			min: 1,
-			max: 99,
-			value: 1,
-		});
-		const courts_add_button = uiu.el(courts_add_form, 'button', {
-			role: 'button',
-		}, 'Add Courts');
-		form_utils.onsubmit(courts_add_form, function (data) {
-			courts_add_button.setAttribute('disabled', 'disabled');
-			const court_count = parseInt(data.count);
-			const nums = [];
-			for (let court_num = maxnum + 1; court_num <= maxnum + court_count; court_num++) {
-				nums.push(court_num);
-			}
+	function create_simple_checkbox(parant_el, attrs, is_checked) {
+		attrs.type = 'checkbox';
+		if(is_checked){
+			attrs.checked = 'checked';
+		}
+		const result = uiu.el(parant_el, 'input', attrs);
+		return result;
+	}
 
-			send({
-				type: 'courts_add',
-				tournament_key: curt.key,
-				nums,
-			}, function (err, response) {
-				if (err) {
-					courts_add_button.removeAttribute('disabled');
-					return cerror.net(err);
-				}
-				Array.prototype.push.apply(curt.courts, response.added_courts);
-				ui_edit();
-			});
-		});
+	function update_court(court) {
+		switch (get_admin_subpage()){
+			case 'edit':
+				const courts_table = uiu.qs('.courts_table');
+				const checkbox = courts_table.querySelector(`[name="active_cb"][data-court-id="${court._id}"]`);
+				checkbox.checked = court.is_active;
+				break;
+			default:
+				cmatch.update_court(court);
+				break;
+		} 
 	}
 
 	function create_checkbox(curt, parent_el, filed_id) {
@@ -1899,12 +2375,25 @@ var ctournament = (function() {
 	}
 
 	function create_undecorated_input(type, parent_el, filed_id) {
-		uiu.el(parent_el, 'input', {
-			type: type,
-			name: filed_id,
-			id: filed_id,
-			value: '',
-		});
+		return (
+			uiu.el(parent_el, 'input', {
+				type: type,
+				name: filed_id,
+				id: filed_id,
+				value: '',
+			})
+		);
+	}
+
+	function create_textarea_input(type, parent_el, filed_id) {
+		return (
+			uiu.el(parent_el, 'textarea', {
+				type: type,
+				name: filed_id,
+				id: filed_id,
+				value: '',
+			})
+		);
 	}
 
 	function create_numeric_input(curt, parent_el, filed_id, min_value, max_value, default_value, step_value) {
@@ -2165,6 +2654,25 @@ var ctournament = (function() {
 		}, '/bupdev/');
 	}
 
+	function get_admin_subpage() {
+		const path = window.location.pathname;
+		const parts = path.split('/').filter(Boolean); // Entfernt leere Einträge (z. B. durch führendes '/')
+	
+		// Erwartet: ['admin', 't', 'TurnierName', 'subpage?']
+		if (parts.length < 3 || parts[0] !== 'admin' || parts[1] !== 't') {
+			return null; // Nicht im erwarteten Admin-Pfad
+		}
+	
+		const subpage = parts[3]; // Kann undefined sein
+	
+		switch (subpage) {
+			case undefined:
+				return 'tournament-control';
+			default:
+				return subpage;
+		}
+	}
+
 	function ui_allscoresheets() {
 		crouting.set('t/' + curt.key + '/allscoresheets', {}, _cancel_ui_allscoresheets);
 
@@ -2253,7 +2761,11 @@ var ctournament = (function() {
 		add_match,
 		update_match,
 		update_upcoming_match,
+		update_logo,
 		update_display,
+		update_location,
+		update_location_logo,
+		update_court,
 		btp_status_changed,
 		ticker_status_changed,
 		bts_status_changed,
@@ -2262,6 +2774,7 @@ var ctournament = (function() {
 		remove_advertisement,
 		add_advertisement,
 		update_general_displaysettings,
+		delete_display,
 	};
 
 })();
@@ -2293,7 +2806,6 @@ if ((typeof module !== 'undefined') && (typeof require !== 'undefined')) {
 	var utils = require('../bup/bup/js/utils.js');
 	var save_file = require('../bup/bup/js/save_file.js');
 	var timezones = require('./timezones.js');
-	var displaymode = require('../bup/js/displaymode');
 
 	var JSZip = null; // External library
 

@@ -50,29 +50,30 @@ function generate_default_displaysettings_id(tournament) {
 	return (tournament && tournament.displaysettings_general) ? tournament.displaysettings_general : default_displaysettings_key;
 }
 
-function notify_change(tournament_key, court_id, ctype, val) {
+function notify_change(app, tournament_key, court_id, ctype, val) {
 	for (const panel_ws of all_panels) {
-		notify_change_ws(panel_ws, tournament_key, court_id, ctype, val);
+		notify_change_ws(app, panel_ws, tournament_key, court_id, ctype, val);
 	}
 }
 
-function notify_change_broadcast(tournament_key, ctype, val) {
+function notify_change_broadcast(app, tournament_key, ctype, val) {
 	for (const panel_ws of all_panels) {
-		notify_change_send(panel_ws, tournament_key, ctype, val);
+		notify_change_send(app, panel_ws, tournament_key, ctype, val);
 	}
 }
 
-function notify_change_ws(ws, tournament_key, court_id, ctype, val) {
+function notify_change_ws(app, ws, tournament_key, court_id, ctype, val) {
 	if (ws == null) {
-		notify_change(tournament_key, court_id, ctype, val);
+		notify_change(app, tournament_key, court_id, ctype, val);
 	} else { 
 		if (ws.court_id === court_id) { 
-			notify_change_send(ws,tournament_key, ctype, val);
+			notify_change_send(app, ws, tournament_key, ctype, val);
 		}
 	}
 }
 
-function notify_change_send(ws,tournament_key, ctype, val) {
+function notify_change_send(app, ws, tournament_key, ctype, val) {
+	admin.notify_change(app, tournament_key, 'display_wait_for_done', {'ctype': ctype, 'val' : val, 'client_id': ws.client_id});
 	ws.sendmsg({
 		type: 'change',
 		tournament_key,
@@ -83,7 +84,7 @@ function notify_change_send(ws,tournament_key, ctype, val) {
 
 function send_courts(app, ws, tournament_key) {
 	stournament.get_courts(app.db, tournament_key, function (err, courts) {
-		notify_change_ws(ws,tournament_key, ws.court_id, "courts-update", courts);
+		notify_change_ws(app, ws,tournament_key, ws.court_id, "courts-update", courts);
 	});
 }
 function send_error(ws, tournament_key, msg) {
@@ -142,11 +143,19 @@ async function handle_score_update(app, ws, msg) {
 	const score_data = msg.score;
 	const match_id = score_data.match_id;
 	
-	var match = await match_utils.fetch_match(app, tournament_key, match_id);
+	try{
+		var match = await match_utils.fetch_match(app, tournament_key, match_id);
+	} catch {
+		var match = null;
+	}
 	if (match == null || match.setup.now_on_court == false) {
 		send_error(ws, tournament_key, "Match not found or not on court actualy.");
 		return;
 	}
+
+	console.log(match);
+	console.log(match.setup.teams);
+
 	const update = {
 		network_score: score_data.network_score,
 		network_team1_left:score_data.network_team1_left,
@@ -356,27 +365,26 @@ async function handle_init(app, ws, msg) {
 }
 
 async function send_finshed_confirmed(app, tournament_key, court_id) {
-	notify_change(tournament_key, court_id, 'confirm-match-finished', {});
+	notify_change(app, tournament_key, court_id, 'confirm-match-finished', {});
 }
 
-async function send_advertisement_add(tournament_key, advertisement) {
-	notify_change_broadcast(tournament_key, 'advertisement_add', advertisement);
+async function send_advertisement_add(app, tournament_key, advertisement) {
+	notify_change_broadcast(app, tournament_key, 'advertisement_add', advertisement);
 }
 
-async function send_advertisement_remove(tournament_key, advertisement_id) {
-	notify_change_broadcast(tournament_key, 'advertisement_remove', { advertisement_id: advertisement_id });
+async function send_advertisement_remove(app, tournament_key, advertisement_id) {
+	notify_change_broadcast(app, tournament_key, 'advertisement_remove', { advertisement_id: advertisement_id });
 }
 
-async function initialize_client(ws, app, tournament_key, court_id, displaysetting) {
+async function initialize_client(ws, app, tournament_key, court_id, displaysetting_id) {
 	const client_id = determine_client_id(ws);
 	const hostname = await determine_client_hostname(ws);
 	if (client_id) {
-		let display_setting = await get_display_setting(app, tournament_key, client_id, court_id, displaysetting)
+		let display_setting = await get_display_setting(app, tournament_key, client_id, court_id, displaysetting_id)
 		if (display_setting != null) {
 			ws.court_id = display_setting.court_id;
 			court_id = display_setting.court_id;
-			notify_change_ws(ws, tournament_key, court_id, "settings-update", display_setting);
-			notify_change_ws(ws, tournament_key, court_id, "settings-update", display_setting);
+			notify_change_ws(app, ws, tournament_key, court_id, "settings-update", display_setting);
 		}
 	}
 	matches_handler(app, ws, tournament_key, ws.court_id);
@@ -401,57 +409,97 @@ function getComputerName() {
 	}
 }
 
+function extractIPv4FromMappedIPv6(ip) {
+	const match = ip.match(/^::ffff:(\d+\.\d+\.\d+\.\d+)$/);
+	return match ? match[1] : null;
+}
+
 async function determine_client_hostname(ws) {
 	if (ws.hostname) {
 		return ws.hostname;
 	}
 
-	const remoteAddress = ws._socket.remoteAddress;
+	let remoteAddress = ws._socket.remoteAddress;
+	let ipv4 = extractIPv4FromMappedIPv6(remoteAddress);
+	let ip = ipv4 || remoteAddress;
 
-	// Verifizieren, ob die Adresse gültig ist
-	if (net.isIPv4(remoteAddress)) {
-		// Lokale IP-Adressen abfangen
-		if (remoteAddress === "127.0.0.1") {
-			console.log("Localhost");
-			ws.hostname = getComputerName();
-			return ws.hostname;
-		}
-
-		// Rückwärtssuche für IPv4
-		try {
-			const hostnames = await new Promise((resolve, reject) => {
-				dns.reverse(remoteAddress, (err, hostnames) => {
-					if (err) reject(err);
-					else resolve(hostnames);
-				});
-			});
-
-			if (hostnames && hostnames.length > 0) {
-				ws.hostname = hostnames[0].split(".")[0];
-			} else {
-				ws.hostname = "N/N";
-			}
-		} catch (err) {
-			console.error("DNS reverse lookup failed:", err);
-			ws.hostname = "N/N";
-		}
-
+	// Lokale Adressen behandeln
+	if (ip === "127.0.0.1") {
+		ws.hostname = getComputerName();
 		return ws.hostname;
-	} else if (net.isIPv6(remoteAddress)) {
-		// IPv6-Adresse prüfen (z. B. `::1` für localhost)
-		if (remoteAddress === "::1") {
-			ws.hostname = getComputerName();
-			return ws.hostname;
-		}
+	}
 
-		// Bei IPv6 keine spezielle Verarbeitung (z. B. Reverse-Lookup)
-		ws.hostname = remoteAddress;
-		return ws.hostname;
-	} else {
+	// Bei ungültiger IP
+	if (!net.isIP(ip)) {
 		console.error("Invalid IP address:", remoteAddress);
 		ws.hostname = "N/N";
 		return ws.hostname;
 	}
+
+	// 1. Falls IPv4 verfügbar → versuchen Reverse-Lookup
+	if (ipv4) {
+		try {
+			const hostnames = await dnsReverseWithTimeout(ipv4, 3000);
+			ws.hostname = hostnames?.[0]?.split(".")[0] || ipv4;
+			return ws.hostname;
+		} catch (err) {
+			if (err.code !== 'ENOTFOUND') {
+				console.error("IPv4 DNS reverse lookup failed:", err);
+			}
+			// IPv4 Lookup fehlgeschlagen → weiter mit IPv6 versuchen
+			ip = remoteAddress; // original IPv6 verwenden
+		}
+	}
+
+	// 2. Jetzt IPv6 Reverse-Lookup versuchen
+	if (net.isIPv6(ip)) {
+		if (ip === "::1") {
+			ws.hostname = getComputerName();
+			return ws.hostname;
+		}
+
+		try {
+			const hostnames = await dnsReverseWithTimeout(ip, 3000);
+			ws.hostname = hostnames?.[0]?.split(".")[0] || ipv4 || ip;
+			return ws.hostname;
+		} catch (err) {
+			if (err.code !== 'ENOTFOUND') {
+				console.error("IPv6 DNS reverse lookup failed:", err);
+			}
+			// 3. Fallback: IPv4-Adresse als Text
+			ws.hostname = ipv4 || ip;
+			return ws.hostname;
+		}
+	}
+
+	// Sollte nicht vorkommen, aber falls doch:
+	ws.hostname = ipv4 || ip;
+	return ws.hostname;
+}
+
+// Hilfsfunktion: extrahiert IPv4 aus gemapptem IPv6, z.B. ::ffff:192.168.0.1 => 192.168.0.1
+function extractIPv4FromMappedIPv6(address) {
+	if (typeof address !== "string") return null;
+	const match = address.match(/^::ffff:(\d+\.\d+\.\d+\.\d+)$/);
+	return match ? match[1] : null;
+}
+
+// Hilfsfunktion: DNS-Reverse mit Timeout
+function dnsReverseWithTimeout(ip, timeoutMs) {
+	return new Promise((resolve, reject) => {
+		const timer = setTimeout(() => {
+			reject(new Error("DNS reverse lookup timeout"));
+		}, timeoutMs);
+
+		dns.reverse(ip, (err, hostnames) => {
+			clearTimeout(timer);
+			if (err) {
+				reject(err);
+			} else {
+				resolve(hostnames);
+			}
+		});
+	});
 }
 
 
@@ -562,7 +610,9 @@ function get_display_setting(app, tkey, client_id, court_id, displaysetting) {
 						if (err) {
 							return resolve(returnvalue);
 						}
-						returnvalue.advertisements = advertisements;
+						if(returnvalue) {
+							returnvalue.advertisements = advertisements;
+						}
 						resolve(returnvalue);
 
 					});
@@ -599,6 +649,10 @@ function get_display_setting(app, tkey, client_id, court_id, displaysetting) {
 			}
 		});
 	});
+}
+
+function handle_command_done(app, ws, msg) {
+	admin.notify_change(app, msg.tournament_key, 'display_is_done', {'ctype': msg.wait_for_command.ctype, 'val' : msg.wait_for_command.val, 'client_id': ws.client_id});
 }
 
 function handle_score_change(app, tournament_key, court_id) {
@@ -690,7 +744,7 @@ function matches_handler(app, ws, tournament_key, court_id) {
 				status: 'ok',
 				event,
 			};
-			notify_change_ws(ws, tournament_key, court_id, "score-update", reply)
+			notify_change_ws(app, ws, tournament_key, court_id, "score-update", reply)
 		}		
 	});
 }
@@ -830,14 +884,14 @@ async function change_default_display_mode(app, tournament, old_displaysettings_
 
 
 
-function reinitialize_panel(app, tournament_key, client_id, new_court_id, displaysetting) {
+function reinitialize_panel(app, tournament_key, client_id, new_court_id, displaysetting_id) {
 	for (const panel_ws of all_panels) {
 		const ws_client_id = determine_client_id(panel_ws);
 		if (client_id == ws_client_id) {
 			if (new_court_id != null) {
 				panel_ws.court_id = new_court_id;
 			}
-			initialize_client(panel_ws, app, tournament_key, panel_ws.court_id, displaysetting);
+			initialize_client(panel_ws, app, tournament_key, panel_ws.court_id, displaysetting_id);
 			return true;
 		}
 	}
@@ -883,6 +937,7 @@ module.exports = {
 	on_connect,
 	notify_change,
 	handle_init,
+	handle_command_done,
 	handle_score_change,
 	handle_persist_display_settings,
 	handle_reset_display_settings,
