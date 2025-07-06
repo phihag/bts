@@ -311,65 +311,69 @@ function _craft_team(par) {
 			pres.checked_in = p.CheckedIn[0];
 		}
 
-		const club = this.clubs.get(p.ClubID[0]);
-		const district = this.districts.get(club.DistrictID[0]);
-		const state_by_district = district.Name[0].split("-")[0];
+		try{
+			const club = this.clubs.get(p.ClubID[0]);
+			const district = this.districts.get(club.DistrictID[0]);
+			const state_by_district = district.Name[0].split("-")[0];
 
-		var state = (state_by_district ? state_by_district : (p.State && p.Satate.length > 0 ? p.State[0] : undefined));
-		if (state) {
-			switch (state) {
-				case 'BAW' : {
-					pres.state = "Baden-Württemberg";
-					break;
-				} case 'BAY' : {
-					pres.state = "Bayern";
-					break;
-				} case 'BBB': {
-					pres.state = "Berlin-Brandenburg";
-					break;
-				} case 'BRE': {
-					pres.state = "Bremen";
-					break;
-				} case 'HAM': {
-					pres.state = "Hamburg";
-					break;
-				}  case 'HES': {
-					pres.state = "Hessen";
-					break;
-				} case 'MVP': {
-					pres.state = "Mecklenburg-Vorpommern";
-					break;
-				} case 'NIS': {
-					pres.state = "Niedersachsen";
-					break;
-				} case 'NRW': {
-					pres.state = "Nordrhein-Westfalen";
-					break;
-				} case 'RHP': {
-					pres.state = "Rheinhessen-Pfalz";
-					break;
-				} case 'RHL': {
-					pres.state = "Rheinland";
-					break;
-				} case 'SAA': {
-					pres.state = "Saarland";
-					break;
-				} case 'SAC': {
-					pres.state = "Sachsen";
-					break;
-				} case 'SAH': {
-					pres.state = "Sachsen-Anhalt";
-					break;
-				} case 'SLH': {
-					pres.state = "Schleswig-Holstein";
-					break;
-				} case 'THÜ': {
-					pres.state = "Thüringen";
-					break;
-				} 
-				default:
-					pres.state = state
+			var state = (state_by_district ? state_by_district : (p.State && p.Satate.length > 0 ? p.State[0] : undefined));
+			if (state) {
+				switch (state) {
+					case 'BAW' : {
+						pres.state = "Baden-Württemberg";
+						break;
+					} case 'BAY' : {
+						pres.state = "Bayern";
+						break;
+					} case 'BBB': {
+						pres.state = "Berlin-Brandenburg";
+						break;
+					} case 'BRE': {
+						pres.state = "Bremen";
+						break;
+					} case 'HAM': {
+						pres.state = "Hamburg";
+						break;
+					}  case 'HES': {
+						pres.state = "Hessen";
+						break;
+					} case 'MVP': {
+						pres.state = "Mecklenburg-Vorpommern";
+						break;
+					} case 'NIS': {
+						pres.state = "Niedersachsen";
+						break;
+					} case 'NRW': {
+						pres.state = "Nordrhein-Westfalen";
+						break;
+					} case 'RHP': {
+						pres.state = "Rheinhessen-Pfalz";
+						break;
+					} case 'RHL': {
+						pres.state = "Rheinland";
+						break;
+					} case 'SAA': {
+						pres.state = "Saarland";
+						break;
+					} case 'SAC': {
+						pres.state = "Sachsen";
+						break;
+					} case 'SAH': {
+						pres.state = "Sachsen-Anhalt";
+						break;
+					} case 'SLH': {
+						pres.state = "Schleswig-Holstein";
+						break;
+					} case 'THÜ': {
+						pres.state = "Thüringen";
+						break;
+					} 
+					default:
+						pres.state = state
+				}
 			}
+		} catch (error)
+		{
 		}
 		fix_player(pres);
 		return pres;
