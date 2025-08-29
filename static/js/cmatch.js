@@ -265,7 +265,7 @@ function render_match_row(tr, match, court, style, show_player_status, show_add_
 			tr.removeAttribute('data-location_id');
 		}
 
-		if (match.setup.location_id && !(window.localStorage.getItem('show_location_courts_' + match.setup.location_id) === 'true')) {
+		if (match.setup.location_id && !(window.localStorage.getItem('show_location_courts_' + match.setup.location_id) !== 'false')) {
 			tr.classList.add('do_not_show');
 		} else {
 			tr.classList.remove('do_not_show');
@@ -515,7 +515,7 @@ function render_match_row(tr, match, court, style, show_player_status, show_add_
 		if (style === 'unasigned' && completeMatch) {
 			const locations = curt.locations;
 			locations.forEach((l)=> {
-				if(window.localStorage.getItem('show_location_courts_' + l._id) === 'true') {
+				if(window.localStorage.getItem('show_location_courts_' + l._id) !== 'false') {
 					create_match_prepparation_button(call_td, 'vlink match_preparation_call_button', 'match:preparationcall', on_announce_preparation_matchbutton_click, match._id, l);
 				}
 			});
@@ -1751,7 +1751,7 @@ function render_courts(container, style) {
 			}
 		}
 
-		if(!(window.localStorage.getItem('show_location_courts_' + c.location_id) === 'true')) {
+		if(!(window.localStorage.getItem('show_location_courts_' + c.location_id) !== 'false')) {
 			tr.classList.add('do_not_show');
 		}
 	}
