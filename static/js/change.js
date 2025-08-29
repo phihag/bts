@@ -187,6 +187,9 @@ function default_handler(rerender, special_funcs) {
 			break;
 		case 'match_preparation_call':
 			announcePreparationMatch(c.val.match.setup);
+			curt.matches.forEach((match) => {
+				match.setup.location_id = c.val.location_id;
+			});
 			ctournament.update_match(c);
 			ctournament.update_upcoming_match(c);
 			break;
@@ -210,6 +213,12 @@ function default_handler(rerender, special_funcs) {
 			break;
 		case 'second_call_team_two':
 			announceSecondCallTeamTwo(c.val.setup);
+			break;
+		case 'second_preperation_call_team_one':
+			announceSecondPreperationCallTeamOne(c.val.setup);
+			break;
+		case 'second_preperation_call_team_two':
+			announceSecondPreperationCallTeamTwo(c.val.setup);
 			break;
 		case 'btp_status':
 			ctournament.btp_status_changed(c);

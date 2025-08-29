@@ -394,6 +394,7 @@ function _extract_setup(msg_setup) {
 		'scheduled_date',
 		'called_timestamp',
 		'preparation_call_timestamp',
+		'location_id',
 		'teams',
 		'team_competition',
 		'tabletoperators',
@@ -921,6 +922,20 @@ function handle_second_call_team_one(app, ws, msg) {
 	ws.respond(msg);
 }
 
+
+function handle_second_preperation_call_team_one(app, ws, msg) {
+	if (!_require_msg(ws, msg, ['tournament_key', 'setup'])) {
+		return;
+	}
+
+	const tournament_key = msg.tournament_key;
+	const setup = _extract_setup(msg.setup);
+
+	notify_change(app, tournament_key, 'second_preperation_call_team_one', {setup});
+	
+	ws.respond(msg);
+}
+
 function handle_display_delete(app, ws, msg) {
 	if (!_require_msg(ws, msg, ['tournament_key', 'display_client_id'])) {
 		return;
@@ -1027,6 +1042,20 @@ function handle_second_call_team_two(app, ws, msg) {
 	const setup = _extract_setup(msg.setup);
 
 	notify_change(app, tournament_key, 'second_call_team_two', {setup});
+	
+	ws.respond(msg);
+}
+
+
+function handle_second_preperation_call_team_two(app, ws, msg) {
+	if (!_require_msg(ws, msg, ['tournament_key', 'setup'])) {
+		return;
+	}
+
+	const tournament_key = msg.tournament_key;
+	const setup = _extract_setup(msg.setup);
+
+	notify_change(app, tournament_key, 'second_preperation_call_team_two', {setup});
 	
 	ws.respond(msg);
 }
@@ -1258,6 +1287,8 @@ module.exports = {
 	handle_second_call_tabletoperator,
 	handle_second_call_team_one,
 	handle_second_call_team_two,
+	handle_second_preperation_call_team_one,
+	handle_second_preperation_call_team_two,
 	handle_tournament_get,
 	handle_tournament_list,
 	handle_tournament_edit_props,

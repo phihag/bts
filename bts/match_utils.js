@@ -123,7 +123,7 @@ function add_preparation_call_timestamp(db, tournament_key, setup, location_id) 
 			for (const location of all_locations) {
 				if (location._id == location_id) {
 					setup.highlight = location.highlight;
-					setup.preparation_location_id = location_id;
+					setup.location_id = location_id;
 					setup.preparation_call_timestamp = Date.now();
 					setup.state = 'preparation';
 					resolve(setup);
