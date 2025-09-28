@@ -33,6 +33,7 @@ function detect_lang() {
 function register_all() {
 	register_lang(ci18n_en);
 	register_lang(ci18n_de);
+	register_lang(ci18n_nl);
 }
 
 function init() {
@@ -108,6 +109,7 @@ if ((typeof module !== 'undefined') && (typeof require !== 'undefined')) {
 	var utils = require('../bup/dev/js/utils');
 	var ci18n_de = require('./ci18n_de');
 	var ci18n_en = require('./ci18n_en');
+	var ci18n_en = require('./ci18n_nl');
 	ci18n.register_all();
 
 	module.exports = ci18n;
