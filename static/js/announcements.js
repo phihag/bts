@@ -26,7 +26,7 @@ function announceNewMatch(matchSetup) {
 }
 
 function announcePreparationMatch(matchSetup) {
-    if(!(window.localStorage.getItem('enable_announcement_preperations_' + getLocationID(matchSetup)) === 'true')) {
+    if(!(window.localStorage.getItem('enable_announcement_preparations_' + getLocationID(matchSetup)) === 'true')) {
         return;
     }
     const field = createFieldPreparationAnnouncement(matchSetup);
@@ -58,25 +58,25 @@ function announceSecondCallTeamTwo(matchSetup) {
     announceSecondCall(matchSetup, matchSetup.teams[1]);
 }
 
-function announceSecondPreperationCallTeamOne(matchSetup) {
-    if(!(window.localStorage.getItem('enable_announcement_preperations_' + getLocationID(matchSetup)) === 'true')) {
+function announceSecondPreparationCallTeamOne(matchSetup) {
+    if(!(window.localStorage.getItem('enable_announcement_preparations_' + getLocationID(matchSetup)) === 'true')) {
         return;
     }
-    announceSecondPreperationCall(matchSetup, matchSetup.teams[0]);
+    announceSecondPreparationCall(matchSetup, matchSetup.teams[0]);
 }
 
-function announceSecondPreperationCallTeamTwo(matchSetup) {
-    if(!(window.localStorage.getItem('enable_announcement_preperations_' + getLocationID(matchSetup)) === 'true')) {
+function announceSecondPreparationCallTeamTwo(matchSetup) {
+    if(!(window.localStorage.getItem('enable_announcement_preparations_' + getLocationID(matchSetup)) === 'true')) {
         return;
     }
-    announceSecondPreperationCall(matchSetup, matchSetup.teams[1]);
+    announceSecondPreparationCall(matchSetup, matchSetup.teams[1]);
 }
 
 function announceSecondCallTabletoperator(matchSetup) {
     if (!(window.localStorage.getItem('enable_announcement_calls_' + getLocationID(matchSetup)) === 'true')) {
         return;
     }
-    const tabletOperatorCall = createTabletOperator(matchSetup);;
+    const tabletOperatorCall = createTabletOperator(matchSetup);
     if (tabletOperatorCall != null) { 
         const call = createFieldAnnouncement(matchSetup) + createSecondCallAnnouncement() + tabletOperatorCall;
          announce([call]);
@@ -113,15 +113,81 @@ function announceSecondCall(matchSetup, team) {
     announce([secondCall, field]);
 }
 
-function announceSecondPreperationCall(matchSetup, team) {
-    if(!(window.localStorage.getItem('enable_announcement_preperations_' + getLocationID(matchSetup)) === 'true')) {
+
+function announceSecondPreparationCallTabletoperator(matchSetup) {
+    if(!(window.localStorage.getItem('enable_announcement_preparations_' + getLocationID(matchSetup)) === 'true')) {
         return;
     }
-    var secondCall = createSecondCallAnnouncement() + createSingleTeam(team.players) + " in Vorbereitung";
+    const tabletOperatorCall = createTabletOperator(matchSetup);
+    if (tabletOperatorCall != null) { 
+        var secondCall = createSecondPreparationCallAnnouncement() + tabletOperatorCall + '!';
+        
+        
+        var callUs = createSingleTeam(matchSetup.tabletoperators) + ', ' + ci18n('announcements:please_as_tablet_service');
+        if (curt.preparation_meetingpoint_enabled) {
+            var meetingPoint = createMeetingPointAnnouncement(matchSetup);
+            meetingPoint = meetingPoint.replace("bitte meldet euch ", "");
+            meetingPoint = meetingPoint.replace("Bitte meldet euch ", "");
+            meetingPoint = meetingPoint.replace("!", "");
+            callUs += ' ' + meetingPoint + 'melden!';
+        }
+        announce([secondCall, callUs]);
+    }
+}
+
+
+function announceSecondPreparationCallUmpire(matchSetup) {
+    if(!(window.localStorage.getItem('enable_announcement_preparations_' + getLocationID(matchSetup)) === 'true')) {
+        return;
+    }
+    const umpireCall = createUmpire(matchSetup);
+    if (umpireCall != null) {
+        var secondCall = createSecondPreparationCallAnnouncement() + umpireCall + '!';
+        
+        
+        var callUs = normalizeNames(matchSetup.umpire.name);
+        if (curt.preparation_meetingpoint_enabled) {
+            var meetingPoint = createMeetingPointAnnouncement(matchSetup);
+            meetingPoint = meetingPoint.replace("meldet euch ", "melde dich");
+            callUs += ' ' + meetingPoint;
+        } else {
+            callUs += ' ' + ci18n('announcements:preparation') + '!';
+        }
+        announce([secondCall, callUs]);
+    }
+}
+
+function announceSecondPreparationCallServiceJudge(matchSetup) {
+    if(!(window.localStorage.getItem('enable_announcement_preparations_' + getLocationID(matchSetup)) === 'true')) {
+        return;
+    }
+    const servicejudgeCall = createServiceJudge(matchSetup);
+    if (servicejudgeCall != null) {
+        var secondCall = createSecondPreparationCallAnnouncement() + servicejudgeCall + '!';
+        
+        
+        var callUs = normalizeNames(matchSetup.service_judge.name);
+        if (curt.preparation_meetingpoint_enabled) {
+            var meetingPoint = createMeetingPointAnnouncement(matchSetup);
+            meetingPoint = meetingPoint.replace("meldet euch ", "melde dich");
+            callUs += ' ' + meetingPoint;
+        } else {
+            callUs += ' ' + ci18n('announcements:preparation') + '!';
+        }
+        announce([secondCall, callUs]);
+    }
+}
+
+
+function announceSecondPreparationCall(matchSetup, team) {
+    if(!(window.localStorage.getItem('enable_announcement_preparations_' + getLocationID(matchSetup)) === 'true')) {
+        return;
+    }
+    var secondCall = createSecondPreparationCallAnnouncement() + createSingleTeam(team.players);
     if(matchSetup.location_id) {
         const l = utils.find(curt.locations, l => l._id === matchSetup.location_id);
         if(l) {
-            secondCall += ' ' + l.preperation_addition;
+            secondCall += ' ' + l.preparation_addition;
         }
     }
     secondCall += "!";
@@ -146,7 +212,11 @@ function announceBeginnToPlay(matchSetup, team) {
 }
 
 function createSecondCallAnnouncement() {
-    return ci18n('announcements:second_call');
+    return ci18n('announcements:second_call') + ' ' + ci18n('announcements:second_call_for') + ':';
+}
+
+function createSecondPreparationCallAnnouncement() {
+    return ci18n('announcements:second_call') + ' ' + ci18n('announcements:preparation')+ ' ' + ci18n('announcements:second_call_for') + ':';
 }
 
 function createTeamAnnouncement(matchSetup) {
@@ -314,7 +384,7 @@ function createPreparationAnnouncement(matchSetup) {
     if(matchSetup.location_id) {
         const l = utils.find(curt.locations, l => l._id === matchSetup.location_id);
         if(l) {
-            addition = ' ' + l.preperation_addition;
+            addition = ' ' + l.preparation_addition;
         }
     }
     return ci18n('announcements:preparation') + addition;

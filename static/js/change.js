@@ -126,6 +126,7 @@ function default_handler(rerender, special_funcs) {
 			if (!m) {
 				ctournament.add_match(c);
 				curt.matches.push(c.val.match);
+				curt.matches = curt.matches.sort( (a, b) => cmatch.cmp_match_order(a, b));
 			} else {
 				ctournament.add_match(c);
 			}
@@ -159,10 +160,10 @@ function default_handler(rerender, special_funcs) {
 			const l = utils.find(curt.locations, l => l._id === c.val.location_id);
 			if(l) {
 				l.highlight = c.val.highlight;
-				l.preperation_addition = c.val.preperation_addition;
+				l.preparation_addition = c.val.preparation_addition;
 				l.meetingpoint_announcement = c.val.meetingpoint_announcement;
 			}
-			ctournament.update_location(c.val.location_id, c.val.highlight, c.val.preperation_addition, c.val.meetingpoint_announcement);
+			ctournament.update_location(c.val.location_id, c.val.highlight, c.val.preparation_addition, c.val.meetingpoint_announcement);
 			break;
 		case 'location_highlight_changed':
 			const old_location_highlight = c.val.old_location_highlight;
@@ -213,12 +214,21 @@ function default_handler(rerender, special_funcs) {
 			break;
 		case 'second_call_team_two':
 			announceSecondCallTeamTwo(c.val.setup);
+			break;		
+		case 'second_preparation_call_tabletoperator':
+			announceSecondPreparationCallTabletoperator(c.val.setup);
 			break;
-		case 'second_preperation_call_team_one':
-			announceSecondPreperationCallTeamOne(c.val.setup);
+		case 'second_preparation_call_umpire':
+			announceSecondPreparationCallUmpire(c.val.setup);
 			break;
-		case 'second_preperation_call_team_two':
-			announceSecondPreperationCallTeamTwo(c.val.setup);
+		case 'second_preparation_call_servicejudge':
+			announceSecondPreparationCallServiceJudge(c.val.setup);
+			break;
+		case 'second_preparation_call_team_one':
+			announceSecondPreparationCallTeamOne(c.val.setup);
+			break;
+		case 'second_preparation_call_team_two':
+			announceSecondPreparationCallTeamTwo(c.val.setup);
 			break;
 		case 'btp_status':
 			ctournament.btp_status_changed(c);

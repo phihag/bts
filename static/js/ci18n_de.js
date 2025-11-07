@@ -55,10 +55,13 @@ var ci18n_de = {
 	'inactivate_court': 'Spielfeld sperren',
 
 	'announcements:begin_to_play': 'Bitte mit dem Spielen beginnen!',
-	'announcements:second_call': '"Zweiter Aufruf fuer:"',
+	'announcements:second_call': 'Zweiter Aufruf',
+	'announcements:second_call_for': 'für',
+	
 	'announcements:vs': ' gegen ',
 	'announcements:counting_board_service': 'Klapptafelbedienung:',
 	'announcements:table_service': 'Tabletbedienung:',
+	'announcements:please_as_tablet_service': 'bitte als Tabletbedienung',
 	'announcements:umpire': 'Schiedsrichter:',
 	'announcements:service_judge': 'Aufschlagrichter:',
 	'announcements:and': ' und ',

@@ -493,7 +493,7 @@ var ctournament = (function() {
 			{
 				const form = uiu.el(container, 'form');
 		
-				const checkboxId = `enable_announcement_preperations_${loc._id}`;
+				const checkboxId = `enable_announcement_preparations_${loc._id}`;
 				const checkbox = uiu.el(form, 'input', {
 					type: 'checkbox',
 					id: checkboxId,
@@ -2127,12 +2127,12 @@ var ctournament = (function() {
 				send_location_to_admin(e.target.parentNode.parentNode, e.target.getAttribute('data-location_id'));
 			});
 				
-			const preperation_td = uiu.el(tr, 'td', {});
-			const preperation_input = create_textarea_input("textarea", preperation_td, 'preperation_addition');
-			preperation_input.value = l.preperation_addition;
-			preperation_input.setAttribute('data-location-id', l._id);
-			preperation_input.setAttribute('maxlength', 175);
-			preperation_input.addEventListener('focusout', (e) => {
+			const preparation_td = uiu.el(tr, 'td', {});
+			const preparation_input = create_textarea_input("textarea", preparation_td, 'preparation_addition');
+			preparation_input.value = l.preparation_addition;
+			preparation_input.setAttribute('data-location-id', l._id);
+			preparation_input.setAttribute('maxlength', 175);
+			preparation_input.addEventListener('focusout', (e) => {
 				send_location_to_admin(e.target.parentNode.parentNode, e.target.getAttribute('data-location-id'));
 			});
 			const meetinpoint_td = uiu.el(tr, 'td', {});
@@ -2146,7 +2146,7 @@ var ctournament = (function() {
 			const icon_td = uiu.el(tr, 'td', 'icon_td');
 			uiu.el(icon_td, 'img', {
 				style: 'height: 40px;',
-				src: l.logo_id ? '/h/' + encodeURIComponent(curt.key) + '/logo/' + l.logo_id : '/static/icons/preperation.svg',
+				src: l.logo_id ? '/h/' + encodeURIComponent(curt.key) + '/logo/' + l.logo_id : '/static/icons/preparation.svg',
 				name: 'location_logo_img',
 				'data-location_id': l._id
 			});
@@ -2157,7 +2157,7 @@ var ctournament = (function() {
 			const filename_display = uiu.el(logo_form, 'div', {
 				class: 'upload_filename_location',
 				'data-location_id': l._id,
-			}, l.logo_name ? l.logo_name : 'preperation.svg');
+			}, l.logo_name ? l.logo_name : 'preparation.svg');
 
 			const custom_label = uiu.el(logo_form, 'label', {
 				for: logo_button_id,
@@ -2234,7 +2234,7 @@ var ctournament = (function() {
 
 	function send_location_to_admin(parent, location_id) {
 		const highlight = parseInt(parent.querySelector("#select_highlight").value, 10);
-		const preperation_addition = parent.querySelector("#preperation_addition").value;
+		const preparation_addition = parent.querySelector("#preparation_addition").value;
 		const meetingpoint_announcement = parent.querySelector("#meetingpoint_announcement").value;
 
 		send({
@@ -2242,7 +2242,7 @@ var ctournament = (function() {
 			tournament_key: curt.key,
 			location_id,
 			highlight: highlight,
-			preperation_addition,
+			preparation_addition,
 			meetingpoint_announcement,
 		}, function (err, response) {
 			if (err) {
@@ -2251,7 +2251,7 @@ var ctournament = (function() {
 		});
 	}
 
-	function update_location(location_id, highlight, preperation_addition, meetingpoint_announcement) {
+	function update_location(location_id, highlight, preparation_addition, meetingpoint_announcement) {
 		switch (get_admin_subpage()){
 			case 'edit':
 				const locations_table = document.querySelector('.locations_table');

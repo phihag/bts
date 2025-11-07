@@ -329,7 +329,7 @@ function render_match_row(tr, match, court, style, show_player_status, show_add_
 		}
 
 		if(style === 'unasigned' && match.setup.highlight >= 1){
-			create_match_button(players0, 'vlink match_second_preperation_call_button', 'match:secondcallteamone', on_second_preperation_call_team_one_button_click, match._id);
+			create_match_button(players0, 'vlink match_second_preparation_call_button', 'match:secondcallteamone', on_second_preparation_call_team_one_button_click, match._id);
 		}
 	}
 	
@@ -344,7 +344,7 @@ function render_match_row(tr, match, court, style, show_player_status, show_add_
 	render_players_el(players1, setup, 1, match, show_player_status, style);
 	if (style === 'default' || style === 'plain' || style === 'unasigned') {
 		if(style === 'unasigned' && match.setup.highlight >= 1){
-			create_match_button(players1, 'vlink match_second_preperation_call_button', 'match:secondcallteamtwo', on_second_preperation_call_team_two_button_click, match._id);
+			create_match_button(players1, 'vlink match_second_preparation_call_button', 'match:secondcallteamtwo', on_second_preparation_call_team_two_button_click, match._id);
 		}
 		
 		if (show_add_tabletoperator) {
@@ -380,6 +380,10 @@ function render_match_row(tr, match, court, style, show_player_status, show_add_
 				const umpire_span = uiu.el(to_td, 'span', 'person');
 				uiu.el(umpire_span, 'div', 'umpire', '');
 				uiu.el(umpire_span, 'span', 'name', setup.umpire.name);
+
+				if(style === 'unasigned' && match.setup.highlight >= 1){
+					create_match_button(umpire_span, 'vlink match_second_preparation_call_button', 'match:secondcallumpire', on_second_preparation_call_umpire_button_click, match._id);
+				}
 				if (style === 'default' || style === 'plain' || style === 'unasigned') {
 					create_match_button(umpire_span, 'vlink match_second_call_button', 'match:secondcallumpire', on_second_call_umpire_button_click, match._id);
 				}
@@ -388,6 +392,9 @@ function render_match_row(tr, match, court, style, show_player_status, show_add_
 					const service_judge_span = uiu.el(to_td, 'span', 'person');
 					uiu.el(service_judge_span, 'div', 'service_judge', '');
 					uiu.el(service_judge_span, 'span', 'name', setup.service_judge.name);
+					if(style === 'unasigned' && match.setup.highlight >= 1){
+						create_match_button(service_judge_span, 'vlink match_second_preparation_call_button', 'match:secondcallservicejudge', on_second_preparation_call_servicejudge_button_click, match._id);
+					}
 					if (style === 'default' || style === 'plain' || style === 'unasigned') {
 						create_match_button(service_judge_span, 'vlink match_second_call_button', 'match:secondcallservicejudge', on_second_call_servicejudge_button_click, match._id);
 					}
@@ -407,6 +414,10 @@ function render_match_row(tr, match, court, style, show_player_status, show_add_
 					uiu.el(person2_div, 'span', 'match_no_umpire', setup.tabletoperators[1].name );
 				}
 
+				if(style === 'unasigned' && match.setup.highlight >= 1){
+					create_match_button(tablet_div, 'vlink match_second_preparation_call_button', 'match:secondcaltabletoperator', on_second_preparation_call_tabletoperator_button_click, match._id);
+				}
+
 				if (style === 'default' || style === 'plain' || style === 'unasigned') {
 					create_match_button(tablet_div, 'vlink match_second_call_button', 'match:secondcaltabletoperator', on_second_call_tabletoperator_button_click, match._id);
 				}
@@ -419,13 +430,13 @@ function render_match_row(tr, match, court, style, show_player_status, show_add_
 			
 			}
 		} else if(style === 'upcoming' && setup.highlight >= 1) {
-			var preperation_container = uiu.el(to_td, 'div', 'preperation_container'); 
-			uiu.el(preperation_container, 'span', 'preperation', 'in Vorbereitung' + (setup.location_id ? "" : "!")); 
+			var preparation_container = uiu.el(to_td, 'div', 'preparation_container'); 
+			uiu.el(preparation_container, 'span', 'preparation', 'in Vorbereitung' + (setup.location_id ? "" : "!")); 
 
 			if(setup.location_id) {
         		const l = utils.find(curt.locations, l => l._id === setup.location_id);
         		if(l) {
-					uiu.el(preperation_container, 'span', 'preperation', l.preperation_addition); //TODO: Hie die Halle mit ausgeben!
+					uiu.el(preparation_container, 'span', 'preparation', l.preparation_addition); //TODO: Hie die Halle mit ausgeben!
         		}
     		}
 			
@@ -589,14 +600,14 @@ function create_match_button(targetEl, cssClass, title, listener, matchId,) {
 function create_match_prepparation_button(targetEl, cssClass, title, listener, matchId, location){
 	const btn = uiu.el(targetEl, 'div', {
 		'class': cssClass,
-		'title': ci18n(title) + (location.preperation_addition ? ' ' + location.preperation_addition : ''),
+		'title': ci18n(title) + (location.preparation_addition ? ' ' + location.preparation_addition : ''),
 		'data-match_id': matchId,
 		'data-location_id': location._id,
 	});
 
 	uiu.el(btn, 'img', {
 		style: 'height: 1.2em; margin-top: 0.2em;',
-		src: location.logo_id ? '/h/' + encodeURIComponent(curt.key) + '/logo/' + location.logo_id : '/static/icons/preperation.svg',
+		src: location.logo_id ? '/h/' + encodeURIComponent(curt.key) + '/logo/' + location.logo_id : '/static/icons/preparation.svg',
 		name: 'location_logo_img',
 		'data-match_id': matchId,
 		'data-location_id': location._id
@@ -1200,10 +1211,9 @@ function on_announce_preparation_matchbutton_click(e) {
 	if (match != null && location != null) {
 		send({
 			type: 'match_preparation_call',
-			match_id: match._id,
+			match: match,
 			location_id : location._id,
 			tournament_key: match.tournament_key,
-			setup: match.setup,
 		}, function (err) {
 			if (err) {
 				return cerror.net(err);
@@ -1249,11 +1259,11 @@ function on_second_call_team_two_button_click(e) {
 		});
 	}
 }
-function on_second_preperation_call_team_one_button_click(e) {
+function on_second_preparation_call_team_one_button_click(e) {
 	const match = fetchMatchFromEvent(e);
 	if (match != null) {
 		send({
-			type: 'second_preperation_call_team_one',
+			type: 'second_preparation_call_team_one',
 			tournament_key: curt.key,
 			setup: match.setup,
 		}, err => {
@@ -1263,11 +1273,11 @@ function on_second_preperation_call_team_one_button_click(e) {
 		});
 	}
 }
-function on_second_preperation_call_team_two_button_click(e) {
+function on_second_preparation_call_team_two_button_click(e) {
 	const match = fetchMatchFromEvent(e);
 	if (match != null) {
 		send({
-			type: 'second_preperation_call_team_two',
+			type: 'second_preparation_call_team_two',
 			tournament_key: curt.key,
 			setup: match.setup,
 		}, err => {
@@ -1277,80 +1287,127 @@ function on_second_preperation_call_team_two_button_click(e) {
 		});
 	}
 }
-	function on_second_call_tabletoperator_button_click(e) {
-		const match = fetchMatchFromEvent(e);
-		if (match != null) {
-			send({
-				type: 'second_call_tabletoperator',
-				tournament_key: curt.key,
-				setup: match.setup,
-			}, err => {
-				if (err) {
-					return cerror.net(err);
-				}
-			});
-		}
+function on_second_call_tabletoperator_button_click(e) {
+	const match = fetchMatchFromEvent(e);
+	if (match != null) {
+		send({
+			type: 'second_call_tabletoperator',
+			tournament_key: curt.key,
+			setup: match.setup,
+		}, err => {
+			if (err) {
+				return cerror.net(err);
+			}
+		});
 	}
-	function on_second_call_umpire_button_click(e) {
-		const match = fetchMatchFromEvent(e);
-		if (match != null) {
-			send({
-				type: 'second_call_umpire',
-				tournament_key: curt.key,
-				setup: match.setup,
-			}, err => {
-				if (err) {
-					return cerror.net(err);
-				}
-			});
-		}
+}	
+function on_second_preparation_call_tabletoperator_button_click(e) {
+	const match = fetchMatchFromEvent(e);
+	if (match != null) {
+		send({
+			type: 'second_preparation_call_tabletoperator',
+			tournament_key: curt.key,
+			setup: match.setup,
+		}, err => {
+			if (err) {
+				return cerror.net(err);
+			}
+		});
 	}
+}
+function on_second_call_umpire_button_click(e) {
+	const match = fetchMatchFromEvent(e);
+	if (match != null) {
+		send({
+			type: 'second_call_umpire',
+			tournament_key: curt.key,
+			setup: match.setup,
+		}, err => {
+			if (err) {
+				return cerror.net(err);
+			}
+		});
+	}
+}
 
-	function on_second_call_servicejudge_button_click(e) {
-		const match = fetchMatchFromEvent(e);
-		if (match != null) {
-			send({
-				type: 'second_call_servicejudge',
-				tournament_key: curt.key,
-				setup: match.setup,
-			}, err => {
-				if (err) {
-					return cerror.net(err);
-				}
-			});
-		}
-	}
-	
 
-	function on_begin_to_play_button_click(e) {
-		const match = fetchMatchFromEvent(e);
-		if (match != null) {
-			send({
-				type: 'begin_to_play_call',
-				tournament_key: curt.key,
-				setup: match.setup,
-			}, err => {
-				if (err) {
-					return cerror.net(err);
-				}
-			});
-		}
+function on_second_preparation_call_umpire_button_click(e) {
+	const match = fetchMatchFromEvent(e);
+	if (match != null) {
+		send({
+			type: 'second_preparation_call_umpire',
+			tournament_key: curt.key,
+			setup: match.setup,
+		}, err => {
+			if (err) {
+				return cerror.net(err);
+			}
+		});
 	}
+}
 
-	function on_announce_match_manually_button_click(e) {
-		const match = fetchMatchFromEvent(e);
-		if (match != null) {
-			send({
-				type: 'announce_match_manually',
-				tournament_key: curt.key,
-				match: match,
-			}, err => {
-				if (err) {
-					return cerror.net(err);
-				}
-			});
-		}
+function on_second_call_servicejudge_button_click(e) {
+	const match = fetchMatchFromEvent(e);
+	if (match != null) {
+		send({
+			type: 'second_call_servicejudge',
+			tournament_key: curt.key,
+			setup: match.setup,
+		}, err => {
+			if (err) {
+				return cerror.net(err);
+			}
+		});
 	}
+}
+
+
+function on_second_preparation_call_servicejudge_button_click(e) {
+	const match = fetchMatchFromEvent(e);
+	if (match != null) {
+		send({
+			type: 'second_preparation_call_servicejudge',
+			tournament_key: curt.key,
+			setup: match.setup,
+		}, err => {
+			if (err) {
+				return cerror.net(err);
+			}
+		});
+	}
+}
+
+
+
+function on_begin_to_play_button_click(e) {
+	const match = fetchMatchFromEvent(e);
+	if (match != null) {
+		send({
+			type: 'begin_to_play_call',
+			tournament_key: curt.key,
+			setup: match.setup,
+		}, err => {
+			if (err) {
+				return cerror.net(err);
+			}
+		});
+	}
+}
+
+function on_announce_match_manually_button_click(e) {
+	const match = fetchMatchFromEvent(e);
+	if (match != null) {
+		send({
+			type: 'announce_match_manually',
+			tournament_key: curt.key,
+			match: match,
+		}, err => {
+			if (err) {
+				return cerror.net(err);
+			}
+		});
+	}
+}
 function fetchMatchFromEvent(e) {
 	const btn = e.target;
 	const match_id = btn.getAttribute('data-match_id');
@@ -1723,6 +1780,7 @@ function render_unassigned(container) {
 }
 
 function render_upcoming_matches(container) {
+	console.warn("Rendere upcoming");
 	const UPCOMING_MATCH_COUNT = parseInt(curt.upcoming_matches_max_count ? curt.upcoming_matches_max_count : 15);
 	uiu.empty(container);
 
@@ -1733,6 +1791,8 @@ function render_upcoming_matches(container) {
 	const upcoming_table = uiu.el(container, 'table', 'upcoming_table');
 	const upcoming_tbody = uiu.el(upcoming_table, 'tbody', 'upcoming_tbody');
 	const unassigned_matches = curt.matches.filter(m => calc_section(m) === 'unassigned');
+
+	console.log(unassigned_matches);
 	
 	
 	var resizable_rows = [];

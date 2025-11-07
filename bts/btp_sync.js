@@ -882,7 +882,7 @@ function integrate_locations(app, tournament_key, btp_state, callback) {
 		const city = (l.City ? l.City[0] : "");
 		const state = (l.State ? l.State[0] : "");
 		const country = (l.Country ? l.Country[0] : "");
-		const preperation_addition = "";
+		const preparation_addition = "";
 		const meetingpoint_announcement = "";
 		const short_name = generateHallAbbreviation(name);
 
@@ -916,7 +916,7 @@ function integrate_locations(app, tournament_key, btp_state, callback) {
 				if (cur_location) {
 
 					//ADD BTP ID
-					app.db.locations.update(alt_query, { $set: { btp_id, name, address, postal_code, city, state, country, preperation_addition, meetingpoint_announcement, short_name} }, {}, (err) => cb(err));
+					app.db.locations.update(alt_query, { $set: { btp_id, name, address, postal_code, city, state, country, preparation_addition, meetingpoint_announcement, short_name} }, {}, (err) => cb(err));
 					return;
 				}
 
@@ -942,7 +942,7 @@ function integrate_locations(app, tournament_key, btp_state, callback) {
 					city,
 					state,
 					country,
-					preperation_addition,
+					preparation_addition,
 					meetingpoint_announcement,
 					short_name,
 					highlight,

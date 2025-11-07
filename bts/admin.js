@@ -207,11 +207,11 @@ function handle_court_edit(app, ws, msg) {
 }
 
 function handle_location_changed(app, ws, msg) {
-	if (!_require_msg(ws, msg, ['tournament_key', 'location_id', 'highlight', 'preperation_addition', 'meetingpoint_announcement'])) {
+	if (!_require_msg(ws, msg, ['tournament_key', 'location_id', 'highlight', 'preparation_addition', 'meetingpoint_announcement'])) {
 		return;
 	}
 	const location_id = msg.location_id;
-	const preperation_addition = msg.preperation_addition;
+	const preparation_addition = msg.preparation_addition;
 	const meetingpoint_announcement = msg.meetingpoint_announcement;
 	const highlight = msg.highlight;
 
@@ -226,13 +226,13 @@ function handle_location_changed(app, ws, msg) {
 			return;
 		}
 
-		app.db.locations.update(query, { $set: {highlight, preperation_addition, meetingpoint_announcement} }, {}, (err) => {
+		app.db.locations.update(query, { $set: {highlight, preparation_addition, meetingpoint_announcement} }, {}, (err) => {
 			if(err) {
 				ws.respond(msg, err);
 				return;
 			}
 
-			notify_change(app, msg.tournament_key, 'location_changed', {location_id, highlight, preperation_addition, meetingpoint_announcement});
+			notify_change(app, msg.tournament_key, 'location_changed', {location_id, highlight, preparation_addition, meetingpoint_announcement});
 			notify_change(app, msg.tournament_key, 'location_highlight_changed', {old_location_highlight: old_location.highlight, new_location_highlight: highlight});
 			
 
@@ -777,10 +777,10 @@ function handle_match_preparation_call(app, ws, msg) {
 
 	const match_utils = require('./match_utils');
 
-	if (!_require_msg(ws, msg, ['tournament_key', 'match_id', 'location_id', 'setup'])) {
+	if (!_require_msg(ws, msg, ['tournament_key', 'match', 'location_id'])) {
 		return;
 	}
-	if (match_utils.match_completly_initialized(msg.setup) == false) {
+	if (match_utils.match_completly_initialized(msg.match.setup) == false) {
 		return ws.respond("Match cannot be called one or more Teams are not set.");
 	}
 
@@ -790,8 +790,7 @@ function handle_match_preparation_call(app, ws, msg) {
 			return ws.respond(err);
 		}
 
-		const setup = _extract_setup(msg.setup);
-		match_utils.call_match_in_preparation(app, tournament, msg.match_id, msg.location_id, setup, (err) => {
+		match_utils.call_match_in_preparation(app, tournament, msg.match, msg.location_id, (err) => {
 			ws.respond(msg, err);
 			return;
 		});
@@ -883,6 +882,19 @@ function handle_second_call_tabletoperator(app, ws, msg) {
 	ws.respond(msg);
 }
 
+function handle_second_preparation_call_tabletoperator(app, ws, msg) {
+	if (!_require_msg(ws, msg, ['tournament_key', 'setup'])) {
+		return;
+	}
+
+	const tournament_key = msg.tournament_key;
+	const setup = _extract_setup(msg.setup);
+
+	notify_change(app, tournament_key, 'second_preparation_call_tabletoperator', {setup});
+	
+	ws.respond(msg);
+}
+
 function handle_second_call_umpire(app, ws, msg) {
 	if (!_require_msg(ws, msg, ['tournament_key', 'setup'])) {
 		return;
@@ -895,6 +907,20 @@ function handle_second_call_umpire(app, ws, msg) {
 
 	ws.respond(msg);
 }
+
+function handle_second_preparation_call_umpire(app, ws, msg) {
+	if (!_require_msg(ws, msg, ['tournament_key', 'setup'])) {
+		return;
+	}
+
+	const tournament_key = msg.tournament_key;
+	const setup = _extract_setup(msg.setup);
+
+	notify_change(app, tournament_key, 'second_preparation_call_umpire', { setup });
+
+	ws.respond(msg);
+}
+
 function handle_second_call_servicejudge(app, ws, msg) {
 	if (!_require_msg(ws, msg, ['tournament_key', 'setup'])) {
 		return;
@@ -904,6 +930,19 @@ function handle_second_call_servicejudge(app, ws, msg) {
 	const setup = _extract_setup(msg.setup);
 
 	notify_change(app, tournament_key, 'second_call_servicejudge', { setup });
+
+	ws.respond(msg);
+}
+
+function handle_second_preparation_call_servicejudge(app, ws, msg) {
+	if (!_require_msg(ws, msg, ['tournament_key', 'setup'])) {
+		return;
+	}
+
+	const tournament_key = msg.tournament_key;
+	const setup = _extract_setup(msg.setup);
+
+	notify_change(app, tournament_key, 'second_preparation_call_servicejudge', { setup });
 
 	ws.respond(msg);
 }
@@ -923,7 +962,7 @@ function handle_second_call_team_one(app, ws, msg) {
 }
 
 
-function handle_second_preperation_call_team_one(app, ws, msg) {
+function handle_second_preparation_call_team_one(app, ws, msg) {
 	if (!_require_msg(ws, msg, ['tournament_key', 'setup'])) {
 		return;
 	}
@@ -931,7 +970,7 @@ function handle_second_preperation_call_team_one(app, ws, msg) {
 	const tournament_key = msg.tournament_key;
 	const setup = _extract_setup(msg.setup);
 
-	notify_change(app, tournament_key, 'second_preperation_call_team_one', {setup});
+	notify_change(app, tournament_key, 'second_preparation_call_team_one', {setup});
 	
 	ws.respond(msg);
 }
@@ -1047,7 +1086,7 @@ function handle_second_call_team_two(app, ws, msg) {
 }
 
 
-function handle_second_preperation_call_team_two(app, ws, msg) {
+function handle_second_preparation_call_team_two(app, ws, msg) {
 	if (!_require_msg(ws, msg, ['tournament_key', 'setup'])) {
 		return;
 	}
@@ -1055,7 +1094,7 @@ function handle_second_preperation_call_team_two(app, ws, msg) {
 	const tournament_key = msg.tournament_key;
 	const setup = _extract_setup(msg.setup);
 
-	notify_change(app, tournament_key, 'second_preperation_call_team_two', {setup});
+	notify_change(app, tournament_key, 'second_preparation_call_team_two', {setup});
 	
 	ws.respond(msg);
 }
@@ -1283,12 +1322,15 @@ module.exports = {
 	handle_ticker_reset,
 	handle_free_announce,
 	handle_second_call_umpire,
+	handle_second_preparation_call_umpire,
 	handle_second_call_servicejudge,
+	handle_second_preparation_call_servicejudge,
 	handle_second_call_tabletoperator,
+	handle_second_preparation_call_tabletoperator,
 	handle_second_call_team_one,
 	handle_second_call_team_two,
-	handle_second_preperation_call_team_one,
-	handle_second_preperation_call_team_two,
+	handle_second_preparation_call_team_one,
+	handle_second_preparation_call_team_two,
 	handle_tournament_get,
 	handle_tournament_list,
 	handle_tournament_edit_props,

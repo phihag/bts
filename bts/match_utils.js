@@ -48,7 +48,7 @@ async function call_match(app, tournament, match, old_court, callback) {
 	async.waterfall([	(wcb) => add_called_timestamp(match, wcb),
 		(wcb) => add_tabletoperators(app, tournament, match, wcb),
 		(wcb) => set_umpires_on_court(app, tournament, match, wcb),
-		(wcb) => remove_highlight_preperation(match, wcb),
+		(wcb) => remove_highlight_preparation(match, wcb),
 		(wcb) => update_match_btp(app, match, wcb),
 		(wcb) => update_match_db(app, match, wcb),
 		(wcb) => update_court_db(app, match, wcb),
@@ -75,7 +75,7 @@ async function switch_court(app, tournament, match, old_court, callback) {
 	async.waterfall([
 		(wcb) => add_tabletoperators(app, tournament, match, wcb),
 		(wcb) => set_umpires_on_court(app, tournament, match, wcb),
-		(wcb) => remove_highlight_preperation(match, wcb),
+		(wcb) => remove_highlight_preparation(match, wcb),
 		(wcb) => update_match_btp(app, match, wcb),
 		(wcb) => update_match_db(app, match, wcb),
 		(wcb) => update_court_db(app, match, wcb),
@@ -93,7 +93,7 @@ async function switch_court(app, tournament, match, old_court, callback) {
 }
 
 function match_completly_initialized(setup) {
-	if (setup.teams[0].players.length == 0 || setup.teams[1].players.length == 0) {
+	if (!setup || setup.teams[0].players.length == 0 || setup.teams[1].players.length == 0) {
 		return false;
 	}
 	return true;
@@ -214,7 +214,7 @@ async function set_umpires_on_court(app, tournament, match, callback) {
 	return callback(null);
 }
 
-function remove_highlight_preperation(match, callback){
+function remove_highlight_preparation(match, callback){
 	const setup = match.setup;
 
 	if(setup.highlight && setup.highlight == 6){
@@ -995,16 +995,33 @@ async function call_next_possible_match_for_preparation(app, tournament_key, cal
 }
 
 
-async function call_match_in_preparation(app, tournament, match_id, location_id, setup, callback) {
+async function call_match_in_preparation(app, tournament, match, location_id, callback) {
 	const tournament_key = tournament.key;
 	const admin = require('./admin');
+	const setup = match.setup;
+	const match_id = match._id;
 
 	await add_preparation_call_timestamp(app.db, tournament_key, setup, location_id);
 
 	if (tournament.preparation_tabletoperator_setup_enabled) {
 		if (!setup.umpire || (tournament.tabletoperator_with_umpire_enabled && tournament.tabletoperator_with_umpire_enabled == true)) {
 			if (!setup.tabletoperators || setup.tabletoperators == null) {
-				setup.tabletoperators = await fetch_tabletoperator(admin, app, tournament_key, "prep_call");
+				const fetch_result = await fetch_tabletoperator(admin, app, tournament.key, "prep_call");
+				let value = [];
+				if (tournament.tabletoperator_with_state_from_match_enabled && typeof(fetch_result) == "undefined") {
+					value.push({
+						asian_name: false,
+						name: setup.teams[0].players[0].state,
+						firstname: "",
+						lastname: "",
+						btp_id: -1});
+				} else {
+					value = fetch_result;
+				}
+
+                if (!setup.umpire || !setup.umpire.name || (tournament.tabletoperator_with_umpire_enabled && tournament.tabletoperator_with_umpire_enabled == true)) {
+                    setup.tabletoperators = value;
+                }
 			}
 		}
 	}

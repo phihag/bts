@@ -26,7 +26,7 @@
 .match_begin_to_play_button,
 .match_manual_call_button,
 .match_second_call_button,
-.match_second_preperation_call_button,
+.match_second_preparation_call_button,
 .match_rawinfo {
 	display: inline-block;
 	min-width: 1em;
@@ -47,7 +47,7 @@
 	height: 100%;
     width: auto;
     margin: 0 0 -0.1em 0.3em;
-	/*background-image: url(../icons/preperation.svg);*/
+	/*background-image: url(../icons/preparation.svg);*/
 }
 .match_manual_call_button {
 	height: 1.5em;
@@ -65,7 +65,7 @@
 }
 
 .match_second_call_button,
-.match_second_preperation_call_button {
+.match_second_preparation_call_button {
 	height: 1.2em;
     min-height: 1em;
     background-size: cover;
@@ -100,7 +100,7 @@
 
 .match_edit_button:hover,
 .match_second_call_button:hover,
-.match_second_preperation_call_button:hover,
+.match_second_preparation_call_button:hover,
 .match_preparation_call_button:hover,
 .match_begin_to_play_button:hover,
 .match_manual_call_button:hover,
@@ -317,7 +317,7 @@
 match_preparation_call_button,
 match_begin_to_play_button,
 match_second_call_button,
-match_second_preperation_call_button,
+match_second_preparation_call_button,
 match_manual_call_button,
 .match_scoresheet_buttons {
 	position: fixed;
@@ -341,12 +341,12 @@ match_manual_call_button,
 }
 
 .match_second_call_button > * , 
-.match_second_preperation_call_button > * {
+.match_second_preparation_call_button > * {
 	display: block;
 }
 
 .match_second_call_button > button, 
-.match_second_preperation_call_button > button {
+.match_second_preparation_call_button > button {
 	margin: 0 0 0 2vmin;
 	font-size: 5vmin;
 	padding: 0.1em 0.1em;
@@ -526,12 +526,12 @@ match_manual_call_button,
 	background-color: #c56bff;
 }
 
-.preperation_container {
+.preparation_container {
 	display: flex;
 	flex-direction: column;
 }
 
-.preperation {
+.preparation {
 	font-weight: bold;
 	text-wrap: nowrap;
 }
