@@ -1,6 +1,7 @@
 'use strict';
 
 var curt; // current tournament
+let scoring_formats_main = null;
 
 var ctournament = (function() {
 	function _route_single(rex, func, handler) {
@@ -1041,6 +1042,17 @@ var ctournament = (function() {
 		
 		}
 
+
+		// scoring-formats-div##############################################################################
+		{
+		const scoring_div = uiu.el(form, "div", "settings");
+		scoring_formats_main = scoring_div;
+		render_scoring_formats(scoring_div);
+		render_stages_scoring_formats(scoring_div)
+		}
+
+
+
 		// call-div##################################################################################
 		{
 			const call_div = uiu.el(form, 'div', 'settings');
@@ -1248,6 +1260,461 @@ var ctournament = (function() {
 			return callback(err);
 		});
 	}
+
+	function update_scoring_formats() {
+		if (!scoring_formats_main) {
+			if (typeof debug !== "undefined" && debug?.log) {
+				debug.log("update_scoring_formats: main container not initialized");	
+			}
+			return;
+		}
+
+		// kompletten Bereich leeren
+		while (scoring_formats_main.firstChild) {
+			scoring_formats_main.removeChild(scoring_formats_main.firstChild);
+		}
+
+		// vollständig neu rendern
+		render_scoring_formats(scoring_formats_main);
+		render_stages_scoring_formats(scoring_formats_main);
+	}
+
+	function format_duration_ms(durationMs) {
+		const duration = Number(durationMs);
+		if (!Number.isFinite(duration) || duration < 0) {
+			return "—";
+		}
+		if (duration === 0) {
+			return "0 s";
+		}
+		return `${Math.round(duration / 1000)} s`;
+	}
+
+	function format_set_rule_summary(setPoints) {
+		if (!setPoints) {
+			return "—";
+		}
+
+		const endPoints = setPoints.end_points ?? "—";
+		const maxPoints = setPoints.max_points ?? "—";
+		return `${endPoints} / ${maxPoints}`;
+	}
+
+	function parse_nullable_number(value) {
+		if (value === undefined || value === null || value === "") {
+			return null;
+		}
+		const parsed = Number(value);
+		return Number.isFinite(parsed) ? parsed : null;
+	}
+
+	function duration_ms_to_seconds(value) {
+		const duration = parse_nullable_number(value);
+		if (duration === null) {
+			return "";
+		}
+		return duration / 1000;
+	}
+
+	function duration_seconds_to_ms(value) {
+		const duration = parse_nullable_number(value);
+		if (duration === null) {
+			return null;
+		}
+		return duration * 1000;
+	}
+
+	function is_break_in_set_enabled(setPoints) {
+		if (!setPoints) {
+			return false;
+		}
+		if (typeof setPoints.interval_enabled === "boolean") {
+			return setPoints.interval_enabled;
+		}
+		return (
+			setPoints.interval_at !== null &&
+			setPoints.interval_at !== undefined &&
+			setPoints.interval_duration_ms !== null &&
+			setPoints.interval_duration_ms !== undefined
+		);
+	}
+
+	function clone_scoring_formats() {
+		const scoringFormats = curt?.scoring_formats || { formats: [], default_id: null };
+		return structuredClone(scoringFormats);
+	}
+
+	function _cancel_ui_edit_scoring_format() {
+		const dlg = document.querySelector('.scoring_format_edit_dialog');
+		if (!dlg) {
+			return;
+		}
+		cbts_utils.esc_stack_pop();
+		uiu.remove(dlg);
+	}
+
+	function create_scoring_format_field(parent, label, name, value, type = "text", attrs = {}) {
+		const row = uiu.el(parent, 'label', 'scoring_format_edit_row');
+		uiu.el(row, 'span', {}, label);
+		return uiu.el(row, 'input', Object.assign({
+			type,
+			name,
+			value: value ?? '',
+		}, attrs));
+	}
+
+	function create_scoring_format_checkbox(parent, label, name, checked) {
+		const row = uiu.el(parent, 'label', 'scoring_format_edit_row');
+		uiu.el(row, 'span', {}, label);
+		const attrs = {
+			type: 'checkbox',
+			name,
+		};
+		if (checked) {
+			attrs.checked = 'checked';
+		}
+		return uiu.el(row, 'input', attrs);
+	}
+
+	function is_scoring_value_editable(setPoints, fieldName) {
+		return !!(setPoints && setPoints[`${fieldName}_editable`]);
+	}
+
+	function render_scoring_format_edit_section(parent, prefix, title, setPoints) {
+		const fieldset = uiu.el(parent, 'fieldset', 'scoring_format_edit_section');
+		uiu.el(fieldset, 'legend', {}, title);
+		const endPointAttrs = { min: 1, step: 1 };
+		if (!is_scoring_value_editable(setPoints, "end_points")) {
+			endPointAttrs.disabled = 'disabled';
+		} else {
+			endPointAttrs.required = 'required';
+		}
+		const maxPointAttrs = { min: 1, step: 1 };
+		if (!is_scoring_value_editable(setPoints, "max_points")) {
+			maxPointAttrs.disabled = 'disabled';
+		} else {
+			maxPointAttrs.required = 'required';
+		}
+		const endPointsInput = create_scoring_format_field(fieldset, ci18n("tournament:edit:scoring_formats:end_points_label"), `${prefix}_end_points`, setPoints?.end_points, "number", endPointAttrs);
+		const maxPointsInput = create_scoring_format_field(fieldset, ci18n("tournament:edit:scoring_formats:max_points"), `${prefix}_max_points`, setPoints?.max_points, "number", maxPointAttrs);
+		const hasBreakInSet = is_break_in_set_enabled(setPoints);
+		const breakEnabled = create_scoring_format_checkbox(fieldset, ci18n("tournament:edit:scoring_formats:break_in_set_enabled"), `${prefix}_break_in_set_enabled`, hasBreakInSet);
+		const intervalAtInput = create_scoring_format_field(fieldset, ci18n("tournament:edit:scoring_formats:interval_at"), `${prefix}_interval_at`, setPoints?.interval_at, "number", { min: 0, step: 1 });
+		const intervalDurationInput = create_scoring_format_field(fieldset, `${ci18n("tournament:edit:scoring_formats:interval_duration")} (s)`, `${prefix}_interval_duration_s`, duration_ms_to_seconds(setPoints?.interval_duration_ms), "number", { min: 0, step: 1 });
+		create_scoring_format_field(fieldset, `${ci18n("tournament:edit:scoring_formats:break_before_set")} (s)`, `${prefix}_break_before_set_duration_s`, duration_ms_to_seconds(setPoints?.break_before_set_duration_ms), "number", { min: 0, step: 1 });
+
+		function normalizeScoreInputs() {
+			if (!endPointsInput.disabled) {
+				let endPoints = Number(endPointsInput.value);
+				if (!Number.isFinite(endPoints) || endPoints < 1) {
+					endPoints = Math.max(1, Number(setPoints?.end_points) || 1);
+				}
+				endPointsInput.value = String(endPoints);
+				if (!maxPointsInput.disabled) {
+					maxPointsInput.min = String(endPoints);
+					let maxPoints = Number(maxPointsInput.value);
+					if (!Number.isFinite(maxPoints) || maxPoints < endPoints) {
+						maxPoints = endPoints;
+					}
+					maxPointsInput.value = String(maxPoints);
+				}
+			} else if (!maxPointsInput.disabled) {
+				let maxPoints = Number(maxPointsInput.value);
+				const minValue = Math.max(1, Number(setPoints?.end_points) || 1);
+				maxPointsInput.min = String(minValue);
+				if (!Number.isFinite(maxPoints) || maxPoints < minValue) {
+					maxPointsInput.value = String(minValue);
+				}
+			}
+		}
+
+		if (!endPointsInput.disabled) {
+			endPointsInput.addEventListener('input', normalizeScoreInputs);
+			endPointsInput.addEventListener('blur', normalizeScoreInputs);
+		}
+		if (!maxPointsInput.disabled) {
+			maxPointsInput.addEventListener('input', normalizeScoreInputs);
+			maxPointsInput.addEventListener('blur', normalizeScoreInputs);
+		}
+		normalizeScoreInputs();
+
+		function updateBreakInSetUi() {
+			const enabled = breakEnabled.checked;
+			intervalAtInput.disabled = !enabled;
+			intervalDurationInput.disabled = !enabled;
+		}
+
+		breakEnabled.addEventListener('change', updateBreakInSetUi);
+		updateBreakInSetUi();
+	}
+
+	function scoring_format_from_form_data(baseFormat, data) {
+		const scoringFormat = structuredClone(baseFormat);
+
+		function update_set_points(target, prefix) {
+			if (is_scoring_value_editable(target, "end_points")) {
+				target.end_points = Math.max(1, Number(data[`${prefix}_end_points`]));
+			}
+			if (is_scoring_value_editable(target, "max_points")) {
+				const minPoints = Math.max(1, Number(target.end_points));
+				target.max_points = Math.max(minPoints, Number(data[`${prefix}_max_points`]));
+			}
+			const hasBreakInSet = !!data[`${prefix}_break_in_set_enabled`];
+			target.interval_enabled = hasBreakInSet;
+			if (hasBreakInSet) {
+				target.interval_at = parse_nullable_number(data[`${prefix}_interval_at`]);
+				target.interval_duration_ms = duration_seconds_to_ms(data[`${prefix}_interval_duration_s`]);
+			}
+			target.break_before_set_duration_ms = duration_seconds_to_ms(data[`${prefix}_break_before_set_duration_s`]);
+		}
+
+		update_set_points(scoringFormat.set_points, 'set_points');
+		update_set_points(scoringFormat.last_set_points, 'last_set_points');
+		return scoringFormat;
+	}
+
+	function save_scoring_format(scoringFormatId, scoringFormat, callback) {
+		const scoringFormats = clone_scoring_formats();
+		const formats = Array.isArray(scoringFormats.formats) ? scoringFormats.formats : [];
+		const index = formats.findIndex(f => Number(f.id) === Number(scoringFormatId));
+		if (index === -1) {
+			return callback(new Error(`Unknown scoring format ${scoringFormatId}`));
+		}
+		formats[index] = scoringFormat;
+		scoringFormats.formats = formats;
+
+		send({
+			type: 'tournament_edit_props',
+			key: curt.key,
+			props: {
+				scoring_formats: scoringFormats,
+			},
+		}, callback);
+	}
+
+	function ui_edit_scoring_format(scoringFormatId) {
+		const scoringFormats = curt?.scoring_formats;
+		const baseFormat = structuredClone(utils.find((scoringFormats && scoringFormats.formats) || [], f => Number(f.id) === Number(scoringFormatId)));
+		if (!baseFormat) {
+			return;
+		}
+
+		cbts_utils.esc_stack_push(_cancel_ui_edit_scoring_format);
+
+		const body = uiu.qs('body');
+		const dialogBg = uiu.el(body, 'div', 'dialog_bg scoring_format_edit_dialog', {
+			'data-scoring-format-id': scoringFormatId,
+		});
+		dialogBg.addEventListener('click', (e) => {
+			if (e.target === dialogBg) {
+				_cancel_ui_edit_scoring_format();
+			}
+		});
+
+		const dialog = uiu.el(dialogBg, 'div', 'dialog');
+		uiu.el(dialog, 'h3', {}, ci18n('tournament:edit:scoring_formats:dialog_title'));
+
+		const form = uiu.el(dialog, 'form');
+		const container = uiu.el(form, 'div', 'scoring_format_edit_container');
+		uiu.el(container, 'div', 'hint', ci18n('tournament:edit:scoring_formats:dialog_hint'));
+		create_scoring_format_field(container, ci18n("tournament:edit:scoring_formats:name"), 'name', baseFormat.name, 'text', { disabled: 'disabled' });
+		create_scoring_format_field(container, ci18n("tournament:edit:scoring_formats:num_sets"), 'numSets', baseFormat.numSets, 'number', { min: 1, step: 1, disabled: 'disabled' });
+		render_scoring_format_edit_section(container, 'set_points', ci18n("tournament:edit:scoring_formats:regular_sets"), baseFormat.set_points);
+		render_scoring_format_edit_section(container, 'last_set_points', ci18n("tournament:edit:scoring_formats:last_set"), baseFormat.last_set_points);
+
+		const buttons = uiu.el(form, 'div', { style: 'margin-top: 2em;' });
+		uiu.el(buttons, 'button', {
+			'class': 'match_save_button',
+			role: 'submit',
+		}, ci18n('Change'));
+
+		form_utils.onsubmit(form, function(data) {
+			const scoringFormat = scoring_format_from_form_data(baseFormat, data);
+			save_scoring_format(scoringFormatId, scoringFormat, (err) => {
+				if (err) {
+					return cerror.net(err);
+				}
+				_cancel_ui_edit_scoring_format();
+			});
+		});
+
+		const cancelBtn = uiu.el(buttons, 'span', 'match_cancel_link vlink', ci18n('Cancel'));
+		cancelBtn.addEventListener('click', _cancel_ui_edit_scoring_format);
+	}
+
+	function render_scoring_formats(main) {
+		uiu.el(main, "h2", "edit", ci18n("tournament:edit:scoring_formats"));
+
+		const sf = curt?.scoring_formats || { formats: [], default_id: null };
+		const formats = Array.isArray(sf.formats) ? sf.formats : [];
+		const defaultId = sf.default_id;
+
+		const table = uiu.el(main, "table", "scoring_formats_table");
+		const tbody = uiu.el(table, "tbody");
+
+		{
+			const tr = uiu.el(tbody, "tr");
+			uiu.el(tr, "th", { class: "scoring_format_name_cell" }, ci18n("tournament:edit:scoring_formats:name"));
+			uiu.el(tr, "th", { class: "scoring_format_center_cell" }, ci18n("tournament:edit:scoring_formats:num_sets"));
+			uiu.el(tr, "th", { class: "scoring_format_type_cell" }, ci18n("tournament:edit:scoring_formats:type"));
+			uiu.el(tr, "th", { class: "scoring_format_center_cell" }, ci18n("tournament:edit:scoring_formats:end_max"));
+			uiu.el(tr, "th", { class: "scoring_format_center_cell" }, ci18n("tournament:edit:scoring_formats:interval_at"));
+			uiu.el(tr, "th", { class: "scoring_format_right_cell" }, ci18n("tournament:edit:scoring_formats:interval_duration"));
+			uiu.el(tr, "th", { class: "scoring_format_right_cell" }, ci18n("tournament:edit:scoring_formats:break_before_set"));
+			uiu.el(tr, "th", { class: "scoring_format_center_cell" }, ci18n("tournament:edit:scoring_formats:default"));
+			uiu.el(tr, "th", { class: "scoring_format_center_cell" }, ci18n("tournament:edit:scoring_formats:edit"));
+		}
+
+		for (const [formatIndex, f] of formats.entries()) {
+			const rowClass = (formatIndex % 2 === 0) ? "scoring_formats_row_group_even" : "scoring_formats_row_group_odd";
+			const regularTr = uiu.el(tbody, "tr", rowClass);
+			const lastTr = uiu.el(tbody, "tr", `scoring_formats_subrow ${rowClass}`);
+			const regularSetPoints = f?.set_points;
+			const lastSetPoints = f?.last_set_points;
+			const isDefault = Number(f.id) === Number(defaultId);
+				const canEdit = true;
+
+				uiu.el(regularTr, "td", { rowspan: 2, class: "scoring_format_name_cell" }, f.name || "");
+				uiu.el(regularTr, "td", { rowspan: 2, class: "scoring_format_center_cell" }, String(f.numSets ?? ""));
+				uiu.el(regularTr, "td", { class: "scoring_format_type_cell scoring_format_rule_cell" }, ci18n("tournament:edit:scoring_formats:type_regular"));
+				uiu.el(regularTr, "td", { class: "scoring_format_rule_cell scoring_format_center_cell" }, format_set_rule_summary(regularSetPoints));
+				uiu.el(regularTr, "td", { class: "scoring_format_rule_cell scoring_format_center_cell" }, is_break_in_set_enabled(regularSetPoints) ? String(regularSetPoints.interval_at) : "—");
+				uiu.el(regularTr, "td", { class: "scoring_format_rule_cell scoring_format_right_cell" }, is_break_in_set_enabled(regularSetPoints) ? format_duration_ms(regularSetPoints && regularSetPoints.interval_duration_ms) : "—");
+				uiu.el(regularTr, "td", { class: "scoring_format_rule_cell scoring_format_right_cell" }, format_duration_ms(regularSetPoints && regularSetPoints.break_before_set_duration_ms));
+
+				const defTd = uiu.el(regularTr, "td", { rowspan: 2, class: "scoring_format_center_cell" });
+				if (isDefault) {
+					uiu.el(defTd, "span", {
+						class: "default_scoring_format_badge",
+						title: ci18n("tournament:edit:scoring_formats:default"),
+					}, ci18n("tournament:edit:scoring_formats:default_badge"));
+				} else {
+					uiu.el(defTd, "span", { class: "default_scoring_format_badge default_scoring_format_badge_inactive" }, "—");
+				}
+
+				const actionsTd = uiu.el(regularTr, "td", { rowspan: 2, class: "scoring_format_center_cell" });
+				const editBtn = uiu.el(
+					actionsTd,
+					"button",
+					{ "data-scoring-format-id": f.id },
+					ci18n("tournament:edit:scoring_formats:edit")
+					);
+
+				editBtn.addEventListener("click", (e) => {
+					const id = e.target.getAttribute("data-scoring-format-id");
+					ui_edit_scoring_format(id);
+				});
+
+				uiu.el(lastTr, "td", { class: "scoring_format_type_cell scoring_format_rule_cell" }, ci18n("tournament:edit:scoring_formats:type_last"));
+				uiu.el(lastTr, "td", { class: "scoring_format_rule_cell scoring_format_center_cell" }, format_set_rule_summary(lastSetPoints));
+				uiu.el(lastTr, "td", { class: "scoring_format_rule_cell scoring_format_center_cell" }, is_break_in_set_enabled(lastSetPoints) ? String(lastSetPoints.interval_at) : "—");
+				uiu.el(lastTr, "td", { class: "scoring_format_rule_cell scoring_format_right_cell" }, is_break_in_set_enabled(lastSetPoints) ? format_duration_ms(lastSetPoints && lastSetPoints.interval_duration_ms) : "—");
+				uiu.el(lastTr, "td", { class: "scoring_format_rule_cell scoring_format_right_cell" }, format_duration_ms(lastSetPoints && lastSetPoints.break_before_set_duration_ms));
+		}
+	}
+
+	function update_stages_scoring_formats() {
+		if (!scoring_formats_main) {
+			if (typeof debug !== "undefined" && debug?.log) {
+				debug.log("update_scoring_formats: main container not initialized");	
+			}
+			return;
+		}
+
+		// kompletten Bereich leeren
+		while (scoring_formats_main.firstChild) {
+			scoring_formats_main.removeChild(scoring_formats_main.firstChild);
+		}
+
+		// vollständig neu rendern
+		render_scoring_formats(scoring_formats_main);
+		render_stages_scoring_formats(scoring_formats_main);
+	}
+
+	function render_stages_scoring_formats(main) {
+		const sf = curt?.scoring_formats || { formats: [], default_id: null };
+		const defaultId = sf.default_id;
+
+		// Build lookup: scoring_format_id -> scoring_format_name
+		const formatNameById = new Map();
+		for (const f of sf.formats || []) {
+			formatNameById.set(Number(f.id), f.name || String(f.id));
+		}
+
+		const eventsPayload = curt?.events?.events || [];
+		const deviations = [];
+
+		for (const ev of eventsPayload) {
+			const eventName = ev?.name || "";
+			const stages = Array.isArray(ev?.stages) ? ev.stages : [];
+
+			for (const st of stages) {
+				// Missing/null scoring_format => default
+				const stageSfId =
+					st && st.scoring_format !== undefined && st.scoring_format !== null
+					? Number(st.scoring_format)
+					: null;
+
+				if (
+					stageSfId !== null &&
+					defaultId !== null &&
+					defaultId !== undefined &&
+					stageSfId !== Number(defaultId)
+				) {
+					deviations.push({
+						event_name: eventName,
+						stage_name: st?.name || "",
+						scoring_format_id: stageSfId,
+						scoring_format_name: formatNameById.get(stageSfId) || String(stageSfId),
+					});
+				}
+			}
+		}
+
+		deviations.sort((a, b) => {
+			const e = (a.event_name || "").localeCompare(b.event_name || "");
+			if (e) return e;
+			const s = (a.stage_name || "").localeCompare(b.stage_name || "");
+			if (s) return s;
+			return (a.scoring_format_id || 0) - (b.scoring_format_id || 0);
+		});
+
+		uiu.el(main, "h3", "edit", "Abweichungen vom Default");
+
+		if (defaultId === null || defaultId === undefined) {
+			uiu.el(
+				main,
+				"div",
+				"hint",
+				"Kein Default-Scoring-Format gefunden (scoring_formats.default_id ist leer)."
+			);
+			return;
+		}
+
+		if (deviations.length === 0) {
+			uiu.el(main, "div", "hint", "Keine Stages weichen vom Default-Scoring-Format ab.");
+			return;
+		}
+
+		const devTable = uiu.el(main, "table", "scoring_format_deviations_table");
+		const devBody = uiu.el(devTable, "tbody");
+
+		{
+			const tr = uiu.el(devBody, "tr");
+			uiu.el(tr, "th", {}, "Event");
+			uiu.el(tr, "th", {}, "Stage");
+			uiu.el(tr, "th", {}, "Verwendete Zählweise");
+		}
+
+		for (const d of deviations) {
+			const tr = uiu.el(devBody, "tr");
+			uiu.el(tr, "td", {}, d.event_name);
+			uiu.el(tr, "td", {}, d.stage_name);
+			uiu.el(tr, "td", {}, `${d.scoring_format_name} (#${d.scoring_format_id})`);
+		}
+	}
+
+
 
 	function render_normalisation_values(main) {
 		uiu.el(main, 'h2','edit', ci18n('tournament:edit:normalizations'));
@@ -2766,6 +3233,8 @@ var ctournament = (function() {
 		update_location,
 		update_location_logo,
 		update_court,
+		update_scoring_formats,
+		update_stages_scoring_formats,
 		btp_status_changed,
 		ticker_status_changed,
 		bts_status_changed,

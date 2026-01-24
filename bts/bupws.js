@@ -148,13 +148,12 @@ async function handle_score_update(app, ws, msg) {
 	} catch {
 		var match = null;
 	}
-	if (match == null || match.setup.now_on_court == false) {
+	const finish_confirmed = score_data.finish_confirmed ? score_data.finish_confirmed : false;
+	const allow_finished_confirmation = finish_confirmed && (score_data.team1_won !== undefined && score_data.team1_won !== null);
+	if (match == null || (match.setup.now_on_court == false && !allow_finished_confirmation)) {
 		send_error(ws, tournament_key, "Match not found or not on court actualy.");
 		return;
 	}
-
-	console.log(match);
-	console.log(match.setup.teams);
 
 	const update = {
 		network_score: score_data.network_score,
@@ -173,12 +172,14 @@ async function handle_score_update(app, ws, msg) {
 		device_info.client_ip = client_ip;
 	}
 
-	const finish_confirmed = score_data.finish_confirmed ? score_data.finish_confirmed : false;
+	const match_finished = score_data.team1_won !== undefined && score_data.team1_won !== null;
 	if (finish_confirmed) {
-		update.team1_won = score_data.team1_won,
-			update.btp_winner = (update.team1_won === true) ? 1 : 2;
-		update.btp_needsync = true;
 		update["setup.now_on_court"] = false;
+		update.team1_won = score_data.team1_won;
+	}
+	if (finish_confirmed) {
+		update.btp_winner = (update.team1_won === true) ? 1 : 2;
+		update.btp_needsync = true;
 	}
 
 	if (score_data.shuttle_count) {
@@ -210,12 +211,14 @@ async function handle_score_update(app, ws, msg) {
 			cb(null, match);
 		},
 		(match, cb) => {
-			if (match) {
-				if (finish_confirmed) {
-					btp_manager.update_score(app, match);
-					update_queue.instance().execute(match_utils.reset_player_tabletoperator, app, tournament_key, match_id, update.end_ts)
-						.then(() => {
-							cb(null, match);
+				if (match) {
+					if (finish_confirmed) {
+						if (finish_confirmed) {
+							btp_manager.update_score(app, match);
+						}
+						update_queue.instance().execute(match_utils.reset_player_tabletoperator, app, tournament_key, match_id, update.end_ts)
+							.then(() => {
+								cb(null, match);
 						})
 						.catch((err) => {
 							console.error("Error in reset_player_tabletoperator:", err);
@@ -278,8 +281,8 @@ async function handle_score_update(app, ws, msg) {
 			if (!match) {
 				return cb(new Error('Cannot find match ' + JSON.stringify(match)));
 			}
-			if (finish_confirmed && match.team1_won != undefined && match.team1_won != null) {
-				const next_match = update_queue.instance().execute(match_utils.call_preparation_match_on_court,app, tournament_key, match.setup.court_id);
+			if (finish_confirmed) {
+				update_queue.instance().execute(match_utils.call_preparation_match_on_court, app, tournament_key, match.setup.court_id);
 			}
 			return cb(null, match, changed_court);
 		},

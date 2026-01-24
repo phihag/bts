@@ -18,7 +18,7 @@ function date_str(dt) {
 	return utils.pad(dt.year, 2, '0') + '-' + utils.pad(dt.month, 2, '0') + '-' + utils.pad(dt.day, 2, '0');
 }
 
-async function craft_match(app, tkey, btp_id, location_map, court_map, event, draw, btp_links, officials, clubs, districts, bm, match_ids_on_court, match_types, is_league) {
+async function craft_match(app, tkey, btp_id, location_map, court_map, event, stage, scoring_formats, draw, btp_links, officials, clubs, districts, bm, match_ids_on_court, match_types, is_league) {
 	return new Promise((resolve, reject) => {
 		const stournament = require('./stournament'); // avoid dependency cycle
 
@@ -127,17 +127,30 @@ async function craft_match(app, tkey, btp_id, location_map, court_map, event, dr
 			}
 		}
 
+
+		let scoring_format = null;
+
+		if (stage.ScoringFormat) {
+			scoring_format = scoring_formats.get(Number(stage.ScoringFormat));
+		} else {
+			scoring_format = findDefaultScoringFormat(scoring_formats);
+		}
+
+		// Fallback, falls gar nichts gefunden wird
+		if (!scoring_format) {
+			scoring_format = fallbackScoringFormat();
+		}
+
 		const setup = {
 			is_match: (bm.IsMatch && bm.IsMatch[0] ? true : false),
 			incomplete: !bm.bts_complete,
 			is_doubles: (gtid === 2),
 			match_num: bm.MatchNr[0],
-			counting: '3x21',
+			scoring_format: scoring_format,
 			team_competition: false,
-			//match_name,
 			event_name,
 			teams,
-			warmup: 'none',
+			warmup: "none",
 			links: links,
 			highlight: bm.Highlight[0],
 		};
@@ -147,11 +160,6 @@ async function craft_match(app, tkey, btp_id, location_map, court_map, event, dr
 			if (err) {
 				reject(err);
 			}
-
-			if (tournament.warmup) {
-				setup.warmup = tournament.warmup;
-			}
-
 			if (tournament.warmup) {
 				setup.warmup = tournament.warmup;
 			}
@@ -254,6 +262,17 @@ async function craft_match(app, tkey, btp_id, location_map, court_map, event, dr
 			resolve(match);
 		});
 	});
+}
+
+function findDefaultScoringFormat(scoringFormatMap) {
+
+    for (const entry of scoringFormatMap.entries()) {
+      const id = entry[0];
+      const sf = entry[1];
+
+      if (sf && sf.isDefault) return sf;
+    }
+    return null;
 }
 
 function _craft_team(par) {
@@ -501,10 +520,10 @@ function get_umpire(app, tkey, umpires , btp_id) {
 	return returnValue;
 }
 
-async function integrate_matches(app, tkey, btp_state, location_map, court_map, callback) {
+async function integrate_matches(app, tkey, btp_state, scoring_formats, location_map, court_map, callback) {
 	const admin = require('./admin'); // avoid dependency cycle
 	const match_utils = require('./match_utils');
-	const { draws, events } = btp_state;
+	const { draws, events, stages } = btp_state;
 
 	const match_ids_on_court = calculate_match_ids_on_court(btp_state);
 
@@ -524,6 +543,9 @@ async function integrate_matches(app, tkey, btp_state, location_map, court_map, 
 
 		const event = events.get(draw.EventID[0]);
 		assert(event);
+
+		const stage = stages.get(draw.StageID[0]);
+		assert(stage);
 
 		const btp_id = calculate_btp_match_id(tkey, bm, draws, events);
 
@@ -547,7 +569,7 @@ async function integrate_matches(app, tkey, btp_state, location_map, court_map, 
 				return;
 			}
 
-			craft_match(app, tkey, btp_id, location_map, court_map, event, draw, btp_state.links, officials, clubs, districts, bm, match_ids_on_court).then(match => {
+			craft_match(app, tkey, btp_id, location_map, court_map, event, stage, scoring_formats, draw, btp_state.links, officials, clubs, districts, bm, match_ids_on_court).then(match => {
 
 				
 				match.setup.state = 'unscheduled';
@@ -570,6 +592,18 @@ async function integrate_matches(app, tkey, btp_state, location_map, court_map, 
 
 					if (cur_match.btp_winner) {
 						match.setup.state = 'finished';
+					}
+					if (typeof cur_match.team1_won === 'boolean' || cur_match.btp_winner || cur_match.btp_needsync) {
+						match.setup.now_on_court = false;
+						match.setup.state = 'finished';
+					} else if (cur_match.setup.now_on_court === true) {
+						// Keep the local on-court state until the result is explicitly confirmed.
+						match.setup.now_on_court = true;
+						if (cur_match.setup.state === 'blocked') {
+							match.setup.state = 'blocked';
+						} else if (cur_match.setup.called_timestamp) {
+							match.setup.state = 'oncourt';
+						}
 					}
 
 					if (!match.network_score && cur_match.network_score) {
@@ -866,7 +900,7 @@ function generateHallAbbreviation(name) {
 	return abbreviation.trim();
 }
 
-function integrate_locations(app, tournament_key, btp_state, callback) {
+function integrate_locations(app, tournament_key, btp_state, scoring_formats, callback) {
 	const admin = require('./admin'); // avoid dependency cycle
 	const stournament = require('./stournament'); // avoid dependency cycle
 
@@ -963,10 +997,10 @@ function integrate_locations(app, tournament_key, btp_state, callback) {
 		if (changed) {
 			stournament.get_locations(app.db, tournament_key, function (err, all_locations) {
 				admin.notify_change(app, tournament_key, 'location_changed', { all_locations });
-				callback(err, res);
+				callback(err, scoring_formats, res);
 			});
 		} else {
-			callback(err, res);
+			callback(err, scoring_formats, res);
 		}
 	});
 }
@@ -975,7 +1009,7 @@ function integrate_locations(app, tournament_key, btp_state, callback) {
 
 
 // Returns a map btp_court_id => court._id
-function integrate_courts(app, tournament_key, btp_state, location_map, callback) {
+function integrate_courts(app, tournament_key, btp_state, scoring_formats, location_map, callback) {
 	const admin = require('./admin'); // avoid dependency cycle
 	const stournament = require('./stournament'); // avoid dependency cycle
 
@@ -1044,10 +1078,10 @@ function integrate_courts(app, tournament_key, btp_state, location_map, callback
 		if (changed) {
 			stournament.get_courts(app.db, tournament_key, function (err, all_courts) {
 				admin.notify_change(app, tournament_key, 'courts_changed', { all_courts });
-				callback(err, location_map, res);
+				callback(err, scoring_formats, location_map, res);
 			});
 		} else {
-			callback(err, location_map, res);
+			callback(err, scoring_formats, location_map, res);
 		}
 	});
 }
@@ -1104,6 +1138,400 @@ function integrate_btp_settings(app, tkey, btp_state, callback) {
 		}
 	});
 }
+
+function buildScoringFormatMap(formats) {
+  const map = new Map();
+  for (const f of formats) {
+    map.set(Number(f.id), f);
+  }
+  return map;
+}
+
+function setTypeToEndMax(setType, score) {
+	const t = Number(setType);
+	switch (t) {
+		case 0: return { end_points: 21, max_points: 30, end_points_editable: false, max_points_editable: false };
+		case 301: return { end_points: 11, max_points: 11, end_points_editable: false, max_points_editable: false };
+		case 304: return { end_points: 11, max_points: 15, end_points_editable: false, max_points_editable: false };
+		case 305: return { end_points: 11, max_points: 13, end_points_editable: false, max_points_editable: false };
+		case 306: return { end_points: 15, max_points: 21, end_points_editable: false, max_points_editable: false };
+		case 1000:
+			return {
+				end_points: null,
+				max_points: null,
+				end_points_editable: true,
+				max_points_editable: true,
+			};
+		case 999: {
+			const s = Number(score);
+			const fallback = Number.isFinite(s) && s > 0 ? s : null;
+			return {
+				end_points: fallback,
+				max_points: fallback,
+				end_points_editable: false,
+				max_points_editable: true,
+				defaults_from_score: true,
+			};
+		}
+		default:
+			return {
+				end_points: null,
+				max_points: null,
+				end_points_editable: false,
+				max_points_editable: false,
+				raw: t,
+			};
+	}
+}
+
+function inferSetTiming(name, numSets, setType, isLastSet) {
+	const normalizedName = String(name || '');
+	const t = Number(setType);
+	const singleSet = Number(numSets) === 1;
+
+	function elevenSetTiming() {
+		if (singleSet || isLastSet) {
+			return {
+				interval_at: 6,
+				interval_duration_ms: normalizedName.includes('^90') ? 90000 : 60000,
+			};
+		}
+		return {
+			interval_at: null,
+			interval_duration_ms: null,
+		};
+	}
+
+	let timing;
+	switch (t) {
+		case 0:
+			timing = {
+				interval_at: 11,
+				interval_duration_ms: 60000,
+			};
+			break;
+		case 301:
+		case 304:
+		case 305:
+			timing = elevenSetTiming();
+			break;
+		case 306:
+			timing = {
+				interval_at: 8,
+				interval_duration_ms: 60000,
+			};
+			break;
+		default:
+			timing = {
+				interval_at: null,
+				interval_duration_ms: null,
+			};
+			break;
+	}
+
+	let breakBeforeSetDurationMs = null;
+	if (!singleSet) {
+		if (normalizedName.includes('2x21+11') && isLastSet) {
+			breakBeforeSetDurationMs = 120000;
+		} else if (normalizedName.includes('^90')) {
+			breakBeforeSetDurationMs = 90000;
+		} else if (
+			normalizedName.includes('~NLA') ||
+			t === 0 ||
+			t === 306
+		) {
+			breakBeforeSetDurationMs = 120000;
+		} else if (t === 301 || t === 304 || t === 305) {
+			breakBeforeSetDurationMs = 60000;
+		}
+	}
+
+	return {
+		...timing,
+		break_before_set_duration_ms: breakBeforeSetDurationMs,
+	};
+}
+
+function applyDefaultSetTiming(setPoints) {
+	const merged = {
+		...setPoints,
+	};
+	const endPoints = Number(merged.end_points);
+	if (merged.interval_at == null && Number.isFinite(endPoints) && endPoints > 0) {
+		merged.interval_at = Math.ceil(endPoints / 2);
+	}
+	if (merged.interval_duration_ms == null) {
+		merged.interval_duration_ms = 60000;
+	}
+	if (merged.break_before_set_duration_ms == null) {
+		merged.break_before_set_duration_ms = 120000;
+	}
+	return merged;
+}
+
+function sanitizeSetPoints(setPoints) {
+	const merged = applyDefaultSetTiming(setPoints);
+	let endPoints = Number(merged.end_points);
+	if (!Number.isFinite(endPoints) || endPoints < 1) {
+		endPoints = 1;
+	}
+	let maxPoints = Number(merged.max_points);
+	if (!Number.isFinite(maxPoints) || maxPoints < endPoints) {
+		maxPoints = endPoints;
+	}
+	merged.end_points = endPoints;
+	merged.max_points = maxPoints;
+	if (merged.interval_at == null) {
+		merged.interval_at = Math.ceil(endPoints / 2);
+	}
+	return merged;
+}
+
+function sanitizeScoringFormat(scoringFormat) {
+	if (!scoringFormat) {
+		return scoringFormat;
+	}
+	return {
+		...scoringFormat,
+		set_points: sanitizeSetPoints(scoringFormat.set_points || {}),
+		last_set_points: sanitizeSetPoints(scoringFormat.last_set_points || {}),
+	};
+}
+
+function normalizeScoringFormat(sf, unwrap = (v) => (Array.isArray(v) && v.length === 1 ? v[0] : v)) {
+	const id = Number(unwrap(sf.ID));
+	const name = String(unwrap(sf.Name));
+	const numSets = Number(unwrap(sf.NumSets));
+	const setType = Number(unwrap(sf.SetType));
+	const lastSetType = Number(unwrap(sf.LastSetType));
+	const score = Number(unwrap(sf.Score));
+	const isDefault = Boolean(unwrap(sf.IsDefault));
+
+	return sanitizeScoringFormat({
+		id,
+		name,
+		numSets,
+		score,
+		isDefault,
+		setType,
+		lastSetType,
+		set_points: applyDefaultSetTiming({
+			...setTypeToEndMax(setType, score),
+			...inferSetTiming(name, numSets, setType, false),
+		}),
+		last_set_points: applyDefaultSetTiming({
+			...setTypeToEndMax(lastSetType, score),
+			...inferSetTiming(name, numSets, lastSetType, true),
+		}),
+	});
+}
+
+function fallbackScoringFormat() {
+	const scoringFormat = normalizeScoringFormat({
+		ID: [0],
+		Name: ['3x21'],
+		NumSets: ['3'],
+		SetType: ['0'],
+		LastSetType: ['0'],
+		Score: ['21'],
+		IsDefault: [false],
+	});
+	scoringFormat.id = null;
+	return scoringFormat;
+}
+
+function mergeLocalSetPoints(existingSetPoints, normalizedSetPoints) {
+	const merged = {
+		...normalizedSetPoints,
+	};
+	if (!existingSetPoints) {
+		return merged;
+	}
+
+	if (normalizedSetPoints.end_points_editable) {
+		merged.end_points = existingSetPoints.end_points ?? merged.end_points;
+	}
+	if (normalizedSetPoints.max_points_editable) {
+		merged.max_points = existingSetPoints.max_points ?? merged.max_points;
+	}
+
+	merged.interval_at = existingSetPoints.interval_at ?? merged.interval_at;
+	merged.interval_duration_ms = existingSetPoints.interval_duration_ms ?? merged.interval_duration_ms;
+	merged.break_before_set_duration_ms = existingSetPoints.break_before_set_duration_ms ?? merged.break_before_set_duration_ms;
+	if (existingSetPoints.interval_enabled !== undefined) {
+		merged.interval_enabled = existingSetPoints.interval_enabled;
+	}
+
+	return merged;
+}
+
+function mergeLocalScoringFormat(existingFormat, normalizedFormat) {
+	if (!existingFormat) {
+		return sanitizeScoringFormat(normalizedFormat);
+	}
+	return sanitizeScoringFormat({
+		...normalizedFormat,
+		set_points: mergeLocalSetPoints(existingFormat.set_points, normalizedFormat.set_points),
+		last_set_points: mergeLocalSetPoints(existingFormat.last_set_points, normalizedFormat.last_set_points),
+	});
+}
+
+function integrate_btp_scoring_formats(app, tkey, btp_state, callback) {
+  const admin = require("./admin"); // avoid dependency cycle
+
+  const unwrap = (v) => (Array.isArray(v) && v.length === 1 ? v[0] : v);
+
+  const deepEqualJson = (a, b) => JSON.stringify(a) === JSON.stringify(b);
+
+  app.db.tournaments.findOne({ key: tkey }, (err, tournament) => {
+    if (err) return callback(err);
+    if (!tournament) return callback(new Error(`Tournament not found for key: ${tkey}`));
+
+    if (!tournament.scoring_formats) tournament.scoring_formats = {};
+
+    if (!btp_state?.scoring_formats || !(btp_state.scoring_formats instanceof Map)) {
+      return callback(new Error("btp_state.scoring_formats is missing or not a Map"));
+    }
+
+    const existingFormatsById = new Map(
+      (((tournament.scoring_formats || {}).formats) || []).map(f => [Number(f.id), f])
+    );
+
+    const formats = Array.from(btp_state.scoring_formats.values())
+      .map(sf => normalizeScoringFormat(sf, unwrap))
+      .map(sf => mergeLocalScoringFormat(existingFormatsById.get(Number(sf.id)), sf))
+      .sort((a, b) => a.id - b.id);
+
+    const defaultFormat = formats.find(f => f.isDefault) || null;
+
+    const scoringFormatsPayload = {
+      formats,
+      default_id: defaultFormat ? defaultFormat.id : null,
+    };
+
+    const scoringFormatMap = buildScoringFormatMap(formats);
+
+    const existing = tournament.scoring_formats || null;
+
+    // No change
+    if (deepEqualJson(existing, scoringFormatsPayload)) {
+      return callback(null, scoringFormatMap);
+    }
+
+    tournament.scoring_formats = scoringFormatsPayload;
+
+    app.db.tournaments.update(
+      { key: tkey },
+      { $set: { scoring_formats: tournament.scoring_formats } },
+      {},
+      (err) => {
+        if (err) return callback(err);
+
+        admin.notify_change(app, tkey, "update_btp_scoring_formats", {
+          scoring_formats: scoringFormatsPayload,
+        });
+
+        return callback(null, scoringFormatMap);
+      }
+    );
+  });
+}
+
+function integrate_events(app, tkey, btp_state, callback) {
+	const admin = require("./admin"); // avoid dependency cycle
+
+	const unwrap = (v) => (Array.isArray(v) && v.length === 1 ? v[0] : v);
+	const deepEqualJson = (a, b) => JSON.stringify(a) === JSON.stringify(b);
+
+	if (!btp_state || !(btp_state.events instanceof Map) || !(btp_state.stages instanceof Map)) {
+		return callback(new Error("btp_state.events/stages missing or not a Map"));
+	}
+
+	function normalizeEvent(ev) {
+		return {
+		id: Number(unwrap(ev.ID)),
+		name: String(unwrap(ev.Name)),
+		game_type_id: Number(unwrap(ev.GameTypeID)),
+		gender_id: Number(unwrap(ev.GenderID)),
+		min_age: Number(unwrap(ev.MinAge)),
+		max_age: Number(unwrap(ev.MaxAge)),
+		fee: Number(unwrap(ev.Fee)),
+		separate_seeding: Boolean(unwrap(ev.SeparateSeeding)),
+		allow_online_entry: Boolean(unwrap(ev.AllowOnlineEntry)),
+		grading_id: Number(unwrap(ev.GradingID)),
+		sub_grading_id: Number(unwrap(ev.SubGradingID)),
+		sub_grading2_id: Number(unwrap(ev.SubGrading2ID)),
+		};
+	}
+
+	function normalizeStage(st) {
+		return {
+			id: Number(unwrap(st.ID)),
+			name: String(unwrap(st.Name)),
+			event_id: Number(unwrap(st.EventID)),
+			stage_type: Number(unwrap(st.StageType)),
+			display_order: Number(unwrap(st.DisplayOrder)),
+			scoring_format: st.ScoringFormat !== undefined ? Number(unwrap(st.ScoringFormat)) : null,
+		};
+	}
+
+	// Build normalized payload:
+	// events: [{... , stages:[...]}] for convenient GUI + lookups
+	const eventsArr = Array.from(btp_state.events.values())
+		.map(normalizeEvent)
+		.sort((a, b) => a.id - b.id);
+
+	const stagesArr = Array.from(btp_state.stages.values())
+		.map(normalizeStage)
+		.sort((a, b) => a.id - b.id);
+
+	const stagesByEventId = new Map();
+	for (const st of stagesArr) {
+		if (!stagesByEventId.has(st.event_id)) stagesByEventId.set(st.event_id, []);
+		stagesByEventId.get(st.event_id).push(st);
+	}
+
+	// Keep stages sorted by display_order then id for stability
+	for (const [eventId, list] of stagesByEventId.entries()) {
+		list.sort((a, b) => (a.display_order - b.display_order) || (a.id - b.id));
+	}
+
+	const payload = {
+		events: eventsArr.map((ev) => ({
+		...ev,
+		stages: stagesByEventId.get(ev.id) || [],
+		})),
+		// optional: keep a flat list too, if you prefer later
+		// stages: stagesArr,
+	};
+
+	app.db.tournaments.findOne({ key: tkey }, (err, tournament) => {
+		if (err) return callback(err);
+		if (!tournament) return callback(new Error(`Tournament not found for key: ${tkey}`));
+
+		if (!tournament.events) tournament.events = {};
+
+		const existing = tournament.events || null;
+		if (deepEqualJson(existing, payload)) {
+			return callback(null);
+		}
+
+		tournament.events = payload;
+
+		const toChange = { events: tournament.events };
+
+		app.db.tournaments.update({ key: tkey }, { $set: toChange }, {}, (err) => {
+			if (err) return callback(err);
+
+			admin.notify_change(app, tkey, "update_btp_events", {
+				events: payload,
+			});
+
+			return callback(null);
+		});
+	});
+}
+
 
 async function integrate_player_state(app, tkey, btp_state, callback) {
 	const btp_manager = require('./btp_manager');
@@ -1316,6 +1744,79 @@ async function integrate_now_on_court(app, tkey, callback) {
 	const bupws = require('./bupws');
 	const match_utils = require('./match_utils');
 
+	function matchHasPlayerOnCourtFlags(match) {
+		if (!match || !match.setup || !match.setup.teams) {
+			return false;
+		}
+		return match.setup.teams.some(team =>
+			team.players && team.players.some(player => player.now_playing_on_court || player.now_tablet_on_court)
+		);
+	}
+
+	function collectActivePlayerIds(matches) {
+		const activeIds = new Set();
+		matches.forEach(match => {
+			if (!match || !match.setup || !match.setup.teams) {
+				return;
+			}
+			match.setup.teams.forEach(team => {
+				if (!team.players) {
+					return;
+				}
+				team.players.forEach(player => {
+					if (player && player.btp_id) {
+						activeIds.add(player.btp_id);
+					}
+				});
+			});
+			if (match.setup.tabletoperators) {
+				match.setup.tabletoperators.forEach(player => {
+					if (player && player.btp_id) {
+						activeIds.add(player.btp_id);
+					}
+				});
+			}
+		});
+		return activeIds;
+	}
+
+	function matchHasOnlyStalePlayerFlags(match, activePlayerIds) {
+		if (!match || !match.setup || !match.setup.teams) {
+			return false;
+		}
+		return match.setup.teams.some(team =>
+			team.players && team.players.some(player =>
+				(player.now_playing_on_court || player.now_tablet_on_court) &&
+				(!player.btp_id || !activePlayerIds.has(player.btp_id))
+			)
+		);
+	}
+
+	function setPlayerStateForMatch(match) {
+		return new Promise((resolve, reject) => {
+			match_utils.set_player_on_court(app, tkey, match.setup, (err) => {
+				if (err) return reject(err);
+				match_utils.set_player_on_tablet(app, tkey, match.setup, (err) => {
+					if (err) return reject(err);
+					resolve(null);
+				});
+			});
+		});
+	}
+
+	function clearPlayerStateForMatch(match) {
+		const endTs = match.end_ts || Date.now();
+		return new Promise((resolve, reject) => {
+			match_utils.remove_player_on_court(app, tkey, match._id, endTs, (err) => {
+				if (err) return reject(err);
+				match_utils.remove_tablet_on_court(app, tkey, match._id, endTs, (err) => {
+					if (err) return reject(err);
+					resolve(null);
+				});
+			});
+		});
+	}
+
 	// TODO after switching to async, this should happen during court&match construction
 	app.db.tournaments.findOne({ key: tkey }, async (err, tournament) => {
 		if (err) {
@@ -1326,7 +1827,8 @@ async function integrate_now_on_court(app, tkey, callback) {
 		app.db.matches.find({ 'setup.now_on_court': true }, async (err, now_on_court_matches) => {
 			if (err) return callback(err);
 
-			await Promise.all(now_on_court_matches.map(async (match) => {
+			const activeMatches = now_on_court_matches.filter(match => typeof match.team1_won !== 'boolean');
+			await Promise.all(activeMatches.map(async (match) => {
 
 				const court_id = match.setup.court_id;
 				const match_id = match._id;
@@ -1347,8 +1849,24 @@ async function integrate_now_on_court(app, tkey, callback) {
 					};
 					app.db.courts.update(query, {$set: {match_id}});
 				}
+				await setPlayerStateForMatch(match);
 			}));
-			callback(null);
+
+			app.db.matches.find({ tournament_key: tkey }, async (err, matches) => {
+				if (err) return callback(err);
+
+				const activePlayerIds = collectActivePlayerIds(activeMatches);
+				const staleMatches = matches.filter(match =>
+					match &&
+					match.setup &&
+					match.setup.now_on_court !== true &&
+					matchHasPlayerOnCourtFlags(match) &&
+					matchHasOnlyStalePlayerFlags(match, activePlayerIds)
+				);
+
+				await Promise.all(staleMatches.map(match => clearPlayerStateForMatch(match)));
+				callback(null);
+			});
 		});
 	});
 	// TODO clear courts (better in async)
@@ -1366,11 +1884,13 @@ async function sync_btp_data(app, tkey, response) {
 
 		async.waterfall([
 			cb => integrate_btp_settings(app, tkey, btp_state, cb),
+			cb => integrate_events(app, tkey, btp_state, cb),
 			cb => integrate_player_state(app, tkey, btp_state, cb),
 			cb => integrate_umpires(app, tkey, btp_state, cb),
-			cb => integrate_locations(app, tkey, btp_state, cb),
-			(location_map, cb) => integrate_courts(app, tkey, btp_state, location_map, cb),
-			(location_map, court_map, cb) => integrate_matches(app, tkey, btp_state, location_map, court_map, cb),
+			cb => integrate_btp_scoring_formats(app, tkey, btp_state, cb),
+			(scoring_formats, cb) => integrate_locations(app, tkey, btp_state, scoring_formats, cb),
+			(scoring_formats, location_map, cb) => integrate_courts(app, tkey, btp_state, scoring_formats, location_map, cb),
+			(scoring_formats, location_map, court_map, cb) => integrate_matches(app, tkey, btp_state, scoring_formats, location_map, court_map, cb),
 			cb => integrate_now_on_court(app, tkey, cb),
 			cb => cleanup_entities(app, tkey, btp_state, cb),
 		], (err) => {
@@ -1391,4 +1911,9 @@ module.exports = {
 	time_str,
 	// test only
 	_integrate_umpires: integrate_umpires,
+	_fallback_scoring_format: fallbackScoringFormat,
+	_normalize_scoring_format: normalizeScoringFormat,
+	_merge_local_scoring_format: mergeLocalScoringFormat,
+	_sanitize_scoring_format: sanitizeScoringFormat,
+	_set_type_to_end_max: setTypeToEndMax,
 };
