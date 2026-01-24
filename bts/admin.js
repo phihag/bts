@@ -80,7 +80,7 @@ function handle_tournament_edit_props(app, ws, msg) {
 		'annoncement_include_event', 'annoncement_include_round','annoncement_include_matchnumber',
 		'preparation_meetingpoint_enabled', 'preparation_tabletoperator_setup_enabled',
 		'call_preparation_matches_automatically_enabled', 'call_next_possible_scheduled_match_in_preparation' ,
-		'logo_background_color', 'logo_foreground_color']);
+		'logo_background_color', 'logo_foreground_color', 'scoring_formats']);
 
 	if (msg.props.btp_timezone) {
 		props.btp_timezone = msg.props.btp_timezone === 'system' ? undefined : msg.props.btp_timezone;
@@ -352,6 +352,13 @@ function handle_tournament_get(app, ws, msg) {
 				cb(err);
 			});
 		}], function(err) {
+			if (tournament.scoring_formats && Array.isArray(tournament.scoring_formats.formats)) {
+				const btp_sync = require('./btp_sync');
+				tournament.scoring_formats = {
+					...tournament.scoring_formats,
+					formats: tournament.scoring_formats.formats.map(f => btp_sync._sanitize_scoring_format(f)),
+				};
+			}
 			tournament.btp_status = btp_manager.get_status(tournament.key);
 			tournament.ticker_status = ticker_manager.get_status(tournament.key);
 			_annotate_tournament(tournament);
@@ -391,6 +398,7 @@ function _extract_setup(msg_setup) {
 		'links',
 		'scheduled_time_str',
 		'scheduled_date',
+		'scoring_format',
 		'called_timestamp',
 		'preparation_call_timestamp',
 		'location_id',
@@ -405,7 +413,6 @@ function _extract_setup(msg_setup) {
 	if (!setup.match_name && setup.match_num) {
 		setup.match_name = '# ' + setup.match_num;
 	}
-	setup.counting = '3x21';
 
 	return setup;
 }

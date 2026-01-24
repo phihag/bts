@@ -18,7 +18,7 @@ function craft_court(c) {
 function craft_match(m) {
 	const res = utils.pluck(m, ['_id']);
 	res.s = m.network_score;
-	res.c = m.setup.counting;
+	res.sf = m.setup.scoring_format;
 	res.n = m.setup.event_name + ' ' + m.setup.match_name;
 	m.setup.teams.forEach((t, tidx) => {
 		res['p' + tidx] = t.players.map(p => p.name);

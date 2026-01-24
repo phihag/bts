@@ -674,6 +674,7 @@ function add_tabletoperator_to_tabletoperator_list_by_match(app, tournament_key,
 
 function remove_player_on_court (app, tkey, cur_match_id, end_ts = null, callback)	{
 	const admin = require('./admin'); // avoid dependency cycle
+	const btp_manager = require('./btp_manager');
 
 	app.db.matches.findOne({'tournament_key': tkey, '_id': cur_match_id}, (err, cur_match) => {
 		if (err) return callback(err);
@@ -694,6 +695,8 @@ function remove_player_on_court (app, tkey, cur_match_id, end_ts = null, callbac
 				}
 				
 				const match_id = match._id;
+				const players_to_change = [];
+				const is_finished_match = match_id === cur_match_id;
 				let remove_btp_ids = [	cur_match.setup.teams[0].players[0].btp_id, 
 										cur_match.setup.teams[1].players[0].btp_id];
 
@@ -709,49 +712,54 @@ function remove_player_on_court (app, tkey, cur_match_id, end_ts = null, callbac
 				
 				if (match.setup.teams[0].players.length > 0 &&
 					remove_btp_ids.includes(match.setup.teams[0].players[0].btp_id) &&
-					match.setup.teams[0].players[0].now_playing_on_court) {
+					(match.setup.teams[0].players[0].now_playing_on_court || is_finished_match)) {
 						match.setup.teams[0].players[0].now_playing_on_court = false;
 						match.setup.teams[0].players[0].checked_in = false;
 						if(end_ts) {
 							match.setup.teams[0].players[0].last_time_on_court_ts = end_ts;
 						}
+						players_to_change.push(match.setup.teams[0].players[0]);
 						change = true;
 				}
 
 				if (match.setup.teams[0].players.length > 1 && 
 					remove_btp_ids.includes(match.setup.teams[0].players[1].btp_id) &&
-					match.setup.teams[0].players[1].now_playing_on_court) {
+					(match.setup.teams[0].players[1].now_playing_on_court || is_finished_match)) {
 						match.setup.teams[0].players[1].now_playing_on_court = false;
 						match.setup.teams[0].players[1].checked_in = false;
 						if(end_ts) {
 							match.setup.teams[0].players[1].last_time_on_court_ts = end_ts;
 						}
+						players_to_change.push(match.setup.teams[0].players[1]);
 						change = true;
 				}
 
 				if (match.setup.teams[1].players.length > 0 &&
 					remove_btp_ids.includes(match.setup.teams[1].players[0].btp_id) &&
-					match.setup.teams[1].players[0].now_playing_on_court) {
+					(match.setup.teams[1].players[0].now_playing_on_court || is_finished_match)) {
 						match.setup.teams[1].players[0].now_playing_on_court = false;
 						match.setup.teams[1].players[0].checked_in = false;
 						if(end_ts) {
 							match.setup.teams[1].players[0].last_time_on_court_ts = end_ts;
 						}
+						players_to_change.push(match.setup.teams[1].players[0]);
 						change = true;
 				}
 
 				if (match.setup.teams[1].players.length > 1 && 
 					remove_btp_ids.includes(match.setup.teams[1].players[1].btp_id) &&
-					match.setup.teams[1].players[1].now_playing_on_court) {
+					(match.setup.teams[1].players[1].now_playing_on_court || is_finished_match)) {
 						match.setup.teams[1].players[1].now_playing_on_court = false;
 						match.setup.teams[1].players[1].checked_in = false;
 						if(end_ts) {
 							match.setup.teams[1].players[1].last_time_on_court_ts = end_ts;
 						}
+						players_to_change.push(match.setup.teams[1].players[1]);
 						change = true;
 				}
 
 				if (change) {
+					btp_manager.update_players(app, tkey, players_to_change);
 					const setup = match.setup;
 					const match_q = {_id: match_id};
 					app.db.matches.update(match_q, {$set: {setup}}, {}, (err) => {
@@ -1162,11 +1170,22 @@ function update_btp_courts(app, tournament_key, match, callback) {
 }
 function reset_player_tabletoperator(app, tournament_key, match_id, end_ts) {
 	return new Promise((resolve, reject) => {
+		let current_match = null;
 		async.waterfall([
+			cb => fetch_match(app, tournament_key, match_id).then((match) => {
+				current_match = match;
+				cb(null);
+			}).catch(cb),
 			cb => remove_player_on_court(app, tournament_key, match_id, end_ts, cb),
 			cb => remove_tablet_on_court(app, tournament_key, match_id, end_ts, cb),
 			cb => remove_umpire_on_court(app, tournament_key, match_id, end_ts, cb),
-			cb => add_player_to_tabletoperator_list(app, tournament_key, match_id, end_ts, cb)
+			cb => add_player_to_tabletoperator_list(app, tournament_key, match_id, end_ts, cb),
+			cb => {
+				if (!current_match) {
+					return cb(null);
+				}
+				update_btp_courts(app, tournament_key, current_match, cb);
+			},
 		], function (err) {
 			if (err) {
 				return reject(err);
@@ -1190,6 +1209,8 @@ module.exports ={
 	remove_player_on_court,
 	remove_tablet_on_court,
 	remove_umpire_on_court,
+	set_player_on_court,
+	set_player_on_tablet,
 	set_umpire_to_standby,
 	add_preparation_call_timestamp,
 	remove_preparation_call_timestamp,

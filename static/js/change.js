@@ -58,9 +58,14 @@ function default_handler(rerender, special_funcs) {
 			curt.btp_readonly = c.val.btp_readonly;
 			curt.btp_ip = c.val.btp_ip;
 			curt.ticker_enabled = c.val.ticker_enabled;
-			curt.ticker_url = c.val.ticker_url;
-			curt.ticker_password = c.val.ticker_password;
-			curt.logo_id = c.val.logo_id;
+				curt.ticker_url = c.val.ticker_url;
+				curt.ticker_password = c.val.ticker_password;
+				curt.logo_id = c.val.logo_id;
+				if (c.val.scoring_formats) {
+					curt.scoring_formats = c.val.scoring_formats;
+					ctournament.update_scoring_formats();
+					ctournament.update_stages_scoring_formats();
+				}
 
 			uiu.qsEach('.ct_name', function(el) {
 				if (el.tagName.toUpperCase() === 'INPUT') {
@@ -358,6 +363,26 @@ function default_handler(rerender, special_funcs) {
 			for (const [key, value] of Object.entries(btp_settings)) {
 				curt.btp_settings[key] = value;
 			}
+			break;
+		case 'update_btp_scoring_formats':
+			if(!curt.scoring_formats) {
+				curt.scoring_formats = {};
+			}
+			const scoring_formats = c.val.scoring_formats;
+			for (const [key, value] of Object.entries(scoring_formats)) {
+				curt.scoring_formats[key] = value;
+			}
+			ctournament.update_scoring_formats();
+			break;
+		case 'update_btp_events':
+			if(!curt.events) {
+				curt.events = {};
+			}
+			const events = c.val.events;
+			for (const [key, value] of Object.entries(events)) {
+				curt.events[key] = value;
+			}
+			ctournament.update_stages_scoring_formats();
 			break;
 		case 'update_display_setting':
 			const updated_setting = c.val.setting;

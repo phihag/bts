@@ -4,12 +4,21 @@ const async = require('async');
 
 const utils = require('../bts/utils');
 
+function max_game_count(match) {
+	const scoringFormat = match && match.setup && match.setup.scoring_format;
+	const numSets = Number(scoringFormat && scoringFormat.numSets);
+	if (Number.isFinite(numSets) && numSets > 0) {
+		return numSets;
+	}
+	return 3;
+}
+
 function prepare_mustache(m) {
 	m.p0str = m.p0.join('\n');
 	m.p1str = m.p1.join('\n');
-	const max_game_count = 3; // TODO look it up from counting
-	m.gamesplus2 = max_game_count + 2;
-	const game_ids = utils.range(max_game_count);
+	const maxGames = max_game_count(m);
+	m.gamesplus2 = maxGames + 2;
+	const game_ids = utils.range(maxGames);
 	for (const team_id of [0, 1]) {
 		m['team' + team_id + 'scores'] = game_ids.map((game_idx) => {
 			if (!m.s) return '';

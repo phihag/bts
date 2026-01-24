@@ -260,7 +260,7 @@ class BTPConn {
 				});
 			},
 			(umpire_btp_id, service_judge_btp_id, cb) => {
-				if (!match.setup || !match.setup.court_id) {
+				if (!match.setup || !match.setup.court_id || match.setup.now_on_court !== true) {
 					return cb(null, umpire_btp_id, service_judge_btp_id, null);
 				}
 

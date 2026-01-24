@@ -535,7 +535,7 @@ function render_match_row(tr, match, court, style, show_player_status, show_add_
 			}
 		}
 
-		if(style == 'plain' && match.setup.counting == "3x21" && isMatchOver(match.network_score)) {
+		if(style == 'plain' && match_scoring.is_match_over(match.network_score, match.setup.scoring_format)) {
 			create_match_button(timer_td, 'vlink match_confirm_button', 'Confirm_Finish', on_match_confirm_button_click, match._id);
 		}
 	}
@@ -656,10 +656,10 @@ function update_match_score(m) {
 			}
 		}
 		
-		if(m.setup.counting = "3x21" && isMatchOver(m.network_score)) {
-			create_match_button(timer_td, 'vlink match_confirm_button', 'Confirm_Finish', on_match_confirm_button_click, m._id);
-		}
-	});
+			if (match_scoring.is_match_over(m.network_score, m.setup.scoring_format)) {
+				create_match_button(timer_td, 'vlink match_confirm_button', 'Confirm_Finish', on_match_confirm_button_click, m._id);
+			}
+		});
 	
 	if(	m.network_score && m.network_score.length > 0 && 
 		m.network_score[0].length > 1 && 
@@ -720,49 +720,6 @@ function on_match_confirm_button_click(e) {
 		});
 	}
 }
-
-function isMatchOver(sets) {
-    if(!sets){
-		return false;
-	}
-	
-	let winsA = 0;
-    let winsB = 0;
-
-    for (let [scoreA, scoreB] of sets) {
-        if (isSetOver(scoreA, scoreB)) {
-            if (scoreA > scoreB) {
-                winsA++;
-            } else {
-                winsB++;
-            }
-
-            if (winsA === 2 || winsB === 2) {
-                return true;
-            }
-        } else {
-            // Satz ist noch nicht vorbei → Spiel auch nicht
-            return false;
-        }
-    }
-
-    // Falls nicht abgebrochen wurde, prüfen ob überhaupt jemand 2 Sätze gewonnen hat
-    return winsA === 2 || winsB === 2;
-}
-
-function isSetOver(scoreA, scoreB) {
-    const maxScore = 30;
-    const winningScore = 21;
-
-    if (scoreA === maxScore || scoreB === maxScore) return true;
-
-    if ((scoreA >= winningScore || scoreB >= winningScore) && Math.abs(scoreA - scoreB) >= 2) {
-        return true;
-    }
-
-    return false;
-}
-
 
 function render_players_el(parentNode, setup, team_id, match, show_player_status, style) {
 	const team = setup.teams[team_id];
@@ -1176,7 +1133,7 @@ function _extract_match_timer_state(match) {
 	let s = {};
 	s.settings = {};
 	s.settings.negative_timers = true;
-	s.lang = "de"; //TODO: Use the language of the BTS Settings
+	s.lang = (curt && curt.btp_settings && curt.btp_settings.language && curt.btp_settings.language !== 'auto') ? curt.btp_settings.language : "de";
 
 	var rs = calc.remote_state(s, match.setup, presses);
 	return rs;
@@ -2655,6 +2612,7 @@ if ((typeof module !== 'undefined') && (typeof require !== 'undefined')) {
 	var i18n = require('../bup/js/i18n');
 	var i18n_de = require('../bup/js/i18n_de');
 	var i18n_en = require('../bup/js/i18n_en');
+	var match_scoring = require('./match_scoring');
 	var printing = require('../bup/js/printing');
 	var settings = require('../bup/js/settings');
 	var timer = require('../bup/js/timer');

@@ -218,6 +218,7 @@ function get_btp_state(response) {
 	const all_btp_entries = btp_t.Entries ? btp_t.Entries[0].Entry : [];
 	const all_btp_stage_entries = btp_t.StageEntries ? btp_t.StageEntries[0].StageEntry : [];
 	const all_btp_events = btp_t.Events ? btp_t.Events[0].Event : [];
+	const all_btp_stages = btp_t.Stages ? btp_t.Stages[0].Stage : [];
 	const all_btp_players = btp_t.Players ? btp_t.Players[0].Player : [];
 	const all_btp_draws = btp_t.Draws ? btp_t.Draws[0].Draw : [];
 	const all_btp_officials = btp_t.Officials ? btp_t.Officials[0].Official : [];
@@ -226,6 +227,7 @@ function get_btp_state(response) {
 	const all_btp_settings = btp_t.Settings ? btp_t.Settings[0].Setting : [];
 	const all_btp_clubs = btp_t.Clubs ? btp_t.Clubs[0].Club : [];
 	const all_btp_districts = btp_t.Districts ? btp_t.Districts[0].District : [];
+	const all_btp_scoring_formats = btp_t.ScoringFormats ? btp_t.ScoringFormats[0].ScoringFormat : [];
 
 	const on_court_match_ids = new Set();
 	for (const c of all_btp_courts) {
@@ -239,6 +241,7 @@ function get_btp_state(response) {
 	const entries = utils.make_index(all_btp_entries, e => e.ID[0]);
 	const stage_entries = utils.make_index(all_btp_stage_entries, s => s.ID[0]);
 	const events = utils.make_index(all_btp_events, e => e.ID[0]);
+	const stages = utils.make_index(all_btp_stages, e => e.ID[0]);
 	const draws = utils.make_index(all_btp_draws, d => d.ID[0]);
 
 	let team_matches = undefined;
@@ -262,6 +265,7 @@ function get_btp_state(response) {
 	const locations = utils.make_index(all_btp_locations, l => l.ID[0]);
 	const clubs = utils.make_index(all_btp_clubs, c => c.ID[0]);
 	const districts = utils.make_index(all_btp_districts,d => d.ID[0]);
+	const scoring_formats = utils.make_index(all_btp_scoring_formats, sf => sf.ID[0]);
 	const btp_settings = utils.make_index(all_btp_settings, s =>s.ID[0]);
 
 	for (const bm of matches) {
@@ -272,6 +276,7 @@ function get_btp_state(response) {
 		locations,
 		draws,
 		events,
+		stages,
 		matches,
 		links,
 		officials,
@@ -281,6 +286,7 @@ function get_btp_state(response) {
 		teams,
 		clubs,
 		districts,
+		scoring_formats,
 		// Testing only
 		_matches_by_pid: matches_by_pid,
 		btp_settings
