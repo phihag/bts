@@ -19,7 +19,7 @@ var cerror = (function() {
 
 
 	function on_error(msg, script_url, line, col, err) {
-		show(msg);
+		show(getCurrentTimeString() +  ' - ' + msg);
 	}
 
 	function silent(msg) {
@@ -54,6 +54,16 @@ var cerror = (function() {
 		on_error,
 		silent,
 	};
+
+	function getCurrentTimeString() {
+		const now = new Date();
+
+		const hh = String(now.getHours()).padStart(2, '0');
+		const mm = String(now.getMinutes()).padStart(2, '0');
+		const ss = String(now.getSeconds()).padStart(2, '0');
+
+		return `${hh}:${mm}:${ss}`;
+	}
 
 })();
 

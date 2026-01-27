@@ -53,6 +53,10 @@ var ci18n_de = {
 	'Loser': 'Verlierer',
 	'activate_court': 'Spielfeld nutzen',
 	'inactivate_court': 'Spielfeld sperren',
+	'Waiting for the next game:': 'Wartet auf das nächste Spiel:',
+	'Currently on break:': 'Aktuell in der Pause:',
+	'Not available:': 'Nicht verfügbar:',
+
 
 	'announcements:begin_to_play': 'Bitte mit dem Spielen beginnen!',
 	'announcements:second_call': 'Zweiter Aufruf',
@@ -240,6 +244,7 @@ var ci18n_de = {
 	'match:edit:delete': 'Löschen',
 	'match:edit:now_on_court': 'Jetzt auf dem Feld',
 	'match:delete:really': 'Wirklich Spiel {match_id} löschen?',
+	'match:add_officials': 'Schiedsrichter und Aufschlagrichter hinzufügen',
 	'tournament:edit:logo': 'Logo',
 	'tournament:edit:logo:nologo': 'Kein Logo',
 	'tournament:edit:logo:upload': 'Logo hochladen',

@@ -205,11 +205,39 @@ async function set_umpires_on_court(app, tournament, match, callback) {
 	}
 
 	if (setup.umpire) {
-		update_umpire(app, tournament.key, setup.umpire, 'oncourt', setup.called_timestamp, court_id);
+		const umpire = setup.umpire;
+		umpire.umpire_on_court = court_id;
+		umpire.is_planed_as_umpire = false;
+		umpire.is_planed_as_service_judge = false;
+		umpire.service_judge_on_court = null;
+		umpire.umpire_wait = null;
+		umpire.service_judge_wait = null;
+		umpire.umpire_pause = null;
+		umpire.service_judge_pause = null;
+		umpire.inactive_list = null;
+        umpire.last_time_on_court_ts = setup.called_timestamp;
+		umpire.status = 'oncourt';
+		umpire.court_id = court_id;
+
+		update_umpire(app, tournament.key, umpire);
 	}
 
 	if (setup.service_judge) {
-		update_umpire(app, tournament.key, setup.service_judge, 'oncourt', setup.called_timestamp, court_id);
+		const service_judge = setup.service_judge;
+		service_judge.service_judge_on_court = court_id;
+		service_judge.is_planed_as_umpire = false;
+		service_judge.is_planed_as_service_judge = false;
+		service_judge.umpire_on_court = null;
+		service_judge.umpire_wait = null;
+		service_judge.service_judge_wait = null;
+		service_judge.umpire_pause = null;
+		service_judge.service_judge_pause = null;
+		service_judge.inactive_list = null;
+		service_judge.last_time_on_court_ts = setup.called_timestamp;
+		service_judge.status = 'oncourt';
+		service_judge.court_id = court_id;
+		
+		update_umpire(app, tournament.key, service_judge);
 	}
 	return callback(null);
 }
@@ -851,49 +879,100 @@ function reset_tabletoperator_settings_at_player(app, tkey, tournament, player, 
 	}
 }
 
-function remove_umpire_on_court(app, tournament_key, cur_match_id, end_ts, callback) {
+async function remove_umpire_on_court(app, tournament_key, cur_match_id, end_ts, callback) {
 	app.db.matches.findOne({ 'tournament_key': tournament_key, '_id': cur_match_id }, (err, cur_match) => {
 		if (err) {
-			return callback(err);
+			return reject(err);
 		}
 		if (cur_match.setup.umpire) {
-		
-			update_umpire(app, tournament_key, cur_match.setup.umpire, 'ready', end_ts, null);
+			const umpire = cur_match.setup.umpire;
+			umpire.umpire_on_court = null;
+			umpire.is_planed_as_umpire = false;
+			umpire.last_time_on_court_ts = end_ts;
+			umpire.status = 'ready';
+			umpire.court_id = null;
+
+			if(umpire.is_service_judge === true) {
+				umpire.service_judge_wait = end_ts;
+			} else if(umpire.is_umpire === true) {
+				umpire.umpire_wait = end_ts + 100;
+			} else {
+				umpire.inactive_list = end_ts;
+			}
+
+			update_umpire(app, tournament_key, umpire, 'ready', end_ts, null);
 		}
 
 		if (cur_match.setup.service_judge) {
-			
-			update_umpire(app, tournament_key, cur_match.setup.service_judge, 'ready', end_ts, null);
-		}
-		return callback(null);	
+			const service_judge = cur_match.setup.service_judge;
+			service_judge.umpire_on_court = null;
+			service_judge.is_planed_as_umpire = false;
+			service_judge.last_time_on_court_ts = end_ts;
+			service_judge.status = 'ready';
+			service_judge.court_id = null;
 
+			if(service_judge.is_umpire === true) {
+				service_judge.umpire_wait = end_ts;
+			} else if(service_judge.is_service_judge === true) {
+				service_judge.service_judge_wait = end_ts + 100;
+			} else {
+				service_judge.inactive_list = end_ts + 50;
+			}
+
+			update_umpire(app, tournament_key, service_judge);
+		}
+		return callback(null);
 	});
 }
 
 function set_umpire_to_standby(app, tournament_key, setup) {
 	if (setup.umpire) {
-		update_umpire(app, tournament_key, setup.umpire, 'standby', null, null);
+		const umpire = setup.umpire;
+		umpire.umpire_on_court = null;
+		umpire.is_planed_as_umpire = false;
+        umpire.last_time_on_court_ts = null;
+		umpire.status = 'standby';
+		umpire.court_id = null;
+		update_umpire(app, tournament_key, umpire);
 	}
 
 	if (setup.service_judge) {
-		update_umpire(app, tournament_key, setup.service_judge, 'standby', null, null);
+		const service_judge = setup.service_judge;
+		service_judge.umpire_on_court = null;
+		service_judge.is_planed_as_umpire = false;
+        service_judge.last_time_on_court_ts = null;
+		service_judge.status = 'standby';
+		service_judge.court_id = null;
+		update_umpire(app, tournament_key, service_judge);
 	}
 }
 
 
 
-function update_umpire(app, tkey, umpire, status, last_time_on_court_ts, court_id) {
-	app.db.umpires.update({ tournament_key: tkey, name: umpire.name }, { $set: { last_time_on_court_ts: last_time_on_court_ts, status: status, court_id: court_id } }, { returnUpdatedDocs: true }, function (err, numAffected, changed_umpire) {
-		if (err) {
-			console.error(err);
-			return;
-		}
-		const admin = require('./admin');
-		admin.notify_change(app, tkey, 'umpire_updated', changed_umpire);
-		return;
-	});
-}
+function update_umpire(app, tkey, umpire) {
+  if (!umpire || !umpire._id) {
+    console.error('update_umpire: invalid umpire object');
+    return;
+  }
 
+  // Sicherheitsnetz: tournament_key immer korrekt setzen
+  umpire.tournament_key = tkey;
+
+  app.db.umpires.update(
+    { _id: umpire._id, tournament_key: tkey },
+    { $set: umpire },
+    { returnUpdatedDocs: true },
+    function (err, numAffected, changed_umpire) {
+      if (err) {
+        console.error(err);
+        return;
+      }
+
+      const admin = require('./admin');
+      admin.notify_change(app, tkey, 'umpire_updated', changed_umpire);
+    }
+  );
+}
 
 function call_preparation_match_on_court(app, tournament_key, court_id) {
 	return new Promise((resolve, reject) => {

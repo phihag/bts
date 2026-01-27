@@ -75,12 +75,37 @@ button {
 	color: #666;
 }
 
+.metadata_container{
+    width: 100%;
+}
+
+.metadata_right_container{
+	min-width: 550px;
+    width: 20%;
+}
+
+.metadata_right_top_container{
+	display:flex;
+	flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: space-between;
+}
+
+.metadata_right_container_2 > table {
+    margin-top: -5px;
+}
+
+.errors_scroll_left {
+	direction: rtl;          /* Scrollbar links */
+    overflow-y: auto;
+	margin-top: 5px;
+}
 
 .errors {
+	direction: ltr;          /* Inhalt wieder normal */
 	color: #f00;
 	white-space: pre-wrap;
-	max-height: 50px;
-	overflow-y: scroll;
+	max-height: 92px;
 }
 
 .vlink,
@@ -241,7 +266,7 @@ table.striped-table {
 }
 
 .announcements_container{
-	width: 400px;
+	width: 450px;
 }
 .announcements_container > form {
 	display: flex;
@@ -391,4 +416,92 @@ h2.edit {
     max-width: 150px;
     inline-size: 150px;
     overflow-wrap: break-word;
+}
+
+.paralel {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: flex-start;   /* <<< DAS ist entscheidend */
+}
+
+.paralel > table {
+  flex: 1;
+}
+
+/* Tabellenlayout stabil halten */
+.officials_table {
+  table-layout: fixed;
+  width: 100%;
+}
+
+/* rechte zwei Spalten fix 50px */
+.officials_table th:nth-child(2),
+.officials_table td:nth-child(2),
+.officials_table th:nth-child(3),
+.officials_table td:nth-child(3) {
+  width: 50px;
+  min-width: 50px;
+  max-width: 50px;
+}
+
+/* Checkbox-Zellen zentrieren */
+.officials_table td:nth-child(2),
+.officials_table td:nth-child(3) {
+  text-align: center;
+  vertical-align: middle;
+}
+
+/* Falls create_simple_checkbox ein <input> erzeugt */
+.officials_table td:nth-child(2) input,
+.officials_table td:nth-child(3) input {
+  margin: 0 auto;
+  display: block;
+}
+
+/* Header-Icons zentrieren */
+.officials_table th:nth-child(2),
+.officials_table th:nth-child(3) {
+  text-align: center;
+  vertical-align: middle;
+}
+
+.officials_table th:nth-child(2) > div,
+.officials_table th:nth-child(3) > div {
+  margin: 0 auto;
+}
+
+.space {
+	width: 10px;
+}
+
+ * /* Normalzustand: gleiche Grundfarbe wie Tabelle/Rows (oder transparent) */
+.drop-zone td {
+	background: inherit;
+}
+
+
+/* Sobald eine Row gezogen wird, werden alle Drop-Zonen gelblich */
+tbody.drop-zones-active .drop-zone td {
+	background: rgba(255, 215, 0, 0.35);
+}
+
+/* Aktuell anvisierte Zone stärker */
+tbody.drop-zones-active .drop-zone.drop-zone-hover td {
+	background: rgba(255, 215, 0, 0.65);
+}
+
+tr[data-official-id] {
+  cursor: grab;
+}
+
+tr.dragging {
+  cursor: grabbing;
+  opacity: 0.5;
+}
+
+tr.table-spacer td {
+  padding: 0;
+  border: none;
+  background: #eee;
 }

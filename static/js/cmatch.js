@@ -425,7 +425,7 @@ function render_match_row(tr, match, court, style, show_player_status, show_add_
 
 			if (!setup.umpire && (!setup.tabletoperators || setup.tabletoperators.length == 0)) {
 				const no_umpire_span = uiu.el(to_td, 'span', 'person');
-				uiu.el(no_umpire_span, 'div', 'no_umpire', '');
+				create_match_button(no_umpire_span, 'vlink no_umpire', 'match:add_officials', on_add_officials_button, match._id);
 				uiu.el(no_umpire_span, 'span', 'match_no_umpire', ci18n('No umpire'));
 			
 			}
@@ -495,8 +495,8 @@ function render_match_row(tr, match, court, style, show_player_status, show_add_
 		}
 	}
 
-	if ((style === 'default' || style === 'plain') && match.setup.now_on_court != undefined) {
-		const shuttle_td = uiu.el(tr, 'td', 'match_shuttle_count');
+	if ((style === 'default' || style === 'plain')) {
+		const shuttle_td = uiu.el(tr, 'td', {'class': 'match_shuttle_count', 'data-match_id': match._id});
 		if(match.shuttle_count) {
 			shuttle_td.classList.add('match_shuttle_count_display_active');
 		}
@@ -508,12 +508,16 @@ function render_match_row(tr, match, court, style, show_player_status, show_add_
 			'data-match_id': match._id,
 		}, match.shuttle_count || '');
 
-		const shutle_image = uiu.el(shuttle_td, 'div', 'match_shuttle_image');
+		const shuttle_image = uiu.el(shuttle_td, 'div', {
+			'class' : (
+				'match_shuttle_image'
+			),
+			'data-match_id': match._id});
 		if(!match.shuttle_count) {
-			shutle_image.style.display = 'none';
+			shuttle_image.style.display = 'none';
 		}
 		else {
-			shutle_image.style.display = 'inline-block'
+			shuttle_image.style.display = 'inline-block';
 		}
 	}
 
@@ -578,6 +582,21 @@ function render_match_row(tr, match, court, style, show_player_status, show_add_
 	}
 
 	return resizable_elements;
+}
+
+function on_add_officials_button(e) {
+	const match = fetchMatchFromEvent(e);
+	if (match != null) {
+		send({
+			type: 'add_officials_to_match',
+			tournament_key: curt.key,
+			match_id: match._id,
+		}, err => {
+			if (err) {
+				return cerror.net(err);
+			}
+		});
+	}
 }
 
 function short_name (first_names, last_name, name) {
@@ -666,11 +685,23 @@ function update_match_score(m) {
 			button_el.style.visibility = 'visible';
 		});
 	}
-	
 
-	uiu.qsEach('.match_shuttle_count_display[data-match_id=' + JSON.stringify(m._id) + ']', function(el) {
-		uiu.text(el, m.shuttle_count || '');
+	uiu.qsEach('.match_shuttle_count[data-match_id=' + JSON.stringify(m._id) + ']', function(el) {
 		uiu.setClass(el, 'match_shuttle_count_display_active', !!m.shuttle_count);
+	});
+	
+	uiu.qsEach('.match_shuttle_count_number[data-match_id=' + JSON.stringify(m._id) + ']', function(el) {
+		uiu.text(el, m.shuttle_count || '');
+	});
+
+	uiu.qsEach('.match_shuttle_image[data-match_id=' + JSON.stringify(m._id) + ']', function(shuttle_image) {
+		if(!m.shuttle_count) {
+			shuttle_image.style.display = 'none';
+		}
+		else {
+			shuttle_image.style.display = 'inline-block';
+		}
+			
 	});
 }
 
@@ -980,12 +1011,12 @@ function insert_new_match_row(m, section) {
 			uiu.qsEach('.finished_container', (finished_container) => {
 				const tbody = finished_container.querySelector('.match_table > tbody');
 				const match_row_el = uiu.el(tbody, 'tr', {'class' : 'match highlight_' + m.setup.highlight , 'data-match_id': m._id});
-				render_match_row(match_row_el, m, null, 'default', false, true);
+				render_match_row(match_row_el, m, null, 'default', false, curt.tabletoperator_enabled);
 				for (const child of tbody.children) {
 					const child_btp_id = child.dataset.match_id;
 					const child_match = utils.find(curt.matches, m => 'btp_'+m.btp_id === child_btp_id);
 					if(child_match) {
-						if(cmp_match_order(m, child_match) < 0) {
+						if(cmp_end_ts_match_order(m, child_match) < 0) {
 							tbody.insertBefore(match_row_el, child);
 							break;
 						}
@@ -997,12 +1028,12 @@ function insert_new_match_row(m, section) {
 			uiu.qsEach('.unassigned_container', (unassigned_container) => {
 				const tbody = unassigned_container.querySelector('.match_table > tbody');
 				const match_row_el = uiu.el(tbody, 'tr', {'class' : 'match highlight_' + m.setup.highlight , 'data-match_id': m._id});
-				render_match_row(match_row_el, m, null, 'unasigned', true, true);
+				render_match_row(match_row_el, m, null, 'unasigned', true, curt.tabletoperator_enabled);
 				for (const child of tbody.children) {
 					const child_btp_id = child.dataset.match_id;
 					const child_match = utils.find(curt.matches, m => 'btp_'+m.btp_id === child_btp_id);
 					if(child_match) {
-						if(cmp_match_order(m, child_match) < 0) {
+						if(cmp_scheduled_match_order(m, child_match) < 0) {
 							tbody.insertBefore(match_row_el, child);
 							break;
 						}
@@ -1016,7 +1047,7 @@ function insert_new_match_row(m, section) {
 				match_row_el.innerHTML = "";
 				const closest = match_row_el.closest('.main_upcoming');
 				if(Boolean(closest)) {
-					render_match_row(match_row_el, m, court, 'public');
+					render_match_row(match_row_el, m, court, 'public', );
 				} else {
 					render_match_row(match_row_el, m, court, 'plain', false, false);
 				}
@@ -1031,11 +1062,11 @@ function update_match_row(m, new_section) {
 		
 		switch (new_section) {
 			case 'finished':
-				render_match_row(match_row_el, m, null, 'default', false, true);
+				render_match_row(match_row_el, m, null, 'default', false, curt.tabletoperator_enabled);
 				break;
 			case 'unassigned':
 				match_row_el.setAttribute('class', 'match highlight_' + (m.setup.highlight ? m.setup.highlight : 0));
-				render_match_row(match_row_el, m, null, 'unasigned', true, true);
+				render_match_row(match_row_el, m, null, 'unasigned', true, curt.tabletoperator_enabled);
 				break;
 			default:
 				const court = utils.find(curt.courts, c => c._id === m.setup.court_id);	
@@ -1152,7 +1183,7 @@ function _extract_match_timer_state(match) {
 	return rs;
 }
 
-function cmp_match_order(m1, m2) {
+function cmp_scheduled_match_order(m1, m2) {
 	const time_str1 = m1.setup.scheduled_time_str;
 	const time_str2 = m2.setup.scheduled_time_str;
 
@@ -1184,8 +1215,21 @@ function cmp_match_order(m1, m2) {
 	return cbts_utils.cmp(m1.setup.match_num, m2.setup.match_num);
 }
 
+function cmp_end_ts_match_order(m1, m2) {
+	var m1_ts = m1.end_ts;
+	var m2_ts = m2.end_ts;
+	
+	if(!m1_ts) {
+		m1_ts = zoned_time_to_utc_timestamp(m1.setup.scheduled_date, m1.setup.scheduled_time_str, 'Europe/Berlin') / 2;
+	} 
+	if(!m2_ts) {
+		m2_ts = zoned_time_to_utc_timestamp(m2.setup.scheduled_date, m2.setup.scheduled_time_str, 'Europe/Berlin') / 2;
+	} 
+	return m1_ts - m2_ts
+}
+
 function prepare_render(t) {
-	t.matches.sort((m1, m2) => {return cmp_match_order(m1, m2)});
+	t.matches.sort((m1, m2) => {return cmp_scheduled_match_order(m1, m2)});
 
 	t.courts_by_id = {};
 	for (const c of t.courts) {
@@ -1776,7 +1820,7 @@ function render_unassigned(container) {
 	uiu.el(container, 'h3', 'section', ci18n('Unassigned Matches'));
 
 	const unassigned_matches = curt.matches.filter(m => calc_section(m) === 'unassigned');
-	render_match_table(container, unassigned_matches, 'unasigned', true, true);
+	render_match_table(container, unassigned_matches, 'unasigned', true, curt.tabletoperator_enabled);
 }
 
 function render_upcoming_matches(container) {
@@ -1791,8 +1835,6 @@ function render_upcoming_matches(container) {
 	const upcoming_table = uiu.el(container, 'table', 'upcoming_table');
 	const upcoming_tbody = uiu.el(upcoming_table, 'tbody', 'upcoming_tbody');
 	const unassigned_matches = curt.matches.filter(m => calc_section(m) === 'unassigned');
-
-	console.log(unassigned_matches);
 	
 	
 	var resizable_rows = [];
@@ -1813,12 +1855,73 @@ function render_upcoming_matches(container) {
 	});
 }
 
+
+function zoned_time_to_utc_timestamp(dateStr, timeStr, timeZone) {
+    if (!dateStr) {
+		return 0;
+	}
+
+	if (!timeStr) {
+		return 0;
+	}
+
+	const [year, month, day] = dateStr.split('-').map(Number);
+    const [hour, minute] = timeStr.split(':').map(Number);
+
+    // "Guess": als ob die eingegebene Zeit UTC wäre
+    const utcGuessMs = Date.UTC(year, month - 1, day, hour, minute, 0);
+
+    const formatter = new Intl.DateTimeFormat('en-US', {
+        timeZone,
+        hour12: false,
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+    });
+
+    // Wie sieht dieser utcGuess in der Ziel-Zeitzone aus?
+    const parts = Object.fromEntries(
+        formatter.formatToParts(new Date(utcGuessMs)).map(p => [p.type, p.value])
+    );
+
+    // Diese "Zonen-Zeit" interpretieren wir als UTC, um den Offset zu bekommen
+    const asIfUtcMs = Date.UTC(
+        Number(parts.year),
+        Number(parts.month) - 1,
+        Number(parts.day),
+        Number(parts.hour),
+        Number(parts.minute),
+        Number(parts.second)
+    );
+
+    // Offset = (Zonen-Darstellung als UTC) - (echte UTC)
+    const offsetMs = asIfUtcMs - utcGuessMs;
+
+    // Gesucht: Zeitpunkt, der in der Zone die gewünschte lokale Zeit ergibt
+    return utcGuessMs - offsetMs;
+}
+
+
 function render_finished(container) {
 	uiu.empty(container);
 	uiu.el(container, 'h3', 'section', ci18n('Finished Matches'));
 
-	const matches = curt.matches.filter(m => calc_section(m) === 'finished').sort((a, b) => {return b.end_ts - a.end_ts});
-	render_match_table(container, matches, 'default', false, true);
+	const matches = curt.matches.filter(m => calc_section(m) === 'finished').sort((a, b) => {
+		var a_ts = a.end_ts;
+		var b_ts = b.end_ts;
+		
+		if(!a_ts) {
+			a_ts = zoned_time_to_utc_timestamp(a.setup.scheduled_date, a.setup.scheduled_time_str, 'Europe/Berlin');
+		} 
+		if(!b_ts) {
+			b_ts = zoned_time_to_utc_timestamp(b.setup.scheduled_date, b.setup.scheduled_time_str, 'Europe/Berlin');
+		} 
+		return b_ts - a_ts
+	});
+	render_match_table(container, matches, 'default', false, curt.tabletoperator_enabled);
 }
 
 function render_courts(container, style) {
@@ -1883,6 +1986,11 @@ function update_tables(location_id, enabled) {
 function render_empty_court_row(tr, court, style, is_droppable) {
 	tr.setAttribute("data-style", style);
 	
+	if (!court) {
+		console.warn('court is not set!');
+
+	}
+
 	const is_active = court.is_active;
 	
 	if(style != 'public') {
@@ -2471,7 +2579,7 @@ function render_create(container) {
 return {
 	add_match,
 	calc_section,
-	cmp_match_order,
+	cmp_match_order: cmp_scheduled_match_order,
 	prepare_render,
 	render_create,
 	render_finished,

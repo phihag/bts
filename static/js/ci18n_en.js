@@ -53,6 +53,9 @@ var ci18n_en = {
 	'Loser': 'Loser',
 	'activate_court': 'Spielfeld nutzen',
 	'inactivate_court': 'Spielfeld sperren',
+	'Waiting for the next game:': 'Waiting for the next game:',
+	'Currently on break:': 'Currently on break:',
+	'Not available:': 'Not available:',
 
 	'announcements:begin_to_play': 'Start to play!',
 	'announcements:second_call': '"Second call',
@@ -236,6 +239,7 @@ var ci18n_en = {
 	'match:edit:delete': 'Delete match',
 	'match:edit:now_on_court': 'Now on court',
 	'match:delete:really': 'Really delete match {match_id}?',
+	'match:add_officials': 'Add umpire and service judge',
 	'tournament:edit:logo': 'Logo',
 	'tournament:edit:logo:nologo': 'No logo',
 	'tournament:edit:logo:upload': 'Upload logo',

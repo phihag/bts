@@ -1,6 +1,7 @@
 'use strict';
 
 var curt; // current tournament
+let current_view = null;
 
 var ctournament = (function() {
 	function _route_single(rex, func, handler) {
@@ -141,7 +142,10 @@ var ctournament = (function() {
 		m.btp_winner = cval.btp_winner;
 		m.setup = cval.setup;
 
-		cmatch.update_players(m);
+		if(current_view == 'show'){
+			cmatch.update_players(m);
+		}
+		
 	}
 
 	function remove_match(c) {
@@ -326,7 +330,9 @@ var ctournament = (function() {
 		cmatch.render_finished(uiu.qs('.finished_container'));
 	}
 	function _show_render_tabletoperators() {
-		ctabletoperator.render_unassigned(uiu.qs('.unassigned_tableoperators_container'));
+		if(curt.tabletoperator_enabled) {
+			ctabletoperator.render_unassigned(uiu.qs('.unassigned_tableoperators_container'));
+		}
 	}
 
 	function _show_render_umpires() {
@@ -417,6 +423,12 @@ var ctournament = (function() {
 			class: 'announce_button',
 			id: 'remote_announce_btn'
 		}, 'Remote Abspielen');
+
+		const emergency_btn = uiu.el(btn_container, 'button', {
+			type: 'submit',
+			class: !curt.enable_emergency ? 'announce_emergency_button' : 'stop_emergency_button',
+			id: 'announce_emergency_btn'
+		}, !curt.enable_emergency ? 'Evakuierung Abspielen' : 'Evakuierung Stoppen');
 	
 		// Lokales Abspielen (z. B. mit deiner announce-Funktion)
 		local_btn.addEventListener('click', function () {
@@ -425,6 +437,22 @@ var ctournament = (function() {
 	
 			// Lokale Ansage abspielen
 			announce([text], true);  // ← Diese Funktion muss bei dir lokal definiert sein
+		});
+
+		emergency_btn.addEventListener("click", () => {
+  			const bestaetigt = confirm(!curt.enable_emergency ? "Soll wirklich evakuiert werden?" : "Soll die Evakuierung wirklich abgebrochen werden?");
+
+  			if (bestaetigt) {
+    			send({
+					type: 'emergency_announce',
+					tournament_key: curt.key,
+					enable: !curt.enable_emergency
+				}, function (err) {
+					if (err) {
+						return cerror.net(err);
+					}
+				});
+  			}
 		});
 	
 		// Remote Abspielen
@@ -442,6 +470,21 @@ var ctournament = (function() {
 				}
 			});
 		});
+	}
+
+	function update_emergency_btn() {
+		const btn = document.getElementById('announce_emergency_btn');
+		if (!btn) return;
+
+		if (curt.enable_emergency) {
+			btn.classList.remove('announce_emergency_button');
+			btn.classList.add('stop_emergency_button');
+			btn.textContent = 'Evakuierung Stoppen';
+		} else {
+			btn.classList.remove('stop_emergency_button');
+			btn.classList.add('announce_emergency_button');
+			btn.textContent = 'Evakuierung Abspielen';
+		}
 	}
 
 	// function render_enable_announcement(target) {
@@ -568,6 +611,7 @@ var ctournament = (function() {
 		});
 	}
 	function ui_show() {
+		current_view = 'show'
 		crouting.set('t/:key/', { key: curt.key });
 		const bup_lang = ((curt.language && curt.language !== 'auto') ? '&lang=' + encodeURIComponent(curt.language) : '');
 		const bup_dm_style = '&dm_style=' + encodeURIComponent(curt.dm_style || 'international');
@@ -600,7 +644,10 @@ var ctournament = (function() {
 
 		const meta_div = uiu.el(main, 'div', 'metadata_container');
 
-		uiu.el(meta_div, 'div', 'unassigned_tableoperators_container');
+		
+		if(curt.tabletoperator_enabled) {
+			uiu.el(meta_div, 'div', 'unassigned_tableoperators_container');
+		}
 		uiu.el(meta_div, 'div', 'umpire_container');
 		render_announcement_formular(meta_div);
 
@@ -610,9 +657,15 @@ var ctournament = (function() {
 
 		const meta_right_div = uiu.el(meta_div, 'div', 'metadata_right_container');
 
-		render_enable_location_courts(meta_right_div, curt.locations);
+		const meta_right_top_div = uiu.el(meta_right_div, 'div', 'metadata_right_top_container');
+
+		render_enable_location_courts(meta_right_top_div, curt.locations);
 		
-		render_settings(meta_right_div);
+		render_settings(meta_right_top_div);
+
+		const errors_scroll_left_div = uiu.el(meta_right_div, 'div', 'errors_scroll_left');
+
+		uiu.el(errors_scroll_left_div, 'div', 'errors');
 		
 		cmatch.prepare_render(curt);
 
@@ -682,8 +735,6 @@ var ctournament = (function() {
 			const ticker_push_btn = uiu.el(td, 'button', 'tournament_ticker_push vlink', ci18n('update ticker'));
 			ticker_push_btn.addEventListener('click', ui_ticker_push);
 		}
-
-		uiu.el(settings_div, 'div', 'errors');
 	}
 
 	function btp_status_changed(c) {
@@ -734,6 +785,7 @@ var ctournament = (function() {
 	}
 
 	function ui_edit() {
+		current_view = 'edit';
 		crouting.set('t/:key/edit', { key: curt.key });
 		toprow.set([{
 			label: ci18n('Tournaments'),
@@ -1071,6 +1123,13 @@ var ctournament = (function() {
 			input.upcoming_animation_pause = create_numeric_input(curt, upcoming_fieldset, 'upcoming_matches_animation_pause', 1, 20, 4, 1);
 			input.upcoming_matches_max_count = create_numeric_input(curt, upcoming_fieldset, 'upcoming_matches_max_count', 10, 50, 15, 1);
 		}
+
+// officials_host ######################################################################################################
+
+		// irgendwo in ui_edit (oder wo du initial renderst)
+		const officials_host = uiu.el(form, 'div', { id: 'officials_host' });
+		update_official_tables(officials_host);  // initial + später auch für Updates
+
 		
 		
 		// devices-div##################################################################################
@@ -1193,6 +1252,7 @@ var ctournament = (function() {
 	}
 	_route_single(/t\/([a-z0-9]+)\/edit$/, ui_edit, change.default_handler(_update_all_ui_elements_edit, {
 		update_general_displaysettings: update_general_displaysettings,
+		update_player_status: update_player_status,
 	}));
 
 	function send_props(input, callback) {
@@ -2266,6 +2326,518 @@ var ctournament = (function() {
 		return;
 	};
 
+/* ============================================================
+ * DROP-ZONES (schmale Reihen zum Droppen)
+ * ============================================================ */
+
+function add_drop_zones_to_tbody(tbody, {
+  row_selector = 'tr',
+  zone_class = 'drop-zone',
+  zone_active_class = 'drop-zones-active',
+  is_header_row = (tr) => !!tr.querySelector('th'),
+  col_count = 3,
+  on_zone_dragover = (tbody, insertBeforeRow, e) => {},
+} = {}) {
+  // alte Zonen entfernen
+  for (const z of [...tbody.querySelectorAll(`tr.${zone_class}`)]) z.remove();
+  tbody.classList.add(zone_active_class);
+
+  const rows = [...tbody.querySelectorAll(row_selector)];
+  const header = rows.find(is_header_row) || null;
+
+  // Spacer erkennen (kommt von ensure_min_table_height)
+  const spacer = tbody.querySelector('tr.table-spacer') || null;
+
+  // Datenzeilen: data-official-id (und NICHT spacer)
+  const dataRows = rows.filter(tr =>
+    tr !== header &&
+    tr !== spacer &&
+    tr.getAttribute('data-official-id')
+  );
+
+  function makeZone(insertBeforeRow, heightPx = null) {
+    const ztr = document.createElement('tr');
+    ztr.className = zone_class;
+
+    const ztd = document.createElement('td');
+    ztd.colSpan = col_count;
+    ztr.appendChild(ztd);
+
+    if (heightPx != null) {
+      ztd.style.height = `${heightPx}px`;
+      ztd.style.padding = '0';
+      ztd.style.border = 'none';
+    }
+
+    ztr.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      on_zone_dragover(tbody, insertBeforeRow, e);
+    });
+
+    ztr.addEventListener('drop', (e) => e.preventDefault());
+    ztr.addEventListener('dragenter', () => ztr.classList.add('drop-zone-hover'));
+    ztr.addEventListener('dragleave', () => ztr.classList.remove('drop-zone-hover'));
+
+    return ztr;
+  }
+
+  // Wenn Spacer existiert: Spacer zu einer einzigen großen Dropzone machen
+  if (spacer) {
+    // Spacer-Höhe ermitteln (td height oder inline style)
+    const spacerTd = spacer.querySelector('td');
+    const h = spacerTd ? spacerTd.getBoundingClientRect().height : 0;
+
+    // Spacer entfernen und als Dropzone mit gleicher Höhe ersetzen.
+    // Drop soll "unter letzte Datenzeile" sein -> insertBeforeRow = null
+    spacer.remove();
+
+    const bigZone = makeZone(null, Math.max(0, Math.ceil(h)));
+    tbody.appendChild(bigZone);
+    return;
+  }
+
+  // Normalfall ohne Spacer: Top/Between/Bottom Zonen
+  const topZone = makeZone(dataRows[0] || null);
+
+  if (header) {
+    if (header.nextSibling) tbody.insertBefore(topZone, header.nextSibling);
+    else tbody.appendChild(topZone);
+  } else {
+    tbody.insertBefore(topZone, tbody.firstChild);
+  }
+
+  for (let i = 0; i < dataRows.length; i++) {
+    const current = dataRows[i];
+    const next = dataRows[i + 1] || null;
+    const zone = makeZone(next);
+    if (current.nextSibling) tbody.insertBefore(zone, current.nextSibling);
+    else tbody.appendChild(zone);
+  }
+}
+
+
+function remove_drop_zones_from_tbody(tbody, {
+  zone_class = 'drop-zone',
+  zone_active_class = 'drop-zones-active',
+} = {}) {
+  tbody.classList.remove(zone_active_class);
+  for (const z of [...tbody.querySelectorAll(`tr.${zone_class}`)]) {
+    z.remove();
+  }
+}
+
+/* ============================================================
+ * MULTI-TABLE DND (mit Drop-Zones, zwischen Tabellen)
+ * ============================================================ */
+
+function enable_multitable_row_dragdrop(tbodies, {
+  row_selector = 'tr',
+  table_id_attr = 'data-table-id',
+  row_id_attr = 'data-official-id',
+  is_header_row = (tr) => !!tr.querySelector('th'),
+  can_drag_row = (tr) => !is_header_row(tr) && !tr.classList.contains('drop-zone'),
+  col_count = 3,
+  on_move = ({ row_id, from_table, to_table, from_order, to_order }) => {},
+} = {}) {
+  let dragged_tr = null;
+  let from_tbody = null;
+
+  function set_dragging(tr, isDragging) {
+    if (!tr) return;
+    tr.classList.toggle('dragging', !!isDragging);
+  }
+
+  function get_table_id(tbody) {
+    return tbody?.getAttribute(table_id_attr) || '';
+  }
+
+  function get_order_ids(tbody) {
+    if (!tbody) return [];
+    return [...tbody.querySelectorAll(row_selector)]
+      .filter(tr => !is_header_row(tr) && !tr.classList.contains('drop-zone'))
+      .map(tr => tr.getAttribute(row_id_attr))
+      .filter(Boolean);
+  }
+
+  // >>> NEU: ans Ende bedeutet "vor Spacer", falls vorhanden
+  function append_before_spacer(tbody, row) {
+    const spacer = tbody.querySelector('tr.table-spacer');
+    if (spacer) tbody.insertBefore(row, spacer);
+    else tbody.appendChild(row);
+  }
+
+  function insert_dragged_into_tbody(tbody, insertBeforeRow) {
+    if (!dragged_tr) return;
+
+    if (insertBeforeRow == null) {
+      // ans Ende (unter letzte Datenzeile) => aber vor Spacer, falls vorhanden
+      append_before_spacer(tbody, dragged_tr);
+    } else {
+      tbody.insertBefore(dragged_tr, insertBeforeRow);
+    }
+  }
+
+  // Drop-Zones beim Start aktivieren
+  function activate_drop_zones() {
+    for (const tbody of tbodies) {
+      add_drop_zones_to_tbody(tbody, {
+        row_selector,
+        is_header_row,
+        col_count,
+        on_zone_dragover: (target_tbody, insertBeforeRow, e) => {
+          if (!dragged_tr) return;
+          insert_dragged_into_tbody(target_tbody, insertBeforeRow);
+        }
+      });
+    }
+  }
+
+  function deactivate_drop_zones() {
+    for (const tbody of tbodies) {
+      remove_drop_zones_from_tbody(tbody);
+    }
+  }
+
+  // Rows draggable machen
+  for (const tbody of tbodies) {
+    for (const tr of tbody.querySelectorAll(row_selector)) {
+      if (!can_drag_row(tr)) continue;
+
+      tr.draggable = true;
+
+      tr.addEventListener('dragstart', (e) => {
+        dragged_tr = tr;
+        from_tbody = tr.closest('tbody');
+        set_dragging(tr, true);
+
+        // Drop-Zones global aktivieren
+        activate_drop_zones();
+
+        // Firefox benötigt Daten im dataTransfer
+        if (e.dataTransfer) {
+          e.dataTransfer.effectAllowed = 'move';
+          e.dataTransfer.setData('text/plain', tr.getAttribute(row_id_attr) || '');
+        }
+      });
+
+      tr.addEventListener('dragend', () => {
+        if (!dragged_tr) return;
+
+        set_dragging(dragged_tr, false);
+
+        // Drop-Zones entfernen
+        deactivate_drop_zones();
+
+        const row_id = dragged_tr.getAttribute(row_id_attr) || '';
+        const to_tbody = dragged_tr.closest('tbody');
+
+        const from_table = get_table_id(from_tbody);
+        const to_table = get_table_id(to_tbody);
+
+        const from_order = get_order_ids(from_tbody);
+        const to_order = get_order_ids(to_tbody);
+
+        dragged_tr = null;
+        from_tbody = null;
+
+        on_move({ row_id, from_table, to_table, from_order, to_order });
+      });
+    }
+  }
+
+for (const tbody of tbodies) {
+  tbody.addEventListener('dragover', (e) => {
+    if (!dragged_tr) return;
+    e.preventDefault();
+
+    // 1) Wenn wir über dem Spacer sind: vor Spacer einfügen (Preview korrekt)
+    const spacer_tr = e.target.closest ? e.target.closest('tr.table-spacer') : null;
+    if (spacer_tr) {
+      tbody.insertBefore(dragged_tr, spacer_tr);
+      return;
+    }
+
+    // 2) Wenn wir über dem Header sind: vor die erste Datenzeile einfügen
+    const header_tr = e.target.closest ? e.target.closest('tr') : null;
+    const isHeader = header_tr && header_tr.querySelector && header_tr.querySelector('th');
+    if (isHeader) {
+      const first_data = tbody.querySelector(`tr[${row_id_attr}]:not(.drop-zone)`);
+      if (first_data) {
+        tbody.insertBefore(dragged_tr, first_data);
+      } else {
+        // keine Datenzeile vorhanden -> vor Spacer falls vorhanden, sonst ans Ende
+        const spacer = tbody.querySelector('tr.table-spacer');
+        if (spacer) tbody.insertBefore(dragged_tr, spacer);
+        else tbody.appendChild(dragged_tr);
+      }
+      return;
+    }
+
+    // 3) Optional: Wenn über einer Datenzeile, nahe oben -> davor einfügen
+    // (macht "oben" noch leichter zu treffen, ohne Drop-Zones zu vergrößern)
+    const data_tr = e.target.closest ? e.target.closest(`tr[${row_id_attr}]`) : null;
+    if (data_tr && data_tr !== dragged_tr) {
+      const box = data_tr.getBoundingClientRect();
+      const before = e.clientY < (box.top + box.height / 2);
+      if (before) tbody.insertBefore(dragged_tr, data_tr);
+      else tbody.insertBefore(dragged_tr, data_tr.nextSibling);
+      return;
+    }
+
+    // sonst nichts tun: Drop-Zones übernehmen die Präzision
+  });
+
+  tbody.addEventListener('drop', (e) => {
+    if (!dragged_tr) return;
+    e.preventDefault();
+  });
+}
+}
+
+
+/* ============================================================
+ * DEINE TABELLE (pro Feld) - gibt TBODY zurück
+ * ============================================================ */
+
+function render_officials_by_timestamp(main, {
+  title = null,
+  officials,
+  timestamp_field,
+  min_height_px = 240
+}) {
+  if (title) {
+    uiu.el(main, 'h2', 'edit', title);
+  }
+
+  const rows = officials
+    .filter(o => o[timestamp_field] !== null)
+    .sort((a, b) => a[timestamp_field] - b[timestamp_field]);
+
+  const table = uiu.el(main, 'table', 'officials_table');
+  const tbody = uiu.el(table, 'tbody', { 'data-table-id': timestamp_field });
+
+  /* ---------- Header ---------- */
+  const trHead = uiu.el(tbody, 'tr');
+  uiu.el(trHead, 'th', {}, 'Name');
+
+  const thUmpire = uiu.el(trHead, 'th', {});
+  uiu.el(thUmpire, 'div', { class: 'umpire' });
+
+  const thService = uiu.el(trHead, 'th', {});
+  uiu.el(thService, 'div', { class: 'service_judge' });
+
+  /* ---------- Data rows ---------- */
+  for (const o of rows) {
+    const tr = uiu.el(tbody, 'tr', { 'data-official-id': o._id });
+
+    uiu.el(tr, 'td', {}, o.name || `${o.firstname} ${o.surname}`.trim());
+
+    const umpire_td = uiu.el(tr, 'td', {});
+    const umpire_cb = create_simple_checkbox(
+      umpire_td,
+      { name: 'umpire_cb', 'data-official-id': o._id },
+      !!o.is_umpire
+    );
+    umpire_cb.addEventListener('change', (e) => {
+      send({
+        type: 'official_edit',
+        tournament_key: o.tournament_key,
+        official_id: o._id,
+        field: 'is_umpire',
+        value: e.target.checked
+      }, err => { if (err) return cerror.net(err); });
+    });
+
+    const service_td = uiu.el(tr, 'td', {});
+    const service_cb = create_simple_checkbox(
+      service_td,
+      { name: 'service_judge_cb', 'data-official-id': o._id },
+      !!o.is_service_judge
+    );
+    service_cb.addEventListener('change', (e) => {
+      send({
+        type: 'official_edit',
+        tournament_key: o.tournament_key,
+        official_id: o._id,
+        field: 'is_service_judge',
+        value: e.target.checked
+      }, err => { if (err) return cerror.net(err); });
+    });
+  }
+
+  /* ---------- Mindesthöhe per Spacer ---------- */
+  function ensure_min_table_height() {
+    const old = tbody.querySelector('tr.table-spacer');
+    if (old) old.remove();
+
+    if (!document.body.contains(table)) return;
+
+    requestAnimationFrame(() => {
+      if (!document.body.contains(table)) return;
+
+      const current = table.getBoundingClientRect().height;
+      const missing = Math.max(0, min_height_px - current);
+      if (missing <= 0) return;
+
+      const spacer_tr = document.createElement('tr');
+      spacer_tr.className = 'table-spacer';
+
+      const spacer_td = document.createElement('td');
+      spacer_td.colSpan = trHead.children.length;
+      spacer_td.style.height = `${Math.ceil(missing)}px`;
+
+      spacer_tr.appendChild(spacer_td);
+      tbody.appendChild(spacer_tr);
+    });
+  }
+
+  ensure_min_table_height();
+
+  // für globalen Resize-Recalc
+  table._ensureMinHeight = ensure_min_table_height;
+
+  return { table, tbody };
+}
+
+function enable_min_height_resize_recalc(tables) {
+  window._officialMinHeightTables = tables;
+
+  if (window._officialMinHeightResizeHandlerInstalled) return;
+  window._officialMinHeightResizeHandlerInstalled = true;
+
+  window.addEventListener('resize', () => {
+    const list = window._officialMinHeightTables || [];
+    for (const t of list) {
+      if (t && t._ensureMinHeight) t._ensureMinHeight();
+    }
+  });
+}
+
+function update_official_tables(officials_host) {
+  // officials_host: DOM-Element, in das die gesamte Officials-UI gerendert wird
+  // curt.umpires ist hier verfügbar (wie von dir beschrieben)
+
+  // alles neu bauen
+  officials_host.innerHTML = '';
+
+  const tbodies = [];
+  const tables = [];
+
+  const officials_div = uiu.el(officials_host, 'div', 'settings');
+  uiu.el(officials_div, 'h2', 'edit', ci18n('Umpire:'));
+
+  uiu.el(officials_div, 'h3', 'edit', ci18n('Waiting for the next game:'));
+  const waiting_officials_div = uiu.el(officials_div, 'div', 'paralel');
+
+  {
+    const r = render_officials_by_timestamp(waiting_officials_div, {
+      officials: curt.umpires,
+      timestamp_field: 'umpire_wait'
+    });
+    tbodies.push(r.tbody);
+    tables.push(r.table);
+  }
+
+  uiu.el(waiting_officials_div, 'div', 'space');
+
+  {
+    const r = render_officials_by_timestamp(waiting_officials_div, {
+      officials: curt.umpires,
+      timestamp_field: 'service_judge_wait'
+    });
+    tbodies.push(r.tbody);
+    tables.push(r.table);
+  }
+
+  uiu.el(officials_div, 'h3', 'edit', ci18n('Currently on break:'));
+  const paused_officials_div = uiu.el(officials_div, 'div', 'paralel');
+
+  {
+    const r = render_officials_by_timestamp(paused_officials_div, {
+      officials: curt.umpires,
+      timestamp_field: 'umpire_pause'
+    });
+    tbodies.push(r.tbody);
+    tables.push(r.table);
+  }
+
+  uiu.el(paused_officials_div, 'div', 'space');
+
+  {
+    const r = render_officials_by_timestamp(paused_officials_div, {
+      officials: curt.umpires,
+      timestamp_field: 'service_judge_pause'
+    });
+    tbodies.push(r.tbody);
+    tables.push(r.table);
+  }
+
+  uiu.el(officials_div, 'h3', 'edit', ci18n('Not available:'));
+  {
+    const r = render_officials_by_timestamp(officials_div, {
+      officials: curt.umpires,
+      timestamp_field: 'inactive_list'
+    });
+    tbodies.push(r.tbody);
+    tables.push(r.table);
+  }
+
+  // Map neu aufbauen (wichtig, weil curt.umpires aktualisiert ist)
+  const officialById = new Map();
+  for (const o of curt.umpires) {
+    officialById.set(o._id, o);
+  }
+
+  // Drag & Drop (jedes Render neu aktivieren)
+  enable_multitable_row_dragdrop(tbodies, {
+    col_count: 3,
+    is_header_row: (tr) => !!tr.querySelector('th'),
+    on_move: ({ row_id, from_table, to_table, from_order, to_order }) => {
+
+      // Mindesthöhe nach DOM-Move neu setzen
+      for (const t of tables) {
+        if (t && t._ensureMinHeight) t._ensureMinHeight();
+      }
+
+      // prev/next aus der Ziel-Reihenfolge
+      const idx = to_order.indexOf(row_id);
+      const prev_id = idx > 0 ? to_order[idx - 1] : null;
+      const next_id = (idx >= 0 && idx < to_order.length - 1) ? to_order[idx + 1] : null;
+
+      const prev_btp_id = prev_id ? officialById.get(prev_id)?.btp_id : null;
+      const next_btp_id = next_id ? officialById.get(next_id)?.btp_id : null;
+
+      send({
+        type: 'official_list_move',
+        tournament_key: curt.key,
+        official_id: row_id,
+        from_list: from_table,
+        to_list: to_table,
+        prev_btp_id,
+        next_btp_id
+      }, (err) => {
+        if (err) return cerror.net(err);
+      });
+    }
+  });
+
+  // Mindesthöhe bei Resize neu berechnen (globaler Handler)
+  enable_min_height_resize_recalc(tables);
+
+  // Optional: direkt nach Render einmal neu setzen (falls Fonts/Layout verzögert)
+  for (const t of tables) {
+    if (t && t._ensureMinHeight) t._ensureMinHeight();
+  }
+}
+
+function update_officials() {
+	if(current_view === 'edit') {
+		update_official_tables(document.getElementById('officials_host'));
+	}
+	return;
+}
+
+
 	function render_courts(main) {
 		uiu.el(main, 'h2', 'edit', ci18n('tournament:edit:courts'));
 
@@ -2519,21 +3091,25 @@ var ctournament = (function() {
 	}
 
 	function ui_upcoming() {
+		current_view = 'upcoming';
 		const main = ui_match_screens('t/:key/upcoming');
 		render_upcoming(main);
 	}
 
 	function ui_current_matches() {
+		current_view = 'current_matches';
 		const main = ui_match_screens('t/:key/current_matches');
 		render_current_matches(main);
 	}
 
 	function ui_next_matches() {
+		current_view = 'next_matches';
 		const main = ui_match_screens('t/:key/next_matches');
 		render_next_matches(main);
 	}
 
 	function ui_match_screens(route) {
+		current_view = 'match_screen';
 		crouting.set(route, { key: curt.key });
 		toprow.hide();
 		const main = uiu.qs('.main');
@@ -2760,12 +3336,14 @@ var ctournament = (function() {
 		ui_list,
 		add_match,
 		update_match,
+		update_officials,
 		update_upcoming_match,
 		update_logo,
 		update_display,
 		update_location,
 		update_location_logo,
 		update_court,
+		update_emergency_btn,
 		btp_status_changed,
 		ticker_status_changed,
 		bts_status_changed,

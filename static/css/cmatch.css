@@ -10,6 +10,24 @@
 	margin: 10px 0px 10px 0px; 
 }
 
+.announce_emergency_button {
+	font-size: 100%;
+	padding: 9px 20px;
+	margin: 10px 0px 10px 0px;
+	background-color: red;
+	color: whitesmoke;
+	font-weight: bold;
+}
+
+.stop_emergency_button {
+	font-size: 100%;
+	padding: 9px 20px;
+	margin: 10px 0px 10px 0px;
+	background-color: green;
+	color: whitesmoke;
+	font-weight: bold;
+}
+
 .announcements_btn_container {
 	display: flex;
 	justify-content: space-around;
@@ -280,7 +298,6 @@
 
 .match_shuttle_count_display_active {
 	width: 40px;
-	background-color: yellow;
 }
 
 .match_shuttle_count span::after {

@@ -1234,14 +1234,30 @@ function integrate_umpires(app, tournament_key, btp_state, callback) {
 		app.db.umpires.findOne({ tournament_key, btp_id }, (err, cur) => {
 			if (err) return cb(err);
 
+
+
 			if (cur) {
+
+				const allListsNull =    !cur.is_planed_as_umpire &&
+										!cur.is_planed_as_service_judge && 
+			    						cur.umpire_on_court == null &&
+										cur.service_judge_on_court == null &&
+										cur.umpire_wait == null &&
+										cur.service_judge_wait == null &&
+										cur.umpire_pause == null &&
+										cur.service_judge_pause == null &&
+										cur.inactive_list == null;
+
+
 				if (cur.btp_id === btp_id &&
 					cur.firstname == firstname &&
 					cur.surname == surname &&
-					cur.country === country) {
+					cur.country === country &&
+					!allListsNull) {
 					return cb();
 				} else {
-					app.db.umpires.update({ tournament_key, btp_id }, { $set: { btp_id, firstname, surname, name, country } }, { returnUpdatedDocs: true }, function (err, numAffected, changed_umpire) {
+					const inactive_list = allListsNull ? Date.now() : null;
+					app.db.umpires.update({ tournament_key, btp_id }, { $set: { btp_id, firstname, surname, name, country, inactive_list} }, { returnUpdatedDocs: true }, function (err, numAffected, changed_umpire) {
 						if (err) {
 							console.error(err);
 							return cb(err);
@@ -1261,7 +1277,18 @@ function integrate_umpires(app, tournament_key, btp_state, callback) {
 				name,
 				status: 'ready',
 				tournament_key,
-				country
+				country,
+				is_umpire: true,
+				is_service_judge: true,
+				is_planed_as_umpire: false,
+				is_planed_as_service_judge: false,
+				umpire_on_court: null,
+				service_judge_on_court: null,
+				umpire_wait: null,
+				service_judge_wait: null,
+				umpire_pause: null,
+				service_judge_pause: null,
+				inactive_list: Date.now()
 			};
 			changed = true;
 			app.db.umpires.insert(u, function (err, inserted_umpire) {

@@ -153,9 +153,6 @@ async function handle_score_update(app, ws, msg) {
 		return;
 	}
 
-	console.log(match);
-	console.log(match.setup.teams);
-
 	const update = {
 		network_score: score_data.network_score,
 		network_team1_left:score_data.network_team1_left,

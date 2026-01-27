@@ -228,6 +228,7 @@ function get_system_timezone() {
 	return _cached_timezone;
 }
 
+
 module.exports = {
 	cmp,
 	cmp_key,
@@ -249,5 +250,5 @@ module.exports = {
 	remove,
 	root_dir,
 	size,
-	values,
+	values
 };

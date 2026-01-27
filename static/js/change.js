@@ -31,6 +31,18 @@ function default_handler(rerender, special_funcs) {
 		case 'free_announce':
 			announce([c.val.text]);
 			break;
+		case 'emergency_announce':
+			curt.enable_emergency = c.val;
+			emergency_announce(c.val);
+			if (current_view === 'show'){
+				ctournament.update_emergency_btn()
+			}
+			if(curt.enable_emergency) {
+				cerror.silent('Evakuierungsdurchsage wird gestartet!');
+			} else {
+				cerror.silent('Evakuierungsdurchsage wurde gestoppt');
+			}
+			break;
 		case 'props': {			
 			curt.name = c.val.name;
 			curt.is_team = c.val.is_team;
@@ -281,19 +293,58 @@ function default_handler(rerender, special_funcs) {
 				u.country = umpire.country;
 				u.status = umpire.status;
 				u.court_id = umpire.court_id;
+				u.is_umpire = umpire.is_umpire;
+				u.is_service_judge = umpire.is_service_judge;
+				u.is_planed_as_umpire = umpire.is_planed_as_umpire;
+				u.is_planed_as_service_judge = umpire.is_planed_as_service_judge;
+				u.umpire_on_court = umpire.umpire_on_court;
+				u.service_judge_on_court = umpire.service_judge_on_court;
+				u.umpire_wait = umpire.umpire_wait;
+				u.service_judge_wait = umpire.service_judge_wait;
+				u.umpire_pause = umpire.umpire_pause;
+				u.service_judge_pause = umpire.service_judge_pause;
+				u.inactive_list = umpire.inactive_list;
 			}
-			cumpires.ui_status(uiu.qs('.umpire_container'));
+			if(current_view === 'show') {
+				cumpires.ui_status(uiu.qs('.umpire_container'));
+			}
+			ctournament.update_officials();
 			break;
 		case 'umpire_add':
 			const added_umpire = c.val.umpire;
 			curt.umpires.push(added_umpire);
-			cumpires.ui_status(uiu.qs('.umpire_container'));
+			if(current_view === 'show') {
+				cumpires.ui_status(uiu.qs('.umpire_container'));
+			}
+			ctournament.update_officials();
 				break;
 		case 'umpire_removed':
 			const removed_umpire = c.val.umpire;
 			const ru = utils.find(curt.umpires, m => m._id === removed_umpire._id);
 			curt.umpires.splice(curt.umpires.indexOf(ru), 1);
-			cumpires.ui_status(uiu.qs('.umpire_container'));
+			if(current_view === 'show') {
+				cumpires.ui_status(uiu.qs('.umpire_container'));
+			}
+			ctournament.update_officials();
+			break;
+		case 'official_list_move':
+			const official = utils.find(curt.umpires, u => u._id === c.val.official_id);
+			official[c.val.inactive_list] = null;
+			official[c.val.service_judge_pause] = null;
+			official[c.val.umpire_pause] = null;
+			official[c.val.service_judge_wait] = null;
+			official[c.val.umpire_wait] = null;
+			official[c.val.service_judge_on_court] = null;
+			official[c.val.umpire_on_court] = null;
+			official[c.val.is_planed_as_service_judge] = false;
+			official[c.val.is_planed_as_umpirefrom_list] = false;
+			official[c.val.to_list] = c.val.new_ts;
+			ctournament.update_officials();
+			break;
+		case 'official_edit':
+			const official_edit = utils.find(curt.umpires, u => u._id === c.val.official_id);
+			official_edit[c.val.field] = c.val.value;
+			ctournament.update_officials();
 			break;
 		case 'score':
 			change_score(c.val);

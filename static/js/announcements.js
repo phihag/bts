@@ -402,6 +402,45 @@ function createMeetingPointAnnouncement(matchSetup) {
     return result;
 }
 
+let emergencyInterval = null;
+let emergencyAudio = null;
+
+function emergency_announce(enable) {
+
+
+    if (enable) {
+        // Verhindert mehrfaches Starten
+        if (emergencyInterval !== null) {
+            return;
+        }
+
+        emergencyAudio = new Audio('/static/audio/evakuierung.mp3');
+
+        // Sofort abspielen
+        emergencyAudio.play();
+
+        // Wiederholung alle 30 Sekunden
+        emergencyInterval = setInterval(() => {
+            emergencyAudio.currentTime = 0;
+            emergencyAudio.play();
+        }, 20_000);
+
+    } else {
+        // Timer stoppen
+        if (emergencyInterval !== null) {
+            clearInterval(emergencyInterval);
+            emergencyInterval = null;
+        }
+
+        // Audio stoppen
+        if (emergencyAudio) {
+            emergencyAudio.pause();
+            emergencyAudio.currentTime = 0;
+            emergencyAudio = null;
+        }
+    }
+}
+
 function announce(callArray, local) {
     if(!(window.localStorage.getItem('enable_free_announcements') === 'true') && !local) {
         return;

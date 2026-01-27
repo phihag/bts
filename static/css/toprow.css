@@ -3,6 +3,7 @@
 	padding: 0.3em 0 0.3em 1em;
 	background-color: #00000020;
 	border-bottom: 1px solid black;
+	display: flex;
 }
 .toprow > .toprow_link,
 .toprow_right > .toprow_link {
@@ -15,8 +16,12 @@
 }
 
 .toprow_right {
-	float: right;
 	margin-right: 0.5em;
+	display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+	flex: 1;
 }
 .toprow_right > * + * {
 	margin-left: 1.2em;
