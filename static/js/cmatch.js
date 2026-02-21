@@ -205,7 +205,6 @@ function render_match_row(tr, match, court, style, show_player_status, show_add_
 		return;
 	}
 
-
 	if (!court && match.setup.court_id) {
 		court = curt.courts_by_id[match.setup.court_id];
 	}
@@ -1824,7 +1823,6 @@ function render_unassigned(container) {
 }
 
 function render_upcoming_matches(container) {
-	console.warn("Rendere upcoming");
 	const UPCOMING_MATCH_COUNT = parseInt(curt.upcoming_matches_max_count ? curt.upcoming_matches_max_count : 15);
 	uiu.empty(container);
 
@@ -1834,8 +1832,26 @@ function render_upcoming_matches(container) {
 
 	const upcoming_table = uiu.el(container, 'table', 'upcoming_table');
 	const upcoming_tbody = uiu.el(upcoming_table, 'tbody', 'upcoming_tbody');
-	const unassigned_matches = curt.matches.filter(m => calc_section(m) === 'unassigned');
-	
+
+	const locationById = Object.fromEntries(
+		curt.locations.map(l => [l._id, l])
+	);
+
+	const params = new URLSearchParams(window.location.search);
+	const param_location = params.get("location");
+
+	const unassigned_matches = curt.matches.filter(m => {
+		if (calc_section(m) !== 'unassigned') return false;
+		if (!param_location) return true;
+
+		const loc = locationById[m.setup.location_id];
+
+		// KEINE Location → trotzdem anzeigen
+		if (!loc) return true;
+
+		// Location vorhanden → muss matchen
+		return loc.name === param_location;
+	});
 	
 	var resizable_rows = [];
 	for (const match of unassigned_matches.slice(0, UPCOMING_MATCH_COUNT)) {
@@ -1933,7 +1949,28 @@ function render_courts(container, style) {
 	const table = uiu.el(container, 'table', 'match_table');
 	const tbody = uiu.el(table, 'tbody');
 	var resizable_rows = [];
-	for (const c of curt.courts) {
+
+	const locationById = Object.fromEntries(
+		curt.locations.map(l => [l._id, l])
+	);
+
+	const params = new URLSearchParams(window.location.search);
+	const param_location = params.get("location");
+
+
+	const courts = curt.courts.filter(c => {
+		if (!param_location) return true;
+
+		const loc = locationById[c.location_id];
+
+		// KEINE Location → trotzdem anzeigen
+		if (!loc) return true;
+
+		// Location vorhanden → muss matchen
+		return loc.name === param_location;
+	});
+
+	for (const c of courts) {
 		const expected_section = 'court_' + c._id;
 		const court_matches = curt.matches.filter(m => calc_section(m) === expected_section);
 
