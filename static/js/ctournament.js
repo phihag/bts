@@ -1,7 +1,10 @@
 'use strict';
 
 var curt; // current tournament
+<<<<<<< HEAD
 let current_view = null;
+=======
+>>>>>>> 2ba5ec7f5e5800ad694cac1720ee9329e4592f04
 let scoring_formats_main = null;
 
 var ctournament = (function() {
