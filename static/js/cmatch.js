@@ -652,14 +652,14 @@ function update_match_score(m) {
 			var preparation_timer_state = _extract_preparation_timer_state(m);
 			var preparation_timer = create_timer(preparation_timer_state, timer_td, "#cccccc", "#ff0000");
 			if (preparation_timer) {
-				active_timers.matches[match._id] = preparation_timer;
+				active_timers.matches[m._id] = preparation_timer;
 			}
 		}
 		
-			if (match_scoring.is_match_over(m.network_score, m.setup.scoring_format)) {
-				create_match_button(timer_td, 'vlink match_confirm_button', 'Confirm_Finish', on_match_confirm_button_click, m._id);
-			}
-		});
+		if (match_scoring.is_match_over(m.network_score, m.setup.scoring_format)) {
+			create_match_button(timer_td, 'vlink match_confirm_button', 'Confirm_Finish', on_match_confirm_button_click, m._id);
+		}
+	});
 	
 	if(	m.network_score && m.network_score.length > 0 && 
 		m.network_score[0].length > 1 && 
