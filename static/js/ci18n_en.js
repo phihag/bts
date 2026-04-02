@@ -139,6 +139,9 @@ var ci18n_en = {
 	'tournament:edit': 'Manage settings',
 	'tournament:edit:save': 'Save',
 	'tournament:edit:save_and_back': 'Save and back to the tournament overview',
+	'tournament:edit:live_status:saving': 'Saving ...',
+	'tournament:edit:live_status:saved': 'All changes saved',
+	'tournament:edit:live_status:error': 'Saving failed',
 
 	'tournament:edit:tournament:type': 'Tournament type:',
 	'tournament:edit:id': 'Tournament id:',
@@ -219,6 +222,8 @@ var ci18n_en = {
 		'tournament:edit:scoring_formats': 'Scoring formats',
 		'tournament:edit:scoring_formats:dialog_title': 'Edit scoring format',
 		'tournament:edit:scoring_formats:dialog_hint': 'Fields imported from BTP are read-only. Only local timing values can be edited.',
+		'tournament:edit:scoring_formats:dialog_closed_external_change': 'The dialog was closed because this scoring format was changed in another window.',
+		'tournament:edit:scoring_formats:dialog_closed_btp_sync': 'The dialog was closed because the scoring formats were updated by the BTP sync.',
 		'tournament:edit:scoring_formats:name': 'Name',
 		'tournament:edit:scoring_formats:num_sets': 'Sets',
 		'tournament:edit:scoring_formats:regular_sets': 'Regular sets',

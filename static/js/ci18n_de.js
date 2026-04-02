@@ -141,6 +141,9 @@ var ci18n_de = {
 	'tournament:edit': 'Einstellungen Verwalten',
 	'tournament:edit:save': 'Speichern',
 	'tournament:edit:save_and_back': 'Speichern und zur Turnierübersicht',
+	'tournament:edit:live_status:saving': 'Speichert ...',
+	'tournament:edit:live_status:saved': 'Alle Änderungen gespeichert',
+	'tournament:edit:live_status:error': 'Speichern fehlgeschlagen',
 
 
 	'tournament:edit:tournament:type': 'Turnier-Typ:',
@@ -221,6 +224,8 @@ var ci18n_de = {
 		'tournament:edit:scoring_formats': 'Punktsysteme',
 		'tournament:edit:scoring_formats:dialog_title': 'Punktsystem bearbeiten',
 		'tournament:edit:scoring_formats:dialog_hint': 'Aus BTP importierte Felder sind schreibgeschützt. Bearbeitet werden nur lokale Timing-Werte.',
+		'tournament:edit:scoring_formats:dialog_closed_external_change': 'Der Dialog wurde geschlossen, weil dieses Punktsystem in einem anderen Fenster geändert wurde.',
+		'tournament:edit:scoring_formats:dialog_closed_btp_sync': 'Der Dialog wurde geschlossen, weil die Punktsysteme durch den BTP-Abgleich aktualisiert wurden.',
 		'tournament:edit:scoring_formats:name': 'Name',
 		'tournament:edit:scoring_formats:num_sets': 'Sätze',
 		'tournament:edit:scoring_formats:regular_sets': 'Normale Sätze',

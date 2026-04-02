@@ -1,11 +1,10 @@
 'use strict';
 
 var curt; // current tournament
-<<<<<<< HEAD
 let current_view = null;
-=======
->>>>>>> 2ba5ec7f5e5800ad694cac1720ee9329e4592f04
 let scoring_formats_main = null;
+let live_settings_status_el = null;
+let live_settings_pending_requests = 0;
 
 var ctournament = (function() {
 	function _route_single(rex, func, handler) {
@@ -315,6 +314,165 @@ var ctournament = (function() {
 		update_general_displaysettings(uiu.qs('.general_displaysettings'));
 	}
 
+	function refresh_current_view() {
+		switch (current_view) {
+			case 'edit':
+				ui_edit();
+				break;
+			case 'show':
+				ui_show();
+				break;
+			case 'upcoming':
+				ui_upcoming();
+				break;
+			case 'current_matches':
+				ui_current_matches();
+				break;
+			case 'next_matches':
+				ui_next_matches();
+				break;
+			default:
+				break;
+		}
+	}
+
+	function _set_disabled_by_name(field_name, disabled) {
+		uiu.qsEach('[name="' + field_name + '"]', function(el) {
+			el.disabled = !!disabled;
+		});
+	}
+
+	function update_edit_dependencies() {
+		if (current_view !== 'edit') {
+			return;
+		}
+
+		const warmup_select = document.querySelector('[name="warmup"]');
+		if (warmup_select) {
+			const custom_warmup = ['choise', 'call-down'];
+			const is_custom = custom_warmup.includes(warmup_select.value);
+			_set_disabled_by_name('warmup_ready', !is_custom);
+			_set_disabled_by_name('warmup_start', !is_custom);
+		}
+
+		const btp_enabled = !!curt.btp_enabled;
+		_set_disabled_by_name('btp_autofetch_enabled', !btp_enabled);
+		_set_disabled_by_name('btp_readonly', !btp_enabled);
+		_set_disabled_by_name('btp_ip', !btp_enabled);
+		_set_disabled_by_name('btp_password', !btp_enabled);
+		_set_disabled_by_name('btp_timezone', !btp_enabled);
+		_set_disabled_by_name('btp_autofetch_timeout_intervall', !btp_enabled || !curt.btp_autofetch_enabled);
+
+		const ticker_enabled = !!curt.ticker_enabled;
+		_set_disabled_by_name('ticker_url', !ticker_enabled);
+		_set_disabled_by_name('ticker_password', !ticker_enabled);
+
+		const tabletoperator_enabled = !!curt.tabletoperator_enabled;
+		[
+			'tabletoperator_with_umpire_enabled',
+			'tabletoperator_winner_of_quaterfinals_enabled',
+			'tabletoperator_use_manual_counting_boards_enabled',
+			'tabletoperator_split_doubles',
+			'tabletoperator_with_state_enabled',
+			'tabletoperator_with_state_from_match_enabled',
+			'tabletoperator_set_break_after_tabletservice',
+			'tabletoperator_break_seconds',
+		].forEach(field_name => _set_disabled_by_name(field_name, !tabletoperator_enabled));
+	}
+
+	function set_live_settings_status(status_key) {
+		if (!live_settings_status_el) {
+			return;
+		}
+		live_settings_status_el.className = 'live_settings_status live_settings_status_' + status_key;
+		uiu.text(live_settings_status_el, ci18n('tournament:edit:live_status:' + status_key));
+	}
+
+	function set_live_settings_status_message(message, status_key) {
+		if (!live_settings_status_el) {
+			return false;
+		}
+		live_settings_status_el.className = 'live_settings_status live_settings_status_' + (status_key || 'saved');
+		uiu.text(live_settings_status_el, message);
+		return true;
+	}
+
+	function begin_live_settings_request() {
+		live_settings_pending_requests += 1;
+		set_live_settings_status('saving');
+	}
+
+	function end_live_settings_request(err) {
+		live_settings_pending_requests = Math.max(0, live_settings_pending_requests - 1);
+		if (err) {
+			set_live_settings_status('error');
+			return;
+		}
+		if (live_settings_pending_requests === 0) {
+			set_live_settings_status('saved');
+		} else {
+			set_live_settings_status('saving');
+		}
+	}
+
+	function send_single_prop(field, value, callback) {
+		begin_live_settings_request();
+		send({
+			type: 'tournament_edit_prop',
+			key: curt.key,
+			field,
+			value,
+		}, (err) => {
+			end_live_settings_request(err);
+			if (callback) {
+				callback(err);
+			}
+		});
+	}
+
+	function send_with_live_status(msg, callback) {
+		begin_live_settings_request();
+		send(msg, function(err, response) {
+			end_live_settings_request(err);
+			if (callback) {
+				return callback(err, response);
+			}
+		});
+	}
+
+	function bind_live_prop(el, field, options) {
+		options = options || {};
+		const event_name = options.event_name || 'change';
+		const get_value = options.get_value || function(input_el) {
+			if (input_el.type === 'checkbox') {
+				return input_el.checked;
+			}
+			return input_el.value;
+		};
+		const on_before_send = options.on_before_send || function() {};
+		const on_success = options.on_success || function() {};
+		const on_error = options.on_error || function(input_el, old_value) {
+			if (input_el.type === 'checkbox') {
+				input_el.checked = !!old_value;
+			} else {
+				input_el.value = old_value ?? '';
+			}
+		};
+
+		el.addEventListener(event_name, function() {
+			const old_value = curt[field];
+			on_before_send(el);
+			const value = get_value(el);
+			send_single_prop(field, value, function(err) {
+				if (err) {
+					on_error(el, old_value);
+					return cerror.net(err);
+				}
+				on_success(el, value);
+			});
+		});
+	}
+
 	function _update_all_ui_elements_upcoming() {
 		cmatch.render_courts(uiu.qs('.courts_container'), 'public');
 		cmatch.render_upcoming_matches(uiu.qs('.upcoming_container'));
@@ -336,6 +494,52 @@ var ctournament = (function() {
 	function _show_render_tabletoperators() {
 		if(curt.tabletoperator_enabled) {
 			ctabletoperator.render_unassigned(uiu.qs('.unassigned_tableoperators_container'));
+		}
+	}
+
+	function update_show_tabletoperators() {
+		if (current_view !== 'show') {
+			return;
+		}
+		const meta_div = document.querySelector('.metadata_container');
+		if (!meta_div) {
+			return;
+		}
+		let container = meta_div.querySelector('.unassigned_tableoperators_container');
+		if (curt.tabletoperator_enabled) {
+			if (!container) {
+				container = document.createElement('div');
+				container.className = 'unassigned_tableoperators_container';
+				meta_div.insertBefore(container, meta_div.firstChild);
+			} else {
+				container.innerHTML = '';
+			}
+			_show_render_tabletoperators();
+		} else if (container) {
+			container.remove();
+		}
+	}
+
+	function update_btp_settings_ui() {
+		switch (current_view) {
+			case 'show':
+				_show_render_matches();
+				_show_render_umpires();
+				break;
+			case 'upcoming':
+				_update_all_ui_elements_upcoming();
+				break;
+			case 'current_matches':
+				_update_all_ui_elements_current_matches();
+				break;
+			case 'next_matches':
+				_update_all_ui_elements_next_matches();
+				break;
+			case 'edit':
+				update_edit_dependencies();
+				break;
+			default:
+				break;
 		}
 	}
 
@@ -741,6 +945,19 @@ var ctournament = (function() {
 		}
 	}
 
+	function update_metadata_settings() {
+		if (current_view !== 'show') {
+			return;
+		}
+		const settings_div = document.querySelector('.metadata_right_container_2');
+		if (!settings_div) {
+			return;
+		}
+		const target = settings_div.parentNode;
+		settings_div.remove();
+		render_settings(target);
+	}
+
 	function btp_status_changed(c) {
 		set_service_status('btp_status', c);
 	}
@@ -771,7 +988,7 @@ var ctournament = (function() {
 		const reader = new FileReader();
 		reader.readAsDataURL(input.files[0]);
 		reader.onload = () => {
-			send({
+			send_with_live_status({
 				type: 'tournament_upload_logo',
 				tournament_key: curt.key,
 				data_url: reader.result,
@@ -828,23 +1045,25 @@ var ctournament = (function() {
 
 			const name_label = uiu.el(tournament_div, 'label');
 			uiu.el(name_label, 'span', {}, ci18n('tournament:edit:name'));
-			input.name = uiu.el(name_label, 'input', {
+				input.name = uiu.el(name_label, 'input', {
 				type: 'text',
 				name: 'name',
 				required: 'required',
 				value: curt.name || curt.key,
-				'class': 'ct_name',
-			});
+					'class': 'ct_name',
+				});
+				bind_live_prop(input.name, 'name', { event_name: 'blur' });
 
 
 			const name_tguid = uiu.el(tournament_div, 'label');
 			uiu.el(name_tguid, 'span', {}, ci18n('tournament:edit:tguid'));
-			input.tguid = uiu.el(name_tguid, 'input', {
+				input.tguid = uiu.el(name_tguid, 'input', {
 				type: 'text',
 				name: 'tguid',
 				value: curt.tguid ? curt.tguid : "",
-				'class': 'ct_tguid',
-			});
+					'class': 'ct_tguid',
+				});
+				bind_live_prop(input.tguid, 'tguid', { event_name: 'blur' });
 
 			// Tournament language selection
 			const language_label = uiu.el(tournament_div, 'label');
@@ -864,7 +1083,8 @@ var ctournament = (function() {
 				}
 				uiu.el(language_select, 'option', l_attrs, l._name);
 			}
-			input.language = language_select;
+				input.language = language_select;
+				bind_live_prop(input.language, 'language');
 
 			// Team competition?
 			const is_team_label = uiu.el(tournament_div, 'label');
@@ -877,8 +1097,9 @@ var ctournament = (function() {
 				is_team_attrs.checked = 'checked';
 			}
 
-			input.is_team = uiu.el(is_team_label, 'input', is_team_attrs);
-			uiu.el(is_team_label, 'span', {}, ci18n('team competition'));
+				input.is_team = uiu.el(is_team_label, 'input', is_team_attrs);
+				uiu.el(is_team_label, 'span', {}, ci18n('team competition'));
+				bind_live_prop(input.is_team, 'is_team');
 
 			// Nation competition?
 			const is_nation_competition_label = uiu.el(tournament_div, 'label');
@@ -891,8 +1112,9 @@ var ctournament = (function() {
 			}
 
 			uiu.el(is_nation_competition_label, 'span', {}, '');
-			input.is_nation_competition = uiu.el(is_nation_competition_label, 'input', is_nation_competition_attrs);
-			uiu.el(is_nation_competition_label, 'span', {}, ci18n('nation competition'));
+				input.is_nation_competition = uiu.el(is_nation_competition_label, 'input', is_nation_competition_attrs);
+				uiu.el(is_nation_competition_label, 'span', {}, ci18n('nation competition'));
+				bind_live_prop(input.is_nation_competition, 'is_nation_competition');
 		}
 
 		// btp-connection-div##################################################################################
@@ -910,8 +1132,9 @@ var ctournament = (function() {
 			if (curt.btp_enabled) {
 				ba_attrs.checked = 'checked';
 			}
-			input.btp_enabled = uiu.el(btp_enabled_label, 'input', ba_attrs);
-			uiu.el(btp_enabled_label, 'span', {}, ci18n('tournament:edit:btp:enabled'));
+				input.btp_enabled = uiu.el(btp_enabled_label, 'input', ba_attrs);
+				uiu.el(btp_enabled_label, 'span', {}, ci18n('tournament:edit:btp:enabled'));
+				bind_live_prop(input.btp_enabled, 'btp_enabled');
 
 			const btp_autofetch_enabled_label = uiu.el(btp_fieldset, 'label');
 			const bae_attrs = {
@@ -921,8 +1144,9 @@ var ctournament = (function() {
 			if (curt.btp_autofetch_enabled) {
 				bae_attrs.checked = 'checked';
 			}
-			input.btp_autofetch_enabled = uiu.el(btp_autofetch_enabled_label, 'input', bae_attrs);
-			uiu.el(btp_autofetch_enabled_label, 'span', {}, ci18n('tournament:edit:btp:autofetch_enabled'));
+				input.btp_autofetch_enabled = uiu.el(btp_autofetch_enabled_label, 'input', bae_attrs);
+				uiu.el(btp_autofetch_enabled_label, 'span', {}, ci18n('tournament:edit:btp:autofetch_enabled'));
+				bind_live_prop(input.btp_autofetch_enabled, 'btp_autofetch_enabled');
 
 			const btp_readonly_label = uiu.el(btp_fieldset, 'label');
 			const bro_attrs = {
@@ -932,29 +1156,32 @@ var ctournament = (function() {
 			if (curt.btp_readonly) {
 				bro_attrs.checked = 'checked';
 			}
-			if (!curt['btp_autofetch_timeout_intervall']) {
-				curt['btp_autofetch_timeout_intervall'] = 30000;
-			}
-			input.btp_autofetch_timeout_intervall = create_input(curt, "number", btp_connection_div, 'btp_autofetch_timeout_intervall')
+				if (!curt['btp_autofetch_timeout_intervall']) {
+					curt['btp_autofetch_timeout_intervall'] = 30000;
+				}
+				input.btp_autofetch_timeout_intervall = create_input(curt, "number", btp_connection_div, 'btp_autofetch_timeout_intervall')
 
-			input.btp_readonly = uiu.el(btp_readonly_label, 'input', bro_attrs);
-			uiu.el(btp_readonly_label, 'span', {}, ci18n('tournament:edit:btp:readonly'));
+				input.btp_readonly = uiu.el(btp_readonly_label, 'input', bro_attrs);
+				uiu.el(btp_readonly_label, 'span', {}, ci18n('tournament:edit:btp:readonly'));
+				bind_live_prop(input.btp_readonly, 'btp_readonly');
 
 			const btp_ip_label = uiu.el(btp_fieldset, 'label');
 			uiu.el(btp_ip_label, 'span', {}, ci18n('tournament:edit:btp:ip'));
-			input.btp_ip = uiu.el(btp_ip_label, 'input', {
+				input.btp_ip = uiu.el(btp_ip_label, 'input', {
 				type: 'text',
 				name: 'btp_ip',
-				value: (curt.btp_ip || ''),
-			});
+					value: (curt.btp_ip || ''),
+				});
+				bind_live_prop(input.btp_ip, 'btp_ip', { event_name: 'blur' });
 
 			const btp_password_label = uiu.el(btp_fieldset, 'label');
 			uiu.el(btp_password_label, 'span', {}, ci18n('tournament:edit:btp:password'));
-			input.btp_password = uiu.el(btp_password_label, 'input', {
+				input.btp_password = uiu.el(btp_password_label, 'input', {
 				type: 'text',
 				name: 'btp_password',
-				value: (curt.btp_password || ''),
-			});
+					value: (curt.btp_password || ''),
+				});
+				bind_live_prop(input.btp_password, 'btp_password', { event_name: 'blur' });
 
 			// BTP timezone
 			const btp_timezone_label = uiu.el(btp_fieldset, 'label');
@@ -978,7 +1205,8 @@ var ctournament = (function() {
 
 				uiu.el(btp_timezone_select, 'option', attrs, tz);
 			}
-			input.btp_timezone = btp_timezone_select;
+				input.btp_timezone = btp_timezone_select;
+				bind_live_prop(input.btp_timezone, 'btp_timezone');
 		}		
 
 		// tournament-flow-div##################################################################################
@@ -1010,7 +1238,7 @@ var ctournament = (function() {
 			});
 			uiu.el(warmup_timer_select, 'option', { value: warmup_options[0][0] }, ci18n('tournament:edit:warmup_timer_behavior:' + warmup_options[0][0]), { wo: warmup_options[0][0] });
 			let warmup_marked = false;
-			input.warmup = warmup_timer_select;
+				input.warmup = warmup_timer_select;
 
 			const warmup_ready = uiu.el(tournament_flow_div, 'label');
 			uiu.el(warmup_ready, 'span', {}, ci18n('tournament:edit:warmup_ready'));
@@ -1021,7 +1249,10 @@ var ctournament = (function() {
 				disabled: warmup_options[0][3],
 				value: warmup_options[0][1],
 			});
-			input.warmup_ready = warmup_ready_input;
+				input.warmup_ready = warmup_ready_input;
+				bind_live_prop(input.warmup_ready, 'warmup_ready', {
+					get_value: input_el => Number(input_el.value),
+				});
 
 			const warmup_start = uiu.el(tournament_flow_div, 'label');
 			uiu.el(warmup_start, 'span', {}, ci18n('tournament:edit:warmup_start'));
@@ -1032,7 +1263,10 @@ var ctournament = (function() {
 				disabled: warmup_options[0][3],
 				value: warmup_options[0][2],
 			});
-			input.warmup_start = warmup_start_input;
+				input.warmup_start = warmup_start_input;
+				bind_live_prop(input.warmup_start, 'warmup_start', {
+					get_value: input_el => Number(input_el.value),
+				});
 
 			for (const wo of warmup_options.slice(1)) {
 				const attrs = {
@@ -1054,7 +1288,7 @@ var ctournament = (function() {
 				uiu.el(warmup_timer_select, 'option', attrs, ci18n('tournament:edit:warmup_timer_behavior:' + wo[0]));
 			}
 	
-			warmup_timer_select.onchange = function () {
+				warmup_timer_select.onchange = function () {
 				if (!last_selected_warmup[3]) {
 					for (const wo of warmup_options) {
 						if (!wo[3]) {
@@ -1071,10 +1305,25 @@ var ctournament = (function() {
 						warmup_start_input.value = wo[2];
 						warmup_start_input.disabled = wo[3];
 	
-						last_selected_warmup = wo;
+							last_selected_warmup = wo;
+						}
 					}
-				}
-			};
+					send_single_prop('warmup', warmup_timer_select.value, function(err) {
+						if (err) {
+							return cerror.net(err);
+						}
+					});
+					send_single_prop('warmup_ready', Number(warmup_ready_input.value), function(err) {
+						if (err) {
+							return cerror.net(err);
+						}
+					});
+					send_single_prop('warmup_start', Number(warmup_start_input.value), function(err) {
+						if (err) {
+							return cerror.net(err);
+						}
+					});
+				};
 
 			const bts_fieldset = uiu.el(tournament_flow_div, 'fieldset');
 			input.call_preparation_matches_automatically_enabled    = create_checkbox(curt, bts_fieldset, 'call_preparation_matches_automatically_enabled');
@@ -1173,12 +1422,14 @@ var ctournament = (function() {
 				}
 				uiu.el(dm_style_select, 'option', s_attrs, s);
 			}
-			input.dm_style = dm_style_select;
+				input.dm_style = dm_style_select;
+				bind_live_prop(input.dm_style, 'dm_style');
 
 			const displaysettings_style_label = uiu.el(default_display_fieldset, 'label');
 			uiu.el(displaysettings_style_label, 'span', {}, ci18n('tournament:edit:displaysettings_general'));
 
-			input.displaysettings_general = createGeneralDisplaySettingsSelectBox(displaysettings_style_label, curt.displaysettings_general ? curt.displaysettings_general : "default");
+				input.displaysettings_general = createGeneralDisplaySettingsSelectBox(displaysettings_style_label, curt.displaysettings_general ? curt.displaysettings_general : "default");
+				bind_live_prop(input.displaysettings_general, 'displaysettings_general');
 
 			const general_displaysettings_div = uiu.el(devices_div, 'div', 'general_displaysettings');
 			render_general_displaysettings(general_displaysettings_div);
@@ -1215,116 +1466,53 @@ var ctournament = (function() {
 			if (curt.ticker_enabled) {
 				te_attrs.checked = 'checked';
 			}
-			input.ticker_enabled = uiu.el(ticker_enabled_label, 'input', te_attrs);
-			uiu.el(ticker_enabled_label, 'span', {}, ci18n('tournament:edit:ticker_enabled'));
+				input.ticker_enabled = uiu.el(ticker_enabled_label, 'input', te_attrs);
+				uiu.el(ticker_enabled_label, 'span', {}, ci18n('tournament:edit:ticker_enabled'));
+				bind_live_prop(input.ticker_enabled, 'ticker_enabled');
 	
 			const ticker_url_label = uiu.el(ticker_fieldset, 'label');
 			uiu.el(ticker_url_label, 'span', {}, ci18n('tournament:edit:ticker_url'));
-			input.ticker_url = uiu.el(ticker_url_label, 'input', {
+				input.ticker_url = uiu.el(ticker_url_label, 'input', {
 				type: 'text',
 				name: 'ticker_url',
-				value: (curt.ticker_url || ''),
-			});
+					value: (curt.ticker_url || ''),
+				});
+				bind_live_prop(input.ticker_url, 'ticker_url', { event_name: 'blur' });
 	
 			const ticker_password_label = uiu.el(ticker_fieldset, 'label');
 			uiu.el(ticker_password_label, 'span', {}, ci18n('tournament:edit:ticker_password'));
-			input.ticker_password = uiu.el(ticker_password_label, 'input', {
+				input.ticker_password = uiu.el(ticker_password_label, 'input', {
 				type: 'text',
 				name: 'ticker_password',
-				value: (curt.ticker_password || ''),
-			});
+					value: (curt.ticker_password || ''),
+				});
+				bind_live_prop(input.ticker_password, 'ticker_password', { event_name: 'blur' });
 		}
 
-		// save-div##################################################################################
-		{
-			const save_div = uiu.el(form, 'div', 'settings');
-			uiu.el(save_div, 'h2', 'edit', ci18n('tournament:edit'));
+			// save-div##################################################################################
+			{
+				const save_div = uiu.el(form, 'div', 'settings');
+				uiu.el(save_div, 'h2', 'edit', ci18n('tournament:edit'));
+				live_settings_pending_requests = 0;
+				live_settings_status_el = uiu.el(save_div, 'div', {
+					class: 'live_settings_status live_settings_status_saved',
+				}, ci18n('tournament:edit:live_status:saved'));
 
-			const save_btn = uiu.el(save_div, 'button', {
-				role: 'button',
-			}, ci18n('tournament:edit:save'));
-			save_btn.addEventListener('click', () => {
-				send_props(input, (err) => {
-					if (err) {
-						cerror.net(err); // Fehlerbehandlung
-					}
-				});
-			});
-
-			const save_and_back_btn = uiu.el(save_div, 'button', {
-				role: 'button',
-			}, ci18n('tournament:edit:save_and_back'));
-			save_and_back_btn.addEventListener('click', () => {
-				send_props(input, (err) => {
-					if (err) {
-						cerror.net(err); // Fehlerbehandlung
-					}
-
+				const back_btn = uiu.el(save_div, 'button', {
+					role: 'button',
+				}, ci18n('Back'));
+				back_btn.addEventListener('click', () => {
 					ui_show();
 				});
-			});
-		}		
-	}
+			}		
+			update_edit_dependencies();
+		}
 	_route_single(/t\/([a-z0-9]+)\/edit$/, ui_edit, change.default_handler(_update_all_ui_elements_edit, {
 		update_general_displaysettings: update_general_displaysettings,
 		update_player_status: update_player_status,
 	}));
 
-	function send_props(input, callback) {
-		const props = {
-			name : input.name.value,
-			tguid: input.tguid.value,
-			language: input.language.value,
-			is_team: input.is_team.checked,
-			is_nation_competition: input.is_nation_competition.checked,
-			btp_enabled: input.btp_enabled.checked,
-			btp_autofetch_enabled: input.btp_autofetch_enabled.checked,
-			btp_autofetch_timeout_intervall: input.btp_autofetch_timeout_intervall.value,
-			btp_readonly: input.btp_readonly.checked,
-			btp_ip: input.btp_ip.value,
-			btp_password: input.btp_password.value,
-			btp_timezone: input.btp_timezone.value,
-			dm_style: input.dm_style.value,
-			displaysettings_general: input.displaysettings_general.value,
-			warmup: input.warmup.value,
-			warmup_ready: input.warmup_ready.value,
-			warmup_start: input.warmup_start.value,
-			ticker_enabled: input.ticker_enabled.checked,
-			ticker_url: input.ticker_url.value,
-			ticker_password: input.ticker_password.value,
-			upcoming_matches_animation_speed: input.upcoming_animation_speed.value,
-			upcoming_matches_max_count: input.upcoming_matches_max_count.value,
-			upcoming_matches_animation_pause: input.upcoming_animation_pause.value,
-			tabletoperator_enabled: input.tabletoperator_enabled.checked,
-			tabletoperator_with_umpire_enabled: input.tabletoperator_with_umpire_enabled.checked,
-			tabletoperator_winner_of_quaterfinals_enabled: input.tabletoperator_winner_of_quaterfinals_enabled.checked,
-			tabletoperator_split_doubles: input.tabletoperator_split_doubles.checked,
-			tabletoperator_with_state_enabled: input.tabletoperator_with_state_enabled.checked,
-			tabletoperator_with_state_from_match_enabled: input.tabletoperator_with_state_from_match_enabled.checked,
-			tabletoperator_set_break_after_tabletservice: input.tabletoperator_set_break_after_tabletservice.checked,
-			tabletoperator_use_manual_counting_boards_enabled: input.tabletoperator_use_manual_counting_boards_enabled.checked,
-			tabletoperator_break_seconds: input.tabletoperator_break_seconds.value,
-			annoncement_include_event: input.annoncement_include_event.checked,
-			annoncement_include_round: input.annoncement_include_round.checked,
-			annoncement_include_matchnumber: input.annoncement_include_matchnumber.checked,
-			announcement_speed: input.announcement_speed.value,
-			announcement_pause_time_ms: input.announcement_pause_time_ms.value,
-			preparation_meetingpoint_enabled: input.preparation_meetingpoint_enabled.checked,
-			preparation_tabletoperator_setup_enabled: input.preparation_tabletoperator_setup_enabled.checked,
-			call_preparation_matches_automatically_enabled: input.call_preparation_matches_automatically_enabled.checked,
-			call_next_possible_scheduled_match_in_preparation: input.call_next_possible_scheduled_match_in_preparation.checked,
-		}
-
-		send({
-			type: 'tournament_edit_props',
-			key: curt.key,
-			props: props,
-		}, (err) => {
-			return callback(err);
-		});
-	}
-
-	function update_scoring_formats() {
+		function update_scoring_formats() {
 		if (!scoring_formats_main) {
 			if (typeof debug !== "undefined" && debug?.log) {
 				debug.log("update_scoring_formats: main container not initialized");	
@@ -1414,6 +1602,25 @@ var ctournament = (function() {
 		}
 		cbts_utils.esc_stack_pop();
 		uiu.remove(dlg);
+	}
+
+	function close_scoring_format_dialog_if_open(scoringFormatId, reason_i18n_key) {
+		const dlg = document.querySelector('.scoring_format_edit_dialog');
+		if (!dlg) {
+			return false;
+		}
+		const open_id = dlg.getAttribute('data-scoring-format-id');
+		if (typeof scoringFormatId !== 'undefined' && scoringFormatId !== null && Number(open_id) !== Number(scoringFormatId)) {
+			return false;
+		}
+		_cancel_ui_edit_scoring_format();
+		if (reason_i18n_key) {
+			const reason_text = ci18n(reason_i18n_key);
+			if (!set_live_settings_status_message(reason_text, 'error')) {
+				cerror.silent(reason_text);
+			}
+		}
+		return true;
 	}
 
 	function create_scoring_format_field(parent, label, name, value, type = "text", attrs = {}) {
@@ -1537,21 +1744,10 @@ var ctournament = (function() {
 	}
 
 	function save_scoring_format(scoringFormatId, scoringFormat, callback) {
-		const scoringFormats = clone_scoring_formats();
-		const formats = Array.isArray(scoringFormats.formats) ? scoringFormats.formats : [];
-		const index = formats.findIndex(f => Number(f.id) === Number(scoringFormatId));
-		if (index === -1) {
-			return callback(new Error(`Unknown scoring format ${scoringFormatId}`));
-		}
-		formats[index] = scoringFormat;
-		scoringFormats.formats = formats;
-
-		send({
-			type: 'tournament_edit_props',
+		send_with_live_status({
+			type: 'tournament_edit_scoring_format',
 			key: curt.key,
-			props: {
-				scoring_formats: scoringFormats,
-			},
+			scoring_format: scoringFormat,
 		}, callback);
 	}
 
@@ -1822,7 +2018,7 @@ var ctournament = (function() {
 			new_normalization.replace = document.getElementById('normalizations_replace').value;
 			new_normalization.language = document.getElementById('normalizations_language').value;
 
-			send({
+			send_with_live_status({
 				type: 'normalization_add',
 				tournament_key: curt.key,
 				normalization: new_normalization,
@@ -1845,10 +2041,10 @@ var ctournament = (function() {
 			delete_btn.addEventListener('click', function (e) {
 				const del_btn = e.target;
 				const normalization_id = del_btn.getAttribute('data-normalization-id');
-				send({
-					type: 'normalization_remove',
-					tournament_key: curt.key,
-					normalization_id: normalization_id,
+					send_with_live_status({
+						type: 'normalization_remove',
+						tournament_key: curt.key,
+						normalization_id: normalization_id,
 				}, err => {
 					if (err) {
 						return cerror.net(err);
@@ -1883,10 +2079,10 @@ var ctournament = (function() {
 			new_advertisement.url = document.getElementById('advertisement_url').value;
 			new_advertisement.type = document.getElementById('advertisement_type').value;
 			new_advertisement.disabled = false;
-			send({
-				type: 'advertisement_add',
-				tournament_key: curt.key,
-				advertisement: new_advertisement,
+				send_with_live_status({
+					type: 'advertisement_add',
+					tournament_key: curt.key,
+					advertisement: new_advertisement,
 			}, err => {
 				if (err) {
 					return cerror.net(err);
@@ -1907,10 +2103,10 @@ var ctournament = (function() {
 			delete_btn.addEventListener('click', function (e) {
 				const del_btn = e.target;
 				const advertisement_id = del_btn.getAttribute('data-advertisement-id');
-				send({
-					type: 'advertisement_remove',
-					tournament_key: curt.key,
-					advertisement_id: advertisement_id,
+					send_with_live_status({
+						type: 'advertisement_remove',
+						tournament_key: curt.key,
+						advertisement_id: advertisement_id,
 				}, err => {
 					if (err) {
 						return cerror.net(err);
@@ -2009,7 +2205,7 @@ var ctournament = (function() {
 			value: curt.logo_background_color || '#000000',
 		});
 		logo_background_color_input.addEventListener('input', (e) => {
-			send({
+			send_with_live_status({
 				type: 'tournament_edit_logo',
 				key: curt.key,
 				props: {
@@ -2028,7 +2224,7 @@ var ctournament = (function() {
 			value: curt.logo_foreground_color || '#aaaaaa',
 		});
 		fg_col_input.addEventListener('input', (e) => {
-			send({
+			send_with_live_status({
 				type: 'tournament_edit_logo',
 				key: curt.key,
 				props: {
@@ -2108,7 +2304,7 @@ var ctournament = (function() {
 			const del_btn = e.target;
 			const setting_id = del_btn.getAttribute('data-display-setting-id');
 
-			send({
+			send_with_live_status({
 				type: 'delete_display_setting',
 				tournament_key: curt.key,
 				setting_id: setting_id,
@@ -2171,7 +2367,7 @@ var ctournament = (function() {
 		form_utils.onsubmit(form, function(d) {
 			const displaysetting = create_displaysettings_object(d);
 
-			send({
+			send_with_live_status({
 				type: 'edit_display_setting',
 				tournament_key: curt.key,
 				displaysetting: displaysetting,
@@ -2570,7 +2766,7 @@ var ctournament = (function() {
 		reset_btn.addEventListener('click', function (e) {
 			const rst_btn = e.target;
 			const display_client_id = rst_btn.getAttribute('data-display-client-id');
-			send({
+			send_with_live_status({
 				type: 'display_reset',
 				tournament_key: curt.key,
 				display_client_id: display_client_id,
@@ -2591,7 +2787,7 @@ var ctournament = (function() {
 		delete_btn.addEventListener('click', function (e) {
 			const del_btn = e.target;
 			const display_client_id = del_btn.getAttribute('data-display-client-id');
-			send({
+			send_with_live_status({
 				type: 'display_delete',
 				tournament_key: curt.key,
 				display_client_id: display_client_id,
@@ -2730,7 +2926,7 @@ var ctournament = (function() {
 		const reader = new FileReader();
 		reader.readAsDataURL(input.files[0]);
 		reader.onload = () => {
-			send({
+			send_with_live_status({
 				type: 'tournament_upload_location_logo',
 				tournament_key: curt.key,
 				data_url: reader.result,
@@ -2767,7 +2963,7 @@ var ctournament = (function() {
 		const preparation_addition = parent.querySelector("#preparation_addition").value;
 		const meetingpoint_announcement = parent.querySelector("#meetingpoint_announcement").value;
 
-		send({
+		send_with_live_status({
 			type: 'location_changed',
 			tournament_key: curt.key,
 			location_id,
@@ -3109,7 +3305,7 @@ function render_officials_by_timestamp(main, {
       !!o.is_umpire
     );
     umpire_cb.addEventListener('change', (e) => {
-      send({
+      send_with_live_status({
         type: 'official_edit',
         tournament_key: o.tournament_key,
         official_id: o._id,
@@ -3125,7 +3321,7 @@ function render_officials_by_timestamp(main, {
       !!o.is_service_judge
     );
     service_cb.addEventListener('change', (e) => {
-      send({
+      send_with_live_status({
         type: 'official_edit',
         tournament_key: o.tournament_key,
         official_id: o._id,
@@ -3277,7 +3473,7 @@ function update_official_tables(officials_host) {
       const prev_btp_id = prev_id ? officialById.get(prev_id)?.btp_id : null;
       const next_btp_id = next_id ? officialById.get(next_id)?.btp_id : null;
 
-      send({
+      send_with_live_status({
         type: 'official_list_move',
         tournament_key: curt.key,
         official_id: row_id,
@@ -3337,7 +3533,7 @@ function update_officials() {
 			const active_cb = create_simple_checkbox(active_td, {'name' : 'active_cb', 'data-court-id': c._id,}, c.is_active);
 			active_cb.addEventListener('change', (e) => {
 				const court_id = e.target.getAttribute('data-court-id');
-				send({
+				send_with_live_status({
 					type: 'court_edit',
 					tournament_key: curt.key,
 					is_active: e.target.checked,
@@ -3400,21 +3596,26 @@ function update_officials() {
 		if (curt[filed_id]) {
 			attrs.checked = 'checked';
 		}
-		const result = uiu.el(label, 'input', attrs);
-		uiu.el(label, 'span', {}, ci18n('tournament:edit:' + filed_id));
-		return result;
-	}
+			const result = uiu.el(label, 'input', attrs);
+			uiu.el(label, 'span', {}, ci18n('tournament:edit:' + filed_id));
+			bind_live_prop(result, filed_id);
+			return result;
+		}
 
 	function create_input(curt, type, parent_el, filed_id) {
 		const text_input = uiu.el(parent_el, 'label');
 		uiu.el(text_input, 'span', {}, ci18n('tournament:edit:' + filed_id));
-		const result = uiu.el(text_input, 'input', {
-			type: type,
-			name: filed_id,
-			value: curt[filed_id] || '',
-		});
-		return result;
-	}
+			const result = uiu.el(text_input, 'input', {
+				type: type,
+				name: filed_id,
+				value: curt[filed_id] || '',
+			});
+			bind_live_prop(result, filed_id, {
+				event_name: (type === 'text') ? 'blur' : 'change',
+				get_value: type === 'number' ? input_el => Number(input_el.value) : undefined,
+			});
+			return result;
+		}
 
 	function create_undecorated_input(type, parent_el, filed_id) {
 		return (
@@ -3441,15 +3642,19 @@ function update_officials() {
 	function create_numeric_input(curt, parent_el, filed_id, min_value, max_value, default_value, step_value) {
 		const text_input = uiu.el(parent_el, 'label');
 		uiu.el(text_input, 'span', {}, ci18n('tournament:edit:' + filed_id));
-		return uiu.el(text_input, 'input', {
-			type: "number",
-			name: filed_id,
-			value: curt[filed_id] || default_value,
-			min: min_value,
-			max: max_value,
-			step: step_value
-		});
-	}
+			const result = uiu.el(text_input, 'input', {
+				type: "number",
+				name: filed_id,
+				value: curt[filed_id] || default_value,
+				min: min_value,
+				max: max_value,
+				step: step_value
+			});
+			bind_live_prop(result, filed_id, {
+				get_value: input_el => Number(input_el.value),
+			});
+			return result;
+		}
 
 	function createCourtSelectBox(parentEl, parent_id, court_id) {
 		const court_select_box = uiu.el(parentEl, 'select', {
@@ -3483,7 +3688,7 @@ function update_officials() {
 		court_select_box.addEventListener('change', (e) => {
 			const select_box = e.target;
 			const display_setting_id = select_box.name.split("_")[1];
-			send({
+			send_with_live_status({
 				type: 'relocate_display',
 				tournament_key: curt.key,
 				new_court_id: e.srcElement.value,
@@ -3506,7 +3711,7 @@ function update_officials() {
 		displaysettings_select_box.addEventListener('change', (e) => {
 			const select_box = e.target;
 			const display_setting_id = select_box.name.split("_")[1];
-			send({
+			send_with_live_status({
 				type: 'change_display_mode',
 				tournament_key: curt.key,
 				new_displaysettings_id: e.srcElement.value,
@@ -3823,9 +4028,15 @@ function update_officials() {
 		add_normalization,
 		remove_advertisement,
 		add_advertisement,
-		update_general_displaysettings,
-		delete_display,
-	};
+			update_general_displaysettings,
+			update_metadata_settings,
+			update_edit_dependencies,
+			update_btp_settings_ui,
+			update_show_tabletoperators,
+			close_scoring_format_dialog_if_open,
+			refresh_current_view,
+			delete_display,
+		};
 
 })();
 

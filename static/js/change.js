@@ -6,6 +6,54 @@ function default_handler(rerender, special_funcs) {
 	};
 }
 
+	function _apply_tournament_field_change(field, value) {
+		curt[field] = value;
+
+		if (field === 'name') {
+			uiu.qsEach('.ct_name', function(el) {
+				if (el.tagName.toUpperCase() === 'INPUT') {
+					el.value = value || '';
+				} else {
+					uiu.text(el, value || '');
+				}
+			});
+		}
+
+		uiu.qsEach('input[name="' + field + '"]', function(el) {
+			if (el.type === 'checkbox') {
+				el.checked = !!value;
+			} else {
+				el.value = value ?? '';
+			}
+		});
+		uiu.qsEach('select[name="' + field + '"]', function(el) {
+			el.value = value ?? (field === 'btp_timezone' ? 'system' : '');
+		});
+	}
+
+	function _after_tournament_field_change(field, value, change_obj) {
+		if (current_view === 'edit') {
+			ctournament.update_edit_dependencies();
+		}
+		if (field === 'displaysettings_general') {
+			ctournament.update_general_displaysettings(change_obj);
+		}
+		if (field === 'language') {
+			if (value && value !== 'auto') {
+				ci18n.switch_language(value);
+			}
+			ctournament.refresh_current_view();
+		}
+		if (field === 'tabletoperator_enabled') {
+			ctournament.refresh_current_view();
+		}
+		if (['btp_enabled', 'ticker_enabled'].includes(field)) {
+			if (current_view === 'show') {
+				ctournament.update_metadata_settings();
+			}
+		}
+	}
+
 	function change_score(cval) {
 		const match_id = cval.match_id;
 
@@ -43,67 +91,28 @@ function default_handler(rerender, special_funcs) {
 				cerror.silent('Evakuierungsdurchsage wurde gestoppt');
 			}
 			break;
-		case 'props': {			
-			curt.name = c.val.name;
-			curt.is_team = c.val.is_team;
-			curt.tguid = c.val.tguid;
-			curt.is_nation_competition = c.val.is_nation_competition;
-			curt.btp_timezone = c.val.btp_timezone;
-			curt.btp_autofetch_timeout_intervall = c.val.btp_autofetch_timeout_intervall;
-			curt.warmup = c.val.warmup;
-			curt.warmup_ready = c.val.warmup_ready;
-			curt.warmup_start = c.val.warmup_start;
-			curt.btp_enabled = c.val.btp_enabled;
-			curt.btp_autofetch_enabled = c.val.btp_autofetch_enabled;
-			curt.btp_readonly = c.val.btp_readonly;
-			curt.btp_ip = c.val.btp_ip;
-			curt.ticker_enabled = c.val.ticker_enabled;
-				curt.ticker_url = c.val.ticker_url;
-				curt.ticker_password = c.val.ticker_password;
-				curt.logo_id = c.val.logo_id;
+			case 'props': {
+				for (const [field, value] of Object.entries(c.val)) {
+					_apply_tournament_field_change(field, value);
+				}
+
 				if (c.val.scoring_formats) {
-					curt.scoring_formats = c.val.scoring_formats;
+					ctournament.close_scoring_format_dialog_if_open(undefined, 'tournament:edit:scoring_formats:dialog_closed_external_change');
 					ctournament.update_scoring_formats();
 					ctournament.update_stages_scoring_formats();
 				}
-
-			uiu.qsEach('.ct_name', function(el) {
-				if (el.tagName.toUpperCase() === 'INPUT') {
-					el.value = c.val.name;
-				} else {
-					uiu.text(el, c.val.name);
+				for (const [field, value] of Object.entries(c.val)) {
+					_after_tournament_field_change(field, value, c);
 				}
-			});
-			const CHECKBOXES = [
-				'is_team', 'is_nation_competition',
-				'btp_enabled', 'btp_autofetch_enabled', 'btp_readonly',
-				'ticker_enabled', 'tabletoperator_enabled', 'tabletoperator_with_state_enabled',
-				'tabletoperator_with_state_from_match_enabled',
-				'tabletoperator_winner_of_quaterfinals_enabled', 'tabletoperator_split_doubles',
-				'tabletoperator_set_break_after_tabletservice', 'tabletoperator_break_seconds',
-				'announcement_speed', 'announcement_pause_time_ms',
-				'upcoming_matches_animation_speed', 'upcoming_matches_max_count', 'upcoming_matches_animation_pause',
-				'tabletoperator_use_manual_counting_boards_enabled', 'tabletoperator_with_umpire_enabled',
-				'annoncement_include_event', 'annoncement_include_round', 'annoncement_include_matchnumber',
-				'call_preparation_matches_automatically_enabled','call_next_possible_scheduled_match_in_preparation',
-				'preparation_meetingpoint_enabled','preparation_tabletoperator_setup_enabled'];
-			for (const cb_name of CHECKBOXES) {
-				uiu.qsEach('input[name="' + cb_name + '"]', function(el) {
-					el.checked = curt[cb_name];
-				});
+				break;
 			}
-			uiu.qsEach('input[name="btp_ip"]', function(el) {
-				el.value = curt.btp_ip;
-			});
-
-			uiu.qsEach('input[name="ticker_url"]', function(el) {
-				el.value = curt.ticker_url;
-			});
-			uiu.qsEach('input[name="ticker_password"]', function(el) {
-				el.value = curt.ticker_password;
-			});
-			break;}
-		case 'logo_changed':
+			case 'prop_changed': {
+				const field = c.val.field;
+				_apply_tournament_field_change(field, c.val.value);
+				_after_tournament_field_change(field, c.val.value, c);
+				break;
+			}
+			case 'logo_changed':
 			if(c.val.logo_background_color != undefined) {
 				curt.logo_background_color = c.val.logo_background_color;
 			}
@@ -355,26 +364,46 @@ function default_handler(rerender, special_funcs) {
 			change_score(c.val);
 			// Most dialogs don't show any matches, so do not rerender
 			break;
-		case 'update_btp_settings':
-			if(!curt.btp_settings) {
-				curt.btp_settings = {};
-			}
-			const btp_settings = c.val.btp_settings;
-			for (const [key, value] of Object.entries(btp_settings)) {
-				curt.btp_settings[key] = value;
-			}
-			break;
-		case 'update_btp_scoring_formats':
-			if(!curt.scoring_formats) {
-				curt.scoring_formats = {};
-			}
-			const scoring_formats = c.val.scoring_formats;
-			for (const [key, value] of Object.entries(scoring_formats)) {
-				curt.scoring_formats[key] = value;
-			}
-			ctournament.update_scoring_formats();
-			break;
-		case 'update_btp_events':
+			case 'update_btp_settings':
+				if(!curt.btp_settings) {
+					curt.btp_settings = {};
+				}
+				const btp_settings = c.val.btp_settings;
+				for (const [key, value] of Object.entries(btp_settings)) {
+					curt.btp_settings[key] = value;
+				}
+				ctournament.update_btp_settings_ui();
+				break;
+			case 'update_btp_scoring_formats':
+				if(!curt.scoring_formats) {
+					curt.scoring_formats = {};
+				}
+				const scoring_formats = c.val.scoring_formats;
+				for (const [key, value] of Object.entries(scoring_formats)) {
+					curt.scoring_formats[key] = value;
+				}
+				ctournament.close_scoring_format_dialog_if_open(undefined, 'tournament:edit:scoring_formats:dialog_closed_btp_sync');
+				ctournament.update_scoring_formats();
+				break;
+			case 'scoring_format_changed':
+				if (!curt.scoring_formats) {
+					curt.scoring_formats = { formats: [], default_id: null };
+				}
+				if (!Array.isArray(curt.scoring_formats.formats)) {
+					curt.scoring_formats.formats = [];
+				}
+				const changed_scoring_format = c.val.scoring_format;
+				const changed_index = curt.scoring_formats.formats.findIndex(f => Number(f.id) === Number(changed_scoring_format.id));
+				if (changed_index === -1) {
+					curt.scoring_formats.formats.push(changed_scoring_format);
+				} else {
+					curt.scoring_formats.formats[changed_index] = changed_scoring_format;
+				}
+				ctournament.close_scoring_format_dialog_if_open(changed_scoring_format.id, 'tournament:edit:scoring_formats:dialog_closed_external_change');
+				ctournament.update_scoring_formats();
+				ctournament.update_stages_scoring_formats();
+				break;
+			case 'update_btp_events':
 			if(!curt.events) {
 				curt.events = {};
 			}

@@ -189,6 +189,24 @@ a:hover {
 	margin: 10px;
 }
 
+.live_settings_status {
+	margin: 0.5em 0 1em 0;
+	font-size: 0.9em;
+	font-weight: bold;
+}
+
+.live_settings_status_saving {
+	color: #8a5a00;
+}
+
+.live_settings_status_saved {
+	color: #2c6e2f;
+}
+
+.live_settings_status_error {
+	color: #9b1c1c;
+}
+
 .dialog_bg {
 	position: fixed;
 	left: 0;

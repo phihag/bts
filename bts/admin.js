@@ -114,6 +114,127 @@ function handle_tournament_edit_props(app, ws, msg) {
 	});
 }
 
+function handle_tournament_edit_prop(app, ws, msg) {
+	if (! msg.key) {
+		return ws.respond(msg, {message: 'Missing key'});
+	}
+	if (typeof msg.field === 'undefined') {
+		return ws.respond(msg, {message: 'Missing field'});
+	}
+
+	const allowed_fields = new Set([
+		'name', 'tguid',
+		'btp_enabled', 'btp_autofetch_enabled', 'btp_readonly',
+		'btp_ip', 'btp_password', 'btp_autofetch_timeout_intervall', 'btp_timezone',
+		'is_team', 'is_nation_competition',
+		'warmup', 'warmup_ready', 'warmup_start',
+		'upcoming_matches_animation_speed', 'upcoming_matches_max_count', 'upcoming_matches_animation_pause',
+		'ticker_enabled', 'ticker_url', 'ticker_password',
+		'language', 'dm_style', 'displaysettings_general',
+		'tabletoperator_enabled', 'tabletoperator_break_seconds',
+		'announcement_speed', 'announcement_pause_time_ms',
+		'tabletoperator_set_break_after_tabletservice', 'tabletoperator_with_state_enabled',
+		'tabletoperator_with_state_from_match_enabled',
+		'tabletoperator_winner_of_quaterfinals_enabled', 'tabletoperator_split_doubles',
+		'tabletoperator_use_manual_counting_boards_enabled', 'tabletoperator_with_umpire_enabled',
+		'annoncement_include_event', 'annoncement_include_round', 'annoncement_include_matchnumber',
+		'preparation_meetingpoint_enabled', 'preparation_tabletoperator_setup_enabled',
+		'call_preparation_matches_automatically_enabled', 'call_next_possible_scheduled_match_in_preparation',
+		'logo_background_color', 'logo_foreground_color',
+	]);
+
+	const field = msg.field;
+	if (!allowed_fields.has(field)) {
+		return ws.respond(msg, {message: 'Unsupported field ' + field});
+	}
+
+	const key = msg.key;
+	let value = msg.value;
+	if (field === 'btp_timezone') {
+		value = value === 'system' ? undefined : value;
+	}
+	const props = {};
+	props[field] = value;
+
+	app.db.tournaments.findOne({ key }, async (err, tournament) => {
+		if (err || !tournament) {
+			ws.respond(msg, err);
+			return;
+		}
+		app.db.tournaments.update({ key }, { $set: props }, { returnUpdatedDocs: true }, function (err, num, t) {
+			if (err) {
+				ws.respond(msg, err);
+				return;
+			}
+			if (/^btp_/.test(field)) {
+				btp_manager.reconfigure(app, t);
+			}
+			if (/^ticker_/.test(field)) {
+				ticker_manager.reconfigure(app, t);
+			}
+			notify_change(app, key, 'prop_changed', { field, value: t[field] });
+
+			if (!tournament.displaysettings_general || (field === 'displaysettings_general' && tournament.displaysettings_general != t.displaysettings_general)){
+				const bupws = require('./bupws');
+				bupws.change_default_display_mode(app, t, tournament.displaysettings_general, t.displaysettings_general);
+			}
+
+			ws.respond(msg, err);
+		});
+	});
+}
+
+function handle_tournament_edit_scoring_format(app, ws, msg) {
+	if (! msg.key) {
+		return ws.respond(msg, {message: 'Missing key'});
+	}
+	if (! msg.scoring_format) {
+		return ws.respond(msg, {message: 'Missing scoring_format'});
+	}
+
+	const key = msg.key;
+	const scoring_format = msg.scoring_format;
+	app.db.tournaments.findOne({ key }, async (err, tournament) => {
+		if (err || !tournament) {
+			ws.respond(msg, err);
+			return;
+		}
+
+		const btp_sync = require('./btp_sync');
+		const scoring_formats = tournament.scoring_formats || { formats: [], default_id: null };
+		const formats = Array.isArray(scoring_formats.formats) ? scoring_formats.formats.slice() : [];
+		const index = formats.findIndex(f => Number(f.id) === Number(scoring_format.id));
+		if (index === -1) {
+			return ws.respond(msg, {message: 'Unknown scoring format ' + scoring_format.id});
+		}
+
+		formats[index] = btp_sync._sanitize_scoring_format(scoring_format);
+		const updated_scoring_formats = {
+			...scoring_formats,
+			formats,
+		};
+
+		app.db.tournaments.update(
+			{ key },
+			{ $set: { scoring_formats: updated_scoring_formats } },
+			{ returnUpdatedDocs: true },
+			function (err) {
+				if (err) {
+					ws.respond(msg, err);
+					return;
+				}
+				notify_change(app, key, 'scoring_format_changed', {
+					scoring_format: formats[index],
+				});
+				notify_change(app, key, 'props', {
+					scoring_formats: updated_scoring_formats,
+				});
+				ws.respond(msg, err);
+			}
+		);
+	});
+}
+
 
 function handle_tournament_edit_logo(app, ws, msg) {
 	if (! msg.key) {
@@ -1732,6 +1853,8 @@ module.exports = {
 	handle_second_preparation_call_team_two,
 	handle_tournament_get,
 	handle_tournament_list,
+	handle_tournament_edit_prop,
+	handle_tournament_edit_scoring_format,
 	handle_tournament_edit_props,
 	handle_tournament_edit_logo,
 	handle_display_delete,
