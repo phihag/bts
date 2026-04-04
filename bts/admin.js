@@ -961,6 +961,50 @@ function handle_match_player_check_in (app, ws, msg) {
 	});
 }
 
+function handle_match_participant_check_in(app, ws, msg) {
+	const match_utils = require('./match_utils');
+
+	if (!_require_msg(ws, msg, ['tournament_key', 'match_id', 'role', 'checked_in'])) {
+		return;
+	}
+
+	app.db.matches.findOne({ tournament_key: msg.tournament_key, _id: msg.match_id }, async (err, match) => {
+		if (err) {
+			return ws.respond(msg, err);
+		}
+		if (!match || !match.setup) {
+			return ws.respond(msg, new Error('Match not found'));
+		}
+
+		let participant_found = false;
+		const checked_in = !!msg.checked_in;
+
+		if (msg.role === 'umpire' || msg.role === 'service_judge') {
+			const participant = match.setup[msg.role];
+			if (participant && participant.btp_id == msg.participant_id) {
+				participant.checked_in = checked_in;
+				participant_found = true;
+			}
+		} else if (msg.role === 'tabletoperator' && Array.isArray(match.setup.tabletoperators)) {
+			match.setup.tabletoperators.forEach((participant) => {
+				if (participant.btp_id == msg.participant_id) {
+					participant.checked_in = checked_in;
+					participant_found = true;
+				}
+			});
+		}
+
+		if (!participant_found) {
+			return ws.respond(msg, new Error('Participant not found in match'));
+		}
+
+		match_utils.match_update(app, match, undefined, (update_err) => {
+			ws.respond(msg, update_err);
+			return;
+		});
+	});
+}
+
 
 function handle_begin_to_play_call(app, ws, msg) {
 	if (!_require_msg(ws, msg, ['tournament_key', 'setup'])) {
@@ -1206,17 +1250,18 @@ function handle_official_list_move(app, ws, msg) {
     // Spezifikation:
     // - currentUmpire[from_list] = null
     // - currentUmpire[to_list] = newTS
-    const setObj = {};
-	
-    setObj[inactive_list] = null;
-    setObj[service_judge_pause] = null;
-    setObj[umpire_pause] = null;
-    setObj[service_judge_wait] = null;
-    setObj[umpire_wait] = null;
-    setObj[service_judge_on_court] = null;
-    setObj[umpire_on_court] = null;
-    setObj[is_planed_as_service_judge] = false;
-    setObj[is_planed_as_umpire] = false;
+	    const setObj = {};
+		
+		    setObj[from_list] = null;
+		    setObj['inactive_list'] = null;
+		    setObj['service_judge_pause'] = null;
+		    setObj['umpire_pause'] = null;
+		    setObj['service_judge_wait'] = null;
+		    setObj['umpire_wait'] = null;
+		    setObj['service_judge_on_court'] = null;
+		    setObj['umpire_on_court'] = null;
+		    setObj['is_planed_as_service_judge'] = false;
+		    setObj['is_planed_as_umpire'] = false;
     setObj[to_list] = newTS;
 
     app.db.umpires.update(
@@ -1341,7 +1386,8 @@ function handle_add_officials_to_match(app, ws, msg) {
       name: u.name,
       firstname: u.firstname,
       surname: u.surname,
-      country: u.country
+      country: u.country,
+      checked_in: false
     };
   }
 
@@ -1834,6 +1880,7 @@ module.exports = {
 	handle_match_call_on_court,
 	handle_match_preparation_call,
 	handle_match_player_check_in,
+	handle_match_participant_check_in,
 	handle_ticker_pushall,
 	handle_ticker_reset,
 	handle_free_announce,

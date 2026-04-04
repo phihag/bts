@@ -5,6 +5,12 @@ let current_view = null;
 let scoring_formats_main = null;
 let live_settings_status_el = null;
 let live_settings_pending_requests = 0;
+let self_check_in_chip_fit_cache = Object.create(null);
+let self_check_in_layout_fit_cache = new Map();
+let self_check_in_resize_frame = null;
+let self_check_in_measure_probe = null;
+let self_check_in_fit_scheduled = false;
+let self_check_in_fit_roots = new Set();
 
 var ctournament = (function() {
 	function _route_single(rex, func, handler) {
@@ -199,6 +205,29 @@ var ctournament = (function() {
 		return old_section;
 	}
 
+	function rerender_public_match_views(old_section, new_section) {
+		const affects_courts = (
+			old_section.startsWith('court_') ||
+			new_section.startsWith('court_')
+		);
+		const affects_upcoming = (
+			old_section === 'unassigned' ||
+			new_section === 'unassigned'
+		);
+
+		if ((current_view === 'upcoming' || current_view === 'current_matches') && affects_courts) {
+			uiu.qsEach('.courts_container', (courts_container) => {
+				cmatch.render_courts(courts_container, 'public');
+			});
+		}
+
+		if ((current_view === 'upcoming' || current_view === 'next_matches') && affects_upcoming) {
+			uiu.qsEach('.upcoming_container', (upcoming_container) => {
+				cmatch.render_upcoming_matches(upcoming_container);
+			});
+		}
+	}
+
 	function update_upcoming_match(c) {
 		const cval = c.val;
 		const match_id = cval.match__id;
@@ -331,6 +360,9 @@ var ctournament = (function() {
 				break;
 			case 'next_matches':
 				ui_next_matches();
+				break;
+			case 'self_check_in':
+				ui_self_check_in();
 				break;
 			default:
 				break;
@@ -833,14 +865,19 @@ var ctournament = (function() {
 			}];
 
 			locations.forEach((loc) => {
-				const params = new URLSearchParams({ location: loc.name });
+				const params = new URLSearchParams({
+					location: loc.name,
+				});
 				items.push({
 					label: label + ' (' + ci18n('only location') + ' ' + loc.name + ')',
 					href: base_path + path_suffix + '?' + params.toString(),
 				});
 			});
 
-			items.push({ class: 'toprow_menu_separator' });
+			items.push({
+				class: 'toprow_menu_separator',
+			});
+
 			return items;
 		}
 
@@ -848,6 +885,7 @@ var ctournament = (function() {
 			...section_items(ci18n('Matchoverview'), '/upcoming'),
 			...section_items(ci18n('Current Matches'), '/current_matches'),
 			...section_items(ci18n('Next Matches'), '/next_matches'),
+			...section_items(ci18n('Self-Check-In'), '/self_check_in'),
 		];
 		if (view_items.length > 0 && view_items[view_items.length - 1].class === 'toprow_menu_separator') {
 			view_items.pop();
@@ -3300,22 +3338,18 @@ for (const tbody of tbodies) {
  * DEINE TABELLE (pro Feld) - gibt TBODY zurück
  * ============================================================ */
 
-function render_officials_by_timestamp(main, {
+function render_officials_table(main, {
   title = null,
-  officials,
-  timestamp_field,
+  rows,
+  table_id,
   min_height_px = 240
 }) {
   if (title) {
     uiu.el(main, 'h2', 'edit', title);
   }
 
-  const rows = officials
-    .filter(o => o[timestamp_field] !== null)
-    .sort((a, b) => a[timestamp_field] - b[timestamp_field]);
-
   const table = uiu.el(main, 'table', 'officials_table');
-  const tbody = uiu.el(table, 'tbody', { 'data-table-id': timestamp_field });
+  const tbody = uiu.el(table, 'tbody', { 'data-table-id': table_id });
 
   /* ---------- Header ---------- */
   const trHead = uiu.el(tbody, 'tr');
@@ -3398,6 +3432,24 @@ function render_officials_by_timestamp(main, {
   table._ensureMinHeight = ensure_min_table_height;
 
   return { table, tbody };
+}
+
+function render_officials_by_timestamp(main, {
+  title = null,
+  officials,
+  timestamp_field,
+  min_height_px = 240
+}) {
+  const rows = officials
+    .filter(o => o[timestamp_field] !== null)
+    .sort((a, b) => a[timestamp_field] - b[timestamp_field]);
+
+  return render_officials_table(main, {
+    title,
+    rows,
+    table_id: timestamp_field,
+    min_height_px
+  });
 }
 
 function enable_min_height_resize_recalc(tables) {
@@ -3800,27 +3852,613 @@ function update_officials() {
 		cmatch.render_upcoming_matches(upcoming_container);
 	}
 
-	function rerender_public_match_views(old_section, new_section) {
-		const affects_courts = (
-			old_section.startsWith('court_') ||
-			new_section.startsWith('court_')
-		);
-		const affects_upcoming = (
-			old_section === 'unassigned' ||
-			new_section === 'unassigned'
-		);
+	function get_location_name_filter() {
+		const params = new URLSearchParams(window.location.search);
+		return params.get('location');
+	}
 
-		if ((current_view === 'upcoming' || current_view === 'current_matches') && affects_courts) {
-			uiu.qsEach('.courts_container', (courts_container) => {
-				cmatch.render_courts(courts_container, 'public');
+	function match_matches_selected_location(match) {
+		const param_location = get_location_name_filter();
+		if (!param_location) {
+			return true;
+		}
+
+		const loc = utils.find(curt.locations, l => l._id === match.setup.location_id);
+		if (!loc) {
+			return true;
+		}
+		return loc.name === param_location;
+	}
+
+	function person_display_name(person) {
+		if (!person) {
+			return '';
+		}
+		if (person.name) {
+			return person.name;
+		}
+		const surname = person.lastname || person.surname || '';
+		return [person.firstname, surname].filter(Boolean).join(' ');
+	}
+
+	function split_person_name_parts(person) {
+		const firstname = (person && person.firstname ? person.firstname : '').trim();
+		const surname = ((person && (person.lastname || person.surname)) ? (person.lastname || person.surname) : '').trim();
+		if (firstname || surname) {
+			return {
+				first_parts: firstname ? firstname.split(/\s+/).filter(Boolean) : [],
+				surname,
+			};
+		}
+
+		const fallback = person_display_name(person).trim();
+		if (!fallback) {
+			return { first_parts: [], surname: '' };
+		}
+		const parts = fallback.split(/\s+/).filter(Boolean);
+		if (parts.length <= 1) {
+			return { first_parts: parts, surname: '' };
+		}
+		return {
+			first_parts: parts.slice(0, -1),
+			surname: parts[parts.length - 1],
+		};
+	}
+
+	function build_person_name_variants(person) {
+		const { first_parts, surname } = split_person_name_parts(person);
+		if (first_parts.length === 0) {
+			return [person_display_name(person)];
+		}
+
+		const variants = [];
+		const push_variant = (first_name_parts) => {
+			const label = [...first_name_parts, surname].filter(Boolean).join(' ').trim();
+			if (label && !variants.includes(label)) {
+				variants.push(label);
+			}
+		};
+
+		push_variant(first_parts);
+
+		if (first_parts.length > 1) {
+			push_variant([
+				first_parts[0],
+				...first_parts.slice(1).map(name => name[0] + '.'),
+			]);
+			push_variant([first_parts[0]]);
+		}
+
+		push_variant([first_parts[0][0] + '.']);
+		return variants;
+	}
+
+	function get_self_check_in_matches() {
+		return curt.matches
+			.filter(m => m.setup && m.setup.state === 'preparation' && m.setup.is_match && match_matches_selected_location(m))
+			.sort((a, b) => (a.setup.preparation_call_timestamp || 0) - (b.setup.preparation_call_timestamp || 0));
+	}
+
+	function self_check_in_match_structure_signature(match) {
+		if (!match || !match.setup || !match.setup.is_match || match.setup.state !== 'preparation' || !match_matches_selected_location(match)) {
+			return null;
+		}
+
+		return JSON.stringify({
+			match_id: match._id,
+			match_num: match.setup.match_num,
+			event_name: match.setup.event_name,
+			scheduled_time_str: match.setup.scheduled_time_str,
+			location_id: match.setup.location_id,
+			participants: self_check_in_participants(match).map(participant => ({
+				key: participant.key,
+				label: participant.label,
+				role_label: participant.role_label || '',
+			})),
+		});
+	}
+
+	function self_check_in_match_status_signature(match) {
+		if (!match || !match.setup || !match.setup.is_match || match.setup.state !== 'preparation' || !match_matches_selected_location(match)) {
+			return null;
+		}
+		return JSON.stringify({
+			match_id: match._id,
+			participants: self_check_in_participants(match).map((participant) => ({
+				key: participant.key,
+				checked_in: participant.checked_in,
+			})),
+		});
+	}
+
+	function update_self_check_in_match_status(match_id) {
+		const list = document.querySelector('.self_check_in_list');
+		const match = utils.find(curt.matches, m => m._id === match_id);
+		if (!list || !match) {
+			_update_all_ui_elements_self_check_in();
+			return;
+		}
+		const card = list.querySelector('.self_check_in_match[data-match-id="' + match_id + '"]');
+		if (!card) {
+			_update_all_ui_elements_self_check_in();
+			return;
+		}
+
+		const participants = self_check_in_participants(match);
+		const chips = Array.from(card.querySelectorAll('.self_check_in_chip'));
+		if (chips.length !== participants.length) {
+			update_self_check_in_match_card(match_id);
+			return;
+		}
+
+		const chips_by_key = new Map(
+			chips.map((chip) => [chip.getAttribute('data-participant-key'), chip])
+		);
+		for (const participant of participants) {
+			const chip = chips_by_key.get(participant.key);
+			if (!chip) {
+				update_self_check_in_match_card(match_id);
+				return;
+			}
+			chip.classList.toggle('self_check_in_chip_ready', !!participant.checked_in);
+			chip.classList.toggle('self_check_in_chip_waiting', !participant.checked_in);
+		}
+
+		const all_ready = participants.length > 0 && participants.every((participant) => participant.checked_in);
+		card.classList.toggle('self_check_in_match_ready', all_ready);
+		card.classList.toggle('self_check_in_match_waiting', !all_ready);
+		const status_el = card.querySelector('.self_check_in_match_status');
+		if (status_el) {
+			status_el.textContent = ci18n(all_ready ? 'Self-Check-In: ready' : 'Self-Check-In: waiting');
+		}
+	}
+
+	function rerender_self_check_in_if_needed(before_structure_signature, before_status_signature, match_id) {
+		const container = document.querySelector('.self_check_in_container');
+		const match = utils.find(curt.matches, m => m._id === match_id);
+		const after_structure_signature = self_check_in_match_structure_signature(match);
+		const after_status_signature = self_check_in_match_status_signature(match);
+		if (before_structure_signature !== after_structure_signature) {
+			if (!container || !after_structure_signature) {
+				_update_all_ui_elements_self_check_in();
+				return;
+			}
+			const visible_before_ids = Array.from(container.querySelectorAll('.self_check_in_match')).map((card) => String(card.getAttribute('data-match-id')));
+			const visible_after_ids = get_self_check_in_matches().map((m) => String(m._id));
+			if (
+				visible_before_ids.length !== visible_after_ids.length ||
+				visible_before_ids.some((id, index) => id !== visible_after_ids[index])
+			) {
+				_update_all_ui_elements_self_check_in();
+				return;
+			}
+			update_self_check_in_match_card(match_id);
+			return;
+		}
+
+		if (before_status_signature !== after_status_signature) {
+			update_self_check_in_match_status(match_id);
+		}
+	}
+
+	function self_check_in_participants(match) {
+		const participants = [];
+		match.setup.teams.forEach((team, team_index) => {
+			team.players.forEach((player, player_index) => {
+			participants.push({
+				key: 'player_' + team_index + '_' + player_index + '_' + player.btp_id,
+				role: 'player',
+				match_id: match._id,
+				participant_id: player.btp_id,
+				label: person_display_name(player),
+				label_variants: build_person_name_variants(player),
+				checked_in: !!player.checked_in,
+			});
+		});
+	});
+
+		if (match.setup.umpire && match.setup.umpire.btp_id != null) {
+			participants.push({
+				key: 'umpire_' + match.setup.umpire.btp_id,
+				role: 'umpire',
+				match_id: match._id,
+				participant_id: match.setup.umpire.btp_id,
+				label: person_display_name(match.setup.umpire),
+				label_variants: build_person_name_variants(match.setup.umpire),
+				checked_in: !!match.setup.umpire.checked_in,
+				role_label: ci18n('Umpire'),
 			});
 		}
 
-		if ((current_view === 'upcoming' || current_view === 'next_matches') && affects_upcoming) {
-			uiu.qsEach('.upcoming_container', (upcoming_container) => {
-				cmatch.render_upcoming_matches(upcoming_container);
+		if (match.setup.service_judge && match.setup.service_judge.btp_id != null) {
+			participants.push({
+				key: 'service_judge_' + match.setup.service_judge.btp_id,
+				role: 'service_judge',
+				match_id: match._id,
+				participant_id: match.setup.service_judge.btp_id,
+				label: person_display_name(match.setup.service_judge),
+				label_variants: build_person_name_variants(match.setup.service_judge),
+				checked_in: !!match.setup.service_judge.checked_in,
+				role_label: ci18n('Service judge'),
 			});
 		}
+
+		if (Array.isArray(match.setup.tabletoperators)) {
+			match.setup.tabletoperators.forEach((operator, index) => {
+				participants.push({
+					key: 'tabletoperator_' + index + '_' + operator.btp_id,
+					role: 'tabletoperator',
+					match_id: match._id,
+					participant_id: operator.btp_id,
+					label: person_display_name(operator),
+					label_variants: build_person_name_variants(operator),
+					checked_in: !!operator.checked_in,
+					role_label: ci18n('Tablet operator'),
+				});
+			});
+		}
+
+		return participants;
+	}
+
+	function resolve_self_check_in_court_label(match) {
+		const current_match = utils.find(curt.matches, (m) => m._id === match._id) || match;
+		const court_id = (match.setup && match.setup.court_id) || (current_match.setup && current_match.setup.court_id);
+		let court = null;
+		if (court_id && curt.courts_by_id && curt.courts_by_id[court_id]) {
+			court = curt.courts_by_id[court_id];
+		}
+		if (!court && Array.isArray(curt.courts)) {
+			court = curt.courts.find((c) => c._id === court_id)
+				|| curt.courts.find((c) => c.match_id === match._id)
+				|| curt.courts.find((c) => current_match && c.match_id === current_match._id)
+				|| curt.courts.find((c) => match.btp_id && c.match_id === ('btp_' + match.btp_id))
+				|| curt.courts.find((c) => current_match && current_match.btp_id && c.match_id === ('btp_' + current_match.btp_id));
+		}
+		if (!court || !court.num) {
+			return '';
+		}
+		return ci18n('Court') + ' ' + court.num;
+	}
+
+	function render_self_check_in_chip(container, participant) {
+		const attrs = {
+			type: 'button',
+			'class': 'self_check_in_chip self_check_in_chip_' + (participant.checked_in ? 'ready' : 'waiting') + (participant.role_label ? ' self_check_in_chip_with_role' : ''),
+			'data-role': participant.role,
+			'data-match_id': participant.match_id,
+			'data-participant_id': participant.participant_id,
+			'data-participant-key': participant.key,
+		};
+		const chip = uiu.el(container, 'button', attrs);
+		if (participant.role_label) {
+			uiu.el(chip, 'span', 'self_check_in_chip_role', participant.role_label);
+		}
+		const cached_fit = self_check_in_chip_fit_cache[participant.key];
+		const initial_label = cached_fit ? cached_fit.label : participant.label;
+		const name_el = uiu.el(chip, 'span', 'self_check_in_chip_name', initial_label);
+		chip._name_el = name_el;
+		chip._label_variants = participant.label_variants || [participant.label];
+		chip._participant_key = participant.key;
+		if (cached_fit && cached_fit.font_size) {
+			name_el.style.fontSize = cached_fit.font_size;
+		}
+		chip.addEventListener('click', function(ev) {
+			ev.stopPropagation();
+			const checked_in = !chip.classList.contains('self_check_in_chip_ready');
+			const payload = {
+				tournament_key: curt.key,
+				match_id: participant.match_id,
+				checked_in,
+			};
+
+			if (participant.role === 'player') {
+				payload.type = 'match_player_check_in';
+				payload.player_id = participant.participant_id;
+			} else {
+				payload.type = 'match_participant_check_in';
+				payload.role = participant.role;
+				payload.participant_id = participant.participant_id;
+			}
+
+			send(payload, function(err) {
+				if (err) {
+					return cerror.net(err);
+				}
+			});
+		});
+	}
+
+	function fit_self_check_in_chip(chip) {
+		const name_el = chip._name_el;
+		const variants = chip._label_variants || [name_el.textContent];
+		if (!name_el.dataset.baseFontSize) {
+			const previous_font_size = name_el.style.fontSize;
+			name_el.style.fontSize = '';
+			name_el.dataset.baseFontSize = String(parseFloat(window.getComputedStyle(name_el).fontSize));
+			name_el.style.fontSize = previous_font_size;
+		}
+		const chip_style = window.getComputedStyle(chip);
+		const css_base_font_size = Number(name_el.dataset.baseFontSize) || 16;
+		const role_el = chip.querySelector('.self_check_in_chip_role');
+		const available_height = chip.clientHeight
+			- parseFloat(chip_style.paddingTop || 0)
+			- parseFloat(chip_style.paddingBottom || 0)
+			- (role_el ? role_el.offsetHeight + parseFloat(chip_style.gap || 0) : 0);
+		const height_based_font_size = Math.max(
+			css_base_font_size,
+			available_height * (role_el ? 0.58 : 0.7)
+		);
+		const base_font_size = height_based_font_size;
+		const available_width = chip.clientWidth
+			- parseFloat(chip_style.paddingLeft || 0)
+			- parseFloat(chip_style.paddingRight || 0);
+		const measure_text_width = (text, font_size_px) => {
+			if (!self_check_in_measure_probe) {
+				self_check_in_measure_probe = document.createElement('span');
+				self_check_in_measure_probe.style.position = 'absolute';
+				self_check_in_measure_probe.style.visibility = 'hidden';
+				self_check_in_measure_probe.style.pointerEvents = 'none';
+				self_check_in_measure_probe.style.whiteSpace = 'nowrap';
+				self_check_in_measure_probe.style.left = '-99999px';
+				self_check_in_measure_probe.style.top = '0';
+				document.body.appendChild(self_check_in_measure_probe);
+			}
+			const probe = self_check_in_measure_probe;
+			probe.textContent = text;
+			const name_style = window.getComputedStyle(name_el);
+			probe.style.fontFamily = name_style.fontFamily;
+			probe.style.fontWeight = name_style.fontWeight;
+			probe.style.fontStyle = name_style.fontStyle;
+			probe.style.fontStretch = name_style.fontStretch;
+			probe.style.fontVariant = name_style.fontVariant;
+			probe.style.fontSize = font_size_px + 'px';
+			probe.style.lineHeight = name_style.lineHeight;
+			probe.style.letterSpacing = window.getComputedStyle(name_el).letterSpacing;
+			const width = probe.getBoundingClientRect().width;
+			return width;
+		};
+		const min_font_size = Math.max(base_font_size * 0.18, 8);
+		const line_height_factor = 1.2;
+		const max_font_by_height = Math.max(min_font_size, (available_height / line_height_factor) * 0.98);
+		const layout_fit_cache_key = JSON.stringify({
+			variants,
+			width: Math.round(available_width),
+			height: Math.round(available_height),
+			base_font_size: Math.round(base_font_size * 10) / 10,
+			min_font_size: Math.round(min_font_size * 10) / 10,
+			max_font_by_height: Math.round(max_font_by_height * 10) / 10,
+		});
+		const cached_layout_fit = self_check_in_layout_fit_cache.get(layout_fit_cache_key);
+		if (cached_layout_fit) {
+			name_el.textContent = cached_layout_fit.label;
+			name_el.style.fontSize = cached_layout_fit.font_size;
+			self_check_in_chip_fit_cache[chip._participant_key] = cached_layout_fit;
+			return;
+		}
+		let best = null;
+
+		for (const variant of variants) {
+			const width_at_base = measure_text_width(variant, base_font_size);
+			const width_ratio = available_width / Math.max(width_at_base, 1);
+			const width_limited_font_size = base_font_size * width_ratio * 0.98;
+			const fitted_font_size = Math.max(
+				min_font_size,
+				Math.min(base_font_size, max_font_by_height, width_limited_font_size)
+			);
+
+			if (!best || fitted_font_size > best.font_size + 0.05) {
+				best = {
+					label: variant,
+					font_size: fitted_font_size,
+				};
+			}
+		}
+
+		const chosen = best || {
+			label: variants[variants.length - 1],
+			font_size: min_font_size,
+		};
+		name_el.textContent = chosen.label;
+		name_el.style.fontSize = chosen.font_size + 'px';
+		const chosen_fit = {
+			label: chosen.label,
+			font_size: name_el.style.fontSize,
+		};
+		self_check_in_layout_fit_cache.set(layout_fit_cache_key, chosen_fit);
+		self_check_in_chip_fit_cache[chip._participant_key] = chosen_fit;
+	}
+
+	function fit_self_check_in_card(card) {
+		const card_height = card.clientHeight || 0;
+		if (card_height > 0) {
+			const header_height = Math.max(56, Math.min(card_height * 0.26, 140));
+			card.style.setProperty('--self-check-in-header-height', header_height + 'px');
+			card.style.setProperty('--self-check-in-header-gap', Math.max(4, Math.min(header_height * 0.06, 12)) + 'px');
+			card.style.setProperty('--self-check-in-number-font-size', Math.max(18, Math.min(header_height * 0.18, 34)) + 'px');
+			card.style.setProperty('--self-check-in-event-font-size', Math.max(26, Math.min(header_height * 0.3, 54)) + 'px');
+			card.style.setProperty('--self-check-in-meta-font-size', Math.max(18, Math.min(header_height * 0.18, 34)) + 'px');
+			card.style.setProperty('--self-check-in-status-font-size', Math.max(18, Math.min(header_height * 0.18, 34)) + 'px');
+			const heading = card.querySelector('.self_check_in_match_heading');
+			const header_gap = Math.max(4, Math.min(header_height * 0.06, 12));
+			if (heading) {
+				const available_header_height = Math.max(24, header_height - header_gap);
+				if (heading.scrollHeight > available_header_height + 1) {
+					const ratio = available_header_height / Math.max(heading.scrollHeight, 1);
+					card.style.setProperty('--self-check-in-number-font-size', Math.max(14, Math.min(header_height * 0.18 * ratio * 0.98, 34)) + 'px');
+					card.style.setProperty('--self-check-in-event-font-size', Math.max(18, Math.min(header_height * 0.3 * ratio * 0.98, 54)) + 'px');
+					card.style.setProperty('--self-check-in-meta-font-size', Math.max(14, Math.min(header_height * 0.18 * ratio * 0.98, 34)) + 'px');
+					card.style.setProperty('--self-check-in-status-font-size', Math.max(14, Math.min(header_height * 0.18 * ratio * 0.98, 34)) + 'px');
+				}
+			}
+		}
+		card.querySelectorAll('.self_check_in_chip').forEach(fit_self_check_in_chip);
+		card.style.visibility = 'visible';
+	}
+
+	function update_self_check_in_match_card(match_id) {
+		const list = document.querySelector('.self_check_in_list');
+		const match = utils.find(curt.matches, m => m._id === match_id);
+		if (!list || !match) {
+			_update_all_ui_elements_self_check_in();
+			return;
+		}
+		const current_card = list.querySelector('.self_check_in_match[data-match-id="' + match_id + '"]');
+		if (!current_card) {
+			_update_all_ui_elements_self_check_in();
+			return;
+		}
+		const temp = document.createElement('div');
+		render_self_check_in_match_card(temp, match, false);
+		const new_card = temp.firstElementChild;
+		if (!new_card) {
+			_update_all_ui_elements_self_check_in();
+			return;
+		}
+		[
+			'--self-check-in-header-height',
+			'--self-check-in-header-gap',
+			'--self-check-in-number-font-size',
+			'--self-check-in-event-font-size',
+			'--self-check-in-meta-font-size',
+			'--self-check-in-status-font-size',
+		].forEach((prop) => {
+			const value = current_card.style.getPropertyValue(prop);
+			if (value) {
+				new_card.style.setProperty(prop, value);
+			}
+		});
+		current_card.replaceWith(new_card);
+		schedule_fit_self_check_in_cards(new_card);
+	}
+
+	function render_self_check_in_match_card(container, match, do_fit) {
+		if (do_fit === undefined) {
+			do_fit = true;
+		}
+		const participants = self_check_in_participants(match);
+		const all_ready = participants.length > 0 && participants.every(p => p.checked_in);
+		const columns = participants.length <= 3 ? 1 : 2;
+		const rows = Math.ceil(participants.length / columns);
+		const has_officials = participants.some((participant) => !!participant.role_label);
+		const card = uiu.el(container, 'section', {
+			'class': 'self_check_in_match ' + (all_ready ? 'self_check_in_match_ready' : 'self_check_in_match_waiting'),
+		});
+		card.setAttribute('data-match-id', String(match._id));
+		card.setAttribute('data-rows', String(rows));
+		card.style.visibility = 'hidden';
+
+		const heading = uiu.el(card, 'div', 'self_check_in_match_heading');
+		const left = uiu.el(heading, 'div', 'self_check_in_match_heading_left');
+		const top_row = uiu.el(left, 'div', 'self_check_in_match_top_row');
+		uiu.el(top_row, 'div', 'self_check_in_match_number', '#' + match.setup.match_num);
+		uiu.el(top_row, 'div', 'self_check_in_match_status', ci18n(all_ready ? 'Self-Check-In: ready' : 'Self-Check-In: waiting'));
+		const event_row = uiu.el(left, 'div', 'self_check_in_match_event_row');
+		uiu.el(event_row, 'div', 'self_check_in_match_event', match.setup.event_name || '');
+		uiu.el(event_row, 'div', 'self_check_in_match_court', resolve_self_check_in_court_label(match));
+
+		const meta = [];
+		if (match.setup.scheduled_time_str) {
+			meta.push(match.setup.scheduled_time_str);
+		}
+		if (match.setup.location_id) {
+			const loc = utils.find(curt.locations, l => l._id === match.setup.location_id);
+			if (loc && loc.name) {
+				meta.push(loc.name);
+			}
+		}
+		if (meta.length > 0) {
+			uiu.el(left, 'div', 'self_check_in_match_meta', meta.join(' • '));
+		}
+
+		const chips = uiu.el(card, 'div', 'self_check_in_chips');
+		chips.setAttribute('data-columns', String(columns));
+		chips.setAttribute('data-rows', String(rows));
+		chips.setAttribute('data-has-officials', has_officials ? '1' : '0');
+		if (rows === 3) {
+			chips.style.setProperty('--self-check-in-chip-name-scale-row', '1.12');
+			chips.style.setProperty('--self-check-in-chip-box-scale-row', '1.04');
+		} else if (rows === 2) {
+			chips.style.setProperty('--self-check-in-chip-name-scale-row', '0.80');
+			chips.style.setProperty('--self-check-in-chip-box-scale-row', '0.98');
+		} else {
+			chips.style.setProperty('--self-check-in-chip-name-scale-row', '1');
+			chips.style.setProperty('--self-check-in-chip-box-scale-row', '1');
+		}
+		participants.forEach((participant) => render_self_check_in_chip(chips, participant));
+		if (do_fit) {
+			schedule_fit_self_check_in_cards(card);
+		}
+	}
+
+	function calc_self_check_in_grid(match_count) {
+		if (match_count <= 1) {
+			return { cols: 1, rows: 1 };
+		}
+
+		let best = null;
+		for (let cols = 1; cols <= match_count; cols++) {
+			for (let rows = 1; rows <= cols; rows++) {
+				const area = cols * rows;
+				if (area < match_count) {
+					continue;
+				}
+
+				const candidate = {
+					cols,
+					rows,
+					area,
+					diff: cols - rows,
+				};
+
+				if (
+					!best ||
+					candidate.cols < best.cols ||
+					(candidate.cols === best.cols && candidate.area < best.area) ||
+					(candidate.cols === best.cols && candidate.area === best.area && candidate.diff < best.diff)
+				) {
+					best = candidate;
+				}
+			}
+			if (best && best.cols === cols) {
+				break;
+			}
+		}
+
+		return { cols: best.cols, rows: best.rows };
+	}
+
+	function render_self_check_in(container) {
+		uiu.empty(container);
+
+		const matches = get_self_check_in_matches();
+		container.setAttribute('data-match-count', String(matches.length));
+		if (matches.length === 0) {
+			uiu.el(container, 'div', 'self_check_in_empty', ci18n('Self-Check-In: empty'));
+			return;
+		}
+
+		const list = uiu.el(container, 'div', 'self_check_in_list');
+		const grid = calc_self_check_in_grid(matches.length);
+		const display_cols = grid.rows;
+		const display_rows = grid.cols;
+		const density = Math.max(display_cols, display_rows);
+		let scale = Math.max(0.42, Math.min(1, 1.75 / density));
+		if (display_cols === 2) {
+			scale *= 1.5;
+		} else if (display_cols === 1) {
+			scale *= 2;
+		}
+		scale = Math.min(scale, 2);
+		const chip_name_scale = Math.max(0.9, Math.min(1.75, 3 / display_rows));
+		const chip_box_scale = Math.max(0.72, Math.min(1.6, 2.4 / display_rows));
+		list.style.gridTemplateColumns = 'repeat(' + display_cols + ', minmax(0, 1fr))';
+		list.style.gridTemplateRows = 'repeat(' + display_rows + ', minmax(0, 1fr))';
+		list.style.setProperty('--self-check-in-scale', String(scale));
+		list.style.setProperty('--self-check-in-chip-name-scale', String(chip_name_scale));
+		list.style.setProperty('--self-check-in-chip-box-scale', String(chip_box_scale));
+		matches.forEach((match) => render_self_check_in_match_card(list, match, false));
+		schedule_fit_self_check_in_cards(list);
 	}
 
 	function ui_upcoming() {
@@ -3841,13 +4479,28 @@ function update_officials() {
 		render_next_matches(main);
 	}
 
-	function ui_match_screens(route) {
+	function ui_self_check_in() {
+		current_view = 'self_check_in';
+		const main = ui_match_screens('t/:key/self_check_in', {
+			enable_fullscreen_toggle: false,
+			main_class: 'main_self_check_in',
+		});
+		const container = uiu.el(main, 'div', 'self_check_in_container');
+		render_self_check_in(container);
+	}
+
+	function ui_match_screens(route, options) {
+		options = options || {};
 		crouting.set(route, { key: curt.key });
 		toprow.hide();
 		const main = uiu.qs('.main');
 		uiu.empty(main);
-		main.classList.add('main_upcoming');
-		main.onclick = () => fullscreen.toggle();
+		main.classList.remove('main_upcoming', 'main_self_check_in');
+		main.classList.add(options.main_class || 'main_upcoming');
+		main.onclick = null;
+		if (options.enable_fullscreen_toggle !== false) {
+			main.onclick = () => fullscreen.toggle();
+		}
 		return main;
 	}
 
@@ -3869,6 +4522,99 @@ function update_officials() {
 		court_current_match: update_upcoming_current_match,
 		match_edit: update_upcoming_match,
 		update_player_status: update_player_status,
+	}));
+
+	function _update_all_ui_elements_self_check_in() {
+		render_self_check_in(uiu.qs('.self_check_in_container'));
+	}
+
+	function schedule_fit_self_check_in_cards(scope) {
+		self_check_in_fit_roots.add(scope || document);
+		if (self_check_in_fit_scheduled) {
+			return;
+		}
+		self_check_in_fit_scheduled = true;
+		requestAnimationFrame(() => {
+			requestAnimationFrame(() => {
+				const cards = new Set();
+				self_check_in_fit_roots.forEach((root) => {
+					if (!root) {
+						return;
+					}
+					if (root.classList && root.classList.contains('self_check_in_match')) {
+						cards.add(root);
+					}
+					root.querySelectorAll?.('.self_check_in_match').forEach((card) => cards.add(card));
+				});
+				self_check_in_fit_roots.clear();
+				self_check_in_fit_scheduled = false;
+				cards.forEach((card) => {
+					if (card && card.isConnected) {
+						fit_self_check_in_card(card);
+					}
+				});
+			});
+		});
+	}
+
+	function schedule_self_check_in_resize_recalc() {
+		if (current_view !== 'self_check_in') {
+			return;
+		}
+		if (self_check_in_resize_frame) {
+			cancelAnimationFrame(self_check_in_resize_frame);
+		}
+		self_check_in_resize_frame = requestAnimationFrame(() => {
+			self_check_in_resize_frame = null;
+			self_check_in_chip_fit_cache = Object.create(null);
+			self_check_in_layout_fit_cache = new Map();
+			const container = document.querySelector('.self_check_in_container');
+			if (container) {
+				render_self_check_in(container);
+			}
+		});
+	}
+
+	window.addEventListener('resize', schedule_self_check_in_resize_recalc);
+
+	_route_single(/t\/([a-z0-9]+)\/self_check_in/, ui_self_check_in, change.default_handler(_update_all_ui_elements_self_check_in, {
+		score: function(c) {
+			const before_structure_signature = self_check_in_match_structure_signature(utils.find(curt.matches, m => m._id === c.val.match_id));
+			const before_status_signature = self_check_in_match_status_signature(utils.find(curt.matches, m => m._id === c.val.match_id));
+			update_score(c);
+			rerender_self_check_in_if_needed(before_structure_signature, before_status_signature, c.val.match_id);
+		},
+		court_current_match: function(c) {
+			const before_structure_signature = self_check_in_match_structure_signature(utils.find(curt.matches, m => m._id === c.val.match__id));
+			const before_status_signature = self_check_in_match_status_signature(utils.find(curt.matches, m => m._id === c.val.match__id));
+			update_upcoming_current_match(c);
+			rerender_self_check_in_if_needed(before_structure_signature, before_status_signature, c.val.match__id);
+		},
+		match_edit: function(c) {
+			const before_structure_signature = self_check_in_match_structure_signature(utils.find(curt.matches, m => m._id === c.val.match__id));
+			const before_status_signature = self_check_in_match_status_signature(utils.find(curt.matches, m => m._id === c.val.match__id));
+			update_match(c);
+			rerender_self_check_in_if_needed(before_structure_signature, before_status_signature, c.val.match__id);
+		},
+		update_player_status: function(c) {
+			const before_structure_signature = self_check_in_match_structure_signature(utils.find(curt.matches, m => m._id === c.val.match__id));
+			const before_status_signature = self_check_in_match_status_signature(utils.find(curt.matches, m => m._id === c.val.match__id));
+			update_player_status(c);
+			rerender_self_check_in_if_needed(before_structure_signature, before_status_signature, c.val.match__id);
+		},
+		match_preparation_call: function(c) {
+			const before_structure_signature = self_check_in_match_structure_signature(utils.find(curt.matches, m => m._id === c.val.match__id));
+			const before_status_signature = self_check_in_match_status_signature(utils.find(curt.matches, m => m._id === c.val.match__id));
+			const changed_match = c.val.match;
+			const cur_match = utils.find(curt.matches, m => m._id === c.val.match__id);
+			if (cur_match && changed_match) {
+				cur_match.setup = changed_match.setup;
+				cur_match.btp_winner = changed_match.btp_winner;
+				cur_match.team1_won = changed_match.team1_won;
+				cur_match.network_score = changed_match.network_score;
+			}
+			rerender_self_check_in_if_needed(before_structure_signature, before_status_signature, c.val.match__id);
+		},
 	}));
 
 
