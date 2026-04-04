@@ -895,8 +895,10 @@ async function remove_umpire_on_court(app, tournament_key, cur_match_id, end_ts,
 		if (cur_match.setup.umpire) {
 			const umpire = cur_match.setup.umpire;
 			umpire.umpire_on_court = null;
+			umpire.service_judge_on_court = null;
 			umpire.is_planed_as_umpire = false;
 			umpire.last_time_on_court_ts = end_ts;
+			umpire.checked_in = false;
 			umpire.status = 'ready';
 			umpire.court_id = null;
 
@@ -914,8 +916,10 @@ async function remove_umpire_on_court(app, tournament_key, cur_match_id, end_ts,
 		if (cur_match.setup.service_judge) {
 			const service_judge = cur_match.setup.service_judge;
 			service_judge.umpire_on_court = null;
+			service_judge.service_judge_on_court = null;
 			service_judge.is_planed_as_umpire = false;
 			service_judge.last_time_on_court_ts = end_ts;
+			service_judge.checked_in = false;
 			service_judge.status = 'ready';
 			service_judge.court_id = null;
 
@@ -937,8 +941,10 @@ function set_umpire_to_standby(app, tournament_key, setup) {
 	if (setup.umpire) {
 		const umpire = setup.umpire;
 		umpire.umpire_on_court = null;
+		umpire.service_judge_on_court = null;
 		umpire.is_planed_as_umpire = false;
         umpire.last_time_on_court_ts = null;
+		umpire.checked_in = false;
 		umpire.status = 'standby';
 		umpire.court_id = null;
 		update_umpire(app, tournament_key, umpire);
@@ -947,8 +953,10 @@ function set_umpire_to_standby(app, tournament_key, setup) {
 	if (setup.service_judge) {
 		const service_judge = setup.service_judge;
 		service_judge.umpire_on_court = null;
+		service_judge.service_judge_on_court = null;
 		service_judge.is_planed_as_umpire = false;
         service_judge.last_time_on_court_ts = null;
+		service_judge.checked_in = false;
 		service_judge.status = 'standby';
 		service_judge.court_id = null;
 		update_umpire(app, tournament_key, service_judge);
