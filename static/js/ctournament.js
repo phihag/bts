@@ -11,6 +11,7 @@ let self_check_in_resize_frame = null;
 let self_check_in_measure_probe = null;
 let self_check_in_fit_scheduled = false;
 let self_check_in_fit_roots = new Set();
+let self_check_in_called_overlay_timeout = null;
 
 var ctournament = (function() {
 	function _route_single(rex, func, handler) {
@@ -1459,6 +1460,7 @@ var ctournament = (function() {
 			input.upcoming_animation_speed = create_numeric_input(curt, upcoming_fieldset, 'upcoming_matches_animation_speed', 0, 10, 2, 1);
 			input.upcoming_animation_pause = create_numeric_input(curt, upcoming_fieldset, 'upcoming_matches_animation_pause', 1, 20, 4, 1);
 			input.upcoming_matches_max_count = create_numeric_input(curt, upcoming_fieldset, 'upcoming_matches_max_count', 10, 50, 15, 1);
+			input.self_check_in_called_overlay_duration_ms = create_duration_seconds_input(curt, upcoming_fieldset, 'self_check_in_called_overlay_duration_ms', 1, 60, 12, 0.5);
 		}
 
 // officials_host ######################################################################################################
@@ -3743,6 +3745,25 @@ function update_officials() {
 			return result;
 		}
 
+	function create_duration_seconds_input(curt, parent_el, filed_id, min_seconds, max_seconds, default_seconds, step_seconds) {
+		const text_input = uiu.el(parent_el, 'label');
+		uiu.el(text_input, 'span', {}, ci18n('tournament:edit:' + filed_id));
+		const current_ms = Number(curt[filed_id]);
+		const value_seconds = Number.isFinite(current_ms) && current_ms > 0 ? (current_ms / 1000) : default_seconds;
+		const result = uiu.el(text_input, 'input', {
+			type: "number",
+			name: filed_id,
+			value: value_seconds,
+			min: min_seconds,
+			max: max_seconds,
+			step: step_seconds
+		});
+		bind_live_prop(result, filed_id, {
+			get_value: input_el => Number(input_el.value) * 1000,
+		});
+		return result;
+	}
+
 	function createCourtSelectBox(parentEl, parent_id, court_id) {
 		const court_select_box = uiu.el(parentEl, 'select', {
 			name: 'court_' + parent_id,
@@ -4461,6 +4482,44 @@ function update_officials() {
 		schedule_fit_self_check_in_cards(list);
 	}
 
+	function show_self_check_in_called_match(match) {
+		const container = document.querySelector('.self_check_in_container');
+		if (!container || !match || !match.setup) {
+			return;
+		}
+
+		const existing = container.querySelector('.self_check_in_called_overlay');
+		if (existing) {
+			existing.remove();
+		}
+
+		const overlay = uiu.el(container, 'div', 'self_check_in_called_overlay');
+		const backdrop = uiu.el(overlay, 'div', 'self_check_in_called_overlay_backdrop');
+		backdrop.addEventListener('click', () => overlay.remove());
+		const card_host = uiu.el(overlay, 'div', 'self_check_in_called_overlay_host');
+		render_self_check_in_match_card(card_host, match, false);
+		const card = card_host.querySelector('.self_check_in_match');
+		if (card) {
+			card.classList.add('self_check_in_called_overlay_card');
+			const status_el = card.querySelector('.self_check_in_match_status');
+			if (status_el) {
+				status_el.textContent = ci18n('Self-Check-In: called');
+			}
+			schedule_fit_self_check_in_cards(card);
+		}
+
+		if (self_check_in_called_overlay_timeout) {
+			clearTimeout(self_check_in_called_overlay_timeout);
+		}
+		const overlay_duration_ms = Math.max(1000, Number(curt.self_check_in_called_overlay_duration_ms || 12000));
+		self_check_in_called_overlay_timeout = setTimeout(() => {
+			if (overlay.isConnected) {
+				overlay.remove();
+			}
+			self_check_in_called_overlay_timeout = null;
+		}, overlay_duration_ms);
+	}
+
 	function ui_upcoming() {
 		current_view = 'upcoming';
 		const main = ui_match_screens('t/:key/upcoming');
@@ -4502,6 +4561,16 @@ function update_officials() {
 			main.onclick = () => fullscreen.toggle();
 		}
 		return main;
+	}
+
+	function handle_view_announcement(kind, payload) {
+		if (current_view === 'self_check_in') {
+			if (kind === 'match_called_on_court') {
+				show_self_check_in_called_match(payload);
+			}
+			return true;
+		}
+		return false;
 	}
 
 	_route_single(/t\/([a-z0-9]+)\/upcoming/, ui_upcoming, change.default_handler(_update_all_ui_elements_upcoming, {
@@ -4836,6 +4905,7 @@ function update_officials() {
 			update_show_tabletoperators,
 			close_scoring_format_dialog_if_open,
 			refresh_current_view,
+			handle_view_announcement,
 			delete_display,
 		};
 

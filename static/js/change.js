@@ -6,6 +6,16 @@ function default_handler(rerender, special_funcs) {
 	};
 }
 
+	function _handle_announcement_event(kind, payload, announce_fn) {
+		if (ctournament && typeof ctournament.handle_view_announcement === 'function') {
+			const handled = ctournament.handle_view_announcement(kind, payload);
+			if (handled) {
+				return;
+			}
+		}
+		announce_fn();
+	}
+
 	function _apply_tournament_field_change(field, value) {
 		curt[field] = value;
 
@@ -77,11 +87,11 @@ function default_handler(rerender, special_funcs) {
 
 		switch (c.ctype) {
 		case 'free_announce':
-			announce([c.val.text]);
+			_handle_announcement_event('free_announce', c.val, () => announce([c.val.text]));
 			break;
 		case 'emergency_announce':
 			curt.enable_emergency = c.val;
-			emergency_announce(c.val);
+			_handle_announcement_event('emergency_announce', c.val, () => emergency_announce(c.val));
 			if (current_view === 'show'){
 				ctournament.update_emergency_btn()
 			}
@@ -213,7 +223,7 @@ function default_handler(rerender, special_funcs) {
 			ctournament.update_location_logo(c.val.location_id, loc.logo_id, loc.logo_name);
 			break;
 		case 'match_preparation_call':
-			announcePreparationMatch(c.val.match.setup);
+			_handle_announcement_event('match_preparation_call', c.val, () => announcePreparationMatch(c.val.match.setup));
 			curt.matches.forEach((match) => {
 				match.setup.location_id = c.val.location_id;
 			});
@@ -221,40 +231,40 @@ function default_handler(rerender, special_funcs) {
 			ctournament.update_upcoming_match(c);
 			break;
 		case 'match_called_on_court':
-			announceNewMatch(c.val.setup);
+			_handle_announcement_event('match_called_on_court', c.val, () => announceNewMatch(c.val.setup));
 			break;
 		case 'begin_to_play_call':
-			announceBeginnToPlay(c.val.setup);
+			_handle_announcement_event('begin_to_play_call', c.val, () => announceBeginnToPlay(c.val.setup));
 			break;
 		case 'second_call_tabletoperator':
-			announceSecondCallTabletoperator(c.val.setup);
+			_handle_announcement_event('second_call_tabletoperator', c.val, () => announceSecondCallTabletoperator(c.val.setup));
 			break;
 		case 'second_call_umpire':
-			announceSecondCallUmpire(c.val.setup);
+			_handle_announcement_event('second_call_umpire', c.val, () => announceSecondCallUmpire(c.val.setup));
 			break;
 		case 'second_call_servicejudge':
-			announceSecondCallServiceJudge(c.val.setup);
+			_handle_announcement_event('second_call_servicejudge', c.val, () => announceSecondCallServiceJudge(c.val.setup));
 			break;
 		case 'second_call_team_one':
-			announceSecondCallTeamOne(c.val.setup);
+			_handle_announcement_event('second_call_team_one', c.val, () => announceSecondCallTeamOne(c.val.setup));
 			break;
 		case 'second_call_team_two':
-			announceSecondCallTeamTwo(c.val.setup);
+			_handle_announcement_event('second_call_team_two', c.val, () => announceSecondCallTeamTwo(c.val.setup));
 			break;		
 		case 'second_preparation_call_tabletoperator':
-			announceSecondPreparationCallTabletoperator(c.val.setup);
+			_handle_announcement_event('second_preparation_call_tabletoperator', c.val, () => announceSecondPreparationCallTabletoperator(c.val.setup));
 			break;
 		case 'second_preparation_call_umpire':
-			announceSecondPreparationCallUmpire(c.val.setup);
+			_handle_announcement_event('second_preparation_call_umpire', c.val, () => announceSecondPreparationCallUmpire(c.val.setup));
 			break;
 		case 'second_preparation_call_servicejudge':
-			announceSecondPreparationCallServiceJudge(c.val.setup);
+			_handle_announcement_event('second_preparation_call_servicejudge', c.val, () => announceSecondPreparationCallServiceJudge(c.val.setup));
 			break;
 		case 'second_preparation_call_team_one':
-			announceSecondPreparationCallTeamOne(c.val.setup);
+			_handle_announcement_event('second_preparation_call_team_one', c.val, () => announceSecondPreparationCallTeamOne(c.val.setup));
 			break;
 		case 'second_preparation_call_team_two':
-			announceSecondPreparationCallTeamTwo(c.val.setup);
+			_handle_announcement_event('second_preparation_call_team_two', c.val, () => announceSecondPreparationCallTeamTwo(c.val.setup));
 			break;
 		case 'btp_status':
 			ctournament.btp_status_changed(c);

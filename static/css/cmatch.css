@@ -415,6 +415,36 @@ match_manual_call_button,
 	position: relative;
 }
 
+.self_check_in_called_overlay {
+	position: fixed;
+	inset: 20px;
+	z-index: 1000;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	pointer-events: none;
+}
+
+.self_check_in_called_overlay_backdrop {
+	position: absolute;
+	inset: 0;
+	background: rgba(0, 0, 0, 0.55);
+	pointer-events: auto;
+}
+
+.self_check_in_called_overlay_host {
+	position: relative;
+	z-index: 1;
+	width: min(1100px, calc(100vw - 80px));
+	height: min(72vh, 700px);
+	pointer-events: auto;
+}
+
+.self_check_in_called_overlay_card {
+	height: 100%;
+	box-shadow: 0 24px 64px rgba(0, 0, 0, 0.55);
+}
+
 .self_check_in_title {
 	margin: 0 0 1rem;
 	text-align: center;
