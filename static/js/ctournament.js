@@ -220,6 +220,7 @@ var ctournament = (function() {
 		m.btp_winner = cval.match.btp_winner;
 		const new_section = cmatch.calc_section(m);
 		cmatch.update_match(m, old_section, new_section);
+		rerender_public_match_views(old_section, new_section);
 
 		if (old_section != new_section || new_section == 'unassigned') {
 			uiu.qsEach('.upcoming_container', (upcoming_container) => {
@@ -818,11 +819,56 @@ var ctournament = (function() {
 			cmatch.update_tables(loc._id, checkbox.checked);
 		});
 	}
+
+	function build_location_view_menu_items() {
+		const base_path = '/admin/t/' + encodeURIComponent(curt.key);
+		const bup_lang = ((curt.language && curt.language !== 'auto') ? '&lang=' + encodeURIComponent(curt.language) : '');
+		const bup_dm_style = '&dm_style=' + encodeURIComponent(curt.dm_style || 'international');
+		const locations = curt.locations || [];
+
+		function section_items(label, path_suffix) {
+			const items = [{
+				label,
+				href: base_path + path_suffix,
+			}];
+
+			locations.forEach((loc) => {
+				const params = new URLSearchParams({ location: loc.name });
+				items.push({
+					label: label + ' (' + ci18n('only location') + ' ' + loc.name + ')',
+					href: base_path + path_suffix + '?' + params.toString(),
+				});
+			});
+
+			items.push({ class: 'toprow_menu_separator' });
+			return items;
+		}
+
+		const view_items = [
+			...section_items(ci18n('Matchoverview'), '/upcoming'),
+			...section_items(ci18n('Current Matches'), '/current_matches'),
+			...section_items(ci18n('Next Matches'), '/next_matches'),
+		];
+		if (view_items.length > 0 && view_items[view_items.length - 1].class === 'toprow_menu_separator') {
+			view_items.pop();
+		}
+
+		return [{
+			label: ci18n('Scoreboard'),
+			href: '/bup/#btsh_e=' + encodeURIComponent(curt.key) + '&display' + bup_dm_style + bup_lang,
+		}, {
+			class: 'toprow_menu_separator',
+		}, {
+			label: ci18n('Umpire Panel'),
+			href: '/bup/#btsh_e=' + encodeURIComponent(curt.key) + bup_lang,
+		}, {
+			class: 'toprow_menu_separator',
+		},
+		...view_items];
+	}
 	function ui_show() {
 		current_view = 'show'
 		crouting.set('t/:key/', { key: curt.key });
-		const bup_lang = ((curt.language && curt.language !== 'auto') ? '&lang=' + encodeURIComponent(curt.language) : '');
-		const bup_dm_style = '&dm_style=' + encodeURIComponent(curt.dm_style || 'international');
 		toprow.set([{
 			label: ci18n('Tournaments'),
 			func: ui_list,
@@ -831,20 +877,9 @@ var ctournament = (function() {
 			func: ui_show,
 			'class': 'ct_name',
 		}], [{
-			label: ci18n('Scoreboard'),
-			href: '/bup/#btsh_e=' + encodeURIComponent(curt.key) + '&display' + bup_dm_style + bup_lang,
-		}, {
-			label: ci18n('Umpire Panel'),
-			href: '/bup/#btsh_e=' + encodeURIComponent(curt.key) + bup_lang,
-		}, {
-			label: ci18n('Matchoverview'),
-			href: '/admin/t/' + encodeURIComponent(curt.key) + '/upcoming',
-		}, {
-			label: ci18n('Current Matches'),
-			href: '/admin/t/' + encodeURIComponent(curt.key) + '/current_matches',
-		}, {
-			label: ci18n('Next Matches'),
-			href: '/admin/t/' + encodeURIComponent(curt.key) + '/next_matches',
+			label: '\u2630',
+			class: 'toprow_menu_button',
+			items: build_location_view_menu_items(),
 		}]);
 
 		const main = uiu.qs('.main');
@@ -3765,6 +3800,29 @@ function update_officials() {
 		cmatch.render_upcoming_matches(upcoming_container);
 	}
 
+	function rerender_public_match_views(old_section, new_section) {
+		const affects_courts = (
+			old_section.startsWith('court_') ||
+			new_section.startsWith('court_')
+		);
+		const affects_upcoming = (
+			old_section === 'unassigned' ||
+			new_section === 'unassigned'
+		);
+
+		if ((current_view === 'upcoming' || current_view === 'current_matches') && affects_courts) {
+			uiu.qsEach('.courts_container', (courts_container) => {
+				cmatch.render_courts(courts_container, 'public');
+			});
+		}
+
+		if ((current_view === 'upcoming' || current_view === 'next_matches') && affects_upcoming) {
+			uiu.qsEach('.upcoming_container', (upcoming_container) => {
+				cmatch.render_upcoming_matches(upcoming_container);
+			});
+		}
+	}
+
 	function ui_upcoming() {
 		current_view = 'upcoming';
 		const main = ui_match_screens('t/:key/upcoming');
@@ -3784,15 +3842,12 @@ function update_officials() {
 	}
 
 	function ui_match_screens(route) {
-		current_view = 'match_screen';
 		crouting.set(route, { key: curt.key });
 		toprow.hide();
 		const main = uiu.qs('.main');
 		uiu.empty(main);
 		main.classList.add('main_upcoming');
-		main.addEventListener('click', () => {
-			fullscreen.toggle();
-		});
+		main.onclick = () => fullscreen.toggle();
 		return main;
 	}
 
@@ -3803,13 +3858,13 @@ function update_officials() {
 		update_player_status: update_player_status, 
 	}));
 
-	_route_single(/t\/([a-z0-9]+)\/current_matches/, ui_current_matches, change.default_handler(_update_all_ui_elements_upcoming, {
+	_route_single(/t\/([a-z0-9]+)\/current_matches/, ui_current_matches, change.default_handler(_update_all_ui_elements_current_matches, {
 		score: update_score,
 		court_current_match: update_upcoming_current_match,
 		match_edit: update_upcoming_match,
 		update_player_status: update_player_status,
 	}));
-	_route_single(/t\/([a-z0-9]+)\/next_matches/, ui_next_matches, change.default_handler(_update_all_ui_elements_upcoming, {
+	_route_single(/t\/([a-z0-9]+)\/next_matches/, ui_next_matches, change.default_handler(_update_all_ui_elements_next_matches, {
 		score: update_score,
 		court_current_match: update_upcoming_current_match,
 		match_edit: update_upcoming_match,

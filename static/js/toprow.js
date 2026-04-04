@@ -10,6 +10,34 @@ function update_container(container, elems, with_sep) {
 			uiu.el(container, 'span', 'toprow_sep', '>');
 		}
 
+		if (el.class === 'toprow_menu_separator') {
+			uiu.el(container, 'div', 'toprow_menu_separator');
+			return;
+		}
+
+		if (el.items && Array.isArray(el.items)) {
+			const menu = uiu.el(container, 'div', 'toprow_menu');
+			uiu.el(menu, 'span', 'toprow_link vlink toprow_menu_label', el.label);
+			const dropdown = uiu.el(menu, 'div', 'toprow_menu_dropdown');
+			el.items.forEach(function(item) {
+				if (item.class === 'toprow_menu_separator') {
+					uiu.el(dropdown, 'div', 'toprow_menu_separator');
+					return;
+				}
+				const item_attrs = {
+					'class': 'toprow_menu_item' + ((item.func || item.href) ? ' vlink' : '') + (item.class ? (' ' + item.class) : ''),
+				};
+				if (item.href) {
+					item_attrs.href = item.href;
+				}
+				const item_el = uiu.el(dropdown, (item.href ? 'a' : 'span'), item_attrs, item.label);
+				if (item.func) {
+					item_el.addEventListener('click', item.func);
+				}
+			});
+			return;
+		}
+
 		const css_class = 'toprow_link' + ((el.func || el.href) ? ' vlink' : '') + (el.class ? (' ' + el.class) : '');
 		const attrs = {
 			'class': css_class,
