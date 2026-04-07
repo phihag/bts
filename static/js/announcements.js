@@ -22,7 +22,11 @@ function announceNewMatch(matchSetup) {
     const umpire = createUmpire(matchSetup);
     const serviceJudge = createServiceJudge(matchSetup);
     const tabletOperator = createTabletOperator(matchSetup);
-    announce([field, matchNumber, eventName, round, teams, umpire, serviceJudge, tabletOperator, field]);
+    announce(
+        [field, matchNumber, eventName, round, teams, umpire, serviceJudge, tabletOperator, field],
+        false,
+        buildAnnouncementClaimKey(matchSetup, 'match_called_on_court')
+    );
 }
 
 function announcePreparationMatch(matchSetup) {
@@ -42,7 +46,11 @@ function announcePreparationMatch(matchSetup) {
     if (curt.preparation_meetingpoint_enabled) {
         lastPart = createMeetingPointAnnouncement(matchSetup);
     }
-    announce([preparation, field, matchNumber, eventName, round, teams, umpire, serviceJudge, tabletOperator, lastPart]);
+    announce(
+        [preparation, field, matchNumber, eventName, round, teams, umpire, serviceJudge, tabletOperator, lastPart],
+        false,
+        buildAnnouncementClaimKey(matchSetup, 'match_preparation_call')
+    );
 }
 function announceSecondCallTeamOne(matchSetup) {
     if(!(window.localStorage.getItem('enable_announcement_calls_' + getLocationID(matchSetup)) === 'true')) {
@@ -404,6 +412,53 @@ function createMeetingPointAnnouncement(matchSetup) {
 
 let emergencyInterval = null;
 let emergencyAudio = null;
+const ANNOUNCEMENT_DEDUP_TTL_MS = 2500;
+const ANNOUNCEMENT_TAB_ID = `${Date.now()}_${Math.random().toString(36).slice(2)}`;
+const announcementPlaybackQueue = [];
+let announcementPlaybackActive = false;
+let announcementVoicesPromise = null;
+
+function buildAnnouncementClaimKey(matchSetup, kind) {
+    const explicit = matchSetup && matchSetup._announcement_claim_key;
+    if (explicit) {
+        return explicit;
+    }
+    const matchId = matchSetup && (matchSetup._match_id || matchSetup.match_id || matchSetup.id || matchSetup.btp_id);
+    return matchId ? `${kind}:${matchId}` : null;
+}
+
+function announcementFingerprint(callArray) {
+    let hash = 0;
+    const input = JSON.stringify(callArray || []);
+    for (let i = 0; i < input.length; i++) {
+        hash = ((hash << 5) - hash) + input.charCodeAt(i);
+        hash |= 0;
+    }
+    return String(hash);
+}
+
+function claimAnnouncementPlayback(callArray, claimKey) {
+    const now = Date.now();
+    const key = `announcement_claim_${claimKey || announcementFingerprint(callArray)}`;
+    try {
+        const raw = window.localStorage.getItem(key);
+        if (raw) {
+            const current = JSON.parse(raw);
+            if (current && current.expires_at && current.expires_at > now) {
+                return false;
+            }
+        }
+        const claim = JSON.stringify({
+            owner: ANNOUNCEMENT_TAB_ID,
+            expires_at: now + ANNOUNCEMENT_DEDUP_TTL_MS
+        });
+        window.localStorage.setItem(key, claim);
+        const confirmed = JSON.parse(window.localStorage.getItem(key) || 'null');
+        return !!confirmed && confirmed.owner === ANNOUNCEMENT_TAB_ID;
+    } catch (e) {
+        return true;
+    }
+}
 
 function emergency_announce(enable) {
 
@@ -441,55 +496,93 @@ function emergency_announce(enable) {
     }
 }
 
-function announce(callArray, local) {
-    if(!(window.localStorage.getItem('enable_free_announcements') === 'true') && !local) {
-        return;
+function getAnnouncementVoices() {
+    if (announcementVoicesPromise) {
+        return announcementVoicesPromise;
     }
-    
-    // Seems like the getVoices() is an asynchronous function where it is not always guaranteed that you get a 
-    // result immediately. The wait for the result must therefore be handled:
-    // https://stackoverflow.com/questions/21513706/getting-the-list-of-voices-in-speechsynthesis-web-speech-api
-    const allVoicesObtained = new Promise(function (resolve, reject) {
+    announcementVoicesPromise = new Promise(function (resolve) {
         let voices = window.speechSynthesis.getVoices();
         if (voices.length !== 0) {
             resolve(voices);
-        } else {
-            window.speechSynthesis.addEventListener("voiceschanged", function () {
-                voices = window.speechSynthesis.getVoices();
-                resolve(voices);
-            });
+            return;
         }
+        const onVoicesChanged = function () {
+            window.speechSynthesis.removeEventListener("voiceschanged", onVoicesChanged);
+            voices = window.speechSynthesis.getVoices();
+            resolve(voices);
+        };
+        window.speechSynthesis.addEventListener("voiceschanged", onVoicesChanged);
     });
+    return announcementVoicesPromise;
+}
 
-    allVoicesObtained.then(voices => {
-        var voice = null;
-        for (var i = 0; i < voices.length; i++) {
-            if (voices[i].voiceURI == ci18n('announcements:voice')) {
-                voice = voices[i];
-                break;
-            }
+function findAnnouncementVoice(voices) {
+    for (let i = 0; i < voices.length; i++) {
+        if (voices[i].voiceURI == ci18n('announcements:voice')) {
+            return voices[i];
         }
-        for (var i = 0; i < callArray.length; i++) {
-            const part = callArray[i];
-            if (part && part != null) {
-                var words = new SpeechSynthesisUtterance(part);
-                words.lang = ci18n('announcements:lang');
-                words.rate = curt.announcement_speed ? curt.announcement_speed : 1.05;
-                words.pitch = 0;
-                words.volume = 1;
-                words.voice = voice;
-                if (i == 0) {
-                    if (window.speechSynthesis.speaking) {
-                        words.onstart = function () {
-                            window.speechSynthesis.pause();
-                            setTimeout(() => {
-                                window.speechSynthesis.resume();
-                            }, curt.announcement_pause_time_ms ? curt.announcement_pause_time_ms * 1000 : 2000);
-                        }
-                    }
-                }
-                window.speechSynthesis.speak(words);
-            }
+    }
+    return null;
+}
+
+function playAnnouncementBatch(parts, voice, done) {
+    const filteredParts = (parts || []).filter((part) => !!part);
+    let index = 0;
+    const playNext = () => {
+        if (index >= filteredParts.length) {
+            done();
+            return;
         }
+        const words = new SpeechSynthesisUtterance(filteredParts[index]);
+        words.lang = ci18n('announcements:lang');
+        words.rate = curt.announcement_speed ? curt.announcement_speed : 1.05;
+        words.pitch = 0;
+        words.volume = 1;
+        words.voice = voice;
+        words.onend = function () {
+            index += 1;
+            playNext();
+        };
+        words.onerror = function () {
+            index += 1;
+            playNext();
+        };
+        window.speechSynthesis.speak(words);
+    };
+    playNext();
+}
+
+function processAnnouncementPlaybackQueue() {
+    if (announcementPlaybackActive) {
+        return;
+    }
+    const nextBatch = announcementPlaybackQueue.shift();
+    if (!nextBatch) {
+        return;
+    }
+    announcementPlaybackActive = true;
+    getAnnouncementVoices().then((voices) => {
+        const voice = findAnnouncementVoice(voices);
+        playAnnouncementBatch(nextBatch.callArray, voice, () => {
+            const pauseMs = curt.announcement_pause_time_ms ? (curt.announcement_pause_time_ms * 1000) : 2000;
+            setTimeout(() => {
+                announcementPlaybackActive = false;
+                processAnnouncementPlaybackQueue();
+            }, pauseMs);
+        });
+    }).catch(() => {
+        announcementPlaybackActive = false;
+        processAnnouncementPlaybackQueue();
     });
+}
+
+function announce(callArray, local, claimKey) {
+    if(!(window.localStorage.getItem('enable_free_announcements') === 'true') && !local) {
+        return;
+    }
+    if (!local && !claimAnnouncementPlayback(callArray, claimKey)) {
+        return;
+    }
+    announcementPlaybackQueue.push({ callArray });
+    processAnnouncementPlaybackQueue();
 }

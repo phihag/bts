@@ -46,6 +46,9 @@ function handle(mod, app, ws) {
 				serror.silent('Received error message from client: ' + msg.message);
 				return;
 			}
+			if (msg.tournament_key) {
+				ws.last_tournament_key = msg.tournament_key;
+			}
 
 			const func = mod['handle_' + msg.type];
 			if (func) {
