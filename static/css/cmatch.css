@@ -374,20 +374,46 @@ match_manual_call_button,
 	font-weight: bold;
 }
 
-.checked_in {
-	background-color: #adffcb;
-}
-
 .can_check_out {
 	cursor: url('../icons/check_out.png')15 15, auto;
 }
 
-.not_checked_in {
+.can_check_in {
+	cursor: url('../icons/check_in.png')15 15, auto;
+}
+
+.person_status_target {
+	display: inline-block;
+	padding: 0 0.15em;
+}
+
+.checked_in > .person_status_target {
+	background-color: #adffcb;
+}
+
+.not_checked_in > .person_status_target {
 	background-color: #ffabab;
 }
 
-.can_check_in {
+.player.checked_in {
+	background-color: #adffcb;
+}
+
+.player.not_checked_in {
+	background-color: #ffabab;
+}
+
+.person.can_check_in:not(.player),
+.person.can_check_out:not(.player) {
+	cursor: default;
+}
+
+.person.can_check_in:not(.player) > .person_status_target {
 	cursor: url('../icons/check_in.png')15 15, auto;
+}
+
+.person.can_check_out:not(.player) > .person_status_target {
+	cursor: url('../icons/check_out.png')15 15, auto;
 }
 
 .now_playing {
@@ -681,6 +707,7 @@ match_manual_call_button,
 .umpire,
 .service_judge,
 .no_umpire,
+.no_service_judge,
 .court,
 .court_history,
 .court_upcoming {
@@ -722,6 +749,7 @@ match_manual_call_button,
 .umpire,
 .service_judge,
 .no_umpire,
+.no_service_judge,
 .match_no_umpire {
 	text-wrap: nowrap;
 }
@@ -742,6 +770,64 @@ match_manual_call_button,
 
 .no_umpire {
 	background-image: url(../icons/no_umpire.svg);
+}
+
+.no_umpire_add {
+	position: relative;
+	filter: grayscale(0);
+	cursor: pointer;
+}
+
+.no_umpire_add:hover {
+	filter: grayscale(0);
+	background-image: url(../icons/umpire.svg);
+}
+
+.umpire.can_add_service_judge {
+	position: relative;
+	overflow: visible;
+	cursor: pointer;
+}
+
+.umpire.can_add_service_judge::before {
+	content: '';
+	position: absolute;
+	left: 0.45em;
+	top: 0.18em;
+	width: 1.45em;
+	height: 1em;
+	background-image: url(../icons/service_judge.svg);
+	background-size: contain;
+	background-repeat: no-repeat;
+	background-position: center center;
+	opacity: 0;
+	pointer-events: none;
+}
+
+.umpire.can_add_service_judge:hover::before {
+	opacity: 1;
+}
+
+.no_umpire_add::after,
+.umpire.can_add_service_judge::after {
+	content: '+';
+	position: absolute;
+	right: -0.18em;
+	bottom: -0.45em;
+	font-size: 2.3em;
+	line-height: 1;
+	font-weight: 900;
+	color: #1fb14e;
+	text-shadow: none;
+	-webkit-text-stroke-width: 0;
+	opacity: 0;
+	transition: opacity 120ms ease-out;
+	pointer-events: none;
+}
+
+.no_umpire_add:hover::after,
+.umpire.can_add_service_judge:hover::after {
+	opacity: 1;
 }
 
 .court{

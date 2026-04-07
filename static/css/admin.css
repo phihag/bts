@@ -529,90 +529,432 @@ h2.edit {
     overflow-wrap: break-word;
 }
 
+.official_split_section,
 .paralel {
-  display: flex;
-  flex-direction: row;
-  justify-content: space-between;
-  align-items: flex-start;   /* <<< DAS ist entscheidend */
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 10px minmax(0, 1fr);
+  gap: 0;
+  align-items: start;
 }
 
-.paralel > table {
-  flex: 1;
+.official_role_split_column {
+  min-width: 0;
 }
 
-/* Tabellenlayout stabil halten */
-.officials_table {
-  table-layout: fixed;
-  width: 100%;
-}
-
-/* rechte zwei Spalten fix 50px */
-.officials_table th:nth-child(2),
-.officials_table td:nth-child(2),
-.officials_table th:nth-child(3),
-.officials_table td:nth-child(3) {
-  width: 50px;
-  min-width: 50px;
-  max-width: 50px;
-}
-
-/* Checkbox-Zellen zentrieren */
-.officials_table td:nth-child(2),
-.officials_table td:nth-child(3) {
-  text-align: center;
-  vertical-align: middle;
-}
-
-/* Falls create_simple_checkbox ein <input> erzeugt */
-.officials_table td:nth-child(2) input,
-.officials_table td:nth-child(3) input {
-  margin: 0 auto;
-  display: block;
-}
-
-/* Header-Icons zentrieren */
-.officials_table th:nth-child(2),
-.officials_table th:nth-child(3) {
-  text-align: center;
-  vertical-align: middle;
-}
-
-.officials_table th:nth-child(2) > div,
-.officials_table th:nth-child(3) > div {
-  margin: 0 auto;
+.official_role_split_space {
+  background: #eee;
+  align-self: stretch;
 }
 
 .space {
-	width: 10px;
+  background: #eee;
+  align-self: stretch;
 }
 
- * /* Normalzustand: gleiche Grundfarbe wie Tabelle/Rows (oder transparent) */
-.drop-zone td {
-	background: inherit;
+.officials_list,
+.officials_dual_list {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  background: #ddd;
 }
 
-
-/* Sobald eine Row gezogen wird, werden alle Drop-Zonen gelblich */
-tbody.drop-zones-active .drop-zone td {
-	background: rgba(255, 215, 0, 0.35);
+.officials_row,
+.officials_dual_row {
+  background: #fff;
 }
 
-/* Aktuell anvisierte Zone stärker */
-tbody.drop-zones-active .drop-zone.drop-zone-hover td {
-	background: rgba(255, 215, 0, 0.65);
+.officials_row {
+  display: grid;
+  grid-template-columns: 38px minmax(0, 1fr) 50px 50px;
+  align-items: stretch;
 }
 
-tr[data-official-id] {
+.officials_row:not(.officials_list_header)[data-official-id] {
   cursor: grab;
 }
 
-tr.dragging {
+.officials_row.dragging,
+.official_assignment_slot.dragging {
   cursor: grabbing;
   opacity: 0.5;
 }
 
-tr.table-spacer td {
-  padding: 0;
-  border: none;
+.officials_list_header,
+.officials_dual_header {
+  background: #ccc;
+  font-weight: 600;
+}
+
+.officials_cell,
+.officials_dual_cell {
+  min-width: 0;
+  padding: 4px 6px;
+  display: flex;
+  align-items: center;
+  box-sizing: border-box;
+}
+
+.officials_cell_name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.officials_cell_leading {
+  width: 38px;
+  min-width: 38px;
+  max-width: 38px;
+  justify-content: center;
+  padding-left: 0;
+  padding-right: 0;
+}
+
+.officials_cell_role {
+  width: 50px;
+  min-width: 50px;
+  max-width: 50px;
+  justify-content: center;
+}
+
+.officials_cell_role input {
+  margin: 0;
+}
+
+.officials_dual_list {
+  gap: 1px;
+}
+
+.officials_dual_row {
+  display: grid;
+  grid-template-columns: 38px minmax(0, 1fr) 50px 50px 10px minmax(0, 1fr) 50px 50px;
+  align-items: stretch;
+}
+
+.officials_dual_center_space {
   background: #eee;
+  padding: 0;
+}
+
+.officials_table_on_court .officials_cell_name {
+  color: #666;
+}
+
+.officials_table_on_court .officials_cell_leading,
+.officials_table_on_court .officials_cell_role,
+.officials_table_in_preparation .officials_cell_leading,
+.officials_table_in_preparation .officials_cell_role {
+  color: inherit;
+}
+
+.officials_table_court_inactive {
+  filter: grayscale(1);
+  opacity: 0.45;
+}
+
+.officials_role_toggle {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+}
+
+.officials_drop_zone {
+  height: 12px;
+  background: inherit;
+}
+
+.officials_list.drop-zones-active .officials_drop_zone,
+.officials_dual_list.drop-zones-active .official_assignment_slot.drop-zone {
+  background: rgba(255, 215, 0, 0.35);
+}
+
+.officials_list.drop-zones-active .officials_drop_zone.drop-zone-hover,
+.officials_dual_list.drop-zones-active .official_assignment_slot.drop-zone.drop-zone-hover {
+  background: rgba(255, 215, 0, 0.65);
+}
+
+.official_drag_image_table {
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+.official_drag_image_cell {
+  box-sizing: border-box;
+}
+
+.official_section_body {
+  display: flex;
+  gap: 10px;
+  align-items: stretch;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+  row-gap: 0;
+}
+
+.official_on_court_row {
+  display: grid;
+  grid-template-columns: 65px minmax(0, 1fr) minmax(0, 1fr);
+  gap: 10px;
+  align-items: stretch;
+  width: 100%;
+  padding: 8px 0;
+}
+
+.official_inactive_row {
+  grid-template-columns: 65px minmax(0, 1fr);
+}
+
+.official_section_body > .official_on_court_row:nth-child(odd) {
+  background: #bbb;
+}
+
+.official_section_body > .official_on_court_row:nth-child(even) {
+  background: #ccc;
+}
+
+.official_on_court_leading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.official_preparation_leading {
+  font-weight: 700;
+}
+
+.official_on_court_leading .court {
+  transform: scale(1.5);
+  transform-origin: center;
+}
+
+.official_on_court_slot {
+  min-height: 1px;
+}
+
+.official_on_court_slot > .official_card_frame {
+  width: 100%;
+}
+
+.official_card_frame {
+  width: 400px;
+  height: 38px;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  border-radius: 8px;
+}
+
+.official_card_skin {
+  background: #fff4b8;
+  border: 1px solid #d6c36a;
+  padding: 4px 9px 4px 4px;
+}
+
+.official_card_skin.official_card_variant_on_court {
+  background: #dddddd;
+  border-color: #666666;
+  color: #666666;
+}
+
+.official_card_skin.official_card_variant_checked_in {
+  background: #adffcb;
+  border-color: #6fbe8d;
+  color: #000000;
+}
+
+.official_card_skin.official_card_variant_not_checked_in {
+  background: #ffabab;
+  border-color: #cf7f7f;
+  color: #000000;
+}
+
+.official_card_skin.official_card_variant_list {
+  background: #dddddd;
+  border-color: #000000;
+  color: #000000;
+}
+
+.official_card_skin.official_card_placeholder {
+  background: transparent;
+  border: 1px dashed #999;
+}
+
+.official_card_skin.official_card_placeholder > * {
+  visibility: hidden;
+}
+
+.official_card_skin.official_card_variant_on_court .official_card_icon,
+.official_card_skin.official_card_variant_on_court .official_card_trail_icon {
+  filter: none;
+  opacity: 1;
+}
+
+.official_card_skin.official_card_variant_on_court .official_card_trail_swap {
+  color: #000000;
+  opacity: 1;
+}
+
+.official_card_frame.official_card_placeholder_compact {
+  height: 12px;
+  margin: 0;
+  transition: none;
+}
+
+.official_card_frame.official_card_placeholder_hoverlike {
+  height: 38px;
+  margin: 14px 0;
+}
+
+.official_card_skin.official_card_placeholder.official_card_placeholder_activelike {
+  background: #fff4b8;
+  border-color: #d6c36a;
+}
+
+.official_card_skin.official_card_placeholder.official_card_placeholder_hoverlike {
+  background: #ffe97a;
+  border-color: #c6a800;
+}
+
+.official_card_drop {
+  border: 1px dashed transparent;
+  background: transparent;
+  transition: background-color 90ms linear, border-color 90ms linear, height 110ms ease-out, margin 110ms ease-out;
+}
+
+.officials_drag_active .official_card_drop {
+  border-color: #999;
+}
+
+.official_card_drop.official_card_drop_disabled {
+  border-color: transparent;
+}
+
+.official_card_drop.official_card_drop_active {
+  background: #fff4b8;
+  border-color: #d6c36a;
+}
+
+.official_card_drop.official_card_drop_hover {
+  background: #ffe97a;
+  border-color: #c6a800;
+}
+
+.official_card_stack > .official_card_drop {
+  height: 12px;
+  margin: 0;
+}
+
+.official_card_stack > .official_card_drop.official_card_drop_terminal {
+  height: 38px;
+  margin: 14px 0;
+}
+
+.official_card_stack > .official_card_drop.official_card_drop_active {
+  height: 12px;
+}
+
+.official_card_stack > .official_card_drop.official_card_drop_terminal.official_card_drop_active,
+.official_card_stack > .official_card_drop.official_card_drop_terminal.official_card_drop_hover,
+.official_card_stack > .official_card_drop.official_card_drop_terminal.official_card_drop_hover.official_card_drop_hover_expand {
+  height: 38px;
+  margin: 14px 0;
+}
+
+.official_card_stack.official_card_stack_has_nonterminal_hover > .official_card_drop.official_card_drop_terminal,
+.official_card_stack.official_card_stack_has_nonterminal_hover > .official_card_drop.official_card_drop_terminal.official_card_drop_active,
+.official_card_stack.official_card_stack_has_nonterminal_hover > .official_card_drop.official_card_drop_terminal.official_card_drop_hover,
+.official_card_stack.official_card_stack_has_nonterminal_hover > .official_card_drop.official_card_drop_terminal.official_card_drop_hover.official_card_drop_hover_expand {
+  height: 12px;
+  margin: 0;
+}
+
+.official_card_stack > .official_card_drop.official_card_drop_suppressed {
+  display: none;
+  background: transparent;
+  border-color: transparent;
+  pointer-events: none;
+}
+
+.official_card_stack > .official_card_drop.official_card_drop_hover {
+  height: 12px;
+}
+
+.official_card_stack > .official_card_drop.official_card_drop_hover.official_card_drop_hover_expand {
+  height: 38px;
+  margin: 14px 0;
+}
+
+.official_card_stack {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.official_card_frame .official_card_icon {
+  flex: 0 0 auto;
+  width: 1.75em;
+  min-width: 1.75em;
+  align-self: stretch;
+  height: auto;
+  min-height: 0;
+  margin: 0 !important;
+  background-size: contain;
+  background-position: center center;
+  background-repeat: no-repeat;
+}
+
+.official_card_name {
+  min-width: 0;
+  font-size: 1.2em;
+  display: flex;
+  align-items: center;
+  flex: 1 1 auto;
+}
+
+.official_card_dragging {
+  opacity: 1;
+}
+
+.official_card_trail {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0;
+  margin-left: auto;
+  cursor: pointer;
+}
+
+.official_card_frame .official_card_trail_icon {
+  width: 1em;
+  min-width: 1em;
+  height: 1em;
+  min-height: 1em;
+  margin: 0 !important;
+  background-size: contain;
+  background-position: center center;
+  background-repeat: no-repeat;
+}
+
+.official_card_trail_swap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 0.7em;
+  min-width: 0.7em;
+  font-size: 0.75em;
+  line-height: 1;
+  color: #444;
+}
+
+.official_card_trail[data-state="service_only"] .official_card_trail_icon.umpire,
+.official_card_trail[data-state="umpire_only"] .official_card_trail_icon.service_judge {
+  filter: grayscale(1);
+  opacity: 0.45;
+}
+
+.official_card_trail[data-state="service_only"] .official_card_trail_swap,
+.official_card_trail[data-state="umpire_only"] .official_card_trail_swap {
+  visibility: hidden;
 }

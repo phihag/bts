@@ -27,6 +27,18 @@ function calc_section(m) {
 	return 'unassigned';
 }
 
+function resolve_match_court(match, court) {
+	if (court) {
+		return court;
+	}
+	if (!match || !match.setup || !match.setup.court_id || !curt) {
+		return null;
+	}
+	return (curt.courts_by_id && curt.courts_by_id[match.setup.court_id])
+		|| utils.find(curt.courts || [], (c) => c._id == match.setup.court_id)
+		|| null;
+}
+
 function auto_scroll() {
 	if (is_paused) {
 		return;
@@ -203,9 +215,7 @@ function render_match_row(tr, match, court, style, show_player_status, show_add_
 		return;
 	}
 
-	if (!court && match.setup.court_id) {
-		court = curt.courts_by_id[match.setup.court_id];
-	}
+	court = resolve_match_court(match, court);
 
 	const completeMatch = (match.setup.teams[0].players.length >= 1 && match.setup.teams[1].players.length >= 1);
 
@@ -372,27 +382,31 @@ function render_match_row(tr, match, court, style, show_player_status, show_add_
 
 		if(style != 'public') {		
 			const to_td = uiu.el(tr, 'td', 'umpire_and_tablet');
-			const show_participant_check_in_status = !setup.now_on_court;
+			const show_participant_check_in_status = (style === 'unasigned');
 			if (style === 'default' || style === 'plain' || style === 'unasigned') {
 				if (setup.umpire && setup.umpire.name) {
 					const umpire_span = render_match_participant_el(to_td, setup.umpire, match._id, 'umpire', 'umpire', show_participant_check_in_status);
 
-					if(style === 'unasigned' && match.setup.highlight >= 1){
+					if (style === 'unasigned' && match.setup.highlight >= 1) {
 						create_match_button(umpire_span, 'vlink match_second_preparation_call_button', 'match:secondcallumpire', on_second_preparation_call_umpire_button_click, match._id);
 					}
-				if (style === 'default' || style === 'plain' || style === 'unasigned') {
 					create_match_button(umpire_span, 'vlink match_second_call_button', 'match:secondcallumpire', on_second_call_umpire_button_click, match._id);
-					}
-					if (setup.service_judge && setup.service_judge.name) {
 
+					if (setup.service_judge && setup.service_judge.name) {
 						const service_judge_span = render_match_participant_el(to_td, setup.service_judge, match._id, 'service_judge', 'service_judge', show_participant_check_in_status);
-						if(style === 'unasigned' && match.setup.highlight >= 1){
+						if (style === 'unasigned' && match.setup.highlight >= 1) {
 							create_match_button(service_judge_span, 'vlink match_second_preparation_call_button', 'match:secondcallservicejudge', on_second_preparation_call_servicejudge_button_click, match._id);
 						}
-					if (style === 'default' || style === 'plain' || style === 'unasigned') {
 						create_match_button(service_judge_span, 'vlink match_second_call_button', 'match:secondcallservicejudge', on_second_call_servicejudge_button_click, match._id);
+					} else {
+						const umpire_icon = umpire_span.querySelector('.umpire');
+						if (umpire_icon) {
+							umpire_icon.classList.add('can_add_service_judge');
+							umpire_icon.setAttribute('title', ci18n('match:add_service_judge'));
+							umpire_icon.setAttribute('data-match_id', match._id);
+							umpire_icon.addEventListener('click', on_add_service_judge_button);
+						}
 					}
-				}
 				}
 				if (setup.tabletoperators && setup.tabletoperators.length > 0) {
 					const tablet_div = uiu.el(to_td, 'div', 'tablet_operator', '');
@@ -413,7 +427,8 @@ function render_match_row(tr, match, court, style, show_player_status, show_add_
 
 			if (!setup.umpire && (!setup.tabletoperators || setup.tabletoperators.length == 0)) {
 				const no_umpire_span = uiu.el(to_td, 'span', 'person');
-				create_match_button(no_umpire_span, 'vlink no_umpire', 'match:add_officials', on_add_officials_button, match._id);
+				const no_umpire_button_class = style === 'unasigned' ? 'vlink no_umpire no_umpire_add' : 'vlink no_umpire';
+				create_match_button(no_umpire_span, no_umpire_button_class, 'match:add_umpire', on_add_officials_button, match._id);
 				uiu.el(no_umpire_span, 'span', 'match_no_umpire', ci18n('No umpire'));
 			
 			}
@@ -572,7 +587,7 @@ function render_match_row(tr, match, court, style, show_player_status, show_add_
 	return resizable_elements;
 }
 
-function on_add_officials_button(e) {
+const on_add_officials_button = (e) => {
 	const match = fetchMatchFromEvent(e);
 	if (match != null) {
 		send({
@@ -585,7 +600,22 @@ function on_add_officials_button(e) {
 			}
 		});
 	}
-}
+};
+
+const on_add_service_judge_button = (e) => {
+	const match = fetchMatchFromEvent(e);
+	if (match != null) {
+		send({
+			type: 'add_service_judge_to_match',
+			tournament_key: curt.key,
+			match_id: match._id,
+		}, err => {
+			if (err) {
+				return cerror.net(err);
+			}
+		});
+	}
+};
 
 function short_name (first_names, last_name, name) {
 	if(first_names && last_name){
@@ -601,7 +631,18 @@ function create_match_button(targetEl, cssClass, title, listener, matchId,) {
 		'title': ci18n(title),
 		'data-match_id': matchId,
 	});
-	btn.addEventListener('click', listener);
+	btn.draggable = false;
+	btn.addEventListener('mousedown', function (ev) {
+		ev.stopPropagation();
+	});
+	btn.addEventListener('dragstart', function (ev) {
+		ev.preventDefault();
+		ev.stopPropagation();
+	});
+	btn.addEventListener('click', function (ev) {
+		ev.stopPropagation();
+		listener(ev);
+	});
 }
 
 function create_match_prepparation_button(targetEl, cssClass, title, listener, matchId, location){
@@ -805,7 +846,7 @@ function render_match_participant_el(parentNode, participant, match_id, role, ic
 
 	participant_el.innerHTML = '';
 	uiu.el(participant_el, 'div', icon_class, '');
-	uiu.el(participant_el, 'span', 'name', participant.name || short_name(participant.firstname, participant.lastname || participant.surname, participant.name));
+	const name_el = uiu.el(participant_el, 'span', 'name', participant.name || short_name(participant.firstname, participant.lastname || participant.surname, participant.name));
 
 	if (show_check_in_status && participant.btp_id != null && participant.btp_id >= 0) {
 		if (participant_status === 'checked_in') {
@@ -814,7 +855,8 @@ function render_match_participant_el(parentNode, participant, match_id, role, ic
 			participant_el.classList.add('can_check_in');
 		}
 
-		participant_el.addEventListener('click', function(ev) {
+		name_el.classList.add('person_status_target');
+		name_el.addEventListener('click', function(ev) {
 			send({
 				type: 'match_participant_check_in',
 				match_id,
@@ -828,6 +870,7 @@ function render_match_participant_el(parentNode, participant, match_id, role, ic
 				}
 			});
 			ev.stopPropagation();
+			ev.preventDefault();
 		}, false);
 	}
 
@@ -856,9 +899,9 @@ function render_player_el(parentNode, player, match_id, now_on_court, show_playe
 		if(curt.btp_settings.check_in_per_match) {
 			send({
 				type: 'match_player_check_in',
-				match_id: ev.target.getAttribute("data-match_id"),
-				player_id: ev.target.getAttribute("data-btp_id"),
-				checked_in: (ev.target.classList.contains('not_checked_in') ? true : false),
+				match_id,
+				player_id: player.btp_id,
+				checked_in: (player_status == "not_checked_in"),
 				tournament_key: curt.key
 			}, function (err) {
 				if (err) {
@@ -866,6 +909,8 @@ function render_player_el(parentNode, player, match_id, now_on_court, show_playe
 				}
 			});
 		}
+		ev.stopPropagation();
+		ev.preventDefault();
 	}, false);
 
 
@@ -1437,8 +1482,10 @@ function on_announce_match_manually_button_click(e) {
 	}
 }
 function fetchMatchFromEvent(e) {
-	const btn = e.target;
-	const match_id = btn.getAttribute('data-match_id');
+	const btn = (e.currentTarget && e.currentTarget.getAttribute && e.currentTarget.getAttribute('data-match_id'))
+		? e.currentTarget
+		: (e.target && e.target.closest ? e.target.closest('[data-match_id]') : null);
+	const match_id = btn ? btn.getAttribute('data-match_id') : null;
 	const match = utils.find(curt.matches, m => m._id === match_id);
 	if (!match) {
 		cerror.silent('Match ' + match_id + ' konnte nicht gefunden werden');
@@ -1466,6 +1513,23 @@ function _nation_team_name(nat0, nat1) {
 		return countries.lookup(nat0);
 	}
 	return '';
+}
+
+function _pack_official_for_match_setup(official) {
+	if (!official) {
+		return official;
+	}
+	return {
+		_id: official._id,
+		btp_id: official.btp_id,
+		name: official.name,
+		firstname: official.firstname,
+		surname: official.surname,
+		country: official.country,
+		is_umpire: !!official.is_umpire,
+		is_service_judge: !!official.is_service_judge,
+		checked_in: false,
+	};
 }
 
 function _update_setup(setup, d) {
@@ -1499,11 +1563,11 @@ function _update_setup(setup, d) {
 
 	for (const u of curt.umpires) {
 		if (u.name === d.umpire_name) {
-			result.umpire = u;
+			result.umpire = _pack_official_for_match_setup(u);
 		}
 
 		if (u.name === d.service_judge_name) {
-			result.service_judge = u;
+			result.service_judge = _pack_official_for_match_setup(u);
 		}
 	}
 
@@ -1653,6 +1717,10 @@ function ui_edit(match_id) {
 	}, ci18n('Change'));
 
 	form_utils.onsubmit(form, function(d) {
+		if (!d.umpire_name && d.service_judge_name) {
+			cerror.silent(ci18n('match:edit:error:service_judge_requires_umpire'));
+			return;
+		}
 		match.setup = _update_setup(match.setup, d);
 		btn.setAttribute('disabled', 'disabled');
 		send({
@@ -2114,6 +2182,7 @@ function create_court_button(targetEl, cssClass, title, listener, court_id, text
 
 function allowDrop(ev) {
   	ev.preventDefault();
+	ev.stopPropagation();
 }
 
 function validate_match_complete(match_id) {
@@ -2131,9 +2200,10 @@ function validate_match_complete(match_id) {
 }
 
 function drag(ev) {
-	let match_id = ev.target.getAttribute("data-match_id");
+	const drag_source = ev.currentTarget || ev.target;
+	let match_id = drag_source && drag_source.getAttribute ? drag_source.getAttribute("data-match_id") : null;
 	if (validate_match_complete(match_id)) {
-		ev.dataTransfer.setData('text', ev.target.getAttribute("data-match_id"));
+		ev.dataTransfer.setData('text', match_id);
 
 		for (const dropp_row of document.getElementsByClassName ("droppable")) {
 			dropp_row.classList.add("droppable_active");
@@ -2149,11 +2219,15 @@ function dragend(ev) {
 
 function drop(ev) {
 	ev.preventDefault();
+	ev.stopPropagation();
 	let match_id = ev.dataTransfer.getData('text');
+	const drop_target = ev.currentTarget || ev.target;
+	const court_target = drop_target && drop_target.closest ? drop_target.closest('[data-court_id]') : drop_target;
+	const court_id = court_target && court_target.getAttribute ? court_target.getAttribute('data-court_id') : null;
 	if (validate_match_complete(match_id)) {
 		send({
 			type: 'match_call_on_court',
-			court_id: ev.target.getAttribute('data-court_id'),
+			court_id: court_id,
 			match_id: match_id,
 			tournament_key: curt.key,
 		}, function (err) {
@@ -2471,7 +2545,6 @@ function render_edit(form, match) {
 		name: 'umpire_name',
 		size: 1,
 	});
-	render_umpire_options(umpire_select, (setup.umpire && setup.umpire.name) ? setup.umpire.name : '');
 
 	// Service judge
 	uiu.el(tos_container, 'span', {
@@ -2482,7 +2555,64 @@ function render_edit(form, match) {
 		name: 'service_judge_name',
 		size: 1,
 	});
-	render_umpire_options(service_judge_select, (setup.service_judge && setup.service_judge.name) ? setup.service_judge.name : '' , true);
+	const show_all_officials_label = uiu.el(tos_container, 'label', {
+		style: 'margin-left: 1em;',
+	});
+	const show_all_officials_checkbox = uiu.el(show_all_officials_label, 'input', {
+		type: 'checkbox',
+		name: 'show_all_officials',
+	});
+	show_all_officials_label.appendChild(document.createTextNode(' ' + ci18n('match:edit:show_all_officials')));
+	let current_umpire_value = (setup.umpire && setup.umpire.name) ? setup.umpire.name : '';
+	let current_service_judge_value = (setup.service_judge && setup.service_judge.name) ? setup.service_judge.name : '';
+	const rerender_official_selects = () => {
+		const umpire_value = current_umpire_value;
+		if (!umpire_value) {
+			current_service_judge_value = '';
+		}
+		const service_judge_value = current_service_judge_value;
+		render_umpire_options(
+			umpire_select,
+			umpire_value,
+			false,
+			!!show_all_officials_checkbox.checked,
+			service_judge_value,
+			service_judge_value
+		);
+		render_umpire_options(
+			service_judge_select,
+			service_judge_value,
+			true,
+			!!show_all_officials_checkbox.checked,
+			umpire_value,
+			umpire_value
+		);
+		service_judge_select.disabled = !umpire_value;
+	};
+	show_all_officials_checkbox.addEventListener('change', rerender_official_selects);
+	umpire_select.addEventListener('change', () => {
+		const previous_umpire_value = current_umpire_value;
+		const previous_service_judge_value = current_service_judge_value;
+		current_umpire_value = umpire_select.value;
+		if (current_umpire_value && current_umpire_value === previous_service_judge_value) {
+			current_service_judge_value = previous_umpire_value;
+		} else if (current_umpire_value && current_umpire_value === current_service_judge_value) {
+			current_service_judge_value = '';
+		}
+		rerender_official_selects();
+	});
+	service_judge_select.addEventListener('change', () => {
+		const previous_umpire_value = current_umpire_value;
+		const previous_service_judge_value = current_service_judge_value;
+		current_service_judge_value = service_judge_select.value;
+		if (current_service_judge_value && current_service_judge_value === previous_umpire_value) {
+			current_umpire_value = previous_service_judge_value;
+		} else if (current_service_judge_value && current_service_judge_value === current_umpire_value) {
+			current_umpire_value = '';
+		}
+		rerender_official_selects();
+	});
+	rerender_official_selects();
 
 	render_override_colors(edit_match_container, setup);
 }
@@ -2547,20 +2677,214 @@ function update_override_color_checkbox(e) {
 	}
 }
 
-function render_umpire_options(select, curval, is_service_judge) {
+function build_official_select_entries(tournament, is_service_judge, show_all_officials) {
+	const primary_role = is_service_judge ? 'service_judge' : 'umpire';
+	const secondary_role = is_service_judge ? 'umpire' : 'service_judge';
+	const role_label = (role) => role === 'umpire' ? ci18n('Umpire') : ci18n('Service judge');
+	const with_role_label = (official, role) => `${official.name} (${role_label(role)})`;
+	const entries = [];
+	const append_separator = (label) => {
+		entries.push({
+			type: 'separator',
+			label: `--- ${label} ---`
+		});
+	};
+	const append_options = (items, role, secondary_mode = false) => {
+		for (const official of items) {
+			entries.push({
+				type: 'option',
+				value: official.name,
+				label: secondary_mode ? with_role_label(official, role) : official.name
+			});
+		}
+	};
+	if (show_all_officials) {
+		const visible_official_ids = new Set();
+		const mark_visible = (official) => {
+			if (official && official._id) {
+				visible_official_ids.add(official._id);
+			}
+		};
+		const sort_by_name = (items) => [...items].sort((a, b) => cbts_utils.natcmp(a.name || '', b.name || ''));
+		const sort_by_wait = (items, field) => [...items].sort((a, b) => {
+			const ts_a = a[field] || 0;
+			const ts_b = b[field] || 0;
+			if (ts_a !== ts_b) return ts_a - ts_b;
+			return cbts_utils.natcmp(a.name || '', b.name || '');
+		});
+		const all_officials = tournament.umpires || [];
+		const should_render_in_lower_lists = (official) => !visible_official_ids.has(official._id);
+		const primary_wait_field = `${primary_role}_wait`;
+		const secondary_wait_field = `${secondary_role}_wait`;
+		const primary_pause_field = `${primary_role}_pause`;
+		const secondary_pause_field = `${secondary_role}_pause`;
+		const preparation_matches = [...(curt.matches || [])]
+			.filter((match) => (match.setup || {}).state === 'preparation')
+			.sort((a, b) => (a.setup?.preparation_call_timestamp || 0) - (b.setup?.preparation_call_timestamp || 0));
+		const assigned_matches = [...(curt.matches || [])]
+			.filter((match) => {
+				const setup = match.setup || {};
+				return setup.state !== 'preparation'
+					&& !['oncourt', 'blocked', 'finished'].includes(setup.state)
+					&& ((setup.umpire && setup.umpire._id) || (setup.service_judge && setup.service_judge._id));
+			})
+			.sort((a, b) => cbts_utils.natcmp(String(a.setup?.match_num || ''), String(b.setup?.match_num || '')));
+		preparation_matches.forEach((match) => {
+			mark_visible(match.setup && match.setup.umpire);
+			mark_visible(match.setup && match.setup.service_judge);
+		});
+		assigned_matches.forEach((match) => {
+			mark_visible(match.setup && match.setup.umpire);
+			mark_visible(match.setup && match.setup.service_judge);
+		});
+		for (const official of all_officials) {
+			if (official.umpire_on_court != null || official.service_judge_on_court != null) {
+				mark_visible(official);
+			}
+		}
+		const primary_wait_items = sort_by_wait(
+			all_officials.filter((u) => u[primary_wait_field] != null && should_render_in_lower_lists(u)),
+			primary_wait_field
+		);
+		const secondary_wait_items = sort_by_wait(
+			all_officials.filter((u) => u[secondary_wait_field] != null && should_render_in_lower_lists(u)),
+			secondary_wait_field
+		);
+		const primary_pause_items = sort_by_wait(
+			all_officials.filter((u) => u[primary_pause_field] != null && should_render_in_lower_lists(u)),
+			primary_pause_field
+		);
+		const secondary_pause_items = sort_by_wait(
+			all_officials.filter((u) => u[secondary_pause_field] != null && should_render_in_lower_lists(u)),
+			secondary_pause_field
+		);
+		const preparation_primary = sort_by_name(preparation_matches.map((match) => match.setup && match.setup[primary_role]).filter(Boolean));
+		const preparation_secondary = sort_by_name(preparation_matches.map((match) => match.setup && match.setup[secondary_role]).filter(Boolean));
+		const assigned_primary = sort_by_name(assigned_matches.map((match) => match.setup && match.setup[primary_role]).filter(Boolean));
+		const assigned_secondary = sort_by_name(assigned_matches.map((match) => match.setup && match.setup[secondary_role]).filter(Boolean));
+		const inactive_primary = sort_by_wait(
+			all_officials.filter((u) => u.inactive_list != null && should_render_in_lower_lists(u) && !(u.is_service_judge && !u.is_umpire)),
+			'inactive_list'
+		);
+		const inactive_secondary = sort_by_wait(
+			all_officials.filter((u) => u.inactive_list != null && should_render_in_lower_lists(u) && u.is_service_judge && !u.is_umpire),
+			'inactive_list'
+		);
+		const fallback_inactive_officials = all_officials
+			.filter((u) => !visible_official_ids.has(u._id))
+			.filter((u) => u.umpire_wait == null && u.service_judge_wait == null && u.umpire_pause == null && u.service_judge_pause == null && u.inactive_list == null)
+			.sort((a, b) => cbts_utils.natcmp(a.name || '', b.name || ''));
+		fallback_inactive_officials.forEach((official) => {
+			if (official.is_umpire && !official.is_service_judge) {
+				inactive_primary.push(official);
+				return;
+			}
+			if (official.is_service_judge && !official.is_umpire) {
+				inactive_secondary.push(official);
+				return;
+			}
+			inactive_primary.push(official);
+		});
+		const on_court_primary = sort_by_name(all_officials.filter((u) => u[`${primary_role}_on_court`] != null));
+		const on_court_secondary = sort_by_name(all_officials.filter((u) => u[`${secondary_role}_on_court`] != null));
+		const sections = [
+			{ label: primary_role === 'umpire' ? ci18n('Waiting list umpire') : ci18n('Waiting list service judge'), items: primary_wait_items, role: primary_role, secondary_mode: false },
+			{ label: secondary_role === 'umpire' ? ci18n('Waiting list umpire') : ci18n('Waiting list service judge'), items: secondary_wait_items, role: secondary_role, secondary_mode: true },
+			{ label: ci18n('Currently on break:') + ' ' + role_label(primary_role), items: primary_pause_items, role: primary_role, secondary_mode: false },
+			{ label: ci18n('Currently on break:') + ' ' + role_label(secondary_role), items: secondary_pause_items, role: secondary_role, secondary_mode: true },
+			{ label: ci18n('Assigned to a match:'), items: assigned_primary, role: primary_role, secondary_mode: false },
+			{ label: ci18n('Assigned to a match:'), items: assigned_secondary, role: secondary_role, secondary_mode: true },
+			{ label: ci18n('Not available:'), items: inactive_primary, role: primary_role, secondary_mode: false },
+			{ label: ci18n('Not available:'), items: inactive_secondary, role: secondary_role, secondary_mode: true },
+			{ label: ci18n('In preparation:'), items: preparation_primary, role: primary_role, secondary_mode: false },
+			{ label: ci18n('In preparation:'), items: preparation_secondary, role: secondary_role, secondary_mode: true },
+			{ label: ci18n('On court:'), items: on_court_primary, role: primary_role, secondary_mode: false },
+			{ label: ci18n('On court:'), items: on_court_secondary, role: secondary_role, secondary_mode: true },
+		];
+		let rendered_any = false;
+		sections.forEach((section) => {
+			if (!section.items.length) return;
+			if (rendered_any) {
+				append_separator(section.label.replace(/:$/, ''));
+			}
+			append_options(section.items, section.role, section.secondary_mode);
+			rendered_any = true;
+		});
+		return entries;
+	}
+	const primary_wait_field = is_service_judge ? 'service_judge_wait' : 'umpire_wait';
+	const secondary_wait_field = is_service_judge ? 'umpire_wait' : 'service_judge_wait';
+	const sort_wait_list = (wait_field) => [...(tournament.umpires || [])]
+		.filter((u) => u[wait_field] != null)
+		.sort((a, b) => {
+			const ts_a = a[wait_field] || 0;
+			const ts_b = b[wait_field] || 0;
+			if (ts_a !== ts_b) return ts_a - ts_b;
+			return cbts_utils.natcmp(a.name || '', b.name || '');
+		});
+	const officials = [
+		...sort_wait_list(primary_wait_field).map((u) => ({ official: u, label: u.name })),
+		...sort_wait_list(secondary_wait_field).map((u) => ({ official: u, label: with_role_label(u, secondary_wait_field === 'umpire_wait' ? 'umpire' : 'service_judge') }))
+	];
+	const primary_count = sort_wait_list(primary_wait_field).length;
+	const secondary_label = secondary_wait_field === 'umpire_wait'
+		? '--- ' + ci18n('Waiting list umpire') + ' ---'
+		: '--- ' + ci18n('Waiting list service judge') + ' ---';
+	for (const [index, entry] of officials.entries()) {
+		if (index === primary_count && officials.length > primary_count) {
+			entries.push({
+				type: 'separator',
+				label: secondary_label
+			});
+		}
+		entries.push({
+			type: 'option',
+			value: entry.official.name,
+			label: entry.label
+		});
+	}
+	return entries;
+}
+
+function render_umpire_options(select, curval, is_service_judge, show_all_officials, disabled_value, swap_value) {
 	uiu.empty(select);
 	uiu.el(select, 'option', {
 		value: '',
 		style: 'font-style: italic;',
 	}, is_service_judge ? ci18n('No service judge') : ci18n('No umpire'));
-	for (const u of curt.umpires) {
+	const entries = build_official_select_entries(curt, is_service_judge, show_all_officials);
+	const has_option = (value) => !!value && entries.some((entry) => entry.type === 'option' && entry.value === value);
+	const has_current_option = has_option(curval);
+	if (!!curval && !has_current_option) {
+		uiu.el(select, 'option', {
+			value: curval,
+			selected: 'selected',
+		}, curval);
+	}
+	if (!!swap_value && swap_value !== curval && !has_option(swap_value)) {
+		uiu.el(select, 'option', {
+			value: swap_value,
+		}, `${swap_value} (${ci18n('match:edit:swap_hint')})`);
+	}
+	for (const entry of entries) {
+		if (entry.type === 'separator') {
+			uiu.el(select, 'option', {
+				value: '',
+				disabled: 'disabled',
+				style: 'font-style: italic;',
+			}, entry.label);
+			continue;
+		}
 		const attrs = {
-			value: u.name,
+			value: entry.value,
 		};
-		if (u.name === curval) {
+		if (disabled_value && entry.value === disabled_value && entry.value !== curval && entry.value !== swap_value) {
+			attrs.disabled = 'disabled';
+		}
+		if (entry.value === curval) {
 			attrs.selected = 'selected';
 		}
-		uiu.el(select, 'option', attrs, u.name);
+		uiu.el(select, 'option', attrs, entry.label);
 	}
 }
 
@@ -2613,7 +2937,8 @@ return {
 	remove_match_from_gui,
 	update_players,
 	create_timer,
-	update_tables
+	update_tables,
+	_build_official_select_entries: build_official_select_entries
 };
 
 })();

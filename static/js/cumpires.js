@@ -2,7 +2,6 @@
 
 var cumpires = (function() {
 
-
 	function _ui_render_table(container, umpires) {
 		const table = uiu.el(container, 'table');
 		const tbody = uiu.el(table, 'tbody');
