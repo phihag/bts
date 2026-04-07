@@ -244,10 +244,7 @@ async function set_umpires_on_court(app, tournament, match, callback) {
 
 function remove_highlight_preparation(match, callback){
 	const setup = match.setup;
-
-	if(setup.highlight && setup.highlight == 6){
-		setup.highlight = 0;
-	}
+	setup.highlight = 0;
 
 	return callback(null);
 }
@@ -944,7 +941,6 @@ function set_umpire_to_standby(app, tournament_key, setup) {
 		umpire.service_judge_on_court = null;
 		umpire.is_planed_as_umpire = false;
         umpire.last_time_on_court_ts = null;
-		umpire.checked_in = false;
 		umpire.status = 'standby';
 		umpire.court_id = null;
 		update_umpire(app, tournament_key, umpire);
@@ -956,7 +952,6 @@ function set_umpire_to_standby(app, tournament_key, setup) {
 		service_judge.service_judge_on_court = null;
 		service_judge.is_planed_as_umpire = false;
         service_judge.last_time_on_court_ts = null;
-		service_judge.checked_in = false;
 		service_judge.status = 'standby';
 		service_judge.court_id = null;
 		update_umpire(app, tournament_key, service_judge);

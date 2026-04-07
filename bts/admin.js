@@ -872,30 +872,267 @@ function handle_match_edit(app, ws, msg) {
 			});
 
 		} else {
-			// TODO get old setup, make sure no key has been removed
-			app.db.matches.update({_id: msg.id, tournament_key}, {$set: {setup}}, {returnUpdatedDocs: true}, function(err, numAffected, changed_match) {
-				if (err) {
-					ws.respond(msg, err);
+			app.db.matches.findOne({_id: msg.id, tournament_key}, function(old_err, old_match) {
+				if (old_err) {
+					ws.respond(msg, old_err);
 					return;
 				}
-				if (numAffected !== 1) {
+				if (!old_match) {
 					ws.respond(msg, new Error('Cannot find match ' + msg.id + ' of tournament ' + tournament_key + ' in database'));
 					return;
 				}
-				if (changed_match._id !== msg.id) {
-					const errmsg = 'Match ' + changed_match._id + ' changed by accident, intended to change ' + msg.id + ' (old nedb version?)';
-					serror.silent(errmsg);
-					ws.respond(msg, new Error(errmsg));
-					return;
-				}
 
-				notify_change(app, tournament_key, 'match_edit', {match__id: msg.id, match: changed_match});
-				if (msg.btp_update) {
-					btp_manager.update_score(app, changed_match);
+				const dependent_releases = _collect_dependent_official_releases(setup);
+				const official_sync_meta = _build_match_edit_official_sync_meta(old_match.setup || {}, setup || {});
+				const update_set = { setup };
+				if (official_sync_meta.has_official_change) {
+					update_set.btp_needsync = true;
 				}
-				ws.respond(msg, err);
+				app.db.matches.update({_id: msg.id, tournament_key}, {$set: update_set}, {returnUpdatedDocs: true}, function(err, numAffected, changed_match) {
+					if (err) {
+						ws.respond(msg, err);
+						return;
+					}
+					if (numAffected !== 1) {
+						ws.respond(msg, new Error('Cannot find match ' + msg.id + ' of tournament ' + tournament_key + ' in database'));
+						return;
+					}
+					if (changed_match._id !== msg.id) {
+						const errmsg = 'Match ' + changed_match._id + ' changed by accident, intended to change ' + msg.id + ' (old nedb version?)';
+						serror.silent(errmsg);
+						ws.respond(msg, new Error(errmsg));
+						return;
+					}
+
+					_apply_match_edit_official_state_changes(app, tournament_key, old_match.setup || {}, changed_match.setup || {}, function(official_err) {
+						if (official_err) {
+							ws.respond(msg, official_err);
+							return;
+						}
+						_apply_wait_releases(app, tournament_key, dependent_releases, Date.now() / 10, function(release_err) {
+							if (release_err) {
+								ws.respond(msg, release_err);
+								return;
+							}
+							notify_change(app, tournament_key, 'match_edit', {match__id: msg.id, match: changed_match});
+							if (msg.btp_update) {
+								btp_manager.update_score(app, changed_match);
+							}
+							app.db.umpires.find({ tournament_key }, function (umpire_err, all_umpires) {
+								if (umpire_err) {
+									ws.respond(msg, umpire_err);
+									return;
+								}
+								notify_change(app, tournament_key, 'umpires_changed', { all_umpires });
+								ws.respond(msg, err);
+							});
+						});
+					});
+				});
 			});
 		}
+	});
+}
+
+function _roles_by_official_id_from_setup(setup) {
+	const map = new Map();
+	['umpire', 'service_judge'].forEach((role) => {
+		const official = setup && setup[role];
+		if (official && official._id) {
+			if (!map.has(official._id)) {
+				map.set(official._id, { official, roles: new Set() });
+			}
+			map.get(official._id).roles.add(role);
+		}
+	});
+	return map;
+}
+
+function _build_match_edit_official_sync_meta(old_setup, new_setup) {
+	const result = {
+		has_official_change: false
+	};
+	['umpire', 'service_judge'].forEach((role) => {
+		const suppressed_key = role === 'umpire' ? 'suppressed_umpire_btp_id' : 'suppressed_service_judge_btp_id';
+		const old_official = old_setup && old_setup[role];
+		const new_official = new_setup && new_setup[role];
+		const old_btp_id = old_official && old_official.btp_id != null ? String(old_official.btp_id) : null;
+		const new_btp_id = new_official && new_official.btp_id != null ? String(new_official.btp_id) : null;
+		if (old_btp_id !== new_btp_id) {
+			result.has_official_change = true;
+			if (old_official && old_official.btp_id != null) {
+				new_setup[suppressed_key] = old_official.btp_id;
+			}
+		}
+		if (new_official && new_official.btp_id != null) {
+			delete new_setup[suppressed_key];
+		}
+	});
+	return result;
+}
+
+function _collect_dependent_official_releases(setup) {
+	const releases = [];
+	if (!setup.umpire && setup.service_judge) {
+		const dependent = setup.service_judge;
+		if (dependent && dependent.btp_id != null) {
+			setup.suppressed_service_judge_btp_id = dependent.btp_id;
+		}
+		delete setup.service_judge;
+		if (dependent && dependent._id) {
+			releases.push({
+				official_id: dependent._id,
+				wait_field: 'service_judge_wait',
+				target_position: 'front'
+			});
+		}
+	}
+	return releases;
+}
+
+function _remove_official_from_setup(setup, role) {
+	const current_btp_id = setup[role] && setup[role].btp_id != null ? setup[role].btp_id : null;
+	delete setup[role];
+	if (current_btp_id != null) {
+		setup[role === 'umpire' ? 'suppressed_umpire_btp_id' : 'suppressed_service_judge_btp_id'] = current_btp_id;
+	}
+	return _collect_dependent_official_releases(setup);
+}
+
+function _official_wait_set_obj(wait_field, ts) {
+	const setObj = {
+		inactive_list: null,
+		service_judge_pause: null,
+		umpire_pause: null,
+		service_judge_wait: null,
+		umpire_wait: null,
+		service_judge_on_court: null,
+		umpire_on_court: null,
+		is_planed_as_service_judge: false,
+		is_planed_as_umpire: false
+	};
+	setObj[wait_field] = ts;
+	return setObj;
+}
+
+function _apply_wait_releases(app, tournament_key, releases, start_ts, cb) {
+	if (!releases.length) {
+		cb(null, []);
+		return;
+	}
+	let index = 0;
+	const updated_ids = [];
+	const next = () => {
+		if (index >= releases.length) {
+			cb(null, updated_ids);
+			return;
+		}
+		const release = releases[index++];
+		updated_ids.push(release.official_id);
+		const release_ts = release.target_position === 'front'
+			? index
+			: (start_ts + index - 1);
+		app.db.umpires.update(
+			{ _id: release.official_id, tournament_key },
+			{ $set: _official_wait_set_obj(release.wait_field, release_ts) },
+			{},
+			function (err) {
+				if (err) {
+					cb(err);
+					return;
+				}
+				next();
+			}
+		);
+	};
+	next();
+}
+
+function _preferred_wait_field_from_roles(official_doc, old_roles) {
+	if (old_roles.has('service_judge') && !old_roles.has('umpire')) {
+		return 'service_judge_wait';
+	}
+	if (old_roles.has('umpire') && !old_roles.has('service_judge')) {
+		return 'umpire_wait';
+	}
+	if (official_doc && official_doc.is_umpire && !official_doc.is_service_judge) {
+		return 'umpire_wait';
+	}
+	if (official_doc && official_doc.is_service_judge && !official_doc.is_umpire) {
+		return 'service_judge_wait';
+	}
+	return 'umpire_wait';
+}
+
+function _apply_match_edit_official_state_changes(app, tournament_key, old_setup, new_setup, cb) {
+	const old_roles_by_id = _roles_by_official_id_from_setup(old_setup);
+	const new_roles_by_id = _roles_by_official_id_from_setup(new_setup);
+	const affected_ids = [...new Set([...old_roles_by_id.keys(), ...new_roles_by_id.keys()])];
+	if (!affected_ids.length) {
+		cb();
+		return;
+	}
+
+	app.db.umpires.find({ tournament_key, _id: { $in: affected_ids } }, function (err, officials) {
+		if (err) {
+			cb(err);
+			return;
+		}
+		const official_by_id = new Map((officials || []).map((official) => [official._id, official]));
+		const updates = affected_ids.map((official_id) => {
+			const official_doc = official_by_id.get(official_id);
+			if (!official_doc) {
+				return null;
+			}
+			const old_roles = old_roles_by_id.get(official_id)?.roles || new Set();
+			const new_roles = new_roles_by_id.get(official_id)?.roles || new Set();
+			const same_roles = old_roles.size === new_roles.size && [...old_roles].every((role) => new_roles.has(role));
+			if (same_roles) {
+				return null;
+			}
+			const setObj = {
+				inactive_list: null,
+				service_judge_pause: null,
+				umpire_pause: null,
+				service_judge_wait: null,
+				umpire_wait: null,
+				service_judge_on_court: null,
+				umpire_on_court: null,
+				is_planed_as_service_judge: new_roles.has('service_judge'),
+				is_planed_as_umpire: new_roles.has('umpire')
+			};
+			if (new_roles.size === 0) {
+				setObj[_preferred_wait_field_from_roles(official_doc, old_roles)] = Date.now() / 10;
+			}
+			return { official_id, setObj };
+		}).filter(Boolean);
+
+		if (!updates.length) {
+			cb();
+			return;
+		}
+
+		let index = 0;
+		const next = () => {
+			if (index >= updates.length) {
+				cb();
+				return;
+			}
+			const update = updates[index++];
+			app.db.umpires.update(
+				{ _id: update.official_id, tournament_key },
+				{ $set: update.setObj },
+				{},
+				function (update_err) {
+					if (update_err) {
+						cb(update_err);
+						return;
+					}
+					next();
+				}
+			);
+		};
+		next();
 	});
 }
 
@@ -933,34 +1170,43 @@ function handle_match_player_check_in (app, ws, msg) {
 		return;
 	}
 
-	app.db.tournaments.findOne({ key: msg.tournament_key }, async (err, tournament) => {
-		if (err) {
-			return ws.respond(msg, err);
-		}
-		
-
-		app.db.matches.findOne({tournament_key: msg.tournament_key, _id: msg.match_id}, async (err, match) => {
+	update_queue.instance().execute(update_queue.named('handle_match_player_check_in', () => new Promise((resolve, reject) => {
+		app.db.tournaments.findOne({ key: msg.tournament_key }, async (err, tournament) => {
 			if (err) {
-				return ws.respond(msg, err);
+				return reject(err);
 			}
-			
 
-			for(const team of match.setup.teams) {
-				for(const player of team.players) {
-					if(player.btp_id == msg.player_id) {
-						player.checked_in = msg.checked_in;
+			app.db.matches.findOne({tournament_key: msg.tournament_key, _id: msg.match_id}, async (err, match) => {
+				if (err) {
+					return reject(err);
+				}
+				if (!match || !match.setup) {
+					return reject(new Error('Match not found'));
+				}
+
+				let player_found = false;
+				for (const team of match.setup.teams) {
+					for (const player of team.players) {
+						if (player.btp_id == msg.player_id) {
+							player.checked_in = msg.checked_in;
+							player_found = true;
+						}
 					}
 				}
-			}
 
+				if (!player_found) {
+					return reject(new Error('Player not found in match'));
+				}
 
-
-			match_utils.match_update(app, match, undefined, (err) => {
-				ws.respond(msg, err);
-				return;
+				match_utils.match_update(app, match, undefined, (err) => {
+					if (err) {
+						return reject(err);
+					}
+					resolve();
+				});
 			});
 		});
-	});
+	}))).then(() => ws.respond(msg)).catch((err) => ws.respond(msg, err));
 }
 
 function handle_match_participant_check_in(app, ws, msg) {
@@ -970,41 +1216,45 @@ function handle_match_participant_check_in(app, ws, msg) {
 		return;
 	}
 
-	app.db.matches.findOne({ tournament_key: msg.tournament_key, _id: msg.match_id }, async (err, match) => {
-		if (err) {
-			return ws.respond(msg, err);
-		}
-		if (!match || !match.setup) {
-			return ws.respond(msg, new Error('Match not found'));
-		}
-
-		let participant_found = false;
-		const checked_in = !!msg.checked_in;
-
-		if (msg.role === 'umpire' || msg.role === 'service_judge') {
-			const participant = match.setup[msg.role];
-			if (participant && participant.btp_id == msg.participant_id) {
-				participant.checked_in = checked_in;
-				participant_found = true;
+	update_queue.instance().execute(update_queue.named('handle_match_participant_check_in', () => new Promise((resolve, reject) => {
+		app.db.matches.findOne({ tournament_key: msg.tournament_key, _id: msg.match_id }, async (err, match) => {
+			if (err) {
+				return reject(err);
 			}
-		} else if (msg.role === 'tabletoperator' && Array.isArray(match.setup.tabletoperators)) {
-			match.setup.tabletoperators.forEach((participant) => {
-				if (participant.btp_id == msg.participant_id) {
+			if (!match || !match.setup) {
+				return reject(new Error('Match not found'));
+			}
+
+			let participant_found = false;
+			const checked_in = !!msg.checked_in;
+
+			if (msg.role === 'umpire' || msg.role === 'service_judge') {
+				const participant = match.setup[msg.role];
+				if (participant && participant.btp_id == msg.participant_id) {
 					participant.checked_in = checked_in;
 					participant_found = true;
 				}
+			} else if (msg.role === 'tabletoperator' && Array.isArray(match.setup.tabletoperators)) {
+				match.setup.tabletoperators.forEach((participant) => {
+					if (participant.btp_id == msg.participant_id) {
+						participant.checked_in = checked_in;
+						participant_found = true;
+					}
+				});
+			}
+
+			if (!participant_found) {
+				return reject(new Error('Participant not found in match'));
+			}
+
+			match_utils.match_update(app, match, undefined, (update_err) => {
+				if (update_err) {
+					return reject(update_err);
+				}
+				resolve();
 			});
-		}
-
-		if (!participant_found) {
-			return ws.respond(msg, new Error('Participant not found in match'));
-		}
-
-		match_utils.match_update(app, match, undefined, (update_err) => {
-			ws.respond(msg, update_err);
-			return;
 		});
-	});
+	}))).then(() => ws.respond(msg)).catch((err) => ws.respond(msg, err));
 }
 
 
@@ -1166,9 +1416,7 @@ function handle_official_list_move(app, ws, msg) {
     'tournament_key',
     'official_id',
     'from_list',
-    'to_list',
-    'prev_btp_id',
-    'next_btp_id'
+    'to_list'
   ])) {
     return;
   }
@@ -1178,23 +1426,100 @@ function handle_official_list_move(app, ws, msg) {
     official_id,
     prev_btp_id,
     next_btp_id,
+    prev_official_id,
+    next_official_id,
+    ordered_official_ids,
     from_list,
     to_list
   } = msg;
+
+  if (Array.isArray(ordered_official_ids) && ordered_official_ids.length > 0) {
+    const unique_ordered_ids = [...new Set(ordered_official_ids.filter(Boolean))];
+    if (!unique_ordered_ids.includes(official_id)) {
+      unique_ordered_ids.push(official_id);
+    }
+    return app.db.umpires.find({
+      tournament_key,
+      _id: { $in: unique_ordered_ids }
+    }, function(err, docs) {
+      if (err) return cerror.ws(ws, err);
+      const currentUmpire = docs.find((u) => u._id === official_id);
+      if (!currentUmpire) {
+        return cerror.ws(ws, new Error('current umpire not found'));
+      }
+
+      const now = Date.now();
+      const updates = unique_ordered_ids.map((id, index) => {
+        const setObj = {};
+        if (id === official_id) {
+          setObj[from_list] = null;
+          setObj['inactive_list'] = null;
+          setObj['service_judge_pause'] = null;
+          setObj['umpire_pause'] = null;
+          setObj['service_judge_wait'] = null;
+          setObj['umpire_wait'] = null;
+          setObj['service_judge_on_court'] = null;
+          setObj['umpire_on_court'] = null;
+          setObj['is_planed_as_service_judge'] = false;
+          setObj['is_planed_as_umpire'] = false;
+        }
+        setObj[to_list] = now + index;
+        return { _id: id, setObj };
+      });
+
+      return async.eachSeries(updates, function(entry, next) {
+        app.db.umpires.update(
+          { _id: entry._id, tournament_key },
+          { $set: entry.setObj },
+          {},
+          next
+        );
+      }, function(err2) {
+        if (err2) return cerror.ws(ws, err2);
+        app.db.umpires.find(
+          { tournament_key, _id: { $in: unique_ordered_ids } },
+          function(err3, updatedOfficials) {
+            if (err3) return cerror.ws(ws, err3);
+            app.db.umpires.find({ tournament_key }, function(err4, all_umpires) {
+              if (err4) return cerror.ws(ws, err4);
+              updatedOfficials.forEach((updated) => {
+                notify_change(app, tournament_key, 'umpire_updated', updated);
+              });
+              notify_change(app, tournament_key, 'umpires_changed', { all_umpires });
+              notify_change(app, tournament_key, 'official_list_move', {
+                official_id,
+                from_list,
+                to_list,
+                new_ts: now + unique_ordered_ids.indexOf(official_id),
+              });
+              ws.respond(msg);
+            });
+          }
+        );
+      });
+    });
+  }
 
   // btp_id sicher normalisieren
   const prevId = (prev_btp_id == null) ? null : Number(prev_btp_id);
   const nextId = (next_btp_id == null) ? null : Number(next_btp_id);
 
+  const neighborOfficialIds = [];
+  if (prev_official_id) neighborOfficialIds.push(prev_official_id);
+  if (next_official_id) neighborOfficialIds.push(next_official_id);
+
   const neighborBtpIds = [];
   if (Number.isFinite(prevId)) neighborBtpIds.push(prevId);
   if (Number.isFinite(nextId)) neighborBtpIds.push(nextId);
 
-  // Query: current über _id, prev/next über btp_id
+  // Query: current über _id, prev/next primär über _id, fallback über btp_id
   const query = {
     tournament_key,
     $or: [{ _id: official_id }]
   };
+  if (neighborOfficialIds.length > 0) {
+    query.$or.push({ _id: { $in: neighborOfficialIds } });
+  }
   if (neighborBtpIds.length > 0) {
     query.$or.push({ btp_id: { $in: neighborBtpIds } });
   }
@@ -1209,6 +1534,14 @@ function handle_official_list_move(app, ws, msg) {
     for (const u of docs) {
       if (u._id === official_id) {
         currentUmpire = u;
+        continue;
+      }
+      if (prev_official_id && u._id === prev_official_id) {
+        prevUmpire = u;
+        continue;
+      }
+      if (next_official_id && u._id === next_official_id) {
+        nextUmpire = u;
         continue;
       }
       if (Number.isFinite(prevId) && Number(u.btp_id) === prevId) {
@@ -1373,6 +1706,60 @@ function handle_official_edit(app, ws, msg) {
   );
 }
 
+function handle_official_roles_edit(app, ws, msg) {
+  if (!_require_msg(ws, msg, ['tournament_key', 'official_id', 'is_umpire', 'is_service_judge'])) {
+    return;
+  }
+
+  const { tournament_key, official_id } = msg;
+  const setObj = {
+    is_umpire: !!msg.is_umpire,
+    is_service_judge: !!msg.is_service_judge,
+    updated_at: Date.now()
+  };
+
+  app.db.umpires.findOne({ _id: official_id, tournament_key }, function (err, umpire) {
+    if (err) {
+      return ws.respond(msg, err);
+    }
+    if (!umpire) {
+      return ws.respond(
+        msg,
+        new Error(
+          'Cannot find official ' +
+            official_id +
+            ' of tournament ' +
+            tournament_key +
+            ' in database'
+        )
+      );
+    }
+
+    app.db.umpires.update(
+      { _id: official_id, tournament_key },
+      { $set: setObj },
+      {},
+      function (err2) {
+        if (err2) {
+          return ws.respond(msg, err2);
+        }
+
+        app.db.umpires.findOne(
+          { _id: official_id, tournament_key },
+          function (err3, updated) {
+            if (err3) {
+              return ws.respond(msg, err3);
+            }
+
+            notify_change(app, tournament_key, 'umpire_updated', updated);
+            ws.respond(msg);
+          }
+        );
+      }
+    );
+  });
+}
+
 function handle_add_officials_to_match(app, ws, msg) {
   // 1) Pflichtfelder prüfen
   if (!_require_msg(ws, msg, ['tournament_key', 'match_id'])) {
@@ -1389,152 +1776,775 @@ function handle_add_officials_to_match(app, ws, msg) {
       firstname: u.firstname,
       surname: u.surname,
       country: u.country,
+      is_umpire: !!u.is_umpire,
+      is_service_judge: !!u.is_service_judge,
       checked_in: false
     };
   }
 
-  // 2) Match laden und prüfen, ob schon Officials gesetzt sind
-  app.db.matches.findOne({ _id: match_id, tournament_key }, function (err, match) {
-    if (err) return ws.respond(msg, err);
-    if (!match) {
-      return ws.respond(
-        msg,
-        new Error('Cannot find match ' + match_id + ' of tournament ' + tournament_key + ' in database')
-      );
-    }
+  update_queue.instance().execute(update_queue.named('handle_add_officials_to_match', () => new Promise((resolve, reject) => {
+      // 2) Match laden und prüfen, ob schon ein Umpire gesetzt ist
+      app.db.matches.findOne({ _id: match_id, tournament_key }, function (err, match) {
+      if (err) return reject(err);
+      if (!match) {
+        return reject(
+          new Error('Cannot find match ' + match_id + ' of tournament ' + tournament_key + ' in database')
+        );
+      }
 
-    if (match.setup?.umpire || match.setup?.service_judge) {
-      return ws.respond(
-        msg,
-        new Error('Match already has assigned officials')
-      );
-    }
+      if (match.setup?.umpire) {
+        return reject(
+          new Error('Match already has assigned umpire')
+        );
+      }
 
-	const setup = match.setup;
+	  const setup = match.setup;
 
-    // 3) Ältesten Umpire suchen
-    app.db.umpires
-      .find({ tournament_key, umpire_wait: { $ne: null } })
-      .sort({ umpire_wait: 1 })
-      .limit(1)
-      .exec(function (err2, umps) {
-        if (err2) return ws.respond(msg, err2);
-        if (!umps || umps.length === 0) {
-          return ws.respond(msg, new Error('No umpire available'));
+      // 3) Ältesten Umpire suchen
+      app.db.umpires
+        .find({ tournament_key, umpire_wait: { $ne: null } })
+        .sort({ umpire_wait: 1 })
+        .limit(1)
+        .exec(function (err2, umps) {
+          if (err2) return reject(err2);
+          if (!umps || umps.length === 0) {
+            return reject(new Error('No umpire available'));
+          }
+
+          const umpire = umps[0];
+
+          // 4) Atomar reservieren (Race-Condition-sicher)
+          app.db.umpires.update(
+            { _id: umpire._id, tournament_key, umpire_wait: { $ne: null } },
+            { $set: { umpire_wait: null,
+					      is_planed_as_umpire: true } },
+            {},
+            function (err3, affected1) {
+              if (err3) return reject(err3);
+              if (affected1 === 0) {
+                return reject(new Error('Umpire was already taken by another assignment'));
+              }
+
+              // 5) Match.setup updaten
+              setup.umpire = pack_official(umpire);
+
+              app.db.matches.update(
+                { _id: match_id, tournament_key, 'setup.umpire': { $exists: false } },
+                { $set: { setup, btp_needsync: true } },
+                {},
+                function (err4, affectedMatch) {
+                  if (err4 || affectedMatch === 0) {
+                    app.db.umpires.update(
+                      { _id: umpire._id, tournament_key },
+                      { $set: { umpire_wait: Date.now()/10,
+							    is_planed_as_umpire: false
+						   } }
+                    );
+                    return reject(err4 || new Error('Match changed during official assignment'));
+                  }
+
+                  // 6) Broadcast
+                  app.db.matches.findOne(
+                    { _id: match_id, tournament_key },
+                    function (err5, updatedMatch) {
+                      if (err5) return reject(err5);
+
+                      notify_change(app, tournament_key, 'match_edit', {match__id: msg.match_id, match: updatedMatch});
+					  btp_manager.update_score(app, updatedMatch);
+
+                      app.db.umpires.find(
+                        { tournament_key, _id: umpire._id },
+                        function (err6, updatedOfficials) {
+                          if (err6) {
+                            return reject(err6);
+                          }
+                          if (updatedOfficials) {
+                            for (const u of updatedOfficials) {
+                              notify_change(app, tournament_key, 'umpire_updated', u);
+                            }
+                          }
+                          app.db.umpires.find({ tournament_key }, function (err7, all_umpires) {
+                            if (err7) {
+                              return reject(err7);
+                            }
+                            notify_change(app, tournament_key, 'umpires_changed', { all_umpires });
+                            resolve();
+                          });
+                        }
+                      );
+                    }
+                  );
+                }
+              );
+            }
+          );
+        });
+    });
+  }))).then(() => ws.respond(msg)).catch((err) => ws.respond(msg, err));
+}
+
+function handle_add_service_judge_to_match(app, ws, msg) {
+  if (!_require_msg(ws, msg, ['tournament_key', 'match_id'])) {
+    return;
+  }
+
+  const { tournament_key, match_id } = msg;
+
+  function pack_official(u) {
+    return {
+      _id: u._id,
+      btp_id: u.btp_id,
+      name: u.name,
+      firstname: u.firstname,
+      surname: u.surname,
+      country: u.country,
+      is_umpire: !!u.is_umpire,
+      is_service_judge: !!u.is_service_judge,
+      checked_in: false
+    };
+  }
+
+  update_queue.instance().execute(update_queue.named('handle_add_service_judge_to_match', () => new Promise((resolve, reject) => {
+    app.db.matches.findOne({ _id: match_id, tournament_key }, function (err, match) {
+      if (err) return reject(err);
+      if (!match) {
+        return reject(
+          new Error('Cannot find match ' + match_id + ' of tournament ' + tournament_key + ' in database')
+        );
+      }
+
+      if (!match.setup?.umpire) {
+        return reject(new Error('Match has no assigned umpire'));
+      }
+      if (match.setup?.service_judge) {
+        return reject(new Error('Match already has assigned service judge'));
+      }
+
+      const setup = match.setup;
+
+      app.db.umpires
+        .find({ tournament_key, service_judge_wait: { $ne: null } })
+        .sort({ service_judge_wait: 1 })
+        .limit(1)
+        .exec(function (err2, sjs) {
+          if (err2) return reject(err2);
+          if (!sjs || sjs.length === 0) {
+            return reject(new Error('No service judge available'));
+          }
+
+          const service_judge = sjs[0];
+
+          app.db.umpires.update(
+            { _id: service_judge._id, tournament_key, service_judge_wait: { $ne: null } },
+            { $set: { service_judge_wait: null, is_planed_as_service_judge: true } },
+            {},
+            function (err3, affected) {
+              if (err3) return reject(err3);
+              if (affected === 0) {
+                return reject(new Error('Service judge was already taken'));
+              }
+
+              setup.service_judge = pack_official(service_judge);
+
+              app.db.matches.update(
+                { _id: match_id, tournament_key, 'setup.umpire': { $exists: true }, 'setup.service_judge': { $exists: false } },
+                { $set: { setup, btp_needsync: true } },
+                {},
+                function (err4, affectedMatch) {
+                  if (err4 || affectedMatch === 0) {
+                    app.db.umpires.update(
+                      { _id: service_judge._id, tournament_key },
+                      { $set: { service_judge_wait: Date.now() / 10, is_planed_as_service_judge: false } }
+                    );
+                    return reject(err4 || new Error('Match changed during service judge assignment'));
+                  }
+
+                  app.db.matches.findOne(
+                    { _id: match_id, tournament_key },
+                    function (err5, updatedMatch) {
+                      if (err5) return reject(err5);
+
+                      notify_change(app, tournament_key, 'match_edit', { match__id: msg.match_id, match: updatedMatch });
+                      btp_manager.update_score(app, updatedMatch);
+
+                      app.db.umpires.findOne(
+                        { tournament_key, _id: service_judge._id },
+                        function (err6, updatedOfficial) {
+                          if (err6) {
+                            return reject(err6);
+                          }
+                          if (updatedOfficial) {
+                            notify_change(app, tournament_key, 'umpire_updated', updatedOfficial);
+                          }
+                          app.db.umpires.find({ tournament_key }, function (err7, all_umpires) {
+                            if (err7) {
+                              return reject(err7);
+                            }
+                            notify_change(app, tournament_key, 'umpires_changed', { all_umpires });
+                            resolve();
+                          });
+                        }
+                      );
+                    }
+                  );
+                }
+              );
+            }
+          );
+        });
+    });
+  }))).then(() => ws.respond(msg)).catch((err) => ws.respond(msg, err));
+}
+
+function _pack_official_for_match(u) {
+  return {
+    _id: u._id,
+    btp_id: u.btp_id,
+    name: u.name,
+    firstname: u.firstname,
+    surname: u.surname,
+    country: u.country,
+    is_umpire: !!u.is_umpire,
+    is_service_judge: !!u.is_service_judge,
+    checked_in: false
+  };
+}
+
+function handle_assign_official_to_preparation_match(app, ws, msg) {
+  if (!_require_msg(ws, msg, ['tournament_key', 'official_id', 'match_id', 'role'])) {
+    return;
+  }
+
+  const { tournament_key, official_id, match_id, role, source_match_id, source_type, source_role } = msg;
+  if (role !== 'umpire' && role !== 'service_judge') {
+    return cerror.ws(ws, new Error('Invalid role for assign_official_to_preparation_match: ' + role));
+  }
+  if (source_type != null && source_type !== 'preparation' && source_type !== 'assigned') {
+    return cerror.ws(ws, new Error('Invalid source_type for assign_official_to_preparation_match: ' + source_type));
+  }
+  if (source_role != null && source_role !== 'umpire' && source_role !== 'service_judge') {
+    return cerror.ws(ws, new Error('Invalid source_role for assign_official_to_preparation_match: ' + source_role));
+  }
+
+  const role_flag = role === 'umpire' ? 'is_planed_as_umpire' : 'is_planed_as_service_judge';
+
+  update_queue.instance().execute(update_queue.named('handle_assign_official_to_preparation_match', () => new Promise((resolve, reject) => {
+    app.db.matches.find({ tournament_key, _id: { $in: [...new Set([match_id, source_match_id].filter(Boolean))] } }, function (err, matches) {
+      if (err) return reject(err);
+      const match = matches.find((m) => m._id === match_id);
+      if (!match) return reject(new Error('Cannot find match ' + match_id));
+      if ((match.setup || {}).state !== 'preparation') {
+        return reject(new Error('Match is not in preparation'));
+      }
+      const source_match = source_match_id ? matches.find((m) => m._id === source_match_id) : null;
+      if (source_match_id && !source_match) {
+        return reject(new Error('Cannot find source match ' + source_match_id));
+      }
+      const same_match_move = !!source_match && source_match._id === match_id;
+      if (match.setup && match.setup[role] && (!same_match_move || source_role !== role || match.setup[role]._id !== official_id)) {
+        return reject(new Error('Match already has assigned ' + role));
+      }
+      if (source_match) {
+        const source_setup = source_match.setup || {};
+        const source_official = source_setup[source_role];
+        if (!source_official || source_official._id !== official_id) {
+          return reject(new Error('Official is not assigned to the source match/role'));
         }
+      }
 
-        const umpire = umps[0];
+      app.db.umpires.findOne({ _id: official_id, tournament_key }, function (err2, official) {
+        if (err2) return reject(err2);
+        if (!official) return reject(new Error('Cannot find official ' + official_id));
 
-        // 4) Atomar reservieren (Race-Condition-sicher)
+        const target_setup = structuredClone(match.setup || {});
+        const source_setup = source_match ? structuredClone(source_match.setup || {}) : null;
+        if (source_setup && source_role) {
+          const current_btp_id = source_setup[source_role] && source_setup[source_role].btp_id != null ? source_setup[source_role].btp_id : null;
+          delete source_setup[source_role];
+          if (current_btp_id != null) {
+            source_setup[source_role === 'umpire' ? 'suppressed_umpire_btp_id' : 'suppressed_service_judge_btp_id'] = current_btp_id;
+          }
+          if (same_match_move) {
+            delete target_setup[source_role];
+            if (current_btp_id != null) {
+              target_setup[source_role === 'umpire' ? 'suppressed_umpire_btp_id' : 'suppressed_service_judge_btp_id'] = current_btp_id;
+            }
+          }
+        }
+        target_setup[role] = _pack_official_for_match(official);
+        delete target_setup[role === 'umpire' ? 'suppressed_umpire_btp_id' : 'suppressed_service_judge_btp_id'];
+
+        const officialSetObj = {
+          inactive_list: null,
+          service_judge_pause: null,
+          umpire_pause: null,
+          service_judge_wait: null,
+          umpire_wait: null,
+          service_judge_on_court: null,
+          umpire_on_court: null,
+          is_planed_as_service_judge: false,
+          is_planed_as_umpire: false
+        };
+        officialSetObj[role_flag] = true;
+
         app.db.umpires.update(
-          { _id: umpire._id, tournament_key, umpire_wait: { $ne: null } },
-          { $set: { umpire_wait: null,
-				    is_planed_as_umpire: true } },
+          { _id: official_id, tournament_key },
+          { $set: officialSetObj },
           {},
-          function (err3, affected1) {
-            if (err3) return ws.respond(msg, err3);
-            if (affected1 === 0) {
-              return ws.respond(msg, new Error('Umpire was already taken by another assignment'));
+          function (err3) {
+            if (err3) return reject(err3);
+
+            const finish = () => {
+              app.db.umpires.findOne({ _id: official_id, tournament_key }, function (err6, updatedOfficial) {
+                if (err6) return reject(err6);
+                const match_ids = [...new Set([match_id, source_match_id].filter(Boolean))];
+                app.db.matches.find({ tournament_key, _id: { $in: match_ids } }, function (err7, updatedMatches) {
+                  if (err7) return reject(err7);
+                  updatedMatches.forEach((updatedMatch) => {
+                    notify_change(app, tournament_key, 'match_edit', { match__id: updatedMatch._id, match: updatedMatch });
+                    btp_manager.update_score(app, updatedMatch);
+                  });
+                  notify_change(app, tournament_key, 'umpire_updated', updatedOfficial);
+                  resolve();
+                });
+              });
+            };
+
+            if (same_match_move) {
+              const same_guard = { _id: match_id, tournament_key, [`setup.${source_role}._id`]: official_id };
+              if (source_role !== role) {
+                same_guard[`setup.${role}`] = { $exists: false };
+              }
+              app.db.matches.update(
+                same_guard,
+                { $set: { setup: target_setup, btp_needsync: true } },
+                {},
+                function (err4, affected) {
+                  if (err4) return reject(err4);
+                  if (!affected) return reject(new Error('Match changed during official reassignment'));
+                  finish();
+                }
+              );
+              return;
             }
 
-            // 5) Ältesten Service Judge suchen
-            app.db.umpires
-              .find({ tournament_key, service_judge_wait: { $ne: null } })
-              .sort({ service_judge_wait: 1 })
-              .limit(1)
-              .exec(function (err4, sjs) {
-                if (err4) return ws.respond(msg, err4);
-                if (!sjs || sjs.length === 0) {
-                  // Rollback Umpire
-                  app.db.umpires.update(
-                    { _id: umpire._id, tournament_key },
-                    { $set: { umpire_wait: Date.now(),
-				              is_planed_as_umpire: false } }
-                  );
-                  return ws.respond(msg, new Error('No service judge available'));
+            const update_source = (cb) => {
+              if (!source_match) return cb();
+              const source_guard = { _id: source_match_id, tournament_key, [`setup.${source_role}._id`]: official_id };
+              app.db.matches.update(
+                source_guard,
+                { $set: { setup: source_setup, btp_needsync: true } },
+                {},
+                function (err4, affected) {
+                  if (err4) return cb(err4);
+                  if (!affected) return cb(new Error('Source match changed during official move'));
+                  cb();
                 }
+              );
+            };
 
-                const service_judge = sjs[0];
-
-                // 6) Atomar reservieren
-                app.db.umpires.update(
-                  { _id: service_judge._id, tournament_key, service_judge_wait: { $ne: null } },
-                  { $set: { service_judge_wait: null,
-					        is_planed_as_service_judge: true
-				   } },
-                  {},
-                  function (err5, affected2) {
-                    if (err5) return ws.respond(msg, err5);
-                    if (affected2 === 0) {
-                      // Rollback Umpire
-                      app.db.umpires.update(
-                        { _id: umpire._id, tournament_key },
-                        { $set: { umpire_wait: Date.now(),
-					              is_planed_as_service_judge: true } }
-                      );
-                      return ws.respond(msg, new Error('Service judge was already taken'));
-                    }
-
-                    // 7) Match.setup updaten
-                    setup.umpire = pack_official(umpire);
-                    setup.service_judge = pack_official(service_judge);
-
-                    app.db.matches.update(
-                      { _id: match_id, tournament_key },
-                      { $set: {setup} },
-                      {},
-                      function (err6) {
-                        if (err6) {
-                          // Rollback beider Officials
-                          app.db.umpires.update(
-                            { _id: umpire._id, tournament_key },
-                            { $set: { umpire_wait: Date.now()/10,
-									  is_planed_as_umpire: false
-							 } }
-                          );
-                          app.db.umpires.update(
-                            { _id: service_judge._id, tournament_key },
-                            { $set: { service_judge_wait: Date.now()/10,
-								    is_planed_as_service_judge: false
-							 } }
-                          );
-                          return ws.respond(msg, err6);
-                        }
-
-                        // 8) Broadcast
-                        app.db.matches.findOne(
-                          { _id: match_id, tournament_key },
-                          function (err7, updatedMatch) {
-                            if (err7) return ws.respond(msg, err7);
-
-                            notify_change(app, tournament_key, 'match_edit', {match__id: msg.match_id, match: updatedMatch});
-							btp_manager.update_score(app, updatedMatch);
-
-                            // Officials ebenfalls broadcasten
-                            app.db.umpires.find(
-                              { tournament_key, _id: { $in: [umpire._id, service_judge._id] } },
-                              function (err8, updatedOfficials) {
-                                if (!err8 && updatedOfficials) {
-                                  for (const u of updatedOfficials) {
-                                    notify_change(app, tournament_key, 'umpire_updated', u);
-                                  }
-                                }
-
-                                // 9) Erfolg
-                                return ws.respond(msg);
-                              }
-                            );
-                          }
-                        );
-                      }
-                    );
-                  }
-                );
-              });
+            update_source(function (err4) {
+              if (err4) return reject(err4);
+              const guard = { _id: match_id, tournament_key };
+              guard[`setup.${role}`] = { $exists: false };
+              app.db.matches.update(
+                guard,
+                { $set: { setup: target_setup, btp_needsync: true } },
+                {},
+                function (err5, affected) {
+                  if (err5) return reject(err5);
+                  if (!affected) return reject(new Error('Match changed during official assignment'));
+                  finish();
+                }
+              );
+            });
           }
         );
       });
-  });
+    });
+  }))).then(() => ws.respond(msg)).catch((err) => cerror.ws(ws, err));
+}
+
+function handle_assign_official_to_match(app, ws, msg) {
+  if (!_require_msg(ws, msg, ['tournament_key', 'official_id', 'match_id', 'role'])) {
+    return;
+  }
+
+  const { tournament_key, official_id, match_id, role, source_match_id, source_type, source_role } = msg;
+  if (role !== 'umpire' && role !== 'service_judge') {
+    return cerror.ws(ws, new Error('Invalid role for assign_official_to_match: ' + role));
+  }
+  if (source_type != null && source_type !== 'preparation' && source_type !== 'assigned') {
+    return cerror.ws(ws, new Error('Invalid source_type for assign_official_to_match: ' + source_type));
+  }
+  if (source_role != null && source_role !== 'umpire' && source_role !== 'service_judge') {
+    return cerror.ws(ws, new Error('Invalid source_role for assign_official_to_match: ' + source_role));
+  }
+
+  const role_flag = role === 'umpire' ? 'is_planed_as_umpire' : 'is_planed_as_service_judge';
+
+  update_queue.instance().execute(update_queue.named('handle_assign_official_to_match', () => new Promise((resolve, reject) => {
+    app.db.matches.find({ tournament_key, _id: { $in: [...new Set([match_id, source_match_id].filter(Boolean))] } }, function (err, matches) {
+      if (err) return reject(err);
+      const match = matches.find((m) => m._id === match_id);
+      if (!match) return reject(new Error('Cannot find match ' + match_id));
+      const state = (match.setup || {}).state;
+      if (state === 'preparation' || ['oncourt', 'blocked', 'finished'].includes(state)) {
+        return reject(new Error('Match cannot be assigned in state ' + state));
+      }
+      const source_match = source_match_id ? matches.find((m) => m._id === source_match_id) : null;
+      if (source_match_id && !source_match) {
+        return reject(new Error('Cannot find source match ' + source_match_id));
+      }
+      const same_match_move = !!source_match && source_match._id === match_id;
+      if (match.setup && match.setup[role] && (!same_match_move || source_role !== role || match.setup[role]._id !== official_id)) {
+        return reject(new Error('Match already has assigned ' + role));
+      }
+      if (source_match) {
+        const source_setup = source_match.setup || {};
+        const source_official = source_setup[source_role];
+        if (!source_official || source_official._id !== official_id) {
+          return reject(new Error('Official is not assigned to the source match/role'));
+        }
+      }
+
+      app.db.umpires.findOne({ _id: official_id, tournament_key }, function (err2, official) {
+        if (err2) return reject(err2);
+        if (!official) return reject(new Error('Cannot find official ' + official_id));
+
+        const target_setup = structuredClone(match.setup || {});
+        const source_setup = source_match ? structuredClone(source_match.setup || {}) : null;
+        if (source_setup && source_role) {
+          const current_btp_id = source_setup[source_role] && source_setup[source_role].btp_id != null ? source_setup[source_role].btp_id : null;
+          delete source_setup[source_role];
+          if (current_btp_id != null) {
+            source_setup[source_role === 'umpire' ? 'suppressed_umpire_btp_id' : 'suppressed_service_judge_btp_id'] = current_btp_id;
+          }
+          if (same_match_move) {
+            delete target_setup[source_role];
+            if (current_btp_id != null) {
+              target_setup[source_role === 'umpire' ? 'suppressed_umpire_btp_id' : 'suppressed_service_judge_btp_id'] = current_btp_id;
+            }
+          }
+        }
+        target_setup[role] = _pack_official_for_match(official);
+        delete target_setup[role === 'umpire' ? 'suppressed_umpire_btp_id' : 'suppressed_service_judge_btp_id'];
+
+        const officialSetObj = {
+          inactive_list: null,
+          service_judge_pause: null,
+          umpire_pause: null,
+          service_judge_wait: null,
+          umpire_wait: null,
+          service_judge_on_court: null,
+          umpire_on_court: null,
+          is_planed_as_service_judge: false,
+          is_planed_as_umpire: false
+        };
+        officialSetObj[role_flag] = true;
+
+        app.db.umpires.update(
+          { _id: official_id, tournament_key },
+          { $set: officialSetObj },
+          {},
+          function (err3) {
+            if (err3) return reject(err3);
+
+            const finish = () => {
+              app.db.umpires.findOne({ _id: official_id, tournament_key }, function (err6, updatedOfficial) {
+                if (err6) return reject(err6);
+                const match_ids = [...new Set([match_id, source_match_id].filter(Boolean))];
+                app.db.matches.find({ tournament_key, _id: { $in: match_ids } }, function (err7, updatedMatches) {
+                  if (err7) return reject(err7);
+                  updatedMatches.forEach((updatedMatch) => {
+                    notify_change(app, tournament_key, 'match_edit', { match__id: updatedMatch._id, match: updatedMatch });
+                    btp_manager.update_score(app, updatedMatch);
+                  });
+                  notify_change(app, tournament_key, 'umpire_updated', updatedOfficial);
+                  resolve();
+                });
+              });
+            };
+
+            if (same_match_move) {
+              const same_guard = { _id: match_id, tournament_key, [`setup.${source_role}._id`]: official_id };
+              if (source_role !== role) {
+                same_guard[`setup.${role}`] = { $exists: false };
+              }
+              app.db.matches.update(
+                same_guard,
+                { $set: { setup: target_setup, btp_needsync: true } },
+                {},
+                function (err4, affected) {
+                  if (err4) return reject(err4);
+                  if (!affected) return reject(new Error('Match changed during official reassignment'));
+                  finish();
+                }
+              );
+              return;
+            }
+
+            const update_source = (cb) => {
+              if (!source_match) return cb();
+              const source_guard = { _id: source_match_id, tournament_key, [`setup.${source_role}._id`]: official_id };
+              app.db.matches.update(
+                source_guard,
+                { $set: { setup: source_setup, btp_needsync: true } },
+                {},
+                function (err4, affected) {
+                  if (err4) return cb(err4);
+                  if (!affected) return cb(new Error('Source match changed during official move'));
+                  cb();
+                }
+              );
+            };
+
+            update_source(function (err4) {
+              if (err4) return reject(err4);
+              const guard = { _id: match_id, tournament_key };
+              guard[`setup.${role}`] = { $exists: false };
+              app.db.matches.update(
+                guard,
+                { $set: { setup: target_setup, btp_needsync: true } },
+                {},
+                function (err5, affected) {
+                  if (err5) return reject(err5);
+                  if (!affected) return reject(new Error('Match changed during official assignment'));
+                  finish();
+                }
+              );
+            });
+          }
+        );
+      });
+    });
+  }))).then(() => ws.respond(msg)).catch((err) => cerror.ws(ws, err));
+}
+
+function handle_remove_official_from_preparation_match(app, ws, msg) {
+  if (!_require_msg(ws, msg, ['tournament_key', 'official_id', 'match_id', 'role', 'to_list'])) {
+    return;
+  }
+
+  const { tournament_key, official_id, match_id, role, to_list, ordered_official_ids } = msg;
+  if (role !== 'umpire' && role !== 'service_judge') {
+    return cerror.ws(ws, new Error('Invalid role for remove_official_from_preparation_match: ' + role));
+  }
+
+  update_queue.instance().execute(update_queue.named('handle_remove_official_from_preparation_match', () => new Promise((resolve, reject) => {
+    app.db.matches.findOne({ _id: match_id, tournament_key }, function (err, match) {
+      if (err) return reject(err);
+      if (!match) return reject(new Error('Cannot find match ' + match_id));
+      const currentOfficial = match.setup && match.setup[role];
+      if (!currentOfficial || currentOfficial._id !== official_id) {
+        return reject(new Error('Official is not assigned to this preparation role'));
+      }
+
+      app.db.umpires.findOne({ _id: official_id, tournament_key }, function (err2, official) {
+        if (err2) return reject(err2);
+        if (!official) return reject(new Error('Cannot find official ' + official_id));
+
+        const setup = structuredClone(match.setup || {});
+        const dependent_releases = _remove_official_from_setup(setup, role);
+
+        const baseSetObj = {
+          inactive_list: null,
+          service_judge_pause: null,
+          umpire_pause: null,
+          service_judge_wait: null,
+          umpire_wait: null,
+          service_judge_on_court: null,
+          umpire_on_court: null,
+          is_planed_as_service_judge: false,
+          is_planed_as_umpire: false
+        };
+
+        app.db.matches.update(
+          { _id: match_id, tournament_key, [`setup.${role}._id`]: official_id },
+          { $set: { setup, btp_needsync: true } },
+          {},
+          function (err3, affected) {
+            if (err3) return reject(err3);
+            if (!affected) return reject(new Error('Match changed during official removal'));
+
+            const applyOfficialUpdates = (cb) => {
+              if (Array.isArray(ordered_official_ids) && ordered_official_ids.length > 0) {
+                const unique_ordered_ids = [...new Set(ordered_official_ids.filter(Boolean))];
+                if (!unique_ordered_ids.includes(official_id)) {
+                  unique_ordered_ids.push(official_id);
+                }
+                const now = Date.now();
+                return async.eachSeries(unique_ordered_ids, (id, next) => {
+                  const setObj = (id === official_id) ? { ...baseSetObj } : {};
+                  setObj[to_list] = now + unique_ordered_ids.indexOf(id);
+                  app.db.umpires.update(
+                    { _id: id, tournament_key },
+                    { $set: setObj },
+                    {},
+                    next
+                  );
+                }, function(series_err) {
+                  if (series_err) return cb(series_err);
+                  _apply_wait_releases(app, tournament_key, dependent_releases, now + unique_ordered_ids.length, cb);
+                });
+              }
+              const setObj = { ...baseSetObj };
+              const now = Date.now();
+              setObj[to_list] = now;
+              app.db.umpires.update(
+                { _id: official_id, tournament_key },
+                { $set: setObj },
+                {},
+                function(update_err) {
+                  if (update_err) return cb(update_err);
+                  _apply_wait_releases(app, tournament_key, dependent_releases, now + 1, cb);
+                }
+              );
+            };
+
+            applyOfficialUpdates(function (err4) {
+              if (err4) return reject(err4);
+
+              app.db.matches.findOne({ _id: match_id, tournament_key }, function (err5, updatedMatch) {
+                if (err5) return reject(err5);
+                const affected_official_ids = [...new Set(
+                  (Array.isArray(ordered_official_ids) ? ordered_official_ids.filter(Boolean) : [])
+                    .concat([official_id], dependent_releases.map((release) => release.official_id))
+                )];
+                const officialQuery = { tournament_key, _id: { $in: affected_official_ids } };
+                app.db.umpires.find(officialQuery, function (err6, updatedOfficials) {
+                  if (err6) return reject(err6);
+                  app.db.umpires.find({ tournament_key }, function (err7, all_umpires) {
+                    if (err7) return reject(err7);
+                    notify_change(app, tournament_key, 'match_edit', { match__id: match_id, match: updatedMatch });
+                    btp_manager.update_score(app, updatedMatch);
+                    (updatedOfficials || []).forEach((updatedOfficial) => {
+                      notify_change(app, tournament_key, 'umpire_updated', updatedOfficial);
+                    });
+                    notify_change(app, tournament_key, 'umpires_changed', { all_umpires });
+                    resolve();
+                  });
+                });
+              });
+            });
+          }
+        );
+      });
+    });
+  }))).then(() => ws.respond(msg)).catch((err) => cerror.ws(ws, err));
+}
+
+function handle_remove_official_from_match(app, ws, msg) {
+  if (!_require_msg(ws, msg, ['tournament_key', 'official_id', 'match_id', 'role', 'to_list'])) {
+    return;
+  }
+
+  const { tournament_key, official_id, match_id, role, to_list, ordered_official_ids } = msg;
+  if (role !== 'umpire' && role !== 'service_judge') {
+    return cerror.ws(ws, new Error('Invalid role for remove_official_from_match: ' + role));
+  }
+
+  update_queue.instance().execute(update_queue.named('handle_remove_official_from_match', () => new Promise((resolve, reject) => {
+    app.db.matches.findOne({ _id: match_id, tournament_key }, function (err, match) {
+      if (err) return reject(err);
+      if (!match) return reject(new Error('Cannot find match ' + match_id));
+      const currentOfficial = match.setup && match.setup[role];
+      if (!currentOfficial || currentOfficial._id !== official_id) {
+        return reject(new Error('Official is not assigned to this role'));
+      }
+
+      app.db.umpires.findOne({ _id: official_id, tournament_key }, function (err2, official) {
+        if (err2) return reject(err2);
+        if (!official) return reject(new Error('Cannot find official ' + official_id));
+
+        const setup = structuredClone(match.setup || {});
+        const dependent_releases = _remove_official_from_setup(setup, role);
+
+        const baseSetObj = {
+          inactive_list: null,
+          service_judge_pause: null,
+          umpire_pause: null,
+          service_judge_wait: null,
+          umpire_wait: null,
+          service_judge_on_court: null,
+          umpire_on_court: null,
+          is_planed_as_service_judge: false,
+          is_planed_as_umpire: false
+        };
+
+        app.db.matches.update(
+          { _id: match_id, tournament_key, [`setup.${role}._id`]: official_id },
+          { $set: { setup, btp_needsync: true } },
+          {},
+          function (err3, affected) {
+            if (err3) return reject(err3);
+            if (!affected) return reject(new Error('Match changed during official removal'));
+
+            const applyOfficialUpdates = (cb) => {
+              if (Array.isArray(ordered_official_ids) && ordered_official_ids.length > 0) {
+                const unique_ordered_ids = [...new Set(ordered_official_ids.filter(Boolean))];
+                if (!unique_ordered_ids.includes(official_id)) {
+                  unique_ordered_ids.push(official_id);
+                }
+                const now = Date.now();
+                return async.eachSeries(unique_ordered_ids, (id, next) => {
+                  const setObj = (id === official_id) ? { ...baseSetObj } : {};
+                  setObj[to_list] = now + unique_ordered_ids.indexOf(id);
+                  app.db.umpires.update(
+                    { _id: id, tournament_key },
+                    { $set: setObj },
+                    {},
+                    next
+                  );
+                }, function(series_err) {
+                  if (series_err) return cb(series_err);
+                  _apply_wait_releases(app, tournament_key, dependent_releases, now + unique_ordered_ids.length, cb);
+                });
+              }
+              const setObj = { ...baseSetObj };
+              const now = Date.now();
+              setObj[to_list] = now;
+              app.db.umpires.update(
+                { _id: official_id, tournament_key },
+                { $set: setObj },
+                {},
+                function(update_err) {
+                  if (update_err) return cb(update_err);
+                  _apply_wait_releases(app, tournament_key, dependent_releases, now + 1, cb);
+                }
+              );
+            };
+
+            applyOfficialUpdates(function (err4) {
+              if (err4) return reject(err4);
+
+              app.db.matches.findOne({ _id: match_id, tournament_key }, function (err5, updatedMatch) {
+                if (err5) return reject(err5);
+                const affected_official_ids = [...new Set(
+                  (Array.isArray(ordered_official_ids) ? ordered_official_ids.filter(Boolean) : [])
+                    .concat([official_id], dependent_releases.map((release) => release.official_id))
+                )];
+                const officialQuery = { tournament_key, _id: { $in: affected_official_ids } };
+                app.db.umpires.find(officialQuery, function (err6, updatedOfficials) {
+                  if (err6) return reject(err6);
+                  app.db.umpires.find({ tournament_key }, function (err7, all_umpires) {
+                    if (err7) return reject(err7);
+                    notify_change(app, tournament_key, 'match_edit', { match__id: match_id, match: updatedMatch });
+                    btp_manager.update_score(app, updatedMatch);
+                    (updatedOfficials || []).forEach((updatedOfficial) => {
+                      notify_change(app, tournament_key, 'umpire_updated', updatedOfficial);
+                    });
+                    notify_change(app, tournament_key, 'umpires_changed', { all_umpires });
+                    resolve();
+                  });
+                });
+              });
+            });
+          }
+        );
+      });
+    });
+  }))).then(() => ws.respond(msg)).catch((err) => cerror.ws(ws, err));
 }
 
 
@@ -1715,13 +2725,46 @@ function handle_ticker_reset(app, ws, msg) {
 }
 
 const all_admins = [];
+function _notify_queue_hang(payload) {
+	for (const admin_ws of all_admins) {
+		admin_ws.sendmsg({
+			type: 'change',
+			tournament_key: admin_ws.last_tournament_key || 'default',
+			ctype: 'queue_hang_warning',
+			val: payload,
+		});
+	}
+}
 function notify_change(app, tournament_key, ctype, val) {
+	let payload = val;
+	const announcement_change_types = new Set([
+		'match_preparation_call',
+		'match_called_on_court',
+		'begin_to_play_call',
+		'second_call_tabletoperator',
+		'second_preparation_call_tabletoperator',
+		'second_call_umpire',
+		'second_preparation_call_umpire',
+		'second_call_servicejudge',
+		'second_preparation_call_servicejudge',
+		'second_call_team_one',
+		'second_preparation_call_team_one',
+		'second_call_team_two',
+		'second_preparation_call_team_two',
+		'free_announce',
+	]);
+	if (payload && typeof payload === 'object' && announcement_change_types.has(ctype) && payload._announcement_ts == null) {
+		payload = {
+			...payload,
+			_announcement_ts: Date.now(),
+		};
+	}
 	for (const admin_ws of all_admins) {
 		admin_ws.sendmsg({
 			type: 'change',
 			tournament_key,
 			ctype,
-			val,
+			val: payload,
 		});
 	}
 }
@@ -1750,6 +2793,7 @@ function handle_fetch_allscoresheets_data(app, ws, msg) {
 
 function on_connect(app, ws) {
 	all_admins.push(ws);
+	update_queue.instance().set_hang_reporter(_notify_queue_hang);
 }
 
 function on_close(app, ws) {
@@ -1889,7 +2933,13 @@ module.exports = {
 	handle_emergency_announce,
 	handle_official_list_move,
 	handle_official_edit,
+	handle_official_roles_edit,
 	handle_add_officials_to_match,
+	handle_add_service_judge_to_match,
+	handle_assign_official_to_match,
+	handle_assign_official_to_preparation_match,
+	handle_remove_official_from_match,
+	handle_remove_official_from_preparation_match,
 	handle_second_call_umpire,
 	handle_second_preparation_call_umpire,
 	handle_second_call_servicejudge,
@@ -1914,4 +2964,7 @@ module.exports = {
 	generate_tournament_web_url,
 	on_close,
 	on_connect,
+	_build_match_edit_official_sync_meta,
+	_collect_dependent_official_releases,
+	_remove_official_from_setup,
 };

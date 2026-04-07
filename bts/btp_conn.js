@@ -229,38 +229,63 @@ class BTPConn {
 
 		async.waterfall([
 			(cb) => {
-				if (!match.setup || !match.setup.umpire || !match.setup.umpire.name) {
+				if (!match.setup) {
 					return cb(null, null, null);
 				}
 
-				this.app.db.umpires.findOne({
-					name: match.setup.umpire.name,
-					tournament_key: this.tkey,
-				}, (err, umpire) => {
+				const packed_umpire = match.setup.umpire;
+				const packed_service_judge = match.setup.service_judge;
+				const packed_umpire_btp_id = packed_umpire && packed_umpire.btp_id != null ? packed_umpire.btp_id : null;
+				const packed_service_judge_btp_id = packed_service_judge && packed_service_judge.btp_id != null ? packed_service_judge.btp_id : null;
+
+				if (packed_umpire_btp_id != null && (packed_service_judge_btp_id != null || !packed_service_judge || !packed_service_judge.name)) {
+					return cb(null, packed_umpire_btp_id, packed_service_judge_btp_id);
+				}
+
+				if (!packed_umpire || !packed_umpire.name) {
+					if (packed_service_judge_btp_id != null) {
+						return cb(null, null, packed_service_judge_btp_id);
+					}
+					if (!packed_service_judge || !packed_service_judge.name) {
+						return cb(null, null, null);
+					}
+				}
+
+				const resolveOfficialBtpId = (packed_official, done) => {
+					if (!packed_official) {
+						return done(null, null);
+					}
+					if (packed_official.btp_id != null) {
+						return done(null, packed_official.btp_id);
+					}
+					if (!packed_official.name) {
+						return done(null, null);
+					}
+					this.app.db.umpires.findOne({
+						name: packed_official.name,
+						tournament_key: this.tkey,
+					}, (err, official) => {
+						if (err) {
+							return done(err);
+						}
+						return done(null, official ? official.btp_id : null);
+					});
+				};
+
+				resolveOfficialBtpId(packed_umpire, (err, umpire_btp_id) => {
 					if (err) {
 						return cb(err);
 					}
-
-					const umpire_btp_id = umpire ? umpire.btp_id : null;
-					if (!match.setup.service_judge || !match.setup.service_judge.name) {
-						return cb(null, umpire_btp_id, null);
-					}
-
-					this.app.db.umpires.findOne({
-						name: match.setup.service_judge.name,
-						tournament_key: this.tkey,
-					}, (err, service_judge) => {
-						if (err) {
-							return cb(err);
+					resolveOfficialBtpId(packed_service_judge, (err2, service_judge_btp_id) => {
+						if (err2) {
+							return cb(err2);
 						}
-
-						const service_judge_btp_id = service_judge ? service_judge.btp_id : null;
 						return cb(null, umpire_btp_id, service_judge_btp_id);
 					});
 				});
 			},
 			(umpire_btp_id, service_judge_btp_id, cb) => {
-				if (!match.setup || !match.setup.court_id || match.setup.now_on_court !== true) {
+				if (!match.setup || !match.setup.court_id) {
 					return cb(null, umpire_btp_id, service_judge_btp_id, null);
 				}
 

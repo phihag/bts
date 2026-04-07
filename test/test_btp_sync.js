@@ -214,6 +214,32 @@ _describe('btp_sync', () => {
 		});
 	});
 
+	_it('keeps the local court on finished matches when BTP no longer sends a court', () => {
+		const currentMatch = {
+			team1_won: true,
+			btp_winner: 1,
+			btp_needsync: false,
+			setup: {
+				court_id: 'court_7',
+				now_on_court: false,
+				state: 'finished',
+				teams: [{ players: [] }, { players: [] }],
+			},
+		};
+		const btpMatch = {
+			setup: {
+				now_on_court: false,
+				state: 'scheduled',
+				teams: [{ players: [] }, { players: [] }],
+			},
+		};
+
+		const merged = btp_sync._merge_local_match_into_btp_match(currentMatch, structuredClone(btpMatch));
+
+		assert.strictEqual(merged.setup.state, 'finished');
+		assert.strictEqual(merged.setup.court_id, 'court_7');
+	});
+
 	_it('keeps locally edited timing values when BTP scoring formats are normalized again', () => {
 		const existing = {
 			id: 11,
@@ -270,5 +296,313 @@ _describe('btp_sync', () => {
 		assert.strictEqual(merged.last_set_points.interval_duration_ms, 40000);
 		assert.strictEqual(merged.last_set_points.break_before_set_duration_ms, 35000);
 		assert.strictEqual(merged.last_set_points.interval_enabled, true);
+	});
+
+	_it('ignores stale suppressed officials once the local match is no longer pending BTP sync', () => {
+		const currentMatch = {
+			btp_needsync: false,
+			setup: {
+				state: 'scheduled',
+				teams: [{ players: [] }, { players: [] }],
+				suppressed_umpire_btp_id: 6,
+			},
+		};
+		const btpMatch = {
+			setup: {
+				state: 'scheduled',
+				teams: [{ players: [] }, { players: [] }],
+				umpire: {
+					_id: 'default_btp_6',
+					btp_id: 6,
+					name: 'Michael G-Punkt',
+				},
+			},
+		};
+
+		const merged = btp_sync._merge_local_match_into_btp_match(currentMatch, structuredClone(btpMatch));
+
+		assert.ok(merged.setup.umpire);
+		assert.strictEqual(merged.setup.umpire.btp_id, 6);
+		assert.strictEqual(merged.setup.suppressed_umpire_btp_id, undefined);
+	});
+
+	_it('keeps suppressed officials hidden while a local match update is still pending sync', () => {
+		const currentMatch = {
+			btp_needsync: true,
+			setup: {
+				state: 'scheduled',
+				teams: [{ players: [] }, { players: [] }],
+				suppressed_umpire_btp_id: 6,
+			},
+		};
+		const btpMatch = {
+			setup: {
+				state: 'scheduled',
+				teams: [{ players: [] }, { players: [] }],
+				umpire: {
+					_id: 'default_btp_6',
+					btp_id: 6,
+					name: 'Michael G-Punkt',
+				},
+			},
+		};
+
+		const merged = btp_sync._merge_local_match_into_btp_match(currentMatch, structuredClone(btpMatch));
+
+		assert.strictEqual(merged.setup.umpire, undefined);
+		assert.strictEqual(merged.setup.suppressed_umpire_btp_id, 6);
+	});
+
+	_it('ignores stale suppressed service judges once the local match is no longer pending BTP sync', () => {
+		const currentMatch = {
+			btp_needsync: false,
+			setup: {
+				state: 'scheduled',
+				teams: [{ players: [] }, { players: [] }],
+				suppressed_service_judge_btp_id: 7,
+			},
+		};
+		const btpMatch = {
+			setup: {
+				state: 'scheduled',
+				teams: [{ players: [] }, { players: [] }],
+				service_judge: {
+					_id: 'default_btp_7',
+					btp_id: 7,
+					name: 'Service Judge',
+				},
+			},
+		};
+
+		const merged = btp_sync._merge_local_match_into_btp_match(currentMatch, structuredClone(btpMatch));
+
+		assert.ok(merged.setup.service_judge);
+		assert.strictEqual(merged.setup.service_judge.btp_id, 7);
+		assert.strictEqual(merged.setup.suppressed_service_judge_btp_id, undefined);
+	});
+
+	_it('does not restore role capability flags from match references during reconcile', (done) => {
+		const official = {
+			_id: 'o1',
+			tournament_key: 't1',
+			btp_id: 11,
+			firstname: 'Stefan',
+			surname: 'Schiedsrichter',
+			name: 'Stefan Schiedsrichter',
+			is_umpire: false,
+			is_service_judge: true,
+			is_planed_as_umpire: false,
+			is_planed_as_service_judge: false,
+			umpire_on_court: null,
+			service_judge_on_court: null,
+			umpire_wait: null,
+			service_judge_wait: 123,
+			umpire_pause: null,
+			service_judge_pause: null,
+			inactive_list: null,
+		};
+		const match = {
+			_id: 'm1',
+			tournament_key: 't1',
+			setup: {
+				now_on_court: false,
+				umpire: {
+					_id: 'o1',
+					btp_id: 11,
+					firstname: 'Stefan',
+					surname: 'Schiedsrichter',
+					name: 'Stefan Schiedsrichter',
+				}
+			}
+		};
+		const state = {
+			matches: [structuredClone(match)],
+			umpires: [structuredClone(official)]
+		};
+		const app = {
+			db: {
+				matches: {
+					find(query, cb) {
+						cb(null, state.matches);
+					}
+				},
+				umpires: {
+					find(query, cb) {
+						cb(null, state.umpires);
+					},
+					insert(doc, cb) {
+						state.umpires.push(doc);
+						cb(null, doc);
+					},
+					update(query, update, options, cb) {
+						const idx = state.umpires.findIndex((u) => u._id === query._id);
+						state.umpires[idx] = { ...state.umpires[idx], ...update.$set };
+						cb(null, 1, state.umpires[idx]);
+					}
+				}
+			}
+		};
+
+		btp_sync._reconcile_match_officials(app, 't1', (err) => {
+			assert.ifError(err);
+			assert.strictEqual(state.umpires[0].is_umpire, false);
+			assert.strictEqual(state.umpires[0].is_service_judge, true);
+			done();
+		});
+	});
+
+	_it('keeps a local umpire assignment only while the match update is still pending sync', () => {
+		const pendingCurrentMatch = {
+			btp_needsync: true,
+			setup: {
+				state: 'scheduled',
+				teams: [{ players: [] }, { players: [] }],
+				umpire: {
+					_id: 'default_btp_6',
+					btp_id: 6,
+					name: 'Michael G-Punkt',
+				},
+			},
+		};
+		const staleCurrentMatch = {
+			btp_needsync: false,
+			setup: {
+				state: 'scheduled',
+				teams: [{ players: [] }, { players: [] }],
+				umpire: {
+					_id: 'default_btp_6',
+					btp_id: 6,
+					name: 'Michael G-Punkt',
+				},
+			},
+		};
+		const btpMatchWithoutOfficial = {
+			setup: {
+				state: 'scheduled',
+				teams: [{ players: [] }, { players: [] }],
+			},
+		};
+
+		const pendingMerged = btp_sync._merge_local_match_into_btp_match(pendingCurrentMatch, structuredClone(btpMatchWithoutOfficial));
+		const staleMerged = btp_sync._merge_local_match_into_btp_match(staleCurrentMatch, structuredClone(btpMatchWithoutOfficial));
+
+		assert.ok(pendingMerged.setup.umpire);
+		assert.strictEqual(staleMerged.setup.umpire, undefined);
+	});
+
+	_it('clears stale planned and on-court flags when an official is no longer referenced by matches', () => {
+		const refState = btp_sync._build_official_reference_state([]);
+		const patch = btp_sync._compute_official_visibility_patch({
+			_id: 'default_btp_6',
+			btp_id: 6,
+			is_umpire: true,
+			is_service_judge: true,
+			is_planed_as_umpire: true,
+			is_planed_as_service_judge: false,
+			umpire_on_court: 'default_1',
+			service_judge_on_court: null,
+			umpire_wait: null,
+			service_judge_wait: null,
+			umpire_pause: null,
+			service_judge_pause: null,
+			inactive_list: null,
+		}, refState);
+
+		assert.strictEqual(patch.is_planed_as_umpire, false);
+		assert.strictEqual(patch.umpire_on_court, null);
+		assert.strictEqual(patch.umpire_wait != null, true);
+		assert.strictEqual(patch.service_judge_wait, null);
+		assert.strictEqual(patch.inactive_list, null);
+	});
+
+	_it('moves inactive officials back to wait when they are active-capable and no longer referenced', () => {
+		const refState = btp_sync._build_official_reference_state([]);
+		const patch = btp_sync._compute_official_visibility_patch({
+			_id: 'default_btp_6',
+			btp_id: 6,
+			is_umpire: true,
+			is_service_judge: false,
+			is_planed_as_umpire: false,
+			is_planed_as_service_judge: false,
+			umpire_on_court: null,
+			service_judge_on_court: null,
+			umpire_wait: null,
+			service_judge_wait: null,
+			umpire_pause: null,
+			service_judge_pause: null,
+			inactive_list: 12345,
+		}, refState);
+
+		assert.strictEqual(patch.umpire_wait != null, true);
+		assert.strictEqual(patch.service_judge_wait, null);
+		assert.strictEqual(patch.inactive_list, null);
+	});
+
+	_it('preserves planned flags when an official is still referenced by a scheduled match', () => {
+		const refState = btp_sync._build_official_reference_state([{
+			setup: {
+				state: 'scheduled',
+				now_on_court: false,
+				umpire: { _id: 'default_btp_6', btp_id: 6 },
+			},
+		}]);
+		const patch = btp_sync._compute_official_visibility_patch({
+			_id: 'default_btp_6',
+			btp_id: 6,
+			is_planed_as_umpire: true,
+			is_planed_as_service_judge: false,
+			umpire_on_court: null,
+			service_judge_on_court: null,
+			umpire_wait: null,
+			service_judge_wait: null,
+			umpire_pause: null,
+			service_judge_pause: null,
+			inactive_list: null,
+		}, refState);
+
+		assert.deepStrictEqual(patch, {});
+	});
+
+	_it('does not treat finished-match officials as still referenced for visibility', () => {
+		const refState = btp_sync._build_official_reference_state([{
+			team1_won: true,
+			setup: {
+				state: 'finished',
+				now_on_court: false,
+				umpire: { _id: 'default_btp_5', btp_id: 5 },
+			},
+		}]);
+		const patch = btp_sync._compute_official_visibility_patch({
+			_id: 'default_btp_5',
+			btp_id: 5,
+			is_umpire: true,
+			is_service_judge: true,
+			is_planed_as_umpire: false,
+			is_planed_as_service_judge: false,
+			umpire_on_court: null,
+			service_judge_on_court: null,
+			umpire_wait: null,
+			service_judge_wait: null,
+			umpire_pause: null,
+			service_judge_pause: null,
+			inactive_list: 12345,
+		}, refState);
+
+		assert.strictEqual(patch.umpire_wait != null, true);
+		assert.strictEqual(patch.service_judge_wait, null);
+		assert.strictEqual(patch.inactive_list, null);
+	});
+
+	_it('reuses an existing official by canonical _id when btp_id is missing locally', () => {
+		const existing = {
+			_id: 'default_btp_6',
+			tournament_key: 'default',
+			btp_id: null,
+			name: 'Michael G-Punkt',
+		};
+
+		const found = btp_sync._find_existing_official_for_btp_import([existing], 'default', 6);
+
+		assert.strictEqual(found, existing);
 	});
 	});
