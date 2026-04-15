@@ -20,8 +20,19 @@ class update_queue {
 		return task.name && task.name.length > 0 ? task.name : '<anonymous>';
 	}
 
-	_start_watchdog(task_name) {
+	_task_hang_after_ms(task) {
+		if (!task) {
+			return 5000;
+		}
+		if (typeof task._queue_hang_after_ms === 'number' && task._queue_hang_after_ms > 0) {
+			return task._queue_hang_after_ms;
+		}
+		return 5000;
+	}
+
+	_start_watchdog(task, task_name) {
 		this._clear_watchdog();
+		const hang_after_ms = this._task_hang_after_ms(task);
 		this.current_task_watchdog = setTimeout(() => {
 			const runtime_ms = this.current_task_started_at ? (Date.now() - this.current_task_started_at) : null;
 			const payload = {
@@ -37,7 +48,7 @@ class update_queue {
 					console.warn('[bts] update_queue:hang_reporter_error', err && (err.stack || err.message || String(err)));
 				}
 			}
-		}, 5000);
+		}, hang_after_ms);
 	}
 
 	_clear_watchdog() {
@@ -57,7 +68,7 @@ class update_queue {
 			const task_name = this._task_name(task);
 			this.current_task = task_name;
 			this.current_task_started_at = Date.now();
-			this._start_watchdog(task_name);
+			this._start_watchdog(task, task_name);
 			try {
 				const res = await task(...args);
 				this._clear_watchdog();
@@ -96,7 +107,13 @@ function named(name, task) {
 	return task;
 }
 
+function hang_after(ms, task) {
+	task._queue_hang_after_ms = ms;
+	return task;
+}
+
 module.exports = {
 	instance,
-	named
+	named,
+	hang_after
 };

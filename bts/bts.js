@@ -15,6 +15,7 @@ const btp_manager = require('./btp_manager');
 const bupws = require('./bupws');
 const database = require('./database');
 const http_api = require('./http_api');
+const match_utils = require('./match_utils');
 const serror = require('./serror');
 const shortcuts = require('./shortcuts');
 const ticker_manager = require('./ticker_manager');
@@ -49,6 +50,7 @@ function main() {
 		},
 		function (config, db, cb) {
 			const app = create_app(config, db);
+			match_utils.start_technical_official_pause_manager(app);
 
 			btp_manager.init(app, (err) => cb(err, app));
 		}, function(app, cb) {

@@ -12,6 +12,7 @@ const serror = require('./serror');
 const stournament = require('./stournament');
 const ticker_manager = require('./ticker_manager');
 const utils = require('./utils');
+const match_automation = require('./match_automation');
 
 
 /**
@@ -64,6 +65,7 @@ function handle_tournament_edit_props(app, ws, msg) {
 	const key = msg.key;
 	const props = utils.pluck(msg.props, [
 		'name','tguid',
+		'automation_enabled',
 		'btp_enabled', 'btp_autofetch_enabled', 'btp_readonly',
 		'btp_ip', 'btp_password','btp_autofetch_timeout_intervall',
 		'is_team', 'is_nation_competition',
@@ -80,7 +82,35 @@ function handle_tournament_edit_props(app, ws, msg) {
 		'tabletoperator_use_manual_counting_boards_enabled', 'tabletoperator_with_umpire_enabled', 
 		'annoncement_include_event', 'annoncement_include_round','annoncement_include_matchnumber',
 		'preparation_meetingpoint_enabled', 'preparation_tabletoperator_setup_enabled',
-		'call_preparation_matches_automatically_enabled', 'call_next_possible_scheduled_match_in_preparation' ,
+		'call_preparation_matches_automatically_enabled', 'call_next_possible_scheduled_match_in_preparation',
+		'preparation_successor_rally_count',
+		'preparation_call_time_limit_before_scheduled_enabled',
+		'preparation_call_time_limit_before_scheduled_minutes',
+		'preparation_call_block_ahead_limit_enabled',
+		'preparation_call_block_ahead_limit',
+		'preparation_call_time_ahead_of_frontier_enabled',
+		'preparation_call_time_ahead_of_frontier_minutes',
+		'preparation_call_matches_ahead_of_frontier_enabled',
+		'preparation_call_matches_ahead_of_frontier_limit',
+		'preparation_call_player_pause_expired_enabled',
+		'preparation_call_technical_officials_available_enabled',
+		'call_on_court_time_limit_before_scheduled_enabled',
+		'call_on_court_time_limit_before_scheduled_minutes',
+		'call_on_court_only_preparation_enabled',
+		'call_on_court_only_preparation_minutes',
+		'call_on_court_block_ahead_limit_enabled',
+		'call_on_court_block_ahead_limit',
+		'call_on_court_time_ahead_of_frontier_enabled',
+		'call_on_court_time_ahead_of_frontier_minutes',
+		'call_on_court_matches_ahead_of_frontier_enabled',
+		'call_on_court_matches_ahead_of_frontier_limit',
+		'call_on_court_participant_readiness_mode',
+		'call_on_court_player_pause_expired_enabled',
+		'call_on_court_technical_officials_mode',
+		'call_on_court_require_official_space_enabled',
+		'official_rotation_mode',
+		'technical_official_auto_assignment_mode',
+		'technical_official_break_after_assignment_seconds',
 		'logo_background_color', 'logo_foreground_color', 'scoring_formats']);
 
 	if (msg.props.btp_timezone) {
@@ -103,6 +133,29 @@ function handle_tournament_edit_props(app, ws, msg) {
 				ticker_manager.reconfigure(app, t);
 			}
 			notify_change(app, key, 'props', t);
+			if (utils.has_key(props, (k) => k === 'technical_official_auto_assignment_mode' || k === 'official_rotation_mode')) {
+				const match_utils = require('./match_utils');
+				match_utils.queue_auto_assign_technical_officials_when_available(app, key);
+			}
+			if (utils.has_key(props, (k) => k === 'technical_official_break_after_assignment_seconds')) {
+				const match_utils = require('./match_utils');
+				match_utils.queue_process_expired_technical_official_breaks(app, key);
+			}
+			if (props.automation_enabled === true) {
+				const match_utils = require('./match_utils');
+				match_utils.queue_auto_assign_technical_officials_when_available(app, key);
+				match_utils.queue_auto_execute_preparation_selections(app, key, (selectionErr) => {
+					if (selectionErr) {
+						console.warn('[bts] failed to resume preparation automation', selectionErr && (selectionErr.stack || selectionErr.message || String(selectionErr)));
+						return;
+					}
+					match_utils.auto_call_matches_on_free_courts(app, key, (callErr) => {
+						if (callErr) {
+							console.warn('[bts] failed to resume on-court automation', callErr && (callErr.stack || callErr.message || String(callErr)));
+						}
+					});
+				});
+			}
 
 			if (!tournament.displaysettings_general || (tournament.displaysettings_general != t.displaysettings_general)){
 
@@ -125,6 +178,7 @@ function handle_tournament_edit_prop(app, ws, msg) {
 
 	const allowed_fields = new Set([
 		'name', 'tguid',
+		'automation_enabled',
 		'btp_enabled', 'btp_autofetch_enabled', 'btp_readonly',
 		'btp_ip', 'btp_password', 'btp_autofetch_timeout_intervall', 'btp_timezone',
 		'is_team', 'is_nation_competition',
@@ -142,6 +196,34 @@ function handle_tournament_edit_prop(app, ws, msg) {
 		'annoncement_include_event', 'annoncement_include_round', 'annoncement_include_matchnumber',
 		'preparation_meetingpoint_enabled', 'preparation_tabletoperator_setup_enabled',
 		'call_preparation_matches_automatically_enabled', 'call_next_possible_scheduled_match_in_preparation',
+		'preparation_successor_rally_count',
+		'preparation_call_time_limit_before_scheduled_enabled',
+		'preparation_call_time_limit_before_scheduled_minutes',
+		'preparation_call_block_ahead_limit_enabled',
+		'preparation_call_block_ahead_limit',
+		'preparation_call_time_ahead_of_frontier_enabled',
+		'preparation_call_time_ahead_of_frontier_minutes',
+		'preparation_call_matches_ahead_of_frontier_enabled',
+		'preparation_call_matches_ahead_of_frontier_limit',
+		'preparation_call_player_pause_expired_enabled',
+		'preparation_call_technical_officials_available_enabled',
+		'call_on_court_time_limit_before_scheduled_enabled',
+		'call_on_court_time_limit_before_scheduled_minutes',
+		'call_on_court_only_preparation_enabled',
+		'call_on_court_only_preparation_minutes',
+		'call_on_court_block_ahead_limit_enabled',
+		'call_on_court_block_ahead_limit',
+		'call_on_court_time_ahead_of_frontier_enabled',
+		'call_on_court_time_ahead_of_frontier_minutes',
+		'call_on_court_matches_ahead_of_frontier_enabled',
+		'call_on_court_matches_ahead_of_frontier_limit',
+		'call_on_court_participant_readiness_mode',
+		'call_on_court_player_pause_expired_enabled',
+		'call_on_court_technical_officials_mode',
+		'call_on_court_require_official_space_enabled',
+		'official_rotation_mode',
+		'technical_official_auto_assignment_mode',
+		'technical_official_break_after_assignment_seconds',
 		'logo_background_color', 'logo_foreground_color',
 	]);
 
@@ -173,6 +255,21 @@ function handle_tournament_edit_prop(app, ws, msg) {
 			}
 			if (/^ticker_/.test(field)) {
 				ticker_manager.reconfigure(app, t);
+			}
+			if (field === 'automation_enabled' && t[field] === true) {
+				const match_utils = require('./match_utils');
+				match_utils.queue_auto_assign_technical_officials_when_available(app, key);
+				match_utils.queue_auto_execute_preparation_selections(app, key, (selectionErr) => {
+					if (selectionErr) {
+						console.warn('[bts] failed to resume preparation automation', selectionErr && (selectionErr.stack || selectionErr.message || String(selectionErr)));
+						return;
+					}
+					match_utils.auto_call_matches_on_free_courts(app, key, (callErr) => {
+						if (callErr) {
+							console.warn('[bts] failed to resume on-court automation', callErr && (callErr.stack || callErr.message || String(callErr)));
+						}
+					});
+				});
 			}
 			notify_change(app, key, 'prop_changed', { field, value: t[field] });
 
@@ -282,6 +379,9 @@ function handle_courts_add(app, ws, msg) {
 			_id: tournament_key + '_' + num,
 			tournament_key,
 			num,
+			is_active: true,
+			has_umpire: true,
+			has_service_judge: true,
 		};
 	});
 	app.db.courts.insert(added_courts, function(err) {
@@ -316,12 +416,14 @@ function handle_court_edit(app, ws, msg) {
 			return;
 		}
 		const is_active = (msg.is_active != undefined ? msg.is_active : court.is_active);
-		app.db.courts.update(query, { $set: {is_active} }, {}, (err) => {
+		const has_umpire = (msg.has_umpire != undefined ? msg.has_umpire : (court.has_umpire != undefined ? court.has_umpire : true));
+		const has_service_judge = (msg.has_service_judge != undefined ? msg.has_service_judge : (court.has_service_judge != undefined ? court.has_service_judge : true));
+		app.db.courts.update(query, { $set: {is_active, has_umpire, has_service_judge} }, {}, (err) => {
 			if(err) {
 				ws.respond(msg, err);
 				return;
 			}
-			notify_change(app, msg.tournament_key, 'court_changed', {court_id, is_active});
+			notify_change(app, msg.tournament_key, 'court_changed', {court_id, is_active, has_umpire, has_service_judge, match_id: court.match_id ?? null});
 			ws.respond(msg);
 			return;
 		});
@@ -488,6 +590,65 @@ function handle_tournament_get(app, ws, msg) {
 			ws.respond(msg, err, {tournament});
 		});
 	});
+}
+
+async function async_handle_preparation_selection_get(app, ws, msg) {
+	if (!_require_msg(ws, msg, ['tournament_key'])) {
+		return;
+	}
+
+	const selections = await match_automation.fetch_all_location_preparation_selections(app, msg.tournament_key);
+	return ws.respond(msg, null, {
+		selections: selections.map((selection) => ({
+			location_id: selection.location_id,
+			required_preparation_count: selection.required_preparation_count,
+			current_preparation_count: selection.current_preparation_count,
+			missing_preparation_count: selection.missing_preparation_count,
+			candidate_match_nums: selection.candidates.map((match) => match?.setup?.match_num).filter((num) => num != null),
+			selected_match_nums: selection.selected_matches.map((match) => match?.setup?.match_num).filter((num) => num != null),
+		})),
+	});
+}
+
+async function async_handle_preparation_selection_execute(app, ws, msg) {
+	if (!_require_msg(ws, msg, ['tournament_key', 'location_id'])) {
+		return;
+	}
+
+	const match_utils = require('./match_utils');
+	try {
+		const called_matches = await update_queue.instance().execute(update_queue.named('preparation_selection_execute', async () => {
+			const tournament = await app.db.tournaments.findOne_async({ key: msg.tournament_key });
+			if (!tournament) {
+				throw new Error('Cannot find tournament ' + msg.tournament_key);
+			}
+
+			const selection = await match_automation.fetch_location_preparation_selection(app, msg.tournament_key, msg.location_id);
+			const called_matches = [];
+
+			for (const match of selection.selected_matches) {
+				await new Promise((resolve, reject) => {
+					match_utils.call_match_in_preparation(app, tournament, match, msg.location_id, (err) => {
+						if (err) return reject(err);
+						called_matches.push({
+							_id: match._id,
+							match_num: match?.setup?.match_num,
+						});
+						resolve(null);
+					});
+				});
+			}
+
+			return called_matches;
+		}));
+
+		return ws.respond(msg, null, {
+			location_id: msg.location_id,
+			called_matches,
+		});
+	} catch (err) {
+		return ws.respond(msg, err);
+	}
 }
 
 function handle_create_tournament(app, ws, msg) {
@@ -1004,6 +1165,8 @@ function _official_wait_set_obj(wait_field, ts) {
 		inactive_list: null,
 		service_judge_pause: null,
 		umpire_pause: null,
+		service_judge_manual_pause: null,
+		umpire_manual_pause: null,
 		service_judge_wait: null,
 		umpire_wait: null,
 		service_judge_on_court: null,
@@ -1013,6 +1176,20 @@ function _official_wait_set_obj(wait_field, ts) {
 	};
 	setObj[wait_field] = ts;
 	return setObj;
+}
+
+function _official_list_target_ts(to_list, base_ts, tournament) {
+	return base_ts;
+}
+
+function _official_list_target_field(to_list) {
+	if (to_list === 'umpire_pause') {
+		return 'umpire_manual_pause';
+	}
+	if (to_list === 'service_judge_pause') {
+		return 'service_judge_manual_pause';
+	}
+	return to_list;
 }
 
 function _apply_wait_releases(app, tournament_key, releases, start_ts, cb) {
@@ -1094,6 +1271,8 @@ function _apply_match_edit_official_state_changes(app, tournament_key, old_setup
 				inactive_list: null,
 				service_judge_pause: null,
 				umpire_pause: null,
+				service_judge_manual_pause: null,
+				umpire_manual_pause: null,
 				service_judge_wait: null,
 				umpire_wait: null,
 				service_judge_on_court: null,
@@ -1159,7 +1338,7 @@ function handle_match_preparation_call(app, ws, msg) {
 		match_utils.call_match_in_preparation(app, tournament, msg.match, msg.location_id, (err) => {
 			ws.respond(msg, err);
 			return;
-		});
+		}, { force: true });
 	});
 }
 
@@ -1202,11 +1381,47 @@ function handle_match_player_check_in (app, ws, msg) {
 					if (err) {
 						return reject(err);
 					}
+					console.log('[bts] auto_call_trace:player_check_in_updated', {
+						ts: Date.now(),
+						tournament_key: msg.tournament_key,
+						match_id: msg.match_id,
+						player_id: msg.player_id,
+						checked_in: !!msg.checked_in,
+					});
+					trigger_auto_call_after_readiness_change(app, msg.tournament_key);
 					resolve();
 				});
 			});
 		});
 	}))).then(() => ws.respond(msg)).catch((err) => ws.respond(msg, err));
+}
+
+function trigger_auto_call_after_readiness_change(app, tournament_key) {
+	const match_utils = require('./match_utils');
+	console.log('[bts] auto_call_trace:readiness_trigger_start', {
+		ts: Date.now(),
+		tournament_key,
+	});
+	match_utils.queue_auto_execute_preparation_selections(app, tournament_key, (selectionErr) => {
+		if (selectionErr) {
+			console.warn('[bts] failed to auto select preparation matches after readiness change', selectionErr && (selectionErr.stack || selectionErr.message || String(selectionErr)));
+			return;
+		}
+		console.log('[bts] auto_call_trace:readiness_trigger_after_preparation_selection', {
+			ts: Date.now(),
+			tournament_key,
+		});
+		match_utils.auto_call_matches_on_free_courts(app, tournament_key, (callErr) => {
+			if (callErr) {
+				console.warn('[bts] failed to auto call matches on free courts after readiness change', callErr && (callErr.stack || callErr.message || String(callErr)));
+				return;
+			}
+			console.log('[bts] auto_call_trace:readiness_trigger_after_auto_call', {
+				ts: Date.now(),
+				tournament_key,
+			});
+		});
+	});
 }
 
 function handle_match_participant_check_in(app, ws, msg) {
@@ -1217,41 +1432,83 @@ function handle_match_participant_check_in(app, ws, msg) {
 	}
 
 	update_queue.instance().execute(update_queue.named('handle_match_participant_check_in', () => new Promise((resolve, reject) => {
-		app.db.matches.findOne({ tournament_key: msg.tournament_key, _id: msg.match_id }, async (err, match) => {
-			if (err) {
-				return reject(err);
+		app.db.tournaments.findOne({ key: msg.tournament_key }, (tournament_err, tournament) => {
+			if (tournament_err) {
+				return reject(tournament_err);
 			}
-			if (!match || !match.setup) {
-				return reject(new Error('Match not found'));
-			}
-
-			let participant_found = false;
-			const checked_in = !!msg.checked_in;
-
-			if (msg.role === 'umpire' || msg.role === 'service_judge') {
-				const participant = match.setup[msg.role];
-				if (participant && participant.btp_id == msg.participant_id) {
-					participant.checked_in = checked_in;
-					participant_found = true;
+			app.db.matches.findOne({ tournament_key: msg.tournament_key, _id: msg.match_id }, async (err, match) => {
+				if (err) {
+					return reject(err);
 				}
-			} else if (msg.role === 'tabletoperator' && Array.isArray(match.setup.tabletoperators)) {
-				match.setup.tabletoperators.forEach((participant) => {
-					if (participant.btp_id == msg.participant_id) {
+				if (!match || !match.setup) {
+					return reject(new Error('Match not found'));
+				}
+
+				let participant_found = false;
+				const checked_in = !!msg.checked_in;
+
+				if (msg.role === 'umpire' || msg.role === 'service_judge') {
+					if (tournament?.btp_settings?.check_in_per_match === false) {
+						return resolve();
+					}
+					const participant = match.setup[msg.role];
+					if (participant && participant.btp_id == msg.participant_id) {
 						participant.checked_in = checked_in;
 						participant_found = true;
 					}
-				});
-			}
-
-			if (!participant_found) {
-				return reject(new Error('Participant not found in match'));
-			}
-
-			match_utils.match_update(app, match, undefined, (update_err) => {
-				if (update_err) {
-					return reject(update_err);
+				} else if (msg.role === 'tabletoperator' && Array.isArray(match.setup.tabletoperators)) {
+					match.setup.tabletoperators.forEach((participant) => {
+						if (participant.btp_id == msg.participant_id) {
+							participant.checked_in = checked_in;
+							participant_found = true;
+						}
+					});
 				}
-				resolve();
+
+				if (!participant_found) {
+					return reject(new Error('Participant not found in match'));
+				}
+
+				match_utils.match_update(app, match, undefined, (update_err) => {
+					if (update_err) {
+						return reject(update_err);
+					}
+					console.log('[bts] auto_call_trace:participant_check_in_updated', {
+						ts: Date.now(),
+						tournament_key: msg.tournament_key,
+						match_id: msg.match_id,
+						role: msg.role,
+						participant_id: msg.participant_id,
+						checked_in,
+					});
+					if ((msg.role === 'umpire' || msg.role === 'service_judge') && tournament?.btp_settings?.check_in_per_match !== false) {
+						const participant = match.setup[msg.role];
+						if (!participant) {
+							trigger_auto_call_after_readiness_change(app, msg.tournament_key);
+							return resolve();
+						}
+						const official_query = participant._id
+							? { tournament_key: msg.tournament_key, _id: participant._id }
+							: { tournament_key: msg.tournament_key, btp_id: msg.participant_id };
+						return app.db.umpires.update(
+							official_query,
+							{ $set: { checked_in } },
+							{ returnUpdatedDocs: true },
+							(official_err, numAffected, updated_official) => {
+								if (official_err) {
+									return reject(official_err);
+								}
+								if (numAffected > 0 && updated_official) {
+									notify_change(app, msg.tournament_key, 'umpire_updated', updated_official);
+								}
+								trigger_auto_call_after_readiness_change(app, msg.tournament_key);
+								resolve();
+							}
+						);
+					}
+					trigger_auto_call_after_readiness_change(app, msg.tournament_key);
+					resolve();
+				});
 			});
 		});
 	}))).then(() => ws.respond(msg)).catch((err) => ws.respond(msg, err));
@@ -1412,6 +1669,7 @@ function handle_second_preparation_call_team_one(app, ws, msg) {
 }
 
 function handle_official_list_move(app, ws, msg) {
+  const match_utils = require('./match_utils');
   if (!_require_msg(ws, msg, [
     'tournament_key',
     'official_id',
@@ -1433,15 +1691,19 @@ function handle_official_list_move(app, ws, msg) {
     to_list
   } = msg;
 
-  if (Array.isArray(ordered_official_ids) && ordered_official_ids.length > 0) {
-    const unique_ordered_ids = [...new Set(ordered_official_ids.filter(Boolean))];
-    if (!unique_ordered_ids.includes(official_id)) {
-      unique_ordered_ids.push(official_id);
-    }
-    return app.db.umpires.find({
-      tournament_key,
-      _id: { $in: unique_ordered_ids }
-    }, function(err, docs) {
+  app.db.tournaments.findOne({ key: tournament_key }, function (tournament_err, tournament) {
+    if (tournament_err) return cerror.ws(ws, tournament_err);
+    if (!tournament) return cerror.ws(ws, new Error('tournament not found'));
+
+    if (Array.isArray(ordered_official_ids) && ordered_official_ids.length > 0) {
+      const unique_ordered_ids = [...new Set(ordered_official_ids.filter(Boolean))];
+      if (!unique_ordered_ids.includes(official_id)) {
+        unique_ordered_ids.push(official_id);
+      }
+      return app.db.umpires.find({
+        tournament_key,
+        _id: { $in: unique_ordered_ids }
+      }, function(err, docs) {
       if (err) return cerror.ws(ws, err);
       const currentUmpire = docs.find((u) => u._id === official_id);
       if (!currentUmpire) {
@@ -1456,6 +1718,8 @@ function handle_official_list_move(app, ws, msg) {
           setObj['inactive_list'] = null;
           setObj['service_judge_pause'] = null;
           setObj['umpire_pause'] = null;
+          setObj['service_judge_manual_pause'] = null;
+          setObj['umpire_manual_pause'] = null;
           setObj['service_judge_wait'] = null;
           setObj['umpire_wait'] = null;
           setObj['service_judge_on_court'] = null;
@@ -1463,7 +1727,9 @@ function handle_official_list_move(app, ws, msg) {
           setObj['is_planed_as_service_judge'] = false;
           setObj['is_planed_as_umpire'] = false;
         }
-        setObj[to_list] = now + index;
+        setObj[_official_list_target_field(to_list)] = _official_list_target_ts(to_list, now + index, tournament);
+        const updated_official = { ...(docs.find((u) => u._id === id) || {}), ...setObj };
+        setObj.checked_in = match_utils.get_effective_technical_official_checked_in(updated_official, tournament);
         return { _id: id, setObj };
       });
 
@@ -1490,41 +1756,41 @@ function handle_official_list_move(app, ws, msg) {
                 official_id,
                 from_list,
                 to_list,
-                new_ts: now + unique_ordered_ids.indexOf(official_id),
+                new_ts: _official_list_target_ts(to_list, now + unique_ordered_ids.indexOf(official_id), tournament),
               });
               ws.respond(msg);
             });
           }
         );
       });
-    });
-  }
+      });
+    }
 
-  // btp_id sicher normalisieren
-  const prevId = (prev_btp_id == null) ? null : Number(prev_btp_id);
-  const nextId = (next_btp_id == null) ? null : Number(next_btp_id);
+    // btp_id sicher normalisieren
+    const prevId = (prev_btp_id == null) ? null : Number(prev_btp_id);
+    const nextId = (next_btp_id == null) ? null : Number(next_btp_id);
 
-  const neighborOfficialIds = [];
-  if (prev_official_id) neighborOfficialIds.push(prev_official_id);
-  if (next_official_id) neighborOfficialIds.push(next_official_id);
+    const neighborOfficialIds = [];
+    if (prev_official_id) neighborOfficialIds.push(prev_official_id);
+    if (next_official_id) neighborOfficialIds.push(next_official_id);
 
-  const neighborBtpIds = [];
-  if (Number.isFinite(prevId)) neighborBtpIds.push(prevId);
-  if (Number.isFinite(nextId)) neighborBtpIds.push(nextId);
+    const neighborBtpIds = [];
+    if (Number.isFinite(prevId)) neighborBtpIds.push(prevId);
+    if (Number.isFinite(nextId)) neighborBtpIds.push(nextId);
 
-  // Query: current über _id, prev/next primär über _id, fallback über btp_id
-  const query = {
-    tournament_key,
-    $or: [{ _id: official_id }]
-  };
-  if (neighborOfficialIds.length > 0) {
-    query.$or.push({ _id: { $in: neighborOfficialIds } });
-  }
-  if (neighborBtpIds.length > 0) {
-    query.$or.push({ btp_id: { $in: neighborBtpIds } });
-  }
+    // Query: current über _id, prev/next primär über _id, fallback über btp_id
+    const query = {
+      tournament_key,
+      $or: [{ _id: official_id }]
+    };
+    if (neighborOfficialIds.length > 0) {
+      query.$or.push({ _id: { $in: neighborOfficialIds } });
+    }
+    if (neighborBtpIds.length > 0) {
+      query.$or.push({ btp_id: { $in: neighborBtpIds } });
+    }
 
-  app.db.umpires.find(query, function (err, docs) {
+    app.db.umpires.find(query, function (err, docs) {
     if (err) return cerror.ws(ws, err);
 
     let currentUmpire = null;
@@ -1580,6 +1846,7 @@ function handle_official_list_move(app, ws, msg) {
     } else {
       newTS = (prevTS + nextTS) / 2;
     }
+    newTS = _official_list_target_ts(to_list, newTS, tournament);
 
     // --- Update vorbereiten ---
     // Spezifikation:
@@ -1591,13 +1858,16 @@ function handle_official_list_move(app, ws, msg) {
 		    setObj['inactive_list'] = null;
 		    setObj['service_judge_pause'] = null;
 		    setObj['umpire_pause'] = null;
+		    setObj['service_judge_manual_pause'] = null;
+		    setObj['umpire_manual_pause'] = null;
 		    setObj['service_judge_wait'] = null;
 		    setObj['umpire_wait'] = null;
 		    setObj['service_judge_on_court'] = null;
 		    setObj['umpire_on_court'] = null;
 		    setObj['is_planed_as_service_judge'] = false;
 		    setObj['is_planed_as_umpire'] = false;
-    setObj[to_list] = newTS;
+    setObj[_official_list_target_field(to_list)] = newTS;
+    setObj.checked_in = match_utils.get_effective_technical_official_checked_in({ ...currentUmpire, ...setObj }, tournament);
 
     app.db.umpires.update(
       { _id: currentUmpire._id, tournament_key },
@@ -1618,12 +1888,14 @@ function handle_official_list_move(app, ws, msg) {
               to_list,
               new_ts: newTS,
             });
+            notify_change(app, tournament_key, 'umpire_updated', updated);
 
 			ws.respond(msg);	
           }
         );
       }
     );
+    });
   });
 }
 
@@ -1760,31 +2032,12 @@ function handle_official_roles_edit(app, ws, msg) {
   });
 }
 
-function handle_add_officials_to_match(app, ws, msg) {
-  // 1) Pflichtfelder prüfen
-  if (!_require_msg(ws, msg, ['tournament_key', 'match_id'])) {
-    return;
-  }
-
-  const { tournament_key, match_id } = msg;
-
-  function pack_official(u) {
-    return {
-      _id: u._id,
-      btp_id: u.btp_id,
-      name: u.name,
-      firstname: u.firstname,
-      surname: u.surname,
-      country: u.country,
-      is_umpire: !!u.is_umpire,
-      is_service_judge: !!u.is_service_judge,
-      checked_in: false
-    };
-  }
-
-  update_queue.instance().execute(update_queue.named('handle_add_officials_to_match', () => new Promise((resolve, reject) => {
-      // 2) Match laden und prüfen, ob schon ein Umpire gesetzt ist
-      app.db.matches.findOne({ _id: match_id, tournament_key }, function (err, match) {
+function _assign_next_umpire_to_match(app, tournament_key, match_id, options = {}) {
+  const skip_btp_push = options && options.skip_btp_push === true;
+  return new Promise((resolve, reject) => {
+    app.db.tournaments.findOne({ key: tournament_key }, function (tournament_err, tournament) {
+      if (tournament_err) return reject(tournament_err);
+    app.db.matches.findOne({ _id: match_id, tournament_key }, function (err, match) {
       if (err) return reject(err);
       if (!match) {
         return reject(
@@ -1799,8 +2052,20 @@ function handle_add_officials_to_match(app, ws, msg) {
       }
 
 	  const setup = match.setup;
+	  if (setup.court_id) {
+		return app.db.courts.findOne({ tournament_key, _id: setup.court_id }, function(courtErr, court) {
+			if (courtErr) return reject(courtErr);
+			if (court && court.has_umpire === false) {
+				return reject(new Error('Court has no space for an umpire'));
+			}
+			return continue_assign();
+		});
+	  }
 
-      // 3) Ältesten Umpire suchen
+	  return continue_assign();
+
+	  function continue_assign() {
+
       app.db.umpires
         .find({ tournament_key, umpire_wait: { $ne: null } })
         .sort({ umpire_wait: 1 })
@@ -1813,11 +2078,12 @@ function handle_add_officials_to_match(app, ws, msg) {
 
           const umpire = umps[0];
 
-          // 4) Atomar reservieren (Race-Condition-sicher)
           app.db.umpires.update(
             { _id: umpire._id, tournament_key, umpire_wait: { $ne: null } },
             { $set: { umpire_wait: null,
-					      is_planed_as_umpire: true } },
+					      service_judge_wait: null,
+					      is_planed_as_umpire: true,
+					      is_planed_as_service_judge: false } },
             {},
             function (err3, affected1) {
               if (err3) return reject(err3);
@@ -1825,8 +2091,7 @@ function handle_add_officials_to_match(app, ws, msg) {
                 return reject(new Error('Umpire was already taken by another assignment'));
               }
 
-              // 5) Match.setup updaten
-              setup.umpire = pack_official(umpire);
+              setup.umpire = _pack_official_for_match(umpire, options.tournament || tournament || null);
 
               app.db.matches.update(
                 { _id: match_id, tournament_key, 'setup.umpire': { $exists: false } },
@@ -1836,21 +2101,24 @@ function handle_add_officials_to_match(app, ws, msg) {
                   if (err4 || affectedMatch === 0) {
                     app.db.umpires.update(
                       { _id: umpire._id, tournament_key },
-                      { $set: { umpire_wait: Date.now()/10,
-							    is_planed_as_umpire: false
+                      { $set: { umpire_wait: umpire.is_umpire ? Date.now()/10 : null,
+							    service_judge_wait: umpire.is_service_judge ? Date.now()/10 : null,
+							    is_planed_as_umpire: false,
+							    is_planed_as_service_judge: false
 						   } }
                     );
                     return reject(err4 || new Error('Match changed during official assignment'));
                   }
 
-                  // 6) Broadcast
                   app.db.matches.findOne(
                     { _id: match_id, tournament_key },
                     function (err5, updatedMatch) {
                       if (err5) return reject(err5);
 
-                      notify_change(app, tournament_key, 'match_edit', {match__id: msg.match_id, match: updatedMatch});
-					  btp_manager.update_score(app, updatedMatch);
+                      notify_change(app, tournament_key, 'match_edit', {match__id: match_id, match: updatedMatch});
+					  if (!skip_btp_push) {
+					  	btp_manager.update_score(app, updatedMatch);
+					  }
 
                       app.db.umpires.find(
                         { tournament_key, _id: umpire._id },
@@ -1879,32 +2147,32 @@ function handle_add_officials_to_match(app, ws, msg) {
             }
           );
         });
+	  }
     });
-  }))).then(() => ws.respond(msg)).catch((err) => ws.respond(msg, err));
+    });
+  });
 }
 
-function handle_add_service_judge_to_match(app, ws, msg) {
+function assign_next_umpire_to_match(app, tournament_key, match_id) {
+  return update_queue.instance().execute(update_queue.named('handle_add_officials_to_match', () => _assign_next_umpire_to_match(app, tournament_key, match_id)));
+}
+
+function handle_add_officials_to_match(app, ws, msg) {
   if (!_require_msg(ws, msg, ['tournament_key', 'match_id'])) {
     return;
   }
 
   const { tournament_key, match_id } = msg;
+  assign_next_umpire_to_match(app, tournament_key, match_id)
+    .then(() => ws.respond(msg))
+    .catch((err) => ws.respond(msg, err));
+}
 
-  function pack_official(u) {
-    return {
-      _id: u._id,
-      btp_id: u.btp_id,
-      name: u.name,
-      firstname: u.firstname,
-      surname: u.surname,
-      country: u.country,
-      is_umpire: !!u.is_umpire,
-      is_service_judge: !!u.is_service_judge,
-      checked_in: false
-    };
-  }
-
-  update_queue.instance().execute(update_queue.named('handle_add_service_judge_to_match', () => new Promise((resolve, reject) => {
+function _assign_next_service_judge_to_match(app, tournament_key, match_id, options = {}) {
+  const skip_btp_push = options && options.skip_btp_push === true;
+  return new Promise((resolve, reject) => {
+    app.db.tournaments.findOne({ key: tournament_key }, function (tournament_err, tournament) {
+      if (tournament_err) return reject(tournament_err);
     app.db.matches.findOne({ _id: match_id, tournament_key }, function (err, match) {
       if (err) return reject(err);
       if (!match) {
@@ -1921,6 +2189,19 @@ function handle_add_service_judge_to_match(app, ws, msg) {
       }
 
       const setup = match.setup;
+      if (setup.court_id) {
+		return app.db.courts.findOne({ tournament_key, _id: setup.court_id }, function(courtErr, court) {
+			if (courtErr) return reject(courtErr);
+			if (court && court.has_service_judge === false) {
+				return reject(new Error('Court has no space for a service judge'));
+			}
+			return continue_assign();
+		});
+      }
+
+      return continue_assign();
+
+      function continue_assign() {
 
       app.db.umpires
         .find({ tournament_key, service_judge_wait: { $ne: null } })
@@ -1936,7 +2217,7 @@ function handle_add_service_judge_to_match(app, ws, msg) {
 
           app.db.umpires.update(
             { _id: service_judge._id, tournament_key, service_judge_wait: { $ne: null } },
-            { $set: { service_judge_wait: null, is_planed_as_service_judge: true } },
+            { $set: { service_judge_wait: null, umpire_wait: null, is_planed_as_service_judge: true, is_planed_as_umpire: false } },
             {},
             function (err3, affected) {
               if (err3) return reject(err3);
@@ -1944,7 +2225,7 @@ function handle_add_service_judge_to_match(app, ws, msg) {
                 return reject(new Error('Service judge was already taken'));
               }
 
-              setup.service_judge = pack_official(service_judge);
+              setup.service_judge = _pack_official_for_match(service_judge, options.tournament || tournament || null);
 
               app.db.matches.update(
                 { _id: match_id, tournament_key, 'setup.umpire': { $exists: true }, 'setup.service_judge': { $exists: false } },
@@ -1954,7 +2235,12 @@ function handle_add_service_judge_to_match(app, ws, msg) {
                   if (err4 || affectedMatch === 0) {
                     app.db.umpires.update(
                       { _id: service_judge._id, tournament_key },
-                      { $set: { service_judge_wait: Date.now() / 10, is_planed_as_service_judge: false } }
+                      { $set: {
+						  service_judge_wait: service_judge.is_service_judge ? Date.now() / 10 : null,
+						  umpire_wait: service_judge.is_umpire ? Date.now() / 10 : null,
+						  is_planed_as_service_judge: false,
+						  is_planed_as_umpire: false
+					  } }
                     );
                     return reject(err4 || new Error('Match changed during service judge assignment'));
                   }
@@ -1964,8 +2250,10 @@ function handle_add_service_judge_to_match(app, ws, msg) {
                     function (err5, updatedMatch) {
                       if (err5) return reject(err5);
 
-                      notify_change(app, tournament_key, 'match_edit', { match__id: msg.match_id, match: updatedMatch });
-                      btp_manager.update_score(app, updatedMatch);
+                      notify_change(app, tournament_key, 'match_edit', { match__id: match_id, match: updatedMatch });
+                      if (!skip_btp_push) {
+                      	btp_manager.update_score(app, updatedMatch);
+                      }
 
                       app.db.umpires.findOne(
                         { tournament_key, _id: service_judge._id },
@@ -1992,11 +2280,29 @@ function handle_add_service_judge_to_match(app, ws, msg) {
             }
           );
         });
+	  }
     });
-  }))).then(() => ws.respond(msg)).catch((err) => ws.respond(msg, err));
+    });
+  });
 }
 
-function _pack_official_for_match(u) {
+function assign_next_service_judge_to_match(app, tournament_key, match_id) {
+  return update_queue.instance().execute(update_queue.named('handle_add_service_judge_to_match', () => _assign_next_service_judge_to_match(app, tournament_key, match_id)));
+}
+
+function handle_add_service_judge_to_match(app, ws, msg) {
+  if (!_require_msg(ws, msg, ['tournament_key', 'match_id'])) {
+    return;
+  }
+
+  const { tournament_key, match_id } = msg;
+  assign_next_service_judge_to_match(app, tournament_key, match_id)
+    .then(() => ws.respond(msg))
+    .catch((err) => ws.respond(msg, err));
+}
+
+function _pack_official_for_match(u, tournament = null) {
+  const match_utils = require('./match_utils');
   return {
     _id: u._id,
     btp_id: u.btp_id,
@@ -2006,7 +2312,9 @@ function _pack_official_for_match(u) {
     country: u.country,
     is_umpire: !!u.is_umpire,
     is_service_judge: !!u.is_service_judge,
-    checked_in: false
+    umpire_wait: u.umpire_wait ?? null,
+    service_judge_wait: u.service_judge_wait ?? null,
+    checked_in: match_utils.get_effective_technical_official_checked_in(u, tournament)
   };
 }
 
@@ -2029,6 +2337,8 @@ function handle_assign_official_to_preparation_match(app, ws, msg) {
   const role_flag = role === 'umpire' ? 'is_planed_as_umpire' : 'is_planed_as_service_judge';
 
   update_queue.instance().execute(update_queue.named('handle_assign_official_to_preparation_match', () => new Promise((resolve, reject) => {
+    app.db.tournaments.findOne({ key: tournament_key }, function (tournament_err, tournament) {
+      if (tournament_err) return reject(tournament_err);
     app.db.matches.find({ tournament_key, _id: { $in: [...new Set([match_id, source_match_id].filter(Boolean))] } }, function (err, matches) {
       if (err) return reject(err);
       const match = matches.find((m) => m._id === match_id);
@@ -2071,14 +2381,16 @@ function handle_assign_official_to_preparation_match(app, ws, msg) {
             }
           }
         }
-        target_setup[role] = _pack_official_for_match(official);
+        target_setup[role] = _pack_official_for_match(official, tournament || null);
         delete target_setup[role === 'umpire' ? 'suppressed_umpire_btp_id' : 'suppressed_service_judge_btp_id'];
 
-        const officialSetObj = {
-          inactive_list: null,
-          service_judge_pause: null,
-          umpire_pause: null,
-          service_judge_wait: null,
+	        const officialSetObj = {
+	          inactive_list: null,
+	          service_judge_pause: null,
+	          umpire_pause: null,
+	          service_judge_manual_pause: null,
+	          umpire_manual_pause: null,
+	          service_judge_wait: null,
           umpire_wait: null,
           service_judge_on_court: null,
           umpire_on_court: null,
@@ -2162,6 +2474,7 @@ function handle_assign_official_to_preparation_match(app, ws, msg) {
         );
       });
     });
+    });
   }))).then(() => ws.respond(msg)).catch((err) => cerror.ws(ws, err));
 }
 
@@ -2184,6 +2497,8 @@ function handle_assign_official_to_match(app, ws, msg) {
   const role_flag = role === 'umpire' ? 'is_planed_as_umpire' : 'is_planed_as_service_judge';
 
   update_queue.instance().execute(update_queue.named('handle_assign_official_to_match', () => new Promise((resolve, reject) => {
+    app.db.tournaments.findOne({ key: tournament_key }, function (tournament_err, tournament) {
+      if (tournament_err) return reject(tournament_err);
     app.db.matches.find({ tournament_key, _id: { $in: [...new Set([match_id, source_match_id].filter(Boolean))] } }, function (err, matches) {
       if (err) return reject(err);
       const match = matches.find((m) => m._id === match_id);
@@ -2227,14 +2542,16 @@ function handle_assign_official_to_match(app, ws, msg) {
             }
           }
         }
-        target_setup[role] = _pack_official_for_match(official);
+        target_setup[role] = _pack_official_for_match(official, tournament || null);
         delete target_setup[role === 'umpire' ? 'suppressed_umpire_btp_id' : 'suppressed_service_judge_btp_id'];
 
-        const officialSetObj = {
-          inactive_list: null,
-          service_judge_pause: null,
-          umpire_pause: null,
-          service_judge_wait: null,
+	        const officialSetObj = {
+	          inactive_list: null,
+	          service_judge_pause: null,
+	          umpire_pause: null,
+	          service_judge_manual_pause: null,
+	          umpire_manual_pause: null,
+	          service_judge_wait: null,
           umpire_wait: null,
           service_judge_on_court: null,
           umpire_on_court: null,
@@ -2318,6 +2635,7 @@ function handle_assign_official_to_match(app, ws, msg) {
         );
       });
     });
+    });
   }))).then(() => ws.respond(msg)).catch((err) => cerror.ws(ws, err));
 }
 
@@ -2347,11 +2665,13 @@ function handle_remove_official_from_preparation_match(app, ws, msg) {
         const setup = structuredClone(match.setup || {});
         const dependent_releases = _remove_official_from_setup(setup, role);
 
-        const baseSetObj = {
-          inactive_list: null,
-          service_judge_pause: null,
-          umpire_pause: null,
-          service_judge_wait: null,
+	        const baseSetObj = {
+	          inactive_list: null,
+	          service_judge_pause: null,
+	          umpire_pause: null,
+	          service_judge_manual_pause: null,
+	          umpire_manual_pause: null,
+	          service_judge_wait: null,
           umpire_wait: null,
           service_judge_on_court: null,
           umpire_on_court: null,
@@ -2376,7 +2696,7 @@ function handle_remove_official_from_preparation_match(app, ws, msg) {
                 const now = Date.now();
                 return async.eachSeries(unique_ordered_ids, (id, next) => {
                   const setObj = (id === official_id) ? { ...baseSetObj } : {};
-                  setObj[to_list] = now + unique_ordered_ids.indexOf(id);
+                  setObj[_official_list_target_field(to_list)] = _official_list_target_ts(to_list, now + unique_ordered_ids.indexOf(id), null);
                   app.db.umpires.update(
                     { _id: id, tournament_key },
                     { $set: setObj },
@@ -2390,7 +2710,7 @@ function handle_remove_official_from_preparation_match(app, ws, msg) {
               }
               const setObj = { ...baseSetObj };
               const now = Date.now();
-              setObj[to_list] = now;
+              setObj[_official_list_target_field(to_list)] = _official_list_target_ts(to_list, now, null);
               app.db.umpires.update(
                 { _id: official_id, tournament_key },
                 { $set: setObj },
@@ -2460,11 +2780,13 @@ function handle_remove_official_from_match(app, ws, msg) {
         const setup = structuredClone(match.setup || {});
         const dependent_releases = _remove_official_from_setup(setup, role);
 
-        const baseSetObj = {
-          inactive_list: null,
-          service_judge_pause: null,
-          umpire_pause: null,
-          service_judge_wait: null,
+	        const baseSetObj = {
+	          inactive_list: null,
+	          service_judge_pause: null,
+	          umpire_pause: null,
+	          service_judge_manual_pause: null,
+	          umpire_manual_pause: null,
+	          service_judge_wait: null,
           umpire_wait: null,
           service_judge_on_court: null,
           umpire_on_court: null,
@@ -2489,7 +2811,7 @@ function handle_remove_official_from_match(app, ws, msg) {
                 const now = Date.now();
                 return async.eachSeries(unique_ordered_ids, (id, next) => {
                   const setObj = (id === official_id) ? { ...baseSetObj } : {};
-                  setObj[to_list] = now + unique_ordered_ids.indexOf(id);
+                  setObj[_official_list_target_field(to_list)] = _official_list_target_ts(to_list, now + unique_ordered_ids.indexOf(id), null);
                   app.db.umpires.update(
                     { _id: id, tournament_key },
                     { $set: setObj },
@@ -2503,7 +2825,7 @@ function handle_remove_official_from_match(app, ws, msg) {
               }
               const setObj = { ...baseSetObj };
               const now = Date.now();
-              setObj[to_list] = now;
+              setObj[_official_list_target_field(to_list)] = _official_list_target_ts(to_list, now, null);
               app.db.umpires.update(
                 { _id: official_id, tournament_key },
                 { $set: setObj },
@@ -2759,6 +3081,15 @@ function notify_change(app, tournament_key, ctype, val) {
 			_announcement_ts: Date.now(),
 		};
 	}
+	if (ctype === 'match_preparation_call' && payload && typeof payload === 'object') {
+		console.log('[bts] debug:match_preparation_call_sent', {
+			match_id: payload.match__id || payload.match?._id || null,
+			announcement_ts: payload._announcement_ts || null,
+			state: payload.match?.setup?.state || null,
+			highlight: payload.match?.setup?.highlight || 0,
+			location_id: payload.match?.setup?.location_id || null,
+		});
+	}
 	for (const admin_ws of all_admins) {
 		admin_ws.sendmsg({
 			type: 'change',
@@ -2925,6 +3256,8 @@ module.exports = {
 	handle_match_edit,
 	handle_match_call_on_court,
 	handle_match_preparation_call,
+	async_handle_preparation_selection_get,
+	async_handle_preparation_selection_execute,
 	handle_match_player_check_in,
 	handle_match_participant_check_in,
 	handle_ticker_pushall,
@@ -2936,6 +3269,10 @@ module.exports = {
 	handle_official_roles_edit,
 	handle_add_officials_to_match,
 	handle_add_service_judge_to_match,
+	assign_next_umpire_to_match,
+	assign_next_service_judge_to_match,
+	_assign_next_umpire_to_match,
+	_assign_next_service_judge_to_match,
 	handle_assign_official_to_match,
 	handle_assign_official_to_preparation_match,
 	handle_remove_official_from_match,
