@@ -119,10 +119,14 @@ function init(app, cb) {
 function get_status(tkey) {
 	const conn = conns_by_tkey.get(tkey);
 	if (!conn) {
-		return { status: 'deactivated', message: '' };
+		return { status: 'deactivated', message: '', next_fetch_ts: null, fetch_in_progress: false };
 	}
 
-	return conn.last_status;
+	return {
+		...conn.last_status,
+		next_fetch_ts: conn.next_fetch_ts,
+		fetch_in_progress: conn.fetch_in_progress,
+	};
 }
 
 module.exports = {

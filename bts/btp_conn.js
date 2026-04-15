@@ -13,6 +13,7 @@ const serror = require('./serror');
 const AUTOFETCH_TIMEOUT = 30000;
 const CONNECT_TIMEOUT = 5000;
 const WAIT_TIMEOUT = 10000;
+const FETCH_QUEUE_HANG_TIMEOUT = 30000;
 const BTP_PORT = 9901;
 const BLP_PORT = 9911;
 
@@ -73,7 +74,7 @@ function send_request(ip, port, xml_req, timeZone, callback) {
 class BTPConn {
 	constructor(app, ip, password, tkey, enabled_autofetch, readonly, is_team, timeZone, autofetch_timeout_intervall) {
 		this.app = app;
-		this.last_status = 'Activated';
+		this.last_status = { status: 'activated', message: '' };
 		this.ip = ip;
 		this.password = password;
 		this.tkey = tkey;
@@ -81,9 +82,14 @@ class BTPConn {
 		this.terminated = false;
 		this.enabled_autofetch = enabled_autofetch;
 		this.autofetch_timeout = null;
+		this.next_fetch_ts = null;
+		this.fetch_in_progress = false;
 		this.readonly = readonly;
 		this.is_team = is_team;
-		this.autofetch_timeout_intervall = autofetch_timeout_intervall ? autofetch_timeout_intervall : AUTOFETCH_TIMEOUT;
+		const parsed_autofetch_timeout = Number(autofetch_timeout_intervall);
+		this.autofetch_timeout_intervall = Number.isFinite(parsed_autofetch_timeout) && parsed_autofetch_timeout > 0
+			? parsed_autofetch_timeout
+			: AUTOFETCH_TIMEOUT;
 		this.connect();
 	}
 
@@ -109,35 +115,72 @@ class BTPConn {
 
 			this.pushall();
 			if (this.enabled_autofetch) {
-				update_queue.instance().execute(this.fetch, this,true);
+				update_queue.instance().execute(
+					update_queue.hang_after(FETCH_QUEUE_HANG_TIMEOUT, update_queue.named('fetch', this.fetch)),
+					this,
+					true
+				);
 			}
 		});
 	}
 
 	sync_data() {
-		update_queue.instance().execute(this.fetch, this, false);
+		if (this.autofetch_timeout) {
+			clearTimeout(this.autofetch_timeout);
+			this.autofetch_timeout = null;
+		}
+		this.next_fetch_ts = null;
+		this.publish_status();
+		update_queue.instance().execute(
+			update_queue.hang_after(FETCH_QUEUE_HANG_TIMEOUT, update_queue.named('fetch', this.fetch)),
+			this,
+			this.enabled_autofetch
+		);
 	}
 
 	async fetch(connection, reschedule_fetch ) {
 		return new Promise((resolve, reject) => {
 			try {			
+				connection.fetch_in_progress = true;
+				connection.next_fetch_ts = null;
+				connection.publish_status();
 				const ir = btp_proto.get_info_request(connection.password);
 				connection.send(ir, async (response) => {
 					try {
 						if (response && response != null) {
 							const value = await btp_sync.sync_btp_data(connection.app, connection.tkey, response);
+							const match_utils = require('./match_utils');
+							match_utils.queue_auto_execute_preparation_selections(connection.app, connection.tkey, (selectionErr) => {
+								if (selectionErr) {
+									console.warn('[bts] failed to auto select preparation matches after fetch', selectionErr && (selectionErr.stack || selectionErr.message || String(selectionErr)));
+									return;
+								}
+								match_utils.auto_call_matches_on_free_courts(connection.app, connection.tkey, (callErr) => {
+									if (callErr) {
+										console.warn('[bts] failed to auto call matches on free courts after fetch', callErr && (callErr.stack || callErr.message || String(callErr)));
+									}
+								});
+							});
 							if (reschedule_fetch == true) {
 								connection.schedule_fetch();
 							}
+							connection.fetch_in_progress = false;
+							connection.publish_status();
 							resolve(value);
 						} else {
+							connection.fetch_in_progress = false;
+							connection.publish_status();
 							resolve(null);
 						}
 					} catch (innerError) {
+						connection.fetch_in_progress = false;
+						connection.publish_status();
 						reject(innerError);
 					}
 				});
 			} catch (e) {
+				connection.fetch_in_progress = false;
+				connection.publish_status();
 				reject(e);
 			}
 		});
@@ -148,15 +191,27 @@ class BTPConn {
 			return;
 		}
 		if (!this.enabled_autofetch) {
+			this.next_fetch_ts = null;
+			this.publish_status();
 			return;
 		}
+		this.next_fetch_ts = Date.now() + this.autofetch_timeout_intervall;
+		this.publish_status();
 		this.autofetch_timeout = setTimeout(() => {
-			update_queue.instance().execute(this.fetch,this,true);
+			this.next_fetch_ts = null;
+			this.publish_status();
+			update_queue.instance().execute(
+				update_queue.hang_after(FETCH_QUEUE_HANG_TIMEOUT, update_queue.named('fetch', this.fetch)),
+				this,
+				true
+			);
 		}, this.autofetch_timeout_intervall);
 	}
 
 	terminate() {
 		this.terminated = true;
+		this.next_fetch_ts = null;
+		this.fetch_in_progress = false;
 		this.report_status('deactivated','Terminated.');
 	}
 
@@ -204,6 +259,9 @@ class BTPConn {
 			clearTimeout(this.autofetch_timeout);
 			this.autofetch_timeout = null;
 		}
+		this.next_fetch_ts = null;
+		this.fetch_in_progress = false;
+		this.publish_status();
 		setTimeout(() => this.connect(), 500);
 	}
 
@@ -213,11 +271,19 @@ class BTPConn {
 	}
 
 	report_status(status, message) {
-		const msg = {
+		this.last_status = {
 			status: status,
 			message: message
-		}
-		this.last_status = msg;
+		};
+		this.publish_status();
+	}
+
+	publish_status() {
+		const msg = {
+			...this.last_status,
+			next_fetch_ts: this.next_fetch_ts,
+			fetch_in_progress: this.fetch_in_progress,
+		};
 		const admin = require('./admin');
 		admin.notify_change(this.app, this.tkey, 'btp_status', msg);
 	}
@@ -300,7 +366,15 @@ class BTPConn {
 					return cb(null, umpire_btp_id, service_judge_btp_id, court ? court.btp_id : null);
 				});
 			},
-		], (err, umpire_btp_id, service_judge_btp_id, court_btp_id) => {
+			(umpire_btp_id, service_judge_btp_id, court_btp_id, cb) => {
+				this.app.db.tournaments.findOne({ key: this.tkey }, (err, tournament) => {
+					if (err) {
+						return cb(err);
+					}
+					return cb(null, umpire_btp_id, service_judge_btp_id, court_btp_id, tournament);
+				});
+			},
+		], (err, umpire_btp_id, service_judge_btp_id, court_btp_id, tournament) => {
 			if (err) {
 				serror.silent('Error while fetching court/umpire: ' + err.message + '. Skipping sync of match ' + match._id);
 				return;
@@ -317,7 +391,16 @@ class BTPConn {
 			}
 
 			const req = btp_proto.update_request(
-				match, this.key_unicode, this.password, umpire_btp_id, service_judge_btp_id, court_btp_id);
+				match,
+				this.key_unicode,
+				this.password,
+				umpire_btp_id,
+				service_judge_btp_id,
+				court_btp_id,
+				{
+					write_match_check_in_status: tournament?.btp_settings?.check_in_per_match === true,
+				}
+			);
 			this.send(req, response => {
 				const results = response.Action[0].Result;
 				const rescode = results ? results[0] : 'no-result';

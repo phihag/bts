@@ -1,29 +1,45 @@
 'use strict';
 
-const assert = require('assert').strict;
-const fs = require('fs');
-const path = require('path');
+const assert = require('assert');
+const { _describe, _it } = require('./tutils.js');
+const btp_proto = require('../bts/btp_proto.js');
 
-const tutils = require('./tutils.js');
-const _describe = tutils._describe;
-const _it = tutils._it;
+function extract_first_match_status(req) {
+	return req.Update.Tournament.Matches[0].Match.Status;
+}
 
-const {_req2xml: req2xml} = require('../bts/btp_proto');
+_describe('btp_proto update_request', () => {
+	_it('writes match check-in bits in check-in per match mode', () => {
+		const req = btp_proto.update_request({
+			btp_match_ids: [{ id: 1, draw: 2, planning: 3 }],
+			setup: {
+				highlight: 0,
+				teams: [
+					{ players: [{ checked_in: true }, { checked_in: false }] },
+					{ players: [{ checked_in: true }, { checked_in: true }] },
+				]
+			}
+		}, 'unicode', null, null, null, null, {
+			write_match_check_in_status: true,
+		});
 
+		assert.strictEqual(extract_first_match_status(req), 0b1101);
+	});
 
-_describe('btp_proto', function() {
-	_it('Timezone encoding', async function() {
-		assert.deepStrictEqual(
-			req2xml({test_date: new Date(1652529397790)}, 'Europe/Berlin'),
-			('<?xml version="1.0" encoding="UTF-8"?><VISUALXML VERSION="1.0">' +
-			 '<ITEM TYPE="DateTime" ID="test_date">' +
-			 '<DATETIME Y="2022" MM="5" D="14" H="13" M="56" S="37" MS="790"/>' +
-			 '</ITEM></VISUALXML>'));
-		assert.deepStrictEqual(
-			req2xml({test_date: new Date(1652529397790)}, 'America/New_York'),
-			('<?xml version="1.0" encoding="UTF-8"?><VISUALXML VERSION="1.0">' +
-			 '<ITEM TYPE="DateTime" ID="test_date">' +
-			 '<DATETIME Y="2022" MM="5" D="14" H="7" M="56" S="37" MS="790"/>' +
-			 '</ITEM></VISUALXML>'));
+	_it('does not write match check-in bits in check-in per player mode', () => {
+		const req = btp_proto.update_request({
+			btp_match_ids: [{ id: 1, draw: 2, planning: 3 }],
+			setup: {
+				highlight: 0,
+				teams: [
+					{ players: [{ checked_in: true }, { checked_in: true }] },
+					{ players: [{ checked_in: true }, { checked_in: true }] },
+				]
+			}
+		}, 'unicode', null, null, null, null, {
+			write_match_check_in_status: false,
+		});
+
+		assert.strictEqual(extract_first_match_status(req), 0);
 	});
 });

@@ -46,8 +46,9 @@ function login_request(password) {
 	return res;
 }
 
-function update_request(match, key_unicode, password, umpire_btp_id, service_judge_btp_id, court_btp_id) {
+function update_request(match, key_unicode, password, umpire_btp_id, service_judge_btp_id, court_btp_id, options = {}) {
 	assert(key_unicode);
+	const write_match_check_in_status = options.write_match_check_in_status !== false;
 	const matches = [];
 	const res = {
 		Header: {
@@ -88,7 +89,7 @@ function update_request(match, key_unicode, password, umpire_btp_id, service_jud
 			PlanningID: btp_m_id.planning,
 			Status: 0,
 			Highlight: (match.setup.highlight ? match.setup.highlight : 0),
-			DisplayOrder: match.match_order,
+			MatchOrder: match.match_order,
 			// BTP also sends a boolean ScoreSheetPrinted here
 		};
 
@@ -138,7 +139,7 @@ function update_request(match, key_unicode, password, umpire_btp_id, service_jud
 		}
 
 
-		if(match.setup.teams.length > 1) {
+		if (write_match_check_in_status && match.setup.teams.length > 1) {
 			if (match.setup.teams[0].players.length > 0 && match.setup.teams[0].players[0].checked_in) {
 				m.Status = m.Status | 0b0001;
 			}

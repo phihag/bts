@@ -279,6 +279,7 @@ function get_btp_state(response) {
 		stages,
 		matches,
 		links,
+		planning_nodes: matches_by_pid,
 		officials,
 		is_league,
 		match_types: new Map(Object.entries(MATCH_TYPES)),

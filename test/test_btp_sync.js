@@ -126,6 +126,107 @@ _describe('btp_sync', () => {
 		assert.strictEqual(normalized.last_set_points.interval_at, 8);
 	});
 
+	_it('resolves direct visible predecessor links for placement matches without importing extra matches', () => {
+		const planning_nodes = new Map([
+			['37_4009', {
+				DrawID: ['37'],
+				PlanningID: ['4009'],
+				IsMatch: [true],
+				MatchNr: ['18'],
+				WinnerTo: ['3005'],
+				LoserTo: ['3009'],
+				PlannedTime: [{ year: 2026, month: 4, day: 18, hour: 11, minute: 30 }],
+			}],
+		]);
+
+		const label = btp_sync._resolve_btp_dependency_link('37', '4009', '3005', [], planning_nodes);
+
+		assert.strictEqual(label, 'Gewinner #18 - 2026-04-18 11:30');
+	});
+
+	_it('resolves hidden loser slots via the visible consolidation match number', () => {
+		const planning_nodes = new Map([
+			['37_3004', {
+				DrawID: ['37'],
+				PlanningID: ['3004'],
+				IsMatch: [true],
+				MatchNr: ['17'],
+				From1: ['4007'],
+				From2: ['4008'],
+				WinnerTo: ['2002'],
+				LoserTo: ['4010'],
+				PlannedTime: [{ year: 2026, month: 4, day: 18, hour: 11, minute: 0 }],
+			}],
+			['37_4007', {
+				DrawID: ['37'],
+				PlanningID: ['4007'],
+				IsMatch: [true],
+				MatchNr: ['7'],
+				LoserTo: ['4010'],
+				PlannedTime: [{ year: 2026, month: 4, day: 18, hour: 10, minute: 30 }],
+			}],
+			['37_4008', {
+				DrawID: ['37'],
+				PlanningID: ['4008'],
+				IsMatch: [true],
+				MatchNr: ['8'],
+				LoserTo: ['4010'],
+				PlannedTime: [{ year: 2026, month: 4, day: 18, hour: 10, minute: 30 }],
+			}],
+		]);
+
+		const label = btp_sync._resolve_btp_dependency_link('37', '4010', '3005', [], planning_nodes);
+
+		assert.strictEqual(label, 'Verlierer #17 - 2026-04-18 11:00');
+	});
+
+	_it('resolves hidden predecessor nodes that only expose MatchNr without IsMatch', () => {
+		const planning_nodes = new Map([
+			['37_3013', {
+				DrawID: ['37'],
+				PlanningID: ['3013'],
+				MatchNr: ['18'],
+				From1: ['5017'],
+				From2: ['5018'],
+				WinnerTo: ['2013'],
+				LoserTo: ['2015'],
+			}],
+		]);
+
+		const label = btp_sync._resolve_btp_dependency_link('37', '3013', '2013', [], planning_nodes);
+
+		assert.strictEqual(label, 'Gewinner #18');
+	});
+
+	_it('derives time from the visible sibling match when a hidden placement node feeds the target', () => {
+		const planning_nodes = new Map([
+			['39_2003', {
+				DrawID: ['39'],
+				PlanningID: ['2003'],
+				MatchNr: ['49'],
+				From1: ['3001'],
+				From2: ['3002'],
+				WinnerTo: ['1003'],
+				LoserTo: ['1004'],
+			}],
+			['39_2001', {
+				DrawID: ['39'],
+				PlanningID: ['2001'],
+				IsMatch: [true],
+				MatchNr: ['49'],
+				From1: ['3001'],
+				From2: ['3002'],
+				WinnerTo: ['1001'],
+				LoserTo: ['1002'],
+				PlannedTime: [{ year: 2026, month: 4, day: 19, hour: 14, minute: 0 }],
+			}],
+		]);
+
+		const label = btp_sync._resolve_btp_dependency_link('39', '2003', '1003', [], planning_nodes);
+
+		assert.strictEqual(label, 'Gewinner #49 - 2026-04-19 14:00');
+	});
+
 	_it('sanitizes end_points to be at least 1 and max_points to be at least end_points', () => {
 		const sanitized = btp_sync._sanitize_scoring_format({
 			id: 99,
@@ -421,6 +522,11 @@ _describe('btp_sync', () => {
 		};
 		const app = {
 			db: {
+				tournaments: {
+					findOne(query, cb) {
+						cb(null, { key: 't1', btp_settings: { check_in_per_match: false } });
+					}
+				},
 				matches: {
 					find(query, cb) {
 						cb(null, state.matches);
@@ -488,6 +594,30 @@ _describe('btp_sync', () => {
 
 		assert.ok(pendingMerged.setup.umpire);
 		assert.strictEqual(staleMerged.setup.umpire, undefined);
+	});
+
+	_it('drops stale local preparation state when the highlight is already cleared', () => {
+		const currentMatch = {
+			btp_needsync: false,
+			setup: {
+				state: 'preparation',
+				highlight: 0,
+				preparation_call_timestamp: 1775701859486,
+				teams: [{ players: [] }, { players: [] }],
+			},
+		};
+		const btpMatch = {
+			setup: {
+				state: 'scheduled',
+				highlight: 0,
+				teams: [{ players: [] }, { players: [] }],
+			},
+		};
+
+		const merged = btp_sync._merge_local_match_into_btp_match(currentMatch, structuredClone(btpMatch));
+
+		assert.strictEqual(merged.setup.state, 'scheduled');
+		assert.strictEqual(merged.setup.preparation_call_timestamp, undefined);
 	});
 
 	_it('clears stale planned and on-court flags when an official is no longer referenced by matches', () => {

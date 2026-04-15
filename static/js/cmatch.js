@@ -751,6 +751,147 @@ function on_match_confirm_button_click(e) {
 	}
 }
 
+function _get_match_planning_id(match) {
+	return match && match.btp_match_ids && match.btp_match_ids[0] ? match.btp_match_ids[0].planning : null;
+}
+
+function _same_dependency_pair(links_a, links_b) {
+	if (!links_a || !links_b) {
+		return false;
+	}
+	return links_a.from1 == links_b.from1 && links_a.from2 == links_b.from2;
+}
+
+function _get_source_planning_for_team(match, team_id) {
+	const links = match && match.setup ? match.setup.links : null;
+	if (!links) {
+		return null;
+	}
+	return team_id === 0 ? links.from1 : links.from2;
+}
+
+function _find_direct_predecessor_match(match, team_id, matches) {
+	const source_planning = _get_source_planning_for_team(match, team_id);
+	if (source_planning == null) {
+		return null;
+	}
+	const source_candidates = (matches || []).filter((candidate) => {
+		if (!candidate || candidate._id === match._id || !candidate.setup) {
+			return false;
+		}
+		return _get_match_planning_id(candidate) == source_planning;
+	});
+
+	const direct_match = utils.find(source_candidates, (candidate) => candidate.setup.is_match);
+	if (direct_match) {
+		return direct_match;
+	}
+
+	const placeholder = source_candidates[0];
+	if (!placeholder || !placeholder.setup || !placeholder.setup.links) {
+		return null;
+	}
+
+	return utils.find(matches || [], (candidate) => {
+		if (!candidate || candidate._id === match._id || !candidate.setup || !candidate.setup.is_match) {
+			return false;
+		}
+		return _same_dependency_pair(candidate.setup.links, placeholder.setup.links);
+	}) || null;
+}
+
+function _find_matches_feeding_planning(source_planning, matches) {
+	if (source_planning == null) {
+		return [];
+	}
+	const seen = new Set();
+	const incoming = [];
+	(matches || []).forEach((candidate) => {
+		if (!candidate || !candidate._id || !candidate.setup || !candidate.setup.is_match || !candidate.setup.links) {
+			return;
+		}
+		let relation = null;
+		if (candidate.setup.links.winner_to == source_planning) {
+			relation = 'Winner';
+		} else if (candidate.setup.links.loser_to == source_planning) {
+			relation = 'Loser';
+		}
+		if (!relation || seen.has(candidate._id)) {
+			return;
+		}
+		seen.add(candidate._id);
+		incoming.push({ match: candidate, relation });
+	});
+	return incoming;
+}
+
+function _format_dependency_from_incoming_edges(source_planning, matches) {
+	const incoming = _find_matches_feeding_planning(source_planning, matches);
+	if (incoming.length === 0) {
+		return null;
+	}
+	if (incoming.length > 1) {
+		const unique_relations = [...new Set(incoming.map((entry) => entry.relation))];
+		const incoming_plannings = incoming
+			.map((entry) => _get_match_planning_id(entry.match))
+			.filter((planning) => planning != null);
+		if (unique_relations.length === 1 && incoming_plannings.length === incoming.length) {
+			const consolidation_match = utils.find(matches || [], (candidate) => {
+				if (!candidate || !candidate.setup || !candidate.setup.is_match || !candidate.setup.links) {
+					return false;
+				}
+				const candidate_sources = [candidate.setup.links.from1, candidate.setup.links.from2];
+				return incoming_plannings.every((planning) => candidate_sources.includes(planning));
+			});
+			if (consolidation_match) {
+				return ci18n(unique_relations[0]) + " #" + consolidation_match.setup.match_num + " - " + consolidation_match.setup.scheduled_date + " " + consolidation_match.setup.scheduled_time_str;
+			}
+		}
+	}
+	if (incoming.length === 1) {
+		const entry = incoming[0];
+		return ci18n(entry.relation) + " #" + entry.match.setup.match_num + " - " + entry.match.setup.scheduled_date + " " + entry.match.setup.scheduled_time_str;
+	}
+
+	const unique_relations = [...new Set(incoming.map((entry) => entry.relation))];
+	const match_refs = incoming
+		.map((entry) => "#" + entry.match.setup.match_num)
+		.sort((a, b) => cbts_utils.cmp(a, b));
+	if (unique_relations.length === 1) {
+		return ci18n(unique_relations[0]) + " " + match_refs.join(' / ');
+	}
+	return match_refs.join(' / ');
+}
+
+function _format_participant_dependency(match, team_id, matches) {
+	const links = match && match.setup ? match.setup.links : null;
+	if (!links) {
+		return '???';
+	}
+
+	const direct_link_label = team_id === 0 ? links.from1_link : links.from2_link;
+	if (direct_link_label) {
+		return direct_link_label;
+	}
+
+	const predecessor = _find_direct_predecessor_match(match, team_id, matches);
+	if (predecessor && predecessor.setup && predecessor.setup.links) {
+		const current_planning = _get_match_planning_id(match);
+		if (current_planning != null && predecessor.setup.links.winner_to == current_planning) {
+			return ci18n('Winner') + " #" + predecessor.setup.match_num + " - " + predecessor.setup.scheduled_date + " " + predecessor.setup.scheduled_time_str;
+		}
+		if (current_planning != null && predecessor.setup.links.loser_to == current_planning) {
+			return ci18n('Loser') + " #" + predecessor.setup.match_num + " - " + predecessor.setup.scheduled_date + " " + predecessor.setup.scheduled_time_str;
+		}
+	}
+	const source_planning = _get_source_planning_for_team(match, team_id);
+	const incoming_dependency = _format_dependency_from_incoming_edges(source_planning, matches);
+	if (incoming_dependency) {
+		return incoming_dependency;
+	}
+	return '???';
+}
+
 function render_players_el(parentNode, setup, team_id, match, show_player_status, style) {
 	const team = setup.teams[team_id];
 
@@ -765,60 +906,8 @@ function render_players_el(parentNode, setup, team_id, match, show_player_status
 		}
 		render_player_el(parentNode, team.players[0], match._id, setup.now_on_court, show_player_status, style, team.players.length > 1 ? true : false);
 	} else {
-
-		let dependency = '???';
-		if(team_id == 0 && match.setup.links.from1_link) {
-			dependency = match.setup.links.from1_link;
-		}
-		else if(team_id == 1 && match.setup.links.from2_link) {
-			dependency = match.setup.links.from2_link;
-		}
-		else {
-			let match_before = curt.matches.filter(m => {
-
-				return (m.setup.event_name === match.setup.event_name &&
-						(	
-							m.btp_match_ids[0].planning == match.setup.links.from1 ||
-							m.btp_match_ids[0].planning == match.setup.links.from2
-						));
-			});
-
-			let resolved_match = [];
-
-			match_before.forEach(t => {
-				if(t.setup.is_match){
-					resolved_match.push(t);
-				}
-				else {
-					const result = curt.matches.find(m => {
-						return (m.setup.event_name === t.setup.event_name &&
-								m.setup.is_match &&
-								m.setup.links &&
-								t.setup.links &&
-								(	
-									m.setup.links.from1 == t.setup.links.from1 ||
-									m.setup.links.from2 == t.setup.links.from2 
-								));
-					});
-					resolved_match.push(result);
-				}
-			});
-
-			const index = Math.min(resolved_match.length - 1, team_id);
-			
-			if(resolved_match.length >= index && resolved_match[index] && resolved_match[index].setup && resolved_match[index].setup.links) {
-				
-				if(resolved_match[index].setup.links.winner_to && resolved_match[index].setup.links.winner_to == match.btp_match_ids[0].planning) {
-					dependency = ci18n('Winner') + " #" + resolved_match[index].setup.match_num + " - " + resolved_match[index].setup.scheduled_date + " " + resolved_match[index].setup.scheduled_time_str;
-				}
-				else {
-					dependency = ci18n('Loser') + " #" + resolved_match[index].setup.match_num + " - " + resolved_match[index].setup.scheduled_date + " " + resolved_match[index].setup.scheduled_time_str;
-				}
-			}
-		}
-		
+		const dependency = _format_participant_dependency(match, team_id, curt.matches);
 		uiu.el(parentNode, 'span', {}, dependency);
-
 	}
 
 	if (team.players.length > 1) {
@@ -837,7 +926,13 @@ function render_players_el(parentNode, setup, team_id, match, show_player_status
 }
 
 function render_match_participant_el(parentNode, participant, match_id, role, icon_class, show_check_in_status = true) {
-	const participant_status = show_check_in_status && participant && participant.checked_in ? 'checked_in' : (show_check_in_status ? 'not_checked_in' : 'no_status');
+	const technical_official_check_in_locked =
+		(role === 'umpire' || role === 'service_judge') &&
+		curt &&
+		curt.btp_settings &&
+		curt.btp_settings.check_in_per_match === false;
+	const participant_checked_in = technical_official_check_in_locked ? true : !!(participant && participant.checked_in);
+	const participant_status = show_check_in_status && participant_checked_in ? 'checked_in' : (show_check_in_status ? 'not_checked_in' : 'no_status');
 	const participant_el = uiu.el(parentNode, 'span', {
 		'class': 'person ' + participant_status,
 		'data-btp_id': participant.btp_id,
@@ -848,7 +943,7 @@ function render_match_participant_el(parentNode, participant, match_id, role, ic
 	uiu.el(participant_el, 'div', icon_class, '');
 	const name_el = uiu.el(participant_el, 'span', 'name', participant.name || short_name(participant.firstname, participant.lastname || participant.surname, participant.name));
 
-	if (show_check_in_status && participant.btp_id != null && participant.btp_id >= 0) {
+	if (show_check_in_status && participant.btp_id != null && participant.btp_id >= 0 && !technical_official_check_in_locked) {
 		if (participant_status === 'checked_in') {
 			participant_el.classList.add('can_check_out');
 		} else {
@@ -1154,10 +1249,6 @@ function create_timer(timer_state, parent, default_color, exigent_color) {
 		} else {
 			tobj.timeout = null;
 			el.style.display = "none";
-			if(!curt.btp_settings.check_in_per_match && parent.querySelector('div.tablet_inline') === null) {
-				parent.classList.remove("not_checked_in");
-				parent.classList.add("checked_in");
-			}
 		}
 	};
 
@@ -1187,13 +1278,25 @@ function _extract_player_timer_state(player) {
 }
 
 function _extract_preparation_timer_state(match) {
+	if (!match || !match.setup) {
+		return null;
+	}
+	if (match.setup.state !== 'preparation') {
+		return null;
+	}
+	if (!match.setup.highlight || match.setup.highlight <= 0) {
+		return null;
+	}
+	if (!match.setup.preparation_call_timestamp) {
+		return null;
+	}
+
 	let s = {};
 	s.settings = {};
 	s.settings.negative_timers = false;
 	s.lang = "de";
 	s.timer = {};
-	//s.timer.duration = curt.btp_settings.pause_duration_ms;
-	s.timer.start = (match.setup.preparation_call_timestamp ? match.setup.preparation_call_timestamp : false);
+	s.timer.start = match.setup.preparation_call_timestamp;
 	s.timer.upwards = true;
 	s.timer.exigent = false;
 	s.bgColor = "#00000033";
@@ -1208,8 +1311,16 @@ function _extract_match_timer_state(match) {
 	s.settings.negative_timers = true;
 	s.lang = (curt && curt.btp_settings && curt.btp_settings.language && curt.btp_settings.language !== 'auto') ? curt.btp_settings.language : "de";
 
-	var rs = calc.remote_state(s, match.setup, presses);
-	return rs;
+	try {
+		return calc.remote_state(s, match.setup, presses);
+	} catch (err) {
+		const label = match && match.setup && match.setup.match_num ? `#${match.setup.match_num}` : (match && match._id ? match._id : '<unknown>');
+		console.error(`[bts] calc.remote_state failed for ${label}`, err);
+		if (typeof cerror !== 'undefined' && cerror && cerror.silent) {
+			cerror.silent(`Timer state for ${label} could not be calculated: ${err.message}`);
+		}
+		return false;
+	}
 }
 
 function cmp_scheduled_match_order(m1, m2) {
@@ -1552,6 +1663,18 @@ function _update_setup(setup, d) {
 
 	result.court_id           = d.court_id;
 	result.now_on_court       = !! d.now_on_court;
+	if (d.preparation_location_id) {
+		result.state = 'preparation';
+		result.location_id = d.preparation_location_id;
+		if (!result.preparation_call_timestamp) {
+			result.preparation_call_timestamp = Date.now();
+		}
+	} else if (result.state === 'preparation') {
+		result.state = 'scheduled';
+		result.highlight = 0;
+		delete result.location_id;
+		delete result.preparation_call_timestamp;
+	}
 
 	if(!d.umpire_name) {
 		delete result.umpire;
@@ -1721,7 +1844,12 @@ function ui_edit(match_id) {
 			cerror.silent(ci18n('match:edit:error:service_judge_requires_umpire'));
 			return;
 		}
+		const previous_setup = structuredClone(match.setup);
 		match.setup = _update_setup(match.setup, d);
+		const force_btp_update =
+			(previous_setup.state || null) !== (match.setup.state || null) ||
+			(previous_setup.location_id || null) !== (match.setup.location_id || null) ||
+			(previous_setup.highlight || 0) !== (match.setup.highlight || 0);
 		btn.setAttribute('disabled', 'disabled');
 		send({
 			type: 'match_edit',
@@ -1729,7 +1857,7 @@ function ui_edit(match_id) {
 			match,
 			old_court,
 			tournament_key: curt.key,
-			btp_update: (curt.btp_enabled && !! d.btp_update),
+			btp_update: (curt.btp_enabled && (!! d.btp_update || force_btp_update)),
 		}, function match_edit_callback(err) {
 			btn.removeAttribute('disabled');
 			if (err) {
@@ -1806,7 +1934,13 @@ function ui_scoresheet(match_id) {
 	i18n.register_lang(i18n_en);
 	const setup = utils.deep_copy(match.setup);
 	setup.tournament_name = curt.name;
-	const s = calc.remote_state(pseudo_state, setup, match.presses);
+	let s = null;
+	try {
+		s = calc.remote_state(pseudo_state, setup, match.presses);
+	} catch (err) {
+		console.error(`[bts] scoresheet remote_state failed for #${setup.match_num || '?'} (${match._id})`, err);
+		return cerror.silent(`Scoresheet for #${setup.match_num || '?'} cannot be rendered: ${err.message}`);
+	}
 	s.ui = {};
 
 	printing.set_orientation('landscape');
@@ -2126,6 +2260,9 @@ function render_empty_court_row(tr, court, style, is_droppable) {
 
 function update_court(court) {
 	const tr = uiu.qs(`tr[data-court_id="${court._id}"]`);
+	if (!tr) {
+		return;
+	}
 	const match_id = tr.getAttribute('data-match_id');
 	const style = tr.getAttribute("data-style");
 	tr.innerHTML = "";
@@ -2134,6 +2271,11 @@ function update_court(court) {
 		return;
 	}
 	const m = utils.find(curt.matches, m => m._id === match_id);
+	if (!m || !m.setup || m.setup.now_on_court !== true || ['finished'].includes(m.setup.state)) {
+		tr.removeAttribute('data-match_id');
+		render_empty_court_row(tr, court, style, true);
+		return;
+	}
 	render_match_row(tr, m, court, style);
 }
 
@@ -2498,6 +2640,28 @@ function render_edit(form, match) {
 	const assigned = uiu.el(edit_match_container, 'div', {
 		style: 'margin-top: 1em',
 	});
+	uiu.el(assigned, 'span', 'match_label', ci18n('match:edit:preparation'));
+	const preparation_select = uiu.el(assigned, 'select', {
+		name: 'preparation_location_id',
+		size: 1,
+	});
+	uiu.el(preparation_select, 'option', {
+		value: '',
+		selected: setup.state === 'preparation' ? undefined : 'selected',
+	}, ci18n('match:edit:not_in_preparation'));
+	if (curt && curt.locations) {
+		for (const location of curt.locations) {
+			const attrs = {
+				value: location._id,
+			};
+			if (setup.state === 'preparation' && location._id === setup.location_id) {
+				attrs.selected = 'selected';
+			}
+			uiu.el(preparation_select, 'option', attrs, ci18n('match:edit:in_preparation_for', {
+				location_name: location.name || location._id,
+			}));
+		}
+	}
 	uiu.el(assigned, 'span', 'match_label', 'Court:');
 	const court_select = uiu.el(assigned, 'select', {
 		'class': 'court_selector',
@@ -2689,6 +2853,8 @@ function build_official_select_entries(tournament, is_service_judge, show_all_of
 			label: `--- ${label} ---`
 		});
 	};
+	const is_waiting_list_label = (label) =>
+		label === ci18n('Waiting list umpire') || label === ci18n('Waiting list service judge');
 	const append_options = (items, role, secondary_mode = false) => {
 		for (const official of items) {
 			entries.push({
@@ -2718,6 +2884,8 @@ function build_official_select_entries(tournament, is_service_judge, show_all_of
 		const secondary_wait_field = `${secondary_role}_wait`;
 		const primary_pause_field = `${primary_role}_pause`;
 		const secondary_pause_field = `${secondary_role}_pause`;
+		const primary_manual_pause_field = `${primary_role}_manual_pause`;
+		const secondary_manual_pause_field = `${secondary_role}_manual_pause`;
 		const preparation_matches = [...(curt.matches || [])]
 			.filter((match) => (match.setup || {}).state === 'preparation')
 			.sort((a, b) => (a.setup?.preparation_call_timestamp || 0) - (b.setup?.preparation_call_timestamp || 0));
@@ -2751,11 +2919,11 @@ function build_official_select_entries(tournament, is_service_judge, show_all_of
 			secondary_wait_field
 		);
 		const primary_pause_items = sort_by_wait(
-			all_officials.filter((u) => u[primary_pause_field] != null && should_render_in_lower_lists(u)),
+			all_officials.filter((u) => (u[primary_pause_field] != null || u[primary_manual_pause_field] != null) && should_render_in_lower_lists(u)),
 			primary_pause_field
 		);
 		const secondary_pause_items = sort_by_wait(
-			all_officials.filter((u) => u[secondary_pause_field] != null && should_render_in_lower_lists(u)),
+			all_officials.filter((u) => (u[secondary_pause_field] != null || u[secondary_manual_pause_field] != null) && should_render_in_lower_lists(u)),
 			secondary_pause_field
 		);
 		const preparation_primary = sort_by_name(preparation_matches.map((match) => match.setup && match.setup[primary_role]).filter(Boolean));
@@ -2772,7 +2940,7 @@ function build_official_select_entries(tournament, is_service_judge, show_all_of
 		);
 		const fallback_inactive_officials = all_officials
 			.filter((u) => !visible_official_ids.has(u._id))
-			.filter((u) => u.umpire_wait == null && u.service_judge_wait == null && u.umpire_pause == null && u.service_judge_pause == null && u.inactive_list == null)
+			.filter((u) => u.umpire_wait == null && u.service_judge_wait == null && u.umpire_pause == null && u.service_judge_pause == null && u.umpire_manual_pause == null && u.service_judge_manual_pause == null && u.inactive_list == null)
 			.sort((a, b) => cbts_utils.natcmp(a.name || '', b.name || ''));
 		fallback_inactive_officials.forEach((official) => {
 			if (official.is_umpire && !official.is_service_judge) {
@@ -2804,7 +2972,7 @@ function build_official_select_entries(tournament, is_service_judge, show_all_of
 		let rendered_any = false;
 		sections.forEach((section) => {
 			if (!section.items.length) return;
-			if (rendered_any) {
+			if (rendered_any || !is_waiting_list_label(section.label)) {
 				append_separator(section.label.replace(/:$/, ''));
 			}
 			append_options(section.items, section.role, section.secondary_mode);
@@ -2938,7 +3106,8 @@ return {
 	update_players,
 	create_timer,
 	update_tables,
-	_build_official_select_entries: build_official_select_entries
+	_build_official_select_entries: build_official_select_entries,
+	_format_participant_dependency
 };
 
 })();
