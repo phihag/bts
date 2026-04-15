@@ -9,3 +9,4 @@ ticker_config.json
 
 mail.*
 /.vs
+/.codex
