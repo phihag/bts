@@ -80,4 +80,39 @@ _describe('cmatch official select entries', () => {
 			'Beta (Service judge)',
 		]);
 	});
+
+	_it('does not render assigned or preparation headings when those groups are empty', () => {
+		const tournament = {
+			umpires: [
+				{ _id: 'u1', name: 'Wartet U', umpire_wait: 10 },
+				{ _id: 'u2', name: 'Court U', umpire_on_court: 'c1' },
+			],
+			matches: []
+		};
+
+		const entries = build_entries(tournament, false, true);
+		const labels = entries.map((entry) => entry.label);
+
+		assert.strictEqual(labels.includes('--- Assigned to a match ---'), false);
+		assert.strictEqual(labels.includes('--- In preparation ---'), false);
+	});
+
+	_it('renders assigned and preparation headings only when the corresponding groups have entries', () => {
+		const tournament = {
+			umpires: [
+				{ _id: 'u1', name: 'Assigned U' },
+				{ _id: 'u2', name: 'Prep U' },
+			],
+			matches: [
+				{ setup: { state: 'ready', match_num: 7, umpire: { _id: 'u1', name: 'Assigned U' } } },
+				{ setup: { state: 'preparation', match_num: 8, preparation_call_timestamp: 1, umpire: { _id: 'u2', name: 'Prep U' } } },
+			]
+		};
+
+		const entries = build_entries(tournament, false, true);
+		const labels = entries.map((entry) => entry.label);
+
+		assert.strictEqual(labels.includes('--- Assigned to a match ---'), true);
+		assert.strictEqual(labels.includes('--- In preparation ---'), true);
+	});
 });

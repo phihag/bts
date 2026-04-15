@@ -26,6 +26,7 @@ function update_container(container, elems, with_sep) {
 				}
 				const item_attrs = {
 					'class': 'toprow_menu_item' + ((item.func || item.href) ? ' vlink' : '') + (item.class ? (' ' + item.class) : ''),
+					'data-label': item.label,
 				};
 				if (item.href) {
 					item_attrs.href = item.href;

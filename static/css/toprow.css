@@ -1,9 +1,14 @@
 
 .toprow {
 	padding: 0.3em 0 0.3em 1em;
-	background-color: #00000020;
+	background-color: rgba(245, 245, 245, 0.7);
 	border-bottom: 1px solid black;
 	display: flex;
+	position: sticky;
+	top: 0;
+	z-index: 30;
+	backdrop-filter: blur(6px);
+	-webkit-backdrop-filter: blur(6px);
 }
 .toprow > .toprow_link,
 .toprow_right > .toprow_link {
@@ -11,8 +16,13 @@
 	color: black;
 	font-weight: bold;
 }
+
+.toprow > .toprow_link {
+	align-self: center;
+}
 .toprow_sep {
 	margin: 0 0.5em;
+	align-self: center;
 }
 
 .toprow_right {
@@ -21,10 +31,125 @@
     flex-direction: row;
     flex-wrap: wrap;
     justify-content: flex-end;
+	align-items: center;
 	flex: 1;
 }
 .toprow_right > * + * {
 	margin-left: 1.2em;
+}
+
+.toprow_right > .status_label + .status_badge,
+.toprow_right > .btp_status_label + .btp_status_badge,
+.toprow_right > .ticker_status_label + .ticker_status_badge,
+.toprow_right > .speech_output_status_label + .speech_output_status_badge {
+	margin-left: 0.3em;
+}
+
+.toprow_service_badge {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	position: relative;
+	width: 8.9em;
+	height: 2.1em;
+	font-size: 0.72em;
+	font-variant-numeric: tabular-nums;
+	font-weight: 700;
+	font-family: inherit;
+	line-height: 1;
+	color: #2c6e2f;
+	align-self: center;
+	padding: 0 0.55em;
+	text-align: center;
+	letter-spacing: 0.03em;
+	box-sizing: border-box;
+	vertical-align: middle;
+	--toprow-service-badge-bg: #adffcb;
+	--toprow-service-badge-border: #2c6e2f;
+	z-index: 0;
+}
+
+.toprow_service_badge.status_connected,
+.toprow_service_badge.status_connecting,
+.toprow_service_badge.status_error,
+.toprow_service_badge.status_waiting,
+.toprow_service_badge.status_deactivated {
+	background-image: none;
+	background-size: initial;
+	background-repeat: initial;
+	background-position: initial;
+	min-height: 0;
+	margin: 0;
+}
+
+.toprow_service_badge::before {
+	content: '';
+	position: absolute;
+	left: 0;
+	right: 0;
+	top: 0;
+	bottom: 0;
+	border: 1px solid var(--toprow-service-badge-border);
+	border-radius: 0.45em;
+	background: var(--toprow-service-badge-bg);
+	z-index: -1;
+}
+
+.toprow_service_badge.status_connected {
+	--toprow-service-badge-bg: #adffcb;
+	--toprow-service-badge-border: #2c6e2f;
+	color: #2c6e2f;
+}
+
+.toprow_service_badge.status_connecting {
+	--toprow-service-badge-bg: #f2c200;
+	--toprow-service-badge-border: #6f5600;
+	color: #6f5600;
+}
+
+.toprow_service_badge.status_error {
+	--toprow-service-badge-bg: #d40000;
+	--toprow-service-badge-border: #7a0000;
+	color: #ffffff;
+}
+
+.toprow_service_badge.status_deactivated,
+.toprow_service_badge.status_waiting {
+	--toprow-service-badge-bg: rgba(25, 25, 25, 0.78);
+	--toprow-service-badge-border: #000000;
+	color: #f7f7f7;
+}
+
+.btp_status_badge.is-fetching {
+	--toprow-service-badge-bg: #adffcb;
+	--toprow-service-badge-border: #2c6e2f;
+	color: #2c6e2f;
+	font-family: inherit;
+	font-weight: 700;
+	justify-content: center;
+	text-align: center;
+}
+
+.btp_status_badge.is-countdown {
+	justify-content: center;
+	text-align: center;
+}
+
+.toprow_service_badge_prefix {
+	display: inline-block;
+	margin-right: 0.38em;
+	font-family: inherit;
+}
+
+.toprow_service_badge_timer {
+	display: inline-block;
+	font-family: "SEGMENT";
+	font-weight: normal;
+	font-size: calc(100% + 1px);
+	min-width: 2.6em;
+	text-align: right;
+	position: relative;
+	top: 2px;
 }
 
 .toprow_menu {
@@ -48,12 +173,15 @@
 	right: 0;
 	top: 100%;
 	display: none;
-	min-width: 220px;
-	background: #fff;
+	min-width: 264px;
+	width: max-content;
+	background: rgba(245, 245, 245, 0.7);
 	border: 1px solid #bbb;
 	box-shadow: 0 8px 20px rgba(0, 0, 0, 0.18);
 	padding: 0.35em 0;
 	z-index: 20;
+	backdrop-filter: blur(6px);
+	-webkit-backdrop-filter: blur(6px);
 }
 
 .toprow_menu:hover::after,
@@ -75,9 +203,27 @@
 
 .toprow_menu_item {
 	display: block;
-	padding: 0.45em 0.9em;
+	padding: 0.45em 1.1em;
 	color: black;
 	white-space: nowrap;
+	font-weight: normal;
+}
+
+.toprow_menu_item::after {
+	content: attr(data-label);
+	display: block;
+	height: 0;
+	overflow: hidden;
+	visibility: hidden;
+	font-weight: bold;
+	pointer-events: none;
+}
+
+.toprow_menu_item:link,
+.toprow_menu_item:visited,
+.toprow_menu_item:hover,
+.toprow_menu_item:active {
+	color: black;
 }
 
 .toprow_menu_separator {
@@ -87,6 +233,7 @@
 }
 
 .toprow_menu_item:hover {
-	background: #f0f0f0;
+	background: rgba(225, 225, 225, 0.7);
 	text-decoration: none;
+	font-weight: bold;
 }

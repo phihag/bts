@@ -83,11 +83,11 @@
      transform="translate(-1.7859373,-2.1384077)"
      style="display:inline">
     <ellipse
-       style="display:inline;fill:#d4aa00;fill-opacity:1;stroke-width:0.201076"
+       style="display:inline;fill:#f2c200;fill-opacity:1;stroke:#6f5600;stroke-width:0.264583;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
        id="path1"
        cx="6.2590489"
        cy="6.1484985"
-       rx="4.2085285"
-       ry="3.8281898" />
+       rx="4.0762367"
+       ry="3.6958981" />
   </g>
 </svg>

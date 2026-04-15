@@ -11,6 +11,8 @@ var cmatch_official_select_helpers = (function() {
 		const append_separator = (label) => {
 			entries.push({ type: 'separator', label: `--- ${label} ---` });
 		};
+		const is_waiting_list_label = (label) =>
+			label === ci18n_fn('Waiting list umpire') || label === ci18n_fn('Waiting list service judge');
 		const append_options = (items, role, secondary_mode = false) => {
 			for (const official of items) {
 				entries.push({
@@ -65,6 +67,8 @@ var cmatch_official_select_helpers = (function() {
 			const secondary_wait_field = `${secondary_role}_wait`;
 			const primary_pause_field = `${primary_role}_pause`;
 			const secondary_pause_field = `${secondary_role}_pause`;
+			const primary_manual_pause_field = `${primary_role}_manual_pause`;
+			const secondary_manual_pause_field = `${secondary_role}_manual_pause`;
 			const primary_wait_items = sort_by_wait(
 				all_officials.filter((u) => u[primary_wait_field] != null && should_render_in_lower_lists(u)),
 				primary_wait_field
@@ -74,11 +78,11 @@ var cmatch_official_select_helpers = (function() {
 				secondary_wait_field
 			);
 			const primary_pause_items = sort_by_wait(
-				all_officials.filter((u) => u[primary_pause_field] != null && should_render_in_lower_lists(u)),
+				all_officials.filter((u) => (u[primary_pause_field] != null || u[primary_manual_pause_field] != null) && should_render_in_lower_lists(u)),
 				primary_pause_field
 			);
 			const secondary_pause_items = sort_by_wait(
-				all_officials.filter((u) => u[secondary_pause_field] != null && should_render_in_lower_lists(u)),
+				all_officials.filter((u) => (u[secondary_pause_field] != null || u[secondary_manual_pause_field] != null) && should_render_in_lower_lists(u)),
 				secondary_pause_field
 			);
 			const preparation_primary = sort_by_name(preparation_matches.map((match) => match.setup && match.setup[primary_role]).filter(Boolean));
@@ -95,7 +99,7 @@ var cmatch_official_select_helpers = (function() {
 			);
 			const fallback_inactive_officials = all_officials
 				.filter((u) => !visible_official_ids.has(u._id))
-				.filter((u) => u.umpire_wait == null && u.service_judge_wait == null && u.umpire_pause == null && u.service_judge_pause == null && u.inactive_list == null)
+				.filter((u) => u.umpire_wait == null && u.service_judge_wait == null && u.umpire_pause == null && u.service_judge_pause == null && u.umpire_manual_pause == null && u.service_judge_manual_pause == null && u.inactive_list == null)
 				.sort((a, b) => natcmp_fn(a.name || '', b.name || ''));
 			fallback_inactive_officials.forEach((official) => {
 				if (official.is_umpire && !official.is_service_judge) {
@@ -127,7 +131,7 @@ var cmatch_official_select_helpers = (function() {
 			let rendered_any = false;
 			sections.forEach((section) => {
 				if (!section.items.length) return;
-				if (rendered_any) {
+				if (rendered_any || !is_waiting_list_label(section.label)) {
 					append_separator(section.label.replace(/:$/, ''));
 				}
 				append_options(section.items, section.role, section.secondary_mode);

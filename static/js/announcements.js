@@ -1,17 +1,23 @@
 function getLocationID(matchSetup) {
-    let location = null;
-    if(matchSetup.court_id) {
-        const court = utils.find(curt.courts, c => c._id === matchSetup.court_id);
-        location = utils.find(curt.locations, l => l._id === court.location_id);
-    } else if (matchSetup.location_id) {
-        location = utils.find(curt.locations, l => l._id === matchSetup.location_id);
-
+    if (!matchSetup) {
+        return null;
     }
-    return location._id;
+    if (matchSetup.location_id) {
+        return matchSetup.location_id;
+    }
+    if (matchSetup.court_id) {
+        const court = utils.find(curt.courts, c => c._id === matchSetup.court_id);
+        if (court && court.location_id) {
+            return court.location_id;
+        }
+    }
+    return null;
 }
 
 function announceNewMatch(matchSetup) {
-    if(!(window.localStorage.getItem('enable_announcement_calls_' + getLocationID(matchSetup)) === 'true')) {
+    const location_id = getLocationID(matchSetup);
+    const calls_enabled = window.localStorage.getItem('enable_announcement_calls_' + location_id) === 'true';
+    if (!calls_enabled) {
         return;
     }
     const field = createFieldAnnouncement(matchSetup);
@@ -30,7 +36,9 @@ function announceNewMatch(matchSetup) {
 }
 
 function announcePreparationMatch(matchSetup) {
-    if(!(window.localStorage.getItem('enable_announcement_preparations_' + getLocationID(matchSetup)) === 'true')) {
+    const location_id = getLocationID(matchSetup);
+    const preparations_enabled = window.localStorage.getItem('enable_announcement_preparations_' + location_id) === 'true';
+    if (!preparations_enabled) {
         return;
     }
     const field = createFieldPreparationAnnouncement(matchSetup);
@@ -414,9 +422,160 @@ let emergencyInterval = null;
 let emergencyAudio = null;
 const ANNOUNCEMENT_DEDUP_TTL_MS = 2500;
 const ANNOUNCEMENT_TAB_ID = `${Date.now()}_${Math.random().toString(36).slice(2)}`;
+const ANNOUNCEMENT_LEADER_KEY = 'bts_announcement_leader';
+const ANNOUNCEMENT_LEADER_LEASE_MS = 500;
+const ANNOUNCEMENT_LEADER_HEARTBEAT_MS = 200;
+const ANNOUNCEMENT_RETRY_BROADCAST_KEY = 'bts_announcement_retry_request';
+const ANNOUNCEMENT_SPEECH_CHECK_STATE_KEY = 'bts_announcement_speech_check_state';
+const ANNOUNCEMENT_RETRY_TTL_MS = 5000;
+const ANNOUNCEMENT_LEADER_FAILOVER_SUPPRESS_MS = 1500;
 const announcementPlaybackQueue = [];
 let announcementPlaybackActive = false;
 let announcementVoicesPromise = null;
+let announcementLeaderHeartbeat = null;
+let announcementLeaderLockHeld = false;
+let announcementLeaderLockAcquire = null;
+let releaseAnnouncementLeaderLock = null;
+let announcementLeaderSuppressUntil = 0;
+const processedAnnouncementRetryIds = new Set();
+let announcementSpeechCheckState = {
+    status: 'untested',
+    detail: '',
+    updated_at: null,
+};
+
+function readAnnouncementSpeechCheckStateStorage() {
+    try {
+        const raw = window.localStorage.getItem(ANNOUNCEMENT_SPEECH_CHECK_STATE_KEY);
+        return raw ? JSON.parse(raw) : null;
+    } catch (e) {
+        return null;
+    }
+}
+
+function writeAnnouncementSpeechCheckStateStorage(state) {
+    try {
+        window.localStorage.setItem(ANNOUNCEMENT_SPEECH_CHECK_STATE_KEY, JSON.stringify(state));
+    } catch (e) {
+        // ignore
+    }
+}
+
+function readAnnouncementLeaderState() {
+    try {
+        return JSON.parse(window.localStorage.getItem(ANNOUNCEMENT_LEADER_KEY) || 'null');
+    } catch (e) {
+        return null;
+    }
+}
+
+function writeAnnouncementLeaderState(owner) {
+    try {
+        window.localStorage.setItem(ANNOUNCEMENT_LEADER_KEY, JSON.stringify({
+            owner,
+            expires_at: Date.now() + ANNOUNCEMENT_LEADER_LEASE_MS,
+        }));
+    } catch (e) {
+        // ignore
+    }
+}
+
+function releaseAnnouncementLeaderIfOwned() {
+    const current = readAnnouncementLeaderState();
+    if (current && current.owner === ANNOUNCEMENT_TAB_ID) {
+        try {
+            window.localStorage.removeItem(ANNOUNCEMENT_LEADER_KEY);
+        } catch (e) {
+            // ignore
+        }
+    }
+}
+
+function refreshAnnouncementLeader() {
+    if (announcementLeaderSuppressUntil > Date.now()) {
+        releaseAnnouncementLeaderIfOwned();
+        return false;
+    }
+    const current = readAnnouncementLeaderState();
+    const now = Date.now();
+    if (!current || !current.owner || !current.expires_at || current.expires_at <= now || current.owner === ANNOUNCEMENT_TAB_ID) {
+        writeAnnouncementLeaderState(ANNOUNCEMENT_TAB_ID);
+        return true;
+    }
+    return current.owner === ANNOUNCEMENT_TAB_ID;
+}
+
+function isAnnouncementLeader() {
+    const current = readAnnouncementLeaderState();
+    return !!current && current.owner === ANNOUNCEMENT_TAB_ID && current.expires_at > Date.now();
+}
+
+function startAnnouncementLeaderHeartbeat() {
+    if (announcementLeaderHeartbeat != null) {
+        return;
+    }
+    refreshAnnouncementLeader();
+    announcementLeaderHeartbeat = window.setInterval(() => {
+        refreshAnnouncementLeader();
+    }, ANNOUNCEMENT_LEADER_HEARTBEAT_MS);
+    window.addEventListener('visibilitychange', () => {
+        refreshAnnouncementLeader();
+    });
+    window.addEventListener('beforeunload', () => {
+        releaseAnnouncementLeaderIfOwned();
+        if (releaseAnnouncementLeaderLock) {
+            releaseAnnouncementLeaderLock();
+        }
+    });
+}
+
+function ensureAnnouncementLeaderLock() {
+    if (announcementLeaderSuppressUntil > Date.now()) {
+        return Promise.resolve(false);
+    }
+    if (!(navigator && navigator.locks && typeof navigator.locks.request === 'function')) {
+        return Promise.resolve(isAnnouncementLeader() || refreshAnnouncementLeader());
+    }
+    if (announcementLeaderLockHeld) {
+        return Promise.resolve(true);
+    }
+    if (announcementLeaderLockAcquire) {
+        return announcementLeaderLockAcquire;
+    }
+
+    announcementLeaderLockAcquire = new Promise((resolve) => {
+        let resolved = false;
+        navigator.locks.request('bts-announcement-leader', { mode: 'exclusive', ifAvailable: true }, async (lock) => {
+            if (!lock) {
+                resolved = true;
+                resolve(false);
+                return false;
+            }
+
+            announcementLeaderLockHeld = true;
+            resolved = true;
+            resolve(true);
+
+            await new Promise((release) => {
+                releaseAnnouncementLeaderLock = () => {
+                    releaseAnnouncementLeaderLock = null;
+                    announcementLeaderLockHeld = false;
+                    release();
+                };
+            });
+
+            return true;
+        }).catch(() => {
+            if (!resolved) {
+                resolve(false);
+            }
+        }).finally(() => {
+            announcementLeaderLockAcquire = null;
+        });
+    });
+
+    return announcementLeaderLockAcquire;
+}
 
 function buildAnnouncementClaimKey(matchSetup, kind) {
     const explicit = matchSetup && matchSetup._announcement_claim_key;
@@ -437,10 +596,13 @@ function announcementFingerprint(callArray) {
     return String(hash);
 }
 
-function claimAnnouncementPlayback(callArray, claimKey) {
+function claimAnnouncementPlaybackSync(callArray, claimKey) {
     const now = Date.now();
     const key = `announcement_claim_${claimKey || announcementFingerprint(callArray)}`;
     try {
+        if (!isAnnouncementLeader() && !refreshAnnouncementLeader()) {
+            return false;
+        }
         const raw = window.localStorage.getItem(key);
         if (raw) {
             const current = JSON.parse(raw);
@@ -458,6 +620,32 @@ function claimAnnouncementPlayback(callArray, claimKey) {
     } catch (e) {
         return true;
     }
+}
+
+function releaseAnnouncementPlaybackClaim(callArray, claimKey) {
+    const key = `announcement_claim_${claimKey || announcementFingerprint(callArray)}`;
+    try {
+        const raw = window.localStorage.getItem(key);
+        if (!raw) {
+            return;
+        }
+        const current = JSON.parse(raw);
+        if (current && current.owner === ANNOUNCEMENT_TAB_ID) {
+            window.localStorage.removeItem(key);
+        }
+    } catch (e) {
+        // ignore
+    }
+}
+
+function claimAnnouncementPlayback(callArray, claimKey) {
+    const lockName = `bts-announcement-claim:${claimKey || announcementFingerprint(callArray)}`;
+    if (!(navigator && navigator.locks && typeof navigator.locks.request === 'function')) {
+        return Promise.resolve(claimAnnouncementPlaybackSync(callArray, claimKey));
+    }
+    return navigator.locks.request(lockName, { mode: 'exclusive' }, () => {
+        return claimAnnouncementPlaybackSync(callArray, claimKey);
+    });
 }
 
 function emergency_announce(enable) {
@@ -525,25 +713,144 @@ function findAnnouncementVoice(voices) {
     return null;
 }
 
-function playAnnouncementBatch(parts, voice, done) {
+function setAnnouncementSpeechCheckState(status, detail) {
+    announcementSpeechCheckState = {
+        status,
+        detail: detail || '',
+        updated_at: Date.now(),
+    };
+    writeAnnouncementSpeechCheckStateStorage(announcementSpeechCheckState);
+    window.dispatchEvent(new CustomEvent('announcement-speech-check-state-changed', {
+        detail: getAnnouncementSpeechCheckState(),
+    }));
+    return announcementSpeechCheckState;
+}
+
+function getAnnouncementSpeechCheckState() {
+    const storedState = readAnnouncementSpeechCheckStateStorage();
+    if (storedState && (!announcementSpeechCheckState.updated_at || (storedState.updated_at || 0) > (announcementSpeechCheckState.updated_at || 0))) {
+        announcementSpeechCheckState = storedState;
+    }
+    return { ...announcementSpeechCheckState };
+}
+
+function runAnnouncementSpeechCheck() {
+    if (!(window.speechSynthesis && typeof window.SpeechSynthesisUtterance === 'function')) {
+        return Promise.resolve(setAnnouncementSpeechCheckState('unsupported', ci18n('announcements:speechcheck:unsupported')));
+    }
+
+    return getAnnouncementVoices().then((voices) => {
+        const voice = findAnnouncementVoice(voices);
+        return new Promise((resolve) => {
+            let done = false;
+            let started = false;
+            const startedAt = Date.now();
+            const finish = (status, detail) => {
+                if (done) {
+                    return;
+                }
+                done = true;
+                resolve(setAnnouncementSpeechCheckState(status, detail));
+            };
+
+            const words = new SpeechSynthesisUtterance(ci18n('announcements:speechcheck:text'));
+            words.lang = ci18n('announcements:lang');
+            words.rate = curt.announcement_speed ? curt.announcement_speed : 1.05;
+            words.pitch = 0;
+            words.volume = 1;
+            words.voice = voice;
+
+            const timeout = window.setTimeout(() => {
+                finish('timeout', ci18n('announcements:speechcheck:timeout'));
+            }, 4000);
+
+            const wrappedFinish = (status, detail) => {
+                window.clearTimeout(timeout);
+                finish(status, detail);
+            };
+            words.onstart = function () {
+                started = true;
+            };
+            words.onend = function () {
+                const elapsed = Date.now() - startedAt;
+                if (!started || elapsed < 300) {
+                    wrappedFinish('suspicious', ci18n('announcements:speechcheck:suspicious'));
+                    return;
+                }
+                wrappedFinish('active', ci18n('announcements:speechcheck:ok'));
+            };
+            words.onerror = function (event) {
+                const suffix = event && event.error ? ` (${event.error})` : '';
+                wrappedFinish('error', ci18n('announcements:speechcheck:error') + suffix);
+            };
+
+            try {
+                window.speechSynthesis.cancel();
+                window.speechSynthesis.speak(words);
+            } catch (e) {
+                window.clearTimeout(timeout);
+                finish('error', ci18n('announcements:speechcheck:error'));
+            }
+        });
+    }).catch(() => {
+        return setAnnouncementSpeechCheckState('error', ci18n('announcements:speechcheck:error'));
+    });
+}
+
+function playAnnouncementBatch(parts, voice, done, claimKey) {
     const filteredParts = (parts || []).filter((part) => !!part);
     let index = 0;
+    let batchStarted = false;
+    let batchStatus = 'ok';
     const playNext = () => {
         if (index >= filteredParts.length) {
-            done();
+            done(batchStarted ? batchStatus : 'suspicious');
             return;
         }
+        let utteranceStarted = false;
+        let utteranceStartedAt = 0;
         const words = new SpeechSynthesisUtterance(filteredParts[index]);
         words.lang = ci18n('announcements:lang');
         words.rate = curt.announcement_speed ? curt.announcement_speed : 1.05;
         words.pitch = 0;
         words.volume = 1;
         words.voice = voice;
+        words.onstart = function () {
+            batchStarted = true;
+            utteranceStarted = true;
+            utteranceStartedAt = Date.now();
+            console.log('[bts] announcement utterance start', {
+                claimKey: claimKey || null,
+                index,
+                part: filteredParts[index],
+                visibilityState: document.visibilityState,
+            });
+        };
         words.onend = function () {
+            const elapsed = utteranceStartedAt ? (Date.now() - utteranceStartedAt) : 0;
+            if (!utteranceStarted || elapsed < 300) {
+                if (batchStatus !== 'error') {
+                    batchStatus = 'suspicious';
+                }
+            }
+            console.log('[bts] announcement utterance end', {
+                claimKey: claimKey || null,
+                index,
+                part: filteredParts[index],
+                visibilityState: document.visibilityState,
+            });
             index += 1;
             playNext();
         };
-        words.onerror = function () {
+        words.onerror = function (event) {
+            batchStatus = 'error';
+            console.log('[bts] announcement utterance error', {
+                claimKey: claimKey || null,
+                index,
+                part: filteredParts[index],
+                error: event && event.error ? event.error : null,
+                visibilityState: document.visibilityState,
+            });
             index += 1;
             playNext();
         };
@@ -551,6 +858,75 @@ function playAnnouncementBatch(parts, voice, done) {
     };
     playNext();
 }
+
+function releaseAnnouncementLeaderForFailover() {
+    announcementLeaderSuppressUntil = Date.now() + ANNOUNCEMENT_LEADER_FAILOVER_SUPPRESS_MS;
+    releaseAnnouncementLeaderIfOwned();
+    if (releaseAnnouncementLeaderLock) {
+        releaseAnnouncementLeaderLock();
+    }
+}
+
+function requestAnnouncementRetry(batch) {
+    if (!batch || !batch.claimKey || (batch.retryCount || 0) >= 1) {
+        return;
+    }
+    const request = {
+        id: `${batch.claimKey}:${Date.now()}:${Math.random().toString(36).slice(2)}`,
+        claimKey: batch.claimKey,
+        callArray: batch.callArray,
+        excludeTabId: ANNOUNCEMENT_TAB_ID,
+        retryCount: (batch.retryCount || 0) + 1,
+        expiresAt: Date.now() + ANNOUNCEMENT_RETRY_TTL_MS,
+    };
+    try {
+        window.localStorage.setItem(ANNOUNCEMENT_RETRY_BROADCAST_KEY, JSON.stringify(request));
+    } catch (e) {
+        // ignore
+    }
+}
+
+function handleAnnouncementRetryRequest(request) {
+    if (!request || !request.id || processedAnnouncementRetryIds.has(request.id)) {
+        return;
+    }
+    processedAnnouncementRetryIds.add(request.id);
+    if (request.excludeTabId === ANNOUNCEMENT_TAB_ID) {
+        return;
+    }
+    if (request.expiresAt && request.expiresAt < Date.now()) {
+        return;
+    }
+    announce(request.callArray || [], false, request.claimKey, {
+        retryCount: request.retryCount || 0,
+        allowRetry: false,
+    });
+}
+
+window.addEventListener('storage', function(event) {
+    if (event.key === ANNOUNCEMENT_SPEECH_CHECK_STATE_KEY && event.newValue) {
+        try {
+            const state = JSON.parse(event.newValue);
+            if (state && (!announcementSpeechCheckState.updated_at || (state.updated_at || 0) >= (announcementSpeechCheckState.updated_at || 0))) {
+                announcementSpeechCheckState = state;
+                window.dispatchEvent(new CustomEvent('announcement-speech-check-state-changed', {
+                    detail: getAnnouncementSpeechCheckState(),
+                }));
+            }
+        } catch (e) {
+            // ignore
+        }
+        return;
+    }
+    if (event.key !== ANNOUNCEMENT_RETRY_BROADCAST_KEY || !event.newValue) {
+        return;
+    }
+    try {
+        handleAnnouncementRetryRequest(JSON.parse(event.newValue));
+    } catch (e) {
+        // ignore
+    }
+});
 
 function processAnnouncementPlaybackQueue() {
     if (announcementPlaybackActive) {
@@ -563,26 +939,75 @@ function processAnnouncementPlaybackQueue() {
     announcementPlaybackActive = true;
     getAnnouncementVoices().then((voices) => {
         const voice = findAnnouncementVoice(voices);
-        playAnnouncementBatch(nextBatch.callArray, voice, () => {
+        console.log('[bts] announcement batch start', {
+            claimKey: nextBatch.claimKey || null,
+            parts: (nextBatch.callArray || []).filter(Boolean),
+        });
+        playAnnouncementBatch(nextBatch.callArray, voice, (status) => {
+            console.log('[bts] announcement batch end', {
+                claimKey: nextBatch.claimKey || null,
+            });
+            if (status === 'ok' || status === 'active') {
+                setAnnouncementSpeechCheckState('active', ci18n('announcements:speechcheck:ok'));
+            } else if (status === 'suspicious') {
+                setAnnouncementSpeechCheckState('suspicious', ci18n('announcements:speechcheck:suspicious'));
+            } else if (status === 'error') {
+                setAnnouncementSpeechCheckState('error', ci18n('announcements:speechcheck:error'));
+            }
+            if ((status === 'suspicious' || status === 'error') && nextBatch.allowRetry !== false) {
+                releaseAnnouncementPlaybackClaim(nextBatch.callArray, nextBatch.claimKey);
+                releaseAnnouncementLeaderForFailover();
+                requestAnnouncementRetry(nextBatch);
+            }
             const pauseMs = curt.announcement_pause_time_ms ? (curt.announcement_pause_time_ms * 1000) : 2000;
             setTimeout(() => {
                 announcementPlaybackActive = false;
                 processAnnouncementPlaybackQueue();
             }, pauseMs);
-        });
+        }, nextBatch.claimKey);
     }).catch(() => {
+        console.log('[bts] announcement batch end', {
+            claimKey: nextBatch.claimKey || null,
+            error: true,
+        });
         announcementPlaybackActive = false;
         processAnnouncementPlaybackQueue();
     });
 }
 
-function announce(callArray, local, claimKey) {
-    if(!(window.localStorage.getItem('enable_free_announcements') === 'true') && !local) {
+function announce(callArray, local, claimKey, options) {
+    const enqueue = (enqueueOptions) => {
+        const resolvedOptions = enqueueOptions || {};
+        announcementPlaybackQueue.push({
+            callArray,
+            claimKey,
+            retryCount: resolvedOptions.retryCount || 0,
+            allowRetry: resolvedOptions.allowRetry !== false,
+        });
+        if (!local) {
+            console.log(`[bts] announcement played ${claimKey}`);
+        }
+        processAnnouncementPlaybackQueue();
+    };
+
+    if (local) {
+        enqueue({});
         return;
     }
-    if (!local && !claimAnnouncementPlayback(callArray, claimKey)) {
-        return;
-    }
-    announcementPlaybackQueue.push({ callArray });
-    processAnnouncementPlaybackQueue();
+
+    Promise.resolve(ensureAnnouncementLeaderLock()).then((isLeader) => {
+        if (!isLeader) {
+            console.log(`[bts] announcement skipped ${claimKey}`);
+            return;
+        }
+        return Promise.resolve(claimAnnouncementPlayback(callArray, claimKey)).then((claimed) => {
+            if (!claimed) {
+                console.log(`[bts] announcement skipped ${claimKey}`);
+                return;
+            }
+            enqueue(options || {});
+        });
+    }).catch(() => {
+        console.log(`[bts] announcement skipped ${claimKey}`);
+    });
 }
