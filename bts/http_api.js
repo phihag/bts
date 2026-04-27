@@ -260,6 +260,7 @@ function score_handler(req, res) {
 		presses: req.body.presses,
 		duration_ms: req.body.duration_ms,
 		end_ts: req.body.end_ts,
+		marks: req.body.marks,
 	};
 	if (update.team1_won !== undefined) {
 		update.btp_winner = (update.team1_won === true) ? 1 : 2;
