@@ -1,10 +1,38 @@
-date input broken
-
 5x18 BWF
+	(and test fully, look for = '3x21')
+
+flickers in readonly
 
 https
 
+link to overview
+
+blink red on referee call
+
 "ready to play" not correctly shown
+
+show/edit colors + notes
+
+show blocked players
+
+stream of all events (for other applications, JSON-L)
+
+backup of stream (write to disk
+
+backup of all games
+
+manual add umpire
+
+fix btp status after Logged In
+
+white-space pre for score in overview if decent size
+
+manual edit umpire
+
+"ready to play" not correctly shown
+
+link tournament overview
+
 
 websocket connection (show who's connected)
 	retry
@@ -15,10 +43,14 @@ websocket execute code
 
 websocket screenshot
 
+websocket settings (default settings / apply)
+
+rotation
+	court constraints
+	not player constraints …
+
 
 readme: document docker host data
-
-check with new BTP!
 
 set default tournament
 
