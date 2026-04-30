@@ -1,18 +1,5 @@
 'use strict';
 
-// Make linter happy
-/*global describe:false, it:false*/
-
-// Trivial runner
-const _describe = ((typeof describe == 'undefined') ?
-	function(s, f) {f();} :
-	describe
-);
-const _it = ((typeof it == 'undefined') ?
-	function(s, f) {f();} :
-	it
-);
-
 const assert = require('assert').strict;
 const path = require('path');
 const {deep_equal} = require('../static/bup/dev/js/utils.js');
@@ -40,6 +27,4 @@ async function assert_snapshot(dirname, test_name, actual) {
 
 module.exports = {
 	assert_snapshot,
-	_describe,
-	_it,
 };

@@ -214,6 +214,7 @@ function get_btp_state(response) {
 	for (const bm of matches) {
 		_calc_match_players(matches_by_pid, entries, players, bm, is_league);
 	}
+
 	return {
 		courts,
 		draws,

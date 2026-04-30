@@ -4,15 +4,11 @@ const assert = require('assert').strict;
 const fs = require('fs');
 const path = require('path');
 
-const tutils = require('./tutils.js');
-const _describe = tutils._describe;
-const _it = tutils._it;
-
 const {_req2xml: req2xml} = require('../bts/btp_proto');
 
 
-_describe('btp_proto', function() {
-	_it('Timezone encoding', async function() {
+describe('btp_proto', function() {
+	it('Timezone encoding', async function() {
 		assert.deepStrictEqual(
 			req2xml({test_date: new Date(1652529397790)}, 'Europe/Berlin'),
 			('<?xml version="1.0" encoding="UTF-8"?><VISUALXML VERSION="1.0">' +

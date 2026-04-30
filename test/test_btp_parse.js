@@ -4,14 +4,14 @@ const assert = require('assert');
 const fs = require('fs');
 const path = require('path');
 
-const {_it, _describe, assert_snapshot} = require('./tutils.js');
+const {assert_snapshot} = require('./tutils.js');
 
 const btp_parse = require('../bts/btp_parse');
 
 
 
-_describe('btp_parse', () => {
-	_it('DMO35 2017 finals', async() => {
+describe('btp_parse', () => {
+	it('DMO35 2017 finals', async() => {
 		const test_file = path.join(__dirname, 'testdata', 'dmo35_finals.json');
 		const contents = await fs.promises.readFile(test_file, 'utf-8');
 
@@ -116,7 +116,7 @@ _describe('btp_parse', () => {
 		// TODO distinguish walkovers
 	});
 
-	_it('incomplete_matches', async() => {
+	it('incomplete_matches', async() => {
 		const test_file = path.join(__dirname, 'testdata', 'incomplete_matches.json');
 		const contents = await fs.promises.readFile(test_file, 'utf-8');
 
