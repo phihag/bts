@@ -116,13 +116,13 @@ class BTPConn {
 
 	fetch() {
 		const ir = btp_proto.get_info_request(this.password);
-		this.send(ir, response => {
-			btp_sync.fetch(this.app, this.tkey, response, (err) => {
-				if (err) {
-					this.report_status('Synchronisations-Fehler: ' + err.stack);
-					console.error(err.stack);
-				}
-			});
+		this.send(ir, async response => {
+			try {
+				await btp_sync.fetch(this.app, this.tkey, response);
+			} catch (err) {
+				this.report_status('Synchronisations-Fehler: ' + err.stack);
+				console.error(err.stack);
+			}
 		});
 	}
 

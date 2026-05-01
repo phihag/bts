@@ -1,6 +1,7 @@
 'use strict';
 
 const assert = require('assert');
+const {promisify} = require('util');
 
 const async = require('async');
 
@@ -398,20 +399,13 @@ function integrate_now_on_court(app, tkey, callback) {
 	// TODO clear courts (better in async)
 }
 
-function fetch(app, tkey, response, callback) {
-	let btp_state;
-	try {
-		btp_state = btp_parse.get_btp_state(response);
-	} catch (e) {
-		return callback(e);
-	}
+async function fetch(app, tkey, response) {
+	const btp_state = btp_parse.get_btp_state(response);
 
-	async.waterfall([
-		cb => integrate_umpires(app, tkey, btp_state, cb),
-		cb => integrate_courts(app, tkey, btp_state, cb),
-		(court_map, cb) => integrate_matches(app, tkey, btp_state, court_map, cb),
-		cb => integrate_now_on_court(app, tkey, cb),
-	], callback);
+	await promisify(integrate_umpires)(app, tkey, btp_state);
+	const court_map = await promisify(integrate_courts)(app, tkey, btp_state);
+	await promisify(integrate_matches)(app, tkey, btp_state, court_map);
+	await promisify(integrate_now_on_court)(app, tkey);
 }
 
 module.exports = {
