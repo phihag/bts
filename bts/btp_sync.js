@@ -405,37 +405,31 @@ function calculate_match_ids_on_court(btp_state) {
 	return res;
 }
 
-function integrate_now_on_court(app, tkey, callback) {
-	// TODO after switching to async, this should happen during court&match construction
-	app.db.tournaments.findOne({key: tkey}, (err, tournament) => {
-		if (err) {
-			return callback(err);
-		}
-		assert(tournament);
-		if (!tournament.only_now_on_court) {
-			return; // Nothing to do here
-		}
+async function integrate_now_on_court(app, tkey) {
+	const db_tournament_findOne = promisify(app.db.tournaments.findOne.bind(app.db.tournaments));
+	const db_matches_find = promisify(app.db.matches.find.bind(app.db.matches));
+	const db_courts_find = promisify(app.db.courts.find.bind(app.db.courts));
+	const db_courts_update = promisify(app.db.courts.update.bind(app.db.courts));
 
-		app.db.matches.find({'setup.now_on_court': true}, (err, now_on_court_matches) => {
-			if (err) return callback(err);
+	const tournament = await db_tournament_findOne({key: tkey});
+	assert(tournament);
+	if (!tournament.only_now_on_court) {
+		return;
+	}
 
-			async.each(now_on_court_matches, (match, cb) => {
-				const court_id = match.setup.court_id;
-				const match_id = match._id;
-				if (!court_id || !match_id) return cb(); // TODO in async we would assert both to be true
+	const now_on_court_matches = await db_matches_find({'setup.now_on_court': true});
+	for (const match of now_on_court_matches) {
+		const court_id = match.setup.court_id;
+		const match_id = match._id;
+		assert(court_id && match_id);
 
-				const court_q = {_id: court_id};
-				app.db.courts.find(court_q, (err, courts) => {
-					if (err) return cb(err);
-					if (courts.length !== 1) return cb();
-					const [court] = courts;
+		const court_q = {_id: court_id};
+		const courts = await db_courts_find(court_q);
+		if (courts.length !== 1) continue;
+		if (courts[0].match_id === match_id) continue; // Already set
 
-					app.db.courts.update(court_q, {$set: {match_id}}, {}, (err) => cb(err));
-				});
-			}, callback);
-		});
-	});
-	// TODO clear courts (better in async)
+		await db_courts_update(court_q, {$set: {match_id}}, {});
+	}
 }
 
 async function fetch(app, tkey, response) {
@@ -447,7 +441,7 @@ async function integrate_btp_state(app, tkey, btp_state) {
 	await promisify(integrate_umpires)(app, tkey, btp_state);
 	const court_map = await promisify(integrate_courts)(app, tkey, btp_state);
 	await integrate_matches(app, tkey, btp_state, court_map);
-	await promisify(integrate_now_on_court)(app, tkey);
+	await integrate_now_on_court(app, tkey);
 }
 
 module.exports = {
