@@ -173,13 +173,16 @@ function _parse_score(bm) {
 	return bm.Sets[0].Set.map(s => [s.T1[0], s.T2[0]]);
 }
 
-function integrate_matches(app, tkey, btp_state, court_map, callback) {
+async function integrate_matches(app, tkey, btp_state, court_map) {
 	const admin = require('./admin'); // avoid dependency cycle
 	const {draws, events, officials} = btp_state;
 
 	const match_ids_on_court = calculate_match_ids_on_court(btp_state);
+	const db_findOne = promisify(app.db.matches.findOne.bind(app.db.matches));
+	const db_update = promisify(app.db.matches.update.bind(app.db.matches));
+	const db_insert = promisify(app.db.matches.insert.bind(app.db.matches));
 
-	async.each(btp_state.matches, function(bm, cb) {
+	for (const bm of btp_state.matches) {
 		let btp_id;
 		if (bm.TeamMatchID) {
 			// Team Match
@@ -202,44 +205,31 @@ function integrate_matches(app, tkey, btp_state, court_map, callback) {
 			tournament_key: tkey,
 		};
 		// TODO get all matches upfront here
-		app.db.matches.findOne(query, (err, cur_match) => {
-			if (err) return cb(err);
+		const cur_match = await db_findOne(query);
 
-			if (cur_match && cur_match.btp_needsync) {
-				cb();
-				return;
+		if (cur_match && cur_match.btp_needsync) {
+			continue;
+		}
+
+		const match = craft_match(tkey, btp_id, court_map, event, draw, officials, bm, match_ids_on_court);
+		if (!match) {
+			continue;
+		}
+
+		if (cur_match) {
+			if (utils.plucked_deep_equal(match, cur_match, Object.keys(match), true)) {
+				// No update required
+				continue;
 			}
 
-			const match = craft_match(tkey, btp_id, court_map, event, draw, officials, bm, match_ids_on_court);
-			if (!match) {
-				cb();
-				return;
-			}
+			await db_update({_id: cur_match._id}, {$set: match}, {});
+			admin.notify_change(app, match.tournament_key, 'match_edit', {match__id: match._id, setup: match.setup});
+			continue;
+		}
 
-			if (cur_match) {
-				if (utils.plucked_deep_equal(match, cur_match, Object.keys(match), true)) {
-					// No update required
-					cb();
-					return;
-				}
-
-				app.db.matches.update({_id: cur_match._id}, {$set: match}, {}, (err) => {
-					if (err) return cb(err);
-
-					admin.notify_change(app, match.tournament_key, 'match_edit', {match__id: match._id, setup: match.setup});
-					cb();
-				});
-				return;
-			}
-
-			app.db.matches.insert(match, function(err) {
-				if (err) return cb(err);
-
-				admin.notify_change(app, tkey, 'match_add', {match});
-				cb();
-			});
-		});
-	}, callback);
+		await db_insert(match);
+		admin.notify_change(app, tkey, 'match_add', {match});
+	}
 }
 
 // Returns a map btp_court_id => court._id
