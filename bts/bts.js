@@ -109,7 +109,7 @@ function create_app(config, db) {
 	app.get('/h/:tournament_key/logo/:logo_id', http_api.logo_handler);
 
 	wss.on('connection', function connection(ws, req) {
-		const location = url.parse(req.url, true);
+		const location = new URL(req.url, 'https://placeholder.local/');
 		if (location.path === '/ws/admin') {
 			return wshandler.handle(admin, app, ws);
 		} else if (location.path === '/ws/bup') {
