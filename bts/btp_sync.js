@@ -19,8 +19,9 @@ function date_str(dt) {
 	return utils.pad(dt.year, 2, '0') + '-' + utils.pad(dt.month, 2, '0') + '-' + utils.pad(dt.day, 2, '0');
 }
 
-function craft_match(tkey, btp_id, court_map, event, draw, officials, bm, match_ids_on_court, match_types, is_league) {
-	if (!bm.IsMatch) {
+function craft_match(tkey, btp_id, court_map, event, draw, officials, bm, match_ids_on_court, match_types, is_league, btp_state) {
+	assert.equal(typeof is_league, 'boolean');
+	if (!is_league && !bm.IsMatch) {
 		return;
 	}
 
@@ -34,9 +35,25 @@ function craft_match(tkey, btp_id, court_map, event, draw, officials, bm, match_
 
 	const scheduled_time_str = (bm.PlannedTime ? time_str(bm.PlannedTime[0]) : undefined);
 	const scheduled_date = (bm.PlannedTime ? date_str(bm.PlannedTime[0]) : undefined);
-	const match_name = bm.RoundName[0];
+	let match_name;
+	if (is_league) {
+		assert(bm.MatchTypeID);
+		const mt = match_types.get('' + bm.MatchTypeID[0]);
+		match_name = mt;
+	} else {
+		match_name = bm.RoundName[0];
+	}
 	const event_name = (event.Name[0] === draw.Name[0]) ? draw.Name[0] : event.Name[0] + ' - ' + draw.Name[0];
 	const teams = _craft_teams(bm);
+	if (is_league) {
+		// league, set team names
+		const tm = btp_state.team_matches.get(bm.TeamMatchID[0]);
+		assert(tm);
+
+		for (let i = 0; i < teams.length;i++) {
+			teams[i].name = tm.btp_teams[i].Name[0];
+		}
+	}
 
 	const btp_player_ids = [];
 	for (const team of bm.bts_players) {
@@ -45,12 +62,19 @@ function craft_match(tkey, btp_id, court_map, event, draw, officials, bm, match_
 		}
 	}
 
+	let is_doubles;
+	if (is_league) {
+		is_doubles = teams[0].players.length === 2; 
+	} else {
+		is_doubles = gtid === 2;
+	}
+	const match_num = is_league ? bm.ID[0] : bm.MatchNr[0];
 	const setup = {
 		incomplete: !bm.bts_complete,
-		is_doubles: (gtid === 2),
-		match_num: bm.MatchNr[0],
+		is_doubles: is_doubles,
+		match_num: match_num,
 		counting: '3x21',
-		team_competition: false,
+		team_competition: is_league,
 		match_name,
 		event_name,
 		teams,
@@ -79,12 +103,17 @@ function craft_match(tkey, btp_id, court_map, event, draw, officials, bm, match_
 		setup.service_judge_name = o.FirstName + ' ' + o.Name;
 	}
 
-	const btp_match_ids = [{
+	const btp_data = {
 		id: bm.ID[0],
-		nr: bm.MatchNr[0],
-		draw: bm.DrawID[0],
-		planning: bm.PlanningID[0],
-	}];
+	};
+	if (is_league) {
+		// TODO make sure sync works
+	} else {
+		btp_data.nr = bm.MatchNr[0];
+		btp_data.draw = bm.DrawID[0];
+		btp_data.planning = bm.PlanningID[0];
+	}
+	const btp_match_ids = [btp_data];
 
 	const match = {
 		tournament_key: tkey,
@@ -175,7 +204,7 @@ function _parse_score(bm) {
 
 async function integrate_matches(app, tkey, btp_state, court_map) {
 	const admin = require('./admin'); // avoid dependency cycle
-	const {draws, events, officials} = btp_state;
+	const {draws, events, officials, match_types} = btp_state;
 
 	const match_ids_on_court = calculate_match_ids_on_court(btp_state);
 	const db_findOne = promisify(app.db.matches.findOne.bind(app.db.matches));
@@ -183,22 +212,29 @@ async function integrate_matches(app, tkey, btp_state, court_map) {
 	const db_insert = promisify(app.db.matches.insert.bind(app.db.matches));
 
 	for (const bm of btp_state.matches) {
-		let btp_id;
-		if (bm.TeamMatchID) {
+		let draw_id;
+		const is_league = !!bm.TeamMatchID;
+		if (is_league) {
 			// Team Match
-			console.log(Object.keys(btp_state))
-			// TODO!
+			const team_match = btp_state.team_matches.get(bm.TeamMatchID[0]);
+			assert(team_match);
+
+			draw_id = team_match.DrawID[0];
+			assert(draw_id);
 		} else {
 			// Individual match
-			const draw = draws.get(bm.DrawID[0]);
-			assert(draw);
-
-			const event = events.get(draw.EventID[0]);
-			assert(event);
-
-			const discipline_name = (event.Name[0] === draw.Name[0]) ? draw.Name[0] : event.Name[0] + '_' + draw.Name[0];
-			btp_id = tkey + '_' + discipline_name + '_' + bm.ID[0];
+			draw_id = bm.DrawID[0];
 		}
+
+		assert(Number.isInteger(draw_id));
+		const draw = draws.get(draw_id);
+		assert(draw);
+
+		const event = events.get(draw.EventID[0]);
+		assert(event);
+
+		const discipline_name = (event.Name[0] === draw.Name[0]) ? draw.Name[0] : event.Name[0] + '_' + draw.Name[0];
+		const btp_id = tkey + '_' + discipline_name + '_' + bm.ID[0];
 
 		const query = {
 			btp_id,
@@ -210,8 +246,7 @@ async function integrate_matches(app, tkey, btp_state, court_map) {
 		if (cur_match && cur_match.btp_needsync) {
 			continue;
 		}
-
-		const match = craft_match(tkey, btp_id, court_map, event, draw, officials, bm, match_ids_on_court);
+		const match = craft_match(tkey, btp_id, court_map, event, draw, officials, bm, match_ids_on_court, match_types, is_league, btp_state);
 		if (!match) {
 			continue;
 		}
