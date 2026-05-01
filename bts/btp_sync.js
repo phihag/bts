@@ -38,8 +38,14 @@ function craft_match(tkey, btp_id, court_map, event, draw, officials, bm, match_
 	let match_name;
 	if (is_league) {
 		assert(bm.MatchTypeID);
-		const mt = match_types.get('' + bm.MatchTypeID[0]);
+		const match_type_id = bm.MatchTypeID[0];
+		const mt = match_types.get(String(match_type_id));
+		assert(mt, `Unknown match type ${match_type_id}`);
 		match_name = mt;
+
+		if (bm.MatchTypeNo && bm.MatchTypeNo[0]) {
+			match_name += String(bm.MatchTypeNo[0]);
+		}
 	} else {
 		match_name = bm.RoundName[0];
 	}
