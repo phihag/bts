@@ -762,9 +762,6 @@ function render_edit(form, match) {
 	if (curt.is_team) {
 		const team_tr = uiu.el(player_tbody, 'tr');
 
-		uiu.el(team_tr, 'td', {
-			colspan: 4,
-		}, 'Teams:');
 		const td_team0 = uiu.el(team_tr, 'td');
 		uiu.el(td_team0, 'input', {
 			type: 'text',
