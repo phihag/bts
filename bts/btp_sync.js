@@ -180,14 +180,22 @@ function integrate_matches(app, tkey, btp_state, court_map, callback) {
 	const match_ids_on_court = calculate_match_ids_on_court(btp_state);
 
 	async.each(btp_state.matches, function(bm, cb) {
-		const draw = draws.get(bm.DrawID[0]);
-		assert(draw);
+		let btp_id;
+		if (bm.TeamMatchID) {
+			// Team Match
+			console.log(Object.keys(btp_state))
+			// TODO!
+		} else {
+			// Individual match
+			const draw = draws.get(bm.DrawID[0]);
+			assert(draw);
 
-		const event = events.get(draw.EventID[0]);
-		assert(event);
+			const event = events.get(draw.EventID[0]);
+			assert(event);
 
-		const discipline_name = (event.Name[0] === draw.Name[0]) ? draw.Name[0] : event.Name[0] + '_' + draw.Name[0];
-		const btp_id = tkey + '_' + discipline_name + '_' + bm.ID[0];
+			const discipline_name = (event.Name[0] === draw.Name[0]) ? draw.Name[0] : event.Name[0] + '_' + draw.Name[0];
+			btp_id = tkey + '_' + discipline_name + '_' + bm.ID[0];
+		}
 
 		const query = {
 			btp_id,
