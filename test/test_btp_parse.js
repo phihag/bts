@@ -126,4 +126,15 @@ describe('btp_parse', () => {
 		const matches = bs.matches;
 		assert.deepStrictEqual(matches, []);
 	});
+
+	it('team tournament', async() => {
+		const test_file = path.join(__dirname, 'testdata', 'dmm.json');
+		const contents = await fs.promises.readFile(test_file, 'utf-8');
+
+		const response = JSON.parse(contents);
+		const bs = btp_parse.get_btp_state(response);
+
+		const matches = bs.matches;
+		assert.equal(matches.length, 256)
+	});
 });
