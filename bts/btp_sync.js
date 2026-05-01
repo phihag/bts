@@ -401,10 +401,13 @@ function integrate_now_on_court(app, tkey, callback) {
 
 async function fetch(app, tkey, response) {
 	const btp_state = btp_parse.get_btp_state(response);
+	await integrate_btp_state(app, tkey, btp_state);
+}
 
+async function integrate_btp_state(app, tkey, btp_state) {
 	await promisify(integrate_umpires)(app, tkey, btp_state);
 	const court_map = await promisify(integrate_courts)(app, tkey, btp_state);
-	await promisify(integrate_matches)(app, tkey, btp_state, court_map);
+	await integrate_matches(app, tkey, btp_state, court_map);
 	await promisify(integrate_now_on_court)(app, tkey);
 }
 
@@ -414,6 +417,7 @@ module.exports = {
 	date_str,
 	fetch,
 	time_str,
+	integrate_btp_state,
 	// test only
 	_integrate_umpires: integrate_umpires,
 };
