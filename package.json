@@ -11,7 +11,7 @@
 		"async": "*",
 		"body-parser": "*",
 		"express": "*",
-		"extract-zip": "*",
+		"extract-zip": "2.0.0",
 		"nedb": "*",
 		"node-xlsx": "^0.21.0",
 		"pretty-data": "^0.40.0",
