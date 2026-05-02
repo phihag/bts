@@ -279,7 +279,7 @@ class BTPConn {
 				req = btp_proto.update_request(
 					match, this.key_unicode, this.password, umpire_btp_id, service_judge_btp_id, court_btp_id);
 			} catch (err) {
-				serror.handle_error(err);
+				serror.silent(`Failed to craft update request. ${err.stack}`);
 				return;
 			}
 			this.send(req, response => {
