@@ -42,10 +42,14 @@ describe('btp_sync', () => {
 		const match = await find_match({tournament_key: TOURNAMENT_KEY, btp_id: 'ttest_U15_Group 1_273'});
 		match.team1_won = true;
 		match.network_score = [[21, 5], [21, 8]];
+		match.shuttle_count = 7;
 
 		const req = btp_proto.update_request(match, 'password_unicode', 'password123', 1001, 1002, 1003);
 		await assert_snapshot(__dirname, 'league_update_request', req);
 		const [{PlayerMatch: pm}] = req.Update.Tournament.PlayerMatches;
 		assert.deepStrictEqual(pm.TeamMatchID, 100);
+		assert.deepStrictEqual(pm.MatchOrder, 1);
+		assert.deepStrictEqual(pm.Team1Player1ID, 127);
+		assert.deepStrictEqual(pm.Shuttles, 7);
 	});
 });

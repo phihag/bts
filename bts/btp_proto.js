@@ -125,6 +125,16 @@ function update_request(match, key_unicode, password, umpire_btp_id, service_jud
 			m.MatchTypeNo = btp_m_id.MatchTypeNo;
 			assert(btp_m_id.MatchOrder !== undefined);
 			m.MatchOrder = btp_m_id.MatchOrder;
+
+			assert(btp_m_id.Team1Player1ID !== undefined);
+			m.Team1Player1ID = btp_m_id.Team1Player1ID;
+			if (btp_m_id.Team1Player2ID !== undefined) {
+				m.Team1Player2ID = btp_m_id.Team1Player2ID;
+			}
+			m.Team2Player1ID = btp_m_id.Team2Player1ID;
+			if (btp_m_id.Team2Player2ID !== undefined) {
+				m.Team2Player2ID = btp_m_id.Team2Player2ID;
+			}
 		} else {
 			assert(btp_m_id.draw !== undefined);
 			m.DrawID = btp_m_id.draw;

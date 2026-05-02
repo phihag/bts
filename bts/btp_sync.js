@@ -121,6 +121,17 @@ function craft_match(tkey, btp_id, court_map, event, draw, officials, bm, match_
 		assert(btp_data.MatchTypeNo !== undefined);
 		btp_data.MatchOrder = bm.MatchOrder[0];
 		assert(btp_data.MatchOrder !== undefined);
+
+		btp_data.Team1Player1ID = bm.Team1Player1ID[0];
+		assert(btp_data.Team1Player1ID !== undefined);
+		if (bm.Team1Player2ID && bm.Team1Player2ID[0]) {
+			btp_data.Team1Player2ID = bm.Team1Player2ID[0];
+		}
+		btp_data.Team2Player1ID = bm.Team2Player1ID[0];
+		assert(btp_data.Team2Player1ID !== undefined);
+		if (bm.Team1Player2ID && bm.Team2Player2ID[0]) {
+			btp_data.Team2Player2ID = bm.Team2Player2ID[0];
+		}
 	} else {
 		btp_data.nr = bm.MatchNr[0];
 		btp_data.draw = bm.DrawID[0];
