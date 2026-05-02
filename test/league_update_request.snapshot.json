@@ -51,6 +51,14 @@
             "Shuttles": 7
           }
         }
+      ],
+      "Courts": [
+        {
+          "Court": {
+            "ID": 1003,
+            "SubMatchID": 0
+          }
+        }
       ]
     }
   }

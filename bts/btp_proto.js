@@ -150,6 +150,15 @@ function update_request(match, key_unicode, password, umpire_btp_id, service_jud
 		}
 		if (court_btp_id) {
 			m.CourtID = court_btp_id;
+			if (is_league) {
+				// Free the court
+				res.Update.Tournament.Courts = [{
+					Court: {
+						ID: court_btp_id,
+						SubMatchID: 0,
+					},
+				}];
+			}
 		}
 		if (shuttle_count) {
 			m.Shuttles = shuttle_count;
