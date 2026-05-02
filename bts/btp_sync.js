@@ -113,7 +113,14 @@ function craft_match(tkey, btp_id, court_map, event, draw, officials, bm, match_
 		id: bm.ID[0],
 	};
 	if (is_league) {
-		// TODO make sure sync works
+		btp_data.TeamMatchID = bm.TeamMatchID[0];
+		assert(btp_data.TeamMatchID !== undefined);
+		btp_data.MatchTypeID = bm.MatchTypeID[0];
+		assert(btp_data.MatchTypeID !== undefined);
+		btp_data.MatchTypeNo = bm.MatchTypeNo[0];
+		assert(btp_data.MatchTypeNo !== undefined);
+		btp_data.MatchOrder = bm.MatchOrder[0];
+		assert(btp_data.MatchOrder !== undefined);
 	} else {
 		btp_data.nr = bm.MatchNr[0];
 		btp_data.draw = bm.DrawID[0];

@@ -67,12 +67,22 @@ function update_request(match, key_unicode, password, umpire_btp_id, service_jud
 		Client: {
 			IP: 'bts',
 		},
-		Update: {
+	}
+
+	const is_league = match.btp_match_ids.some(mid => !!mid.TeamMatchID);
+	if (is_league) {
+		res.Update = {
+			Tournament: {
+				PlayerMatches: matches,
+			},
+		}
+	} else {
+		res.Update = {
 			Tournament: {
 				Matches: matches,
 			},
-		},
-	};
+		};
+	}
 	if (password) {
 		res.Action.Password = password;
 	}
@@ -99,8 +109,6 @@ function update_request(match, key_unicode, password, umpire_btp_id, service_jud
 
 		const m = {
 			ID: btp_m_id.id,
-			DrawID: btp_m_id.draw,
-			PlanningID: btp_m_id.planning,
 			Sets: sets,
 			Winner: winner,
 			ScoreStatus: 0, // Won normally (TODO: correctly handle resignations etc.)
@@ -108,6 +116,22 @@ function update_request(match, key_unicode, password, umpire_btp_id, service_jud
 			Status: 0,
 			// BTP also sends a boolean ScoreSheetPrinted here
 		};
+		if (is_league) {
+			assert(btp_m_id.TeamMatchID !== undefined);
+			m.TeamMatchID = btp_m_id.TeamMatchID;
+			assert(btp_m_id.MatchTypeID !== undefined);
+			m.MatchTypeID = btp_m_id.MatchTypeID;
+			assert(btp_m_id.MatchTypeNo !== undefined);
+			m.MatchTypeNo = btp_m_id.MatchTypeNo;
+			assert(btp_m_id.MatchOrder !== undefined);
+			m.MatchOrder = btp_m_id.MatchOrder;
+		} else {
+			assert(btp_m_id.draw !== undefined);
+			m.DrawID = btp_m_id.draw;
+
+			assert(btp_m_id.plannig !== undefined);
+			m.PlanningID = btp_m_id.planning;
+		}
 		if (umpire_btp_id) {
 			m.Official1ID = umpire_btp_id;
 		}
@@ -121,7 +145,11 @@ function update_request(match, key_unicode, password, umpire_btp_id, service_jud
 			m.Shuttles = shuttle_count;
 		}
 
-		matches.push({Match: m});
+		if (is_league) {
+			matches.push({PlayerMatch: m});
+		} else {
+			matches.push({Match: m});
+		}
 	}
 
 	if (match.btp_player_ids && match.end_ts && (match.end_ts + 300000 > Date.now())) {

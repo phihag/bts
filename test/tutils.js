@@ -1,12 +1,13 @@
 'use strict';
 
+const fs = require('fs');
 const assert = require('assert').strict;
 const path = require('path');
 const {deep_equal} = require('../static/bup/dev/js/utils.js');
 
 
 async function assert_snapshot(dirname, test_name, actual) {
-	assert(actual !== undefined);
+	assert(actual !== undefined, 'Missing actual value');
 
 	const file_name = path.join(dirname, `${test_name}.snapshot.json`);
 	let expected;
@@ -17,7 +18,7 @@ async function assert_snapshot(dirname, test_name, actual) {
 		expected = `(Error while reading ${file_name}: ${e})`;
 	}
 
-	if (! bup.utils.deep_equal(actual, expected)) {
+	if (! deep_equal(actual, expected)) {
 		const actual_json = JSON.stringify(actual, undefined, 2);
 		await fs.promises.writeFile(file_name, actual_json);
 		assert.deepStrictEqual(actual, expected);

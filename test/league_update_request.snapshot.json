@@ -1,0 +1,52 @@
+{
+  "Header": {
+    "Version": {
+      "Hi": 1,
+      "Lo": 1
+    }
+  },
+  "Action": {
+    "ID": "SENDUPDATE",
+    "Unicode": "password_unicode",
+    "Password": "password123"
+  },
+  "Client": {
+    "IP": "bts"
+  },
+  "Update": {
+    "Tournament": {
+      "PlayerMatches": [
+        {
+          "PlayerMatch": {
+            "ID": 273,
+            "Sets": [
+              {
+                "Set": {
+                  "T1": 21,
+                  "T2": 5
+                }
+              },
+              {
+                "Set": {
+                  "T1": 21,
+                  "T2": 8
+                }
+              }
+            ],
+            "Winner": 1,
+            "ScoreStatus": 0,
+            "Duration": 0,
+            "Status": 0,
+            "TeamMatchID": 100,
+            "MatchTypeID": 13,
+            "MatchTypeNo": 1,
+            "MatchOrder": 1,
+            "Official1ID": 1001,
+            "Official2ID": 1002,
+            "CourtID": 1003
+          }
+        }
+      ]
+    }
+  }
+}
