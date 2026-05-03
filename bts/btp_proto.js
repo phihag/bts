@@ -67,21 +67,16 @@ function update_request(match, key_unicode, password, umpire_btp_id, service_jud
 		Client: {
 			IP: 'bts',
 		},
+		Update: {
+			Tournament: {}, // will be filled out
+		},
 	}
 
 	const is_league = match.btp_match_ids.some(mid => !!mid.TeamMatchID);
 	if (is_league) {
-		res.Update = {
-			Tournament: {
-				PlayerMatches: matches,
-			},
-		}
+		res.Update.Tournament.PlayerMatches = matches;
 	} else {
-		res.Update = {
-			Tournament: {
-				Matches: matches,
-			},
-		};
+		res.Update.Tournament.Matches = matches;
 	}
 	if (password) {
 		res.Action.Password = password;
