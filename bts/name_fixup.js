@@ -1,4 +1,4 @@
-FIXED_PLAYERS = {
+const FIXED_PLAYERS = {
 	'NONG Sophia': {
 		name: 'Sophia Nong',
 		firstname: 'Sophia',

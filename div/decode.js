@@ -23,7 +23,8 @@ function main() {
 		const len = main_buf.readInt32BE(0);
 		try {
 			response_buf = zlib.gunzipSync(main_buf.slice(4), {});
-		} catch (_second_err) {
+		} catch {
+			// throw original error
 			throw e;
 		}
 

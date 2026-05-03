@@ -4,22 +4,13 @@
 const assert = require('assert').strict;
 const argparse = require('argparse');
 const {promisify} = require('util');
-const {DOMParser} = require('xmldom');
 const fs = require('fs');
-const path = require('path');
-const TextDecoder = require('text-encoding').TextDecoder;
 const zlib = require('zlib');
 
-const btp_conn = require('./bts/btp_conn.js');
-const btp_parse = require('./bts/btp_parse.js');
 const btp_proto = require('./bts/btp_proto.js');
-const btp_sync = require('./bts/btp_sync.js');
-const utils = require('./bts/utils.js');
-const {serialize_pretty} = require('./bts/xml_utils.js');
+
 
 async function main() {
-    const send_raw_request = promisify(btp_conn.send_raw_request);
-
     const parser = argparse.ArgumentParser({
         description: 'Decode an exchange of the BTP network protocol'});
     parser.addArgument(['-x', '--exchange'], {

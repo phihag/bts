@@ -260,7 +260,6 @@ function _make_setup(d) {
 	if (d.override_colors_checkbox) {
 		override_colors = {};
 		for (let team_id = 0;team_id < 2;team_id++) {
-			const team_override_colors = {};
 			for (const key of OVERRIDE_COLORS_KEYS) {
 				override_colors[key + team_id] = d[`override_colors_${team_id}_${key}`];
 			}

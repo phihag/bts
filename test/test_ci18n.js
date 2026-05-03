@@ -1,8 +1,6 @@
 'use strict';
 
 const assert = require('assert');
-const fs = require('fs');
-const path = require('path');
 
 const {_translate: translate} = require('../static/js/ci18n.js');
 

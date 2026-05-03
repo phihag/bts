@@ -91,8 +91,8 @@ function create_app(config, db) {
 						type: 'error',
 						message: 'Incorrect password',
 					}));
-				} catch(e) {
-					serror.silent('failed to send password failure');
+				} catch(err) {
+					serror.silent(`failed to send password failure: ${err}`);
 				}
 				return;
 			}

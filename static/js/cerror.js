@@ -75,8 +75,8 @@ function init() {
 	var report_enabled_json = document.getElementById('bts-data-holder').getAttribute('data-error-reporting');
 	try {
 		report_enabled = JSON.parse(report_enabled_json);
-	} catch(e) {
-		silent('Error reporting JSON invalid: ' + report_enabled_json);
+	} catch(err) {
+		silent(`Error ${err} reporting JSON invalid: ${report_enabled_json}`);
 		return;
 	}
 	if (report_enabled === null) {

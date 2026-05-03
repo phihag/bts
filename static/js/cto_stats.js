@@ -23,7 +23,6 @@ function ui_to_stats() {
 	uiu.el(main, 'h3', {}, curt.name || curt.key);
 
 	// TODO add dates + location here
-	console.log(curt.matches)
 
 	const table = uiu.el(main, 'table', 'table-outlined');
 	const thead = uiu.el(table, 'thead');
@@ -41,15 +40,15 @@ crouting.register(/t\/([a-z0-9]+)\/to_stats$/, function(m) {
 
 /*@DEV*/
 if ((typeof module !== 'undefined') && (typeof require !== 'undefined')) {
-	var cflags = require('./cflags');
+	// var cflags = require('./cflags');
 	var change = require('./change');
 	var ctournament = require('./ctournament');
 	var ci18n = require('./ci18n');
-	var countries = require('./countries');
+	// var countries = require('./countries');
 	var crouting = require('./crouting');
 	var toprow = require('./toprow');
 	var uiu = require('../bup/js/uiu');
-	var utils = require('../bup/bup/js/utils.js');
+	// var utils = require('../bup/bup/js/utils.js');
 
 	module.exports = {};
 }

@@ -4,8 +4,6 @@ const assert = require('assert');
 const fs = require('fs');
 const path = require('path');
 
-const {assert_snapshot} = require('./tutils.js');
-
 const btp_parse = require('../bts/btp_parse');
 
 

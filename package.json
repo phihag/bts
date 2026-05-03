@@ -24,8 +24,10 @@
 		"xmldom": "*"
 	},
 	"devDependencies": {
+		"@eslint/js": "^10.0.1",
 		"acorn": "^6.1.1",
-		"eslint": "*",
+		"eslint": "^10.3.0",
+		"globals": "^17.6.0",
 		"mocha": "*",
 		"stylelint": "*",
 		"stylelint-config-standard": "*",

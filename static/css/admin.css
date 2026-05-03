@@ -138,10 +138,6 @@ a:hover {
 	margin-left: 1em;
 }
 
-table.striped-table {
-
-}
-
 
 .main_upcoming {
 	background: #000; color: #fff;
@@ -156,7 +152,6 @@ table.striped-table {
 .upcoming_table td {
 	padding-bottom: 0.3em;
 	vertical-align: top;
-
 }
 .upcoming_table td:not(:first-child) {
 	padding-left: 0.3em;

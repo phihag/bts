@@ -70,7 +70,7 @@ function update_request(match, key_unicode, password, umpire_btp_id, service_jud
 		Update: {
 			Tournament: {}, // will be filled out
 		},
-	}
+	};
 
 	const is_league = match.btp_match_ids.some(mid => !!mid.TeamMatchID);
 	if (is_league) {

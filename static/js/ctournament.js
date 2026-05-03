@@ -177,7 +177,7 @@ function ui_show() {
 	}, {
 		label: ci18n('Next Matches'),
 		href: '/admin/t/' + encodeURIComponent(curt.key) + '/upcoming',
-	},]);
+	}]);
 
 	const main = uiu.qs('.main');
 	uiu.empty(main);
@@ -454,7 +454,7 @@ function ui_edit() {
 	for (const tz of timezones.ALL_TIMEZONES) {
 		const attrs = {
 			value: tz,
-		}
+		};
 
 		if ((tz === curt.btp_timezone) && !marked) {
 			marked = true;
@@ -870,6 +870,7 @@ if ((typeof module !== 'undefined') && (typeof require !== 'undefined')) {
 	var cumpires = require('./cumpires');
 	var debug = require('./debug');
 	var form_utils = require('./form_utils');
+	var fullscreen = require('../bup/js/fullscreen');
 	var i18n = require('../bup/js/i18n');
 	var i18n_de = require('../bup/js/i18n_de');
 	var i18n_en = require('../bup/js/i18n_en');

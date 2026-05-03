@@ -9,5 +9,10 @@ function handle_update(tournament_id, device_data) {
 		DEVICES_BY_TOURNAMENT.set(tournament_id, tournament_info);
 	}
 
-
+	// eslint-disable-next-line no-console
+	console.log('TODO handle_update', tournament_info, device_data);
 }
+
+module.exports = {
+	handle_update,
+};

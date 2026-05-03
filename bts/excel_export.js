@@ -1,9 +1,5 @@
 'use strict';
 
-const xlsx = require('node-xlsx').defaul
-
-const { promisify } = require('util');
-
 
 async function excel_export_handler(req, res) {
 	const { db } = req.app;
@@ -12,8 +8,9 @@ async function excel_export_handler(req, res) {
 	const [tournament] = await db.tournaments.find_async({key: tournament_key});
 	const matches = await db.tournaments.find_async({key: tournament_key});
 
-	console.log(matches);
+	console.log('TODO', tournament, matches); // eslint-disable-line no-console
 
+	res.end(500, 'TODO');
 	//res.header('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
     //res.end(buf);
 }

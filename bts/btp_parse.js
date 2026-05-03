@@ -147,7 +147,7 @@ function _annotate_league_teammatch(btp_tm, team_matches_by_planning, entries, t
 
 	const draw = draws.get(btp_tm.DrawID[0]);
 	const draw_name = draw.Name[0];
-	const event = events.get(draw.EventID[0])
+	const event = events.get(draw.EventID[0]);
 	const event_name = event.Name[0];
 	btp_tm.bts_event_name = event_name === draw_name ? draw_name : `${event_name} ${draw_name}`;
 

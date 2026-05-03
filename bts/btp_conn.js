@@ -121,7 +121,7 @@ class BTPConn {
 				await btp_sync.fetch(this.app, this.tkey, response);
 			} catch (err) {
 				this.report_status('Synchronisations-Fehler: ' + err.stack);
-				console.error(err.stack);
+				console.error(err.stack); // eslint-disable-line no-console
 			}
 		});
 	}
