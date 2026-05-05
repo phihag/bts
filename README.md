@@ -11,6 +11,13 @@ Use [bup](https://github.com/phihag/bup/) at tournaments.
 docker run -p 4000:4000 phihag/bts
 ```
 
+This will run bts on http://localhost:4000/ .
+
+To run it in the background, and store the data permanently, run something like
+```bash
+docker run -d --name bts -v "$PWD/btsdata:/bts/data" --restart=always -p 4000:4000 phihag/bts
+``` 
+
 ## Manual installation
 
 To install, type
