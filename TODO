@@ -1,4 +1,22 @@
-game aborted
+flag for match not found
+
+correctly transmit resignations
+
+log all changes, write a backup of every finished game
+
+websocket
+websocket-only mode
+
+https
+
+umpire rotation
+
+---------------------------
+
+
+
+
+team game aborted
 -> Oliver Schönborn
 
 LP only clear court if currently on this court
@@ -9,15 +27,8 @@ test for LP sync
 
 LP sync
 
-don't crash?
-
 ----
 
-websocket
-
-https (for battery)
-
-log all changes, write a backup of every finished game
 
 
 
