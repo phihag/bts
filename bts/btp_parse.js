@@ -239,14 +239,28 @@ function parse_umpires(response) {
 	if (!btp_t.Officials || !btp_t.Officials[0] || !btp_t.Officials[0].Official) return [];
 	return btp_t.Officials[0].Official.map(o => {
 		const res = {
-			firstname: o.FirstName[0],
-			lastname: o.Name[0],
 			btp_id: o.ID[0],
 		};
+		if (o.FirstName) {
+			res.firstname = o.FirstName[0];
+			res.lastname = o.Name[0];
+			res.name = res.firstname + ' ' + res.lastname;
+		} else {
+			const m = /^(\S+)\s(.*)$/.exec(o.Name[0] || '');
+			if (m) {
+				res.firstname = m[1];
+				res.lastname = m[2];
+				res.name = res.oName[0];
+			} else {
+				res.firstname = o.Name[0];
+				res.lastname = '';
+				res.name = o.Name[0];
+			}
+		}
+
 		if (o.Country && o.Country[0]) {
 			res.nationality = o.Country[0];
 		}
-		res.name = res.firstname + ' ' + res.lastname;
 		return res;
 	});
 }
