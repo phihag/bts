@@ -134,7 +134,7 @@ function update_request(match, key_unicode, password, umpire_btp_id, service_jud
 			assert(btp_m_id.draw !== undefined);
 			m.DrawID = btp_m_id.draw;
 
-			assert(btp_m_id.plannig !== undefined);
+			assert(btp_m_id.planning !== undefined);
 			m.PlanningID = btp_m_id.planning;
 		}
 		if (umpire_btp_id) {
