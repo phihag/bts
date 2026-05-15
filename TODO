@@ -1,15 +1,14 @@
-flag for match not found
-
 correctly transmit resignations
 
 log all changes, write a backup of every finished game
 
-websocket
-websocket-only mode
-
 https
 
 umpire rotation
+
+websocket
+websocket-only mode
+flag for match not found, device
 
 ---------------------------
 
