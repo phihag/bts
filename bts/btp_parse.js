@@ -236,8 +236,11 @@ function get_btp_state(response) {
 // Parse umpires into our standard format
 function parse_umpires(response) {
 	const btp_t = response.Result[0].Tournament[0];
-	if (!btp_t.Officials || !btp_t.Officials[0] || !btp_t.Officials[0].Official) return [];
-	return btp_t.Officials[0].Official.map(o => {
+	if (!btp_t.Officials || !btp_t.Officials[0]) return [];
+	const officials = btp_t.Officials[0].Official;
+	if (!officials) return [];
+
+	return officials.map(o => {
 		const res = {
 			btp_id: o.ID[0],
 		};
@@ -250,7 +253,7 @@ function parse_umpires(response) {
 			if (m) {
 				res.firstname = m[1];
 				res.lastname = m[2];
-				res.name = res.oName[0];
+				res.name = o.Name[0];
 			} else {
 				res.firstname = o.Name[0];
 				res.lastname = '';

@@ -5,8 +5,7 @@ const fs = require('fs');
 const path = require('path');
 
 const btp_parse = require('../bts/btp_parse');
-
-
+const {assert_snapshot} = require('./tutils.js');
 
 describe('btp_parse', () => {
 	it('DMO35 2017 finals', async() => {
@@ -135,4 +134,14 @@ describe('btp_parse', () => {
 		const matches = bs.matches;
 		assert.equal(matches.length, 256)
 	});
+
+	it('umpire parsing DMO35', async() => {
+		const test_file = path.join(__dirname, 'testdata', 'umpires-dmo35.json');
+		const contents = await fs.promises.readFile(test_file, 'utf-8');
+		const response = JSON.parse(contents);
+
+		const parsed = btp_parse.parse_umpires(response);
+		assert_snapshot(__dirname, 'parsed_umpires_dmo35', parsed);
+	});
+
 });
