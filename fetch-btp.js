@@ -286,7 +286,7 @@ async function main() {
 			const btp_id = tkey + '_' + discipline_name + '_' + match_num;
 
 			const match = btp_sync.craft_match(
-				tkey, btp_id, pseudo_court_map, event, draw, officials, bm, match_ids_on_court);
+				tkey, btp_id, pseudo_court_map, event, draw, officials, bm, match_ids_on_court, match_types, is_league, btp_state);
 			if (!match) {
 				continue;
 			}
