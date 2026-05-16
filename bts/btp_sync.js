@@ -98,15 +98,16 @@ function craft_match(tkey, btp_id, court_map, event, draw, officials, bm, match_
 		setup.court_id = court_id;
 		setup.now_on_court = match_ids_on_court.has(bm.ID[0]);
 	}
+	// TODO proper umpire parsing here
 	if (bm.Official1ID) {
 		const o = officials.get(bm.Official1ID[0]);
 		assert(o);
-		setup.umpire_name = o.FirstName + ' ' + o.Name;
+		setup.umpire_name = o.FirstName ? o.FirstName + ' ' + o.Name : o.Name;
 	}
 	if (bm.Official2ID) {
 		const o = officials.get(bm.Official2ID[0]);
 		assert(o);
-		setup.service_judge_name = o.FirstName + ' ' + o.Name;
+		setup.service_judge_name = o.FirstName ? o.FirstName + ' ' + o.Name : o.Name;
 	}
 
 	const btp_data = {
@@ -370,6 +371,7 @@ function integrate_umpires(app, tournament_key, btp_state, callback) {
 	var changed = false;
 
 	async.each(officials, (o, cb) => {
+		// TODO use parse_umpire
 		const name = (o.FirstName ? (o.FirstName[0] + ' ') : '') + ((o.Name && o.Name[0]) ? o.Name[0] : '');
 		if (!name) {
 			return cb();
@@ -387,7 +389,6 @@ function integrate_umpires(app, tournament_key, btp_state, callback) {
 					return;
 				}
 			}
-
 			const u = {
 				_id: tournament_key + '_btp_' + btp_id,
 				btp_id,
