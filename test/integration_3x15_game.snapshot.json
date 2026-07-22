@@ -1,0 +1,52 @@
+{
+  "status": "ok",
+  "event": {
+    "id": "bts_itest",
+    "tournament_name": "Integration Test",
+    "counting": "3x15",
+    "tournament_logo_background_color": "#000000",
+    "tournament_logo_foreground_color": "#aaaaaa",
+    "matches": [
+      {
+        "setup": {
+          "court_id": "court1",
+          "match_name": "HE",
+          "is_doubles": false,
+          "now_on_court": true,
+          "teams": [
+            {
+              "players": [
+                {
+                  "name": "Lin Dan",
+                  "firstname": "Lin",
+                  "lastname": "Dan",
+                  "_guess_info": "bts_western"
+                }
+              ]
+            },
+            {
+              "players": [
+                {
+                  "name": "Lee Chong Wei",
+                  "firstname": "Lee Chong",
+                  "lastname": "Wei",
+                  "_guess_info": "bts_western"
+                }
+              ]
+            }
+          ],
+          "match_id": "bts_match1",
+          "counting": "3x15"
+        },
+        "presses_json": "[]"
+      }
+    ],
+    "courts": [
+      {
+        "court_id": "court1",
+        "label": "1",
+        "match_id": "bts_match1"
+      }
+    ]
+  }
+}
