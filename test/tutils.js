@@ -3,7 +3,13 @@
 const fs = require('fs');
 const assert = require('assert').strict;
 const path = require('path');
+const {promisify} = require('util');
 const {deep_equal} = require('../static/bup/dev/js/utils.js');
+
+
+// Invoke a callback-style http_api handler and return the JSON reply it sends.
+const call_handler = promisify((handler, req, cb) =>
+	handler(req, {json: (reply) => cb(null, reply)}));
 
 
 async function assert_snapshot(dirname, test_name, actual) {
@@ -28,4 +34,5 @@ async function assert_snapshot(dirname, test_name, actual) {
 
 module.exports = {
 	assert_snapshot,
+	call_handler,
 };

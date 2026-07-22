@@ -92,6 +92,9 @@ function create_event_representation(tournament) {
 		id: 'bts_' + tournament.key,
 		tournament_name: tournament.name,
 	};
+	if (tournament.counting) {
+		res.counting = tournament.counting;
+	}
 	if (tournament.logo_id) {
 		res.tournament_logo_url = `/h/${encodeURIComponent(tournament.key)}/logo/${tournament.logo_id}`;
 	}

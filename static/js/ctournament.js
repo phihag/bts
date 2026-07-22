@@ -368,6 +368,7 @@ function ui_edit() {
 	});
 	const ALL_COUNTING_OPTIONS = [
 		'3x21',
+		'3x15',
 		'5x11_15',
 		'5x11_15^90',
 		'5x11_15~NLA',
