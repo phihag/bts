@@ -8,7 +8,7 @@
 	},
 	"dependencies": {
 		"argparse": "^1.0.10",
-		"async": "*",
+		"async": "3.2.2",
 		"body-parser": "*",
 		"express": "*",
 		"extract-zip": "*",
