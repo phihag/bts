@@ -20,6 +20,17 @@ const tupdate = require('./tupdate');
 const tweb = require('./tweb');
 
 function read_config(callback, autocreate) {
+	const env_config_json = process.env.BTS_TICKER_CONFIG_JSON;
+	if (env_config_json) {
+		let config;
+		try {
+			config = JSON.parse(env_config_json);
+		} catch (e) {
+			return callback(new Error('Invalid JSON in BTS_TICKER_CONFIG_JSON: ' + e.message));
+		}
+		return callback(null, config);
+	}
+
 	fs.readFile('ticker_config.json', 'utf8', (err, config_json) => {
 		if (autocreate && err && (err.code === 'ENOENT')) {
 			fs.readFile('ticker_config.json.default', 'utf8', (err, config_json) => {
