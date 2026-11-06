@@ -2,3 +2,6 @@ static/bup/*
 data
 node_modules
 .git/
+
+ticker_config.json
+ticker_data

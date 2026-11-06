@@ -1,0 +1,21 @@
+# Run like:
+# docker build -f Dockerfile.ticker -t bts-ticker .
+# docker rm -f bts-ticker
+# docker run -d --name bts-ticker --restart=always -p 4001:4001 -e BTS_TICKER_CONFIG_JSON="$(cat ticker_config.json)" bts-ticker
+
+FROM alpine:3.17
+
+RUN apk add make git nodejs npm
+WORKDIR /bts
+ADD package.json package-lock.json ./
+RUN npm ci
+
+ADD . .
+RUN make bupdate
+RUN make install-bup-dev
+
+# Full ticker configuration as JSON. If empty, ticker_config.json is used.
+ENV BTS_TICKER_CONFIG_JSON=""
+
+EXPOSE 4001
+CMD make ticker-run
